@@ -1,0 +1,47 @@
+
+# turn of globbing so we can do things like select *
+set -f
+
+HIVE_ADDRESS=10.196.47.205
+HIVE_PORT=10000
+HIVE=/usr/bin/hive
+
+function hive_expr() {
+    echo `$HIVE --service beeline -u jdbc:hive2://$HIVE_ADDRESS:$HIVE_PORT -n hive -d org.apache.hive.jdbc.HiveDriver -e "$1" 2>&1`
+}  
+function hive_expr_here() {
+    echo "executing '$1'"
+    echo `$HIVE --service beeline -u jdbc:hive2://$HIVE_ADDRESS:$HIVE_PORT -n hive -d org.apache.hive.jdbc.HiveDriver 2>&1<<EXPR
+    !outputformat csv
+    $1
+EXPR`
+}  
+
+function run_hive_expression_bool() {
+    $HIVE --service beeline -u jdbc:hive2://$HIVE_ADDRESS:$HIVE_PORT -n hive -d org.apache.hive.jdbc.HiveDriver -e "$1" 2>&1 | grep -i fail > /dev/null
+}  
+
+echo "running '$1':"
+#xxx=`$HIVE --service beeline -u jdbc:hive2://$HIVE_ADDRESS:$HIVE_PORT -n hive -d org.apache.hive.jdbc.HiveDriver -e "$1" 2>&1`
+
+#results=$(hive_expr_here "$1")
+results=$(hive_expr "$1")
+echo these are results
+echo $results
+
+## jos - for some reason all the \r\n chars are removed when we use the function
+#results=$(hive_expr "$1")
+
+
+
+## test junk
+#echo return value for 'show tables;' is $?
+#echo hello 2!
+#$(run_hive_expression_bool "show snarg;")
+#echo return value for 'show snarg;' is $?
+
+#mytables=$(run_hive_expression "show tables;")
+#echo "My tables are:"
+#echo $mytables
+
+#/usr/bin/hive --service beeline -u jdbc:hive2://10.196.47.205:10000 -n hive -d org.apache.hive.jdbc.HiveDriver -e "$1" 2>&1
