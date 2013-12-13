@@ -1,5 +1,7 @@
 #! /bin/sh
 
+# Get statistics on files of different types from HIVE
+
 export TZ=America/Los_Angeles
 
 timestamp=$(date +'%s')
