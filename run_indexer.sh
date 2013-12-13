@@ -1,4 +1,7 @@
 #! /bin/sh
+
+# pipeline Automation script
+
 export TZ=America/Los_Angeles
 timestamp=$(date +'%s')
 datestamp=$(date +'%m/%d/%y %r')
