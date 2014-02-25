@@ -57,20 +57,20 @@ DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 
-# batchpostfix=$(date +'%m%d%y%H%M%S')
+#BATCHID=strftime("%d%m%Y%H%M%S", gmtime())
+#bad - does not exist in any logs
+#BATCHID = "061918020232"
+#old - missing pipeline logs but not indexer
+#BATCHID="021914020236"
+#good
+#BATCHID="022114020236"
+
 
 
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 TOKEN_URL="%s/auth/token/" % (HOST)
 
 
-#BATCHID=strftime("%d%m%Y%H%M%S", gmtime())
-#bad - does not exist in any logs
-#BATCHID="061914020232"
-#old - missing pipeline logs but not indexer
-#BATCHID="021914020236"
-#good
-#BATCHID="022114020236"
 
 BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
@@ -158,8 +158,7 @@ FILES = os.listdir(DIR)
 # print (FILES)
 # print ('Processing files in: ', DIR);
 
-print ("Uploading ...")
-print (" ")
+print ("\nUploading ...\n")
 
 # if (NUMBEROFDOCUMENTS > 0):
 # elif:
@@ -233,10 +232,10 @@ for FILE in FILES:
 
 
 # print (MANIFEST_FILE)
-print (" ")	
-print ("TOTAL NUMBER OF DOCUMENTS UPLOADED: %s" % (DOCUMENTCOUNTER));
-print (" ")
-print ("Closing Batch ...")
+	
+print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
+
+print ("Closing Batch ...\n")
 import cStringIO
 import pycurl
 CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, DRBATCH);
@@ -250,28 +249,29 @@ c.setopt(c.DEBUGFUNCTION, test)
 c.perform()
 objc=json.loads(bufc.getvalue())
 # print (objc)
-print (" ")
-print ("Batch Closed, Upload Completed ...")
+print ("Batch Closed, Upload Completed ...\n")
 # ========================================================== Transmitting Manifest File ======================================================================================
-print (" ")
-print ("Transmitting Manifest File ...")
-print (" ")
-import cStringIO
-import pycurl
-MANIFEST_URL="%s/receiver/batch/%s/manifest/%s/upload" % (HOST, DRBATCH, MANIFEST_FILENAME)
-bufm = io.BytesIO()
-response = cStringIO.StringIO()
-c = pycurl.Curl()
-c.setopt(c.URL, MANIFEST_URL)
-c.setopt(c.CUSTOMREQUEST, "PUT")
-c.setopt(c.HTTPPOST, [("token", str(TOKEN)), ("file", (c.FORM_CONTENTS, str(MANIFEST_FILE)))])
-c.setopt(c.WRITEFUNCTION, bufm.write)
-c.setopt(c.DEBUGFUNCTION, test)
-c.perform()
-# objm=json.loads(bufm.getvalue())
-# print (" ")
-print ("Manifest file transmitted ...")
-print (" ")
+
+# Currently this is only working on Staging
+if ENVIRONMENT == "Staging":
+	print ("Transmitting Manifest File ...\n")
+
+	import cStringIO
+	import pycurl
+	MANIFEST_URL="%s/receiver/batch/%s/manifest/%s/upload" % (HOST, DRBATCH, MANIFEST_FILENAME)
+	bufm = io.BytesIO()
+	response = cStringIO.StringIO()
+	c = pycurl.Curl()
+	c.setopt(c.URL, MANIFEST_URL)
+	c.setopt(c.CUSTOMREQUEST, "PUT")
+	c.setopt(c.HTTPPOST, [("token", str(TOKEN)), ("file", (c.FORM_CONTENTS, str(MANIFEST_FILE)))])
+	c.setopt(c.WRITEFUNCTION, bufm.write)
+	c.setopt(c.DEBUGFUNCTION, test)
+	c.perform()
+	# objm=json.loads(bufm.getvalue())
+	# print (" ")
+	print ("Manifest file transmitted ...\n")
+
 
 # =========================================================================================================================================================================
 
@@ -293,7 +293,7 @@ print (" ")
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 200
+PAUSE_LIMIT = 60
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
@@ -337,8 +337,8 @@ RECEIVERS="ishekhtman@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-# To: Engineering <eng@apixio.com>
-To: Igor <ishekhtman@apixio.com>
+To: Engineering <eng@apixio.com>
+# To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Pipeline QA Report Staging batchID %s - %s
@@ -389,8 +389,10 @@ cur = conn.cursor()
 # time.sleep(15)
 
 
-
-# BATCH="190_SanityTestStaging_022214020236"
+# for testing purposes this is a non-existing batch
+# BATCH="190_SanityTestStaging_022220020236"
+print (BATCH)
+# time.sleep(3)
 
 # print ("Good Batch - 190_SanityTestStaging_022214020236")
 # print (" ")
@@ -420,7 +422,7 @@ if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
 	for i in cur.fetch():
-		ROW=ROW+1
+		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td></tr>"
 	if (ROW == 0):
@@ -618,7 +620,8 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['1', ' ', 'error']		
+		print ("QUERY 7 FAILED")
+		COMPONENT_STATUS="FAILED"				
 	REPORT = REPORT+"</table><br>"
 
 
@@ -681,8 +684,8 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
 		TAGED_TO_PERSIST = int(i[0])
-		print TAGED_TO_PERSIST
-		print TAGED_TO_PERSIST + TAGED_TO_OCR
+		# print TAGED_TO_PERSIST
+		# print TAGED_TO_PERSIST + TAGED_TO_OCR
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -779,7 +782,8 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0', 'success']
+		COMPONENT_STATUS="FAILED"
+		print ("QUERY 12 FAILED")
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTS_TO_OCR:
 		COMPONENT_STATUS="FAILED"
@@ -809,7 +813,7 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
-		print ("QUERY 12 FAILED")
+		print ("QUERY 13 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
