@@ -20,7 +20,6 @@ os.system('clear')
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
 
-
 TEST_TYPE="SanityTest"
 
 # Environment for SanityTest is passed as a paramater. Assign Staging if none or wrong is passed
@@ -78,11 +77,12 @@ DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 MANIFEST_FILENAME=BATCH+"_manifest.txt"
 
 DOCUMENTCOUNTER=0
-DOCUMENTCOUNTER1=0
-DOCUMENTCOUNTER2=0
 NUMBEROFDOCUMENTS=0
 
 DOCUMENTS_TRANSMITTED=20
+DOCUMENTS_TO_OCR=0
+DOCUMENTS_TO_PERSIST=0
+
 MANIFEST_FILE=""
 
 # =================================================================================================================
@@ -293,9 +293,12 @@ print (" ")
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-# wait for 5 minutes - 60x6=300
-time.sleep(300)
-# time.sleep(15)
+PAUSE_LIMIT = 200
+
+# wait for PAUSE_LIMIT seconds
+print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
+time.sleep(PAUSE_LIMIT)
+
 
 # =========================================================================================================================================================================
 
@@ -334,7 +337,8 @@ RECEIVERS="ishekhtman@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-To: Engineering <eng@apixio.com>
+# To: Engineering <eng@apixio.com>
+To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Pipeline QA Report Staging batchID %s - %s
@@ -393,6 +397,9 @@ cur = conn.cursor()
 # print ("Batch - %s") % BATCH
 # time.sleep(15)
 
+# This should fail all scripts. Used for testing purposes only
+# DOCUMENTCOUNTER = 21
+
 
 print ("Assigning queue name to hive ...")
 cur.execute("""SET mapred.job.queue.name=hive""")
@@ -421,6 +428,7 @@ if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTCOUNTER:
+		print ("QUERY 1 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -439,12 +447,16 @@ if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		if (str(i[0]).upper() == "PDF"):
+			DOCUMENTS_TO_OCR = int(i[1])
+			# print DOCUMENTS_TO_OCR	
 		TOTAL = TOTAL + int(i[1])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if TOTAL < DOCUMENTCOUNTER:
+		print ("QUERY 2 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -483,6 +495,7 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTCOUNTER:
+		print ("QUERY 3 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -509,6 +522,7 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTCOUNTER:
+		print ("QUERY 4 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -534,6 +548,7 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTCOUNTER:
+		print ("QUERY 5 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -560,6 +575,7 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 		i = ['0', '0']
 	REPORT = REPORT+"</table><br>"
 	if int(i[1]) < DOCUMENTCOUNTER:
+		print ("QUERY 6 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -597,12 +613,13 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[2])+"</td></tr>"
+		if (str(i[2]).lower() == 'error'):
+			print ("QUERY 7 FAILED")
+			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['1', ' ', 'error']		
 	REPORT = REPORT+"</table><br>"
-	if (str(i[2]) == 'error') and (int(i[0]) > 0):
-		COMPONENT_STATUS="FAILED"
 
 
 if (COMPONENT_STATUS=="PASSED"):
@@ -641,7 +658,8 @@ if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if TAGED_TO_OCR == 0:
+	if TAGED_TO_OCR < DOCUMENTS_TO_OCR:
+		print ("QUERY 8 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -663,11 +681,14 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
 		TAGED_TO_PERSIST = int(i[0])
+		print TAGED_TO_PERSIST
+		print TAGED_TO_PERSIST + TAGED_TO_OCR
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
+		print ("QUERY 9 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -692,7 +713,8 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if (int(i[0]) < DOCUMENTS_TRANSMITTED) and (str(i[1]) == "success") :
+	if int(i[0]) < DOCUMENTS_TRANSMITTED:
+		print ("QUERY 10 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -716,10 +738,13 @@ if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		COMPONENT_STATUS="PASSED"
+		# COMPONENT_STATUS="PASSED"
 	else:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
+	if ROW > 0:
+		print ("QUERY 11 FAILED")
+		COMPONENT_STATUS="FAILED"
 
 
 
@@ -756,7 +781,7 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < TAGED_TO_OCR:
+	if int(i[0]) < DOCUMENTS_TO_OCR:
 		COMPONENT_STATUS="FAILED"
 
 
@@ -779,10 +804,14 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		COMPONENT_STATUS="PASSED"
+		# COMPONENT_STATUS="PASSED"
 	else:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
+	if ROW > 0:
+		print ("QUERY 12 FAILED")
+		COMPONENT_STATUS="FAILED"
+
 
 
 
@@ -820,6 +849,7 @@ if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < DOCUMENTCOUNTER:
+		print ("QUERY 14 FAILED")
 		COMPONENT_STATUS="FAILED"
 
 
@@ -843,10 +873,14 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		COMPONENT_STATUS="PASSED"
+		# COMPONENT_STATUS="PASSED"
 	else:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
+	if ROW > 0:
+		print ("QUERY 15 FAILED")
+		COMPONENT_STATUS="FAILED"
+
 
 
 
