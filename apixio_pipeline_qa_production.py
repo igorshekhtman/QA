@@ -54,6 +54,7 @@ if ENVIRONMENT == "Production":
 ENVIRONMENT = "Production"
 LOGTYPE = "epoch"
 
+print ("Version 1.0.0")
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("LOGTYPE = %s") % LOGTYPE
 
