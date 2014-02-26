@@ -22,6 +22,7 @@ os.system('clear')
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
 
 TEST_TYPE="SanityTest"
+REPORT_TYPE="Daily engineering QA"
 
 # Environment for SanityTest is passed as a paramater. Assign Staging if none or wrong is passed
 if len(sys.argv) < 2:
@@ -54,6 +55,7 @@ ENVIRONMENT = "Production"
 LOGTYPE = "epoch"
 
 print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("LOGTYPE = %s") % LOGTYPE
 
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
@@ -73,8 +75,8 @@ DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
 
-print (CURDAY)
-print (CURMONTH)
+print ("CURDAY = %s") % CURDAY
+print ("CURMONTH = %s") % CURMONTH
 
 
 BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
@@ -98,6 +100,10 @@ COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
 PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
 OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
 PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
+
+ORGID="N/A"
+BATCHID="N/A"
+USERNAME="N/A"
 
 
 #======== obtain day and month for previous from current day and month ===========================================
@@ -126,33 +132,20 @@ for C in range(0, DAYSBACK):
 
 DAY=CURDAY
 MONTH=CURMONTH
-print ("Day: %s") % DAY
-print ("Month: %s") % MONTH
-time.sleep(5)
+print ("DAY: %s") % DAY
+print ("MONTH: %s") % MONTH
+print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("CUR_TIME = %s") % CUR_TIME
+time.sleep(3)
 
 
 def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
 
-print ("ORGID = %s") % ORGID
-print ("TEST_TYPE = %s") % TEST_TYPE
-print ("ENVIRONMANT = %s") % ENVIRONMENT
-print ("BATCHID = %s") % BATCHID
-print ("CUR_TIME = %s") % CUR_TIME
-print ("")
-print ("BATCH = %s") % BATCH
-print ("")
-print ("USERNAME = %s") % USERNAME
-print ("PASSWORD = %s") % PASSWORD
-print ("HOST = %s") % HOST
-print ("DIR = %s") % DIR
-
-time.sleep(3)
-
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY =========================================================================
 
-QUERY_NUMBER=3
+QUERY_NUMBER=7
 PROCESS_ALL_QUERIES=bool(1)
 
 #=================================================================================================================================
@@ -162,24 +155,26 @@ PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='
 FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 
+SENDER="donotreply@apixio.com"
+RECEIVERS="ishekhtman@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-# TO: Engineering <ishekhtman@apixio.com,alarocca@apixio.com,aaitken@apixio.com,jschneider@apixio.com,nkrishna@apixio.com,lschneider@apixio.com>
-To: Engineering <eng@apixio.com>
+Engineering <ishekhtman@apixio.com,alarocca@apixio.com,aaitken@apixio.com,jschneider@apixio.com,nkrishna@apixio.com,lschneider@apixio.com>
+# To: Engineering <eng@apixio.com>
 # To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
-Subject: Daily Pipeline QA Report %s - %s
+Subject: Daily %s Pipeline QA Report - %s
 
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time: <b>%s</b><br>
-Test type: <b>%s</b><br>
+Report type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -190,24 +185,6 @@ conn = pyhs2.connect(host='10.196.47.205',
                    database='default')
 
 cur = conn.cursor()
-
-
-
-# time.sleep(15)
-
-
-# for testing purposes this is a non-existing batch
-# BATCH="190_SanityTestStaging_022220020236"
-print (BATCH)
-# time.sleep(3)
-
-# print ("Good Batch - 190_SanityTestStaging_022214020236")
-# print (" ")
-# print ("Batch - %s") % BATCH
-# time.sleep(15)
-
-# This should fail all scripts. Used for testing purposes only
-# DOCUMENTCOUNTER = 21
 
 
 print ("Assigning queue name to hive ...")
@@ -308,16 +285,19 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 
 
 if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of seq. files and individual documents sent to redis"
+	QUERY_DESC="Number of seq. files and individual documents sent to redis per Org"
 	print ("Running DOC-RECEIVER query #6 - retrieve %s ...") % (QUERY_DESC)
 
-	cur.execute("""SELECT get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
-		get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
-		get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
+	cur.execute("""SELECT get_json_object(line, '$.submit.post.orgid') as orgid, \
+		get_json_object(line, '$.submit.post.queue.name') as redis_queue_name, \
+		count(get_json_object(line, '$.submit.post.numfiles')) as seq_files_sent_to_redis, \
+		count(get_json_object(line, '$.submit.post.apxfiles.count')) as ind_files \
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
+		get_json_object(line, '$.submit.post.status') = "success" and \
 		day=%s and month=%s \
-		get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.submit.post.orgid'), get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -325,12 +305,15 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[3])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0', '0']
+		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[1]) < DOCUMENTCOUNTER:
+	if int(i[3]) < DOCUMENTCOUNTER:
 		print ("QUERY 6 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -359,10 +342,10 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.job.status') as status \
 		FROM %s \
 		WHERE \
-		day=%s and month=%s \
+		day='%s' and month='%s' and \
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' \
-		GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" %(COORDINATORLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -379,6 +362,40 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 		print ("QUERY 7 FAILED")
 		COMPONENT_STATUS="FAILED"				
 	REPORT = REPORT+"</table><br>"
+
+
+if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
+	QUERY_DESC="Failed job types by coordinator per org"
+	print ("Running COORDINATOR query #17 - retrieve %s ...") % (QUERY_DESC)
+
+	cur.execute("""SELECT get_json_object(line, '$.coordinator.job.jobType') as job_type, \
+		get_json_object(line, '$.coordinator.job.hadoopJobID') as hadoop_Job_ID, \
+		get_json_object(line, '$.coordinator.job.context.organization') as organization, \
+		get_json_object(line, '$.datestamp') as date_and_time \
+		FROM %s \
+		WHERE \
+		get_json_object(line, '$.level') = 'EVENT' and \
+		get_json_object(line, '$.coordinator.job.status') = 'error' and \
+		day=%s and month=%s \
+		ORDER BY job_type ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[3])+"</td></tr>"
+	REPORT = REPORT+"</table><br>"
+	if ROW > 0:
+		print ("QUERY 17 FAILED")
+		COMPONENT_STATUS="FAILED"			
+	
+
+
 
 
 if (COMPONENT_STATUS=="PASSED"):
@@ -556,16 +573,21 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 
 
 if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of OCR errors and specific error messages"
+	QUERY_DESC="Number of OCR errors and specific error messages per org"
 	print ("Running PERSIST query #13 - retrieve %s ...") % (QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.error.message') as ocr_error_message, \
+		get_json_object(line, '$.orgId') as org_id, \
 		get_json_object(line, '$.className') as class_name, \
-		get_json_object(line, '$.file.bytes') as file_size_bytes \
+		COUNT (*) as error_count \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		day=%s and month=%s""" %(OCRLOGFILE, DAY, MONTH))
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), \
+		get_json_object(line, '$.orgId'), \
+		get_json_object(line, '$.className')""" %(OCRLOGFILE, DAY, MONTH))
+
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -573,7 +595,10 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[3])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -627,18 +652,22 @@ if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 
 
-
 if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of Persist errors and specific error messages"
+	QUERY_DESC="Persist errors and specific error messages per org per class_name"
 	print ("Running PERSIST query #15 - retrieve %s ...") % (QUERY_DESC)
 
-	cur.execute("""SELECT get_json_object(line, '$.error.message') as persist_error_message, \
-		get_json_object(line, '$.className') as class_name, \
-		get_json_object(line, '$.file.bytes') as file_size_bytes \
+	cur.execute("""SELECT COUNT (*) as error_count, \
+		get_json_object(line, '$.error.message') as persist_error_message, \
+		get_json_object(line, '$.orgId') as org_id, \
+		get_json_object(line, '$.columnFamily') as column_family, \
+		get_json_object(line, '$.className') as class_name \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		day=%s and month=%s""" %(PERSISTLOGFILE, DAY, MONTH))
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), get_json_object(line, '$.orgId'), \
+		get_json_object(line, '$.columnFamily'), \
+		get_json_object(line, '$.className')""" %(PERSISTLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -646,7 +675,11 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td align='center'>"+str(i[4])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -656,7 +689,6 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 	if ROW > 0:
 		print ("QUERY 15 FAILED")
 		COMPONENT_STATUS="FAILED"
-
 
 
 
@@ -675,15 +707,13 @@ conn.close()
 # ===================================================================================================================================
 
 
-REPORT=REPORT+"<table><tr><td><br>End of %s - %s QA report<br><br></td></tr>" % (BATCH, CUR_TIME)
+REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 
-# CONTENT="Subject: %s<br><br>%s" % (SUBJECT, REPORT)
 s=smtplib.SMTP()
 s.connect("smtp.gmail.com",587)
 s.starttls()
-s.login("donotreply@apixio.com", "apx.mail47")
-# s.sendmail(SENDER, RECEIVERS, CONTENT)	        
+s.login("donotreply@apixio.com", "apx.mail47")	        
 s.sendmail(SENDER, RECEIVERS, REPORT)	
 print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
