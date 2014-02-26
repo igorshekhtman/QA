@@ -341,7 +341,7 @@ To: Engineering <eng@apixio.com>
 # To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
-Subject: Pipeline QA Report %s batchID %s - %s
+Subject: Pipeline QA Report Staging batchID %s - %s
 
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time: <b>%s</b><br>
@@ -350,7 +350,7 @@ Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
