@@ -157,12 +157,13 @@ FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 
 SENDER="donotreply@apixio.com"
-RECEIVERS="ishekhtman@apixio.com"
+# RECEIVERS="ishekhtman@apixio.com"
+RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-TO: Engineering <ishekhtman@apixio.com,alarocca@apixio.com,aaitken@apixio.com,jschneider@apixio.com,nkrishna@apixio.com,lschneider@apixio.com>
-# To: Engineering <eng@apixio.com>
+# TO: Engineering <ishekhtman@apixio.com,alarocca@apixio.com,aaitken@apixio.com,jschneider@apixio.com,nkrishna@apixio.com,lschneider@apixio.com>
+To: Engineering <eng@apixio.com>
 # To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
