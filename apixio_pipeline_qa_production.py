@@ -137,7 +137,59 @@ print ("DAY: %s") % DAY
 print ("MONTH: %s") % MONTH
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("CUR_TIME = %s") % CUR_TIME
-time.sleep(3)
+#time.sleep(3)
+
+#===================== ORGID - ORGNAME MAP ========================================================================
+# ORGID="10000247"
+
+ORGMAP = { \
+	"10000230":"Sutter Health", \
+	"10000232":"MMG", \
+	"10000235":"GWU", \
+	"10000236":"PMGV", \
+	"10000237":"PHP", \
+	"10000246":"CCHCA", \
+	"10000247":"EHR Integration Services", \
+	"10000248":"Apixio", \
+	"10000249":"Apixio", \
+	"10000250":"onlok", \
+	"10000251":"PipelineTest3", \
+	"10000252":"PipelineTest4", \
+	"10000253":"RPN", \
+	"10000254":"Pipeline Test5", \
+	"10000255":"Pipeline Test6", \
+	"10000256":"Apixio Pipeline Test 7", \
+	"10000257":"Apixio Pipeline Test 8", \
+	"10000259":"Monarch", \
+	"10000260":"New Temple", \
+	"10000261":"org1", \
+	"10000262":"United Health Services", \
+	"10000263":"CCHCA", \
+	"10000264":"HCC Optimizer Demo", \
+	"10000265":"Prosper Care Health", \
+	"10000268":"Apixio", \
+	"10000270":"Monarch", \
+	"10000271":"org0001", \
+	"10000272":"org0002", \
+	"10000275":"org0005", \
+	"10000278":"Hill Physicians", \
+	"10000279":"org0138", \
+	"10000280":"Prosper Care Health", \
+	"10000281":"Prosperity Health Care", \
+	"10000282":"Apixio Coder Training", \
+	"10000283":"RMC [Test]", \
+	"10000284":"RMC", \
+	"10000285":"Scripps [Test]", \
+	"10000286":"Scripps", \
+	"10000288":"UHS", \
+}
+
+# print ORGMAP[ORGID]
+#===================================================================================================================
+
+#ORGID="10000246"
+#print orgmap(ORGID)
+#time.sleep(30)
 
 
 def test(debug_type, debug_msg):
@@ -313,17 +365,18 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[3])+"</td></tr>"
+		REPORT = REPORT+"<tr><td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[0])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[3]) < DOCUMENTCOUNTER:
-		print ("QUERY 6 FAILED")
-		COMPONENT_STATUS="FAILED"
+	#if int(i[3]) < DOCUMENTCOUNTER:
+		#print ("QUERY 6 FAILED")
+		#COMPONENT_STATUS="FAILED"
 
 
 
@@ -396,7 +449,8 @@ if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY 17 FAILED")
@@ -606,7 +660,8 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[3])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[2])+"</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -686,9 +741,9 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[4])+"</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[4])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -719,6 +774,7 @@ if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[0])]+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
