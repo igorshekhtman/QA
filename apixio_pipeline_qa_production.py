@@ -144,27 +144,29 @@ def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
 
 
-#================ CONTROLS TO WORK ON ONE SPECIFIC QUERY =========================================================================
+#================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QUERY_NUMBER=7
+QUERY_NUMBER=18
 PROCESS_ALL_QUERIES=bool(1)
 
-#=================================================================================================================================
+#========================================================================================================================================================
 
 
 PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 
+# =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
+
 SENDER="donotreply@apixio.com"
-# RECEIVERS="ishekhtman@apixio.com"
-RECEIVERS="eng@apixio.com"
+RECEIVERS="ishekhtman@apixio.com"
+# RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-# TO: Engineering <ishekhtman@apixio.com,alarocca@apixio.com,aaitken@apixio.com,jschneider@apixio.com,nkrishna@apixio.com,lschneider@apixio.com>
-To: Engineering <eng@apixio.com>
-# To: Igor <ishekhtman@apixio.com>
+# TO: Engineering <ishekhtman@apixio.com, alarocca@apixio.com, aaitken@apixio.com, jschneider@apixio.com, nkrishna@apixio.com, lschneider@apixio.com>
+# To: Engineering <eng@apixio.com>
+To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
@@ -208,6 +210,7 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
+		get_json_object(line, '$.upload.document.docid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.upload.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
@@ -219,6 +222,7 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		UPLOADED_DR=int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -238,6 +242,7 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
+		get_json_object(line, '$.archive.afs.docid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.archive.afs.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
@@ -252,7 +257,7 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTCOUNTER:
+	if int(i[0]) < UPLOADED_DR:
 		print ("QUERY 4 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -266,6 +271,7 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
+		get_json_object(line, '$.seqfile.file.document.docid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
@@ -280,7 +286,7 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTCOUNTER:
+	if int(i[0]) < UPLOADED_DR:
 		print ("QUERY 5 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -463,15 +469,13 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
 		TAGED_TO_PERSIST = int(i[0])
-		# print TAGED_TO_PERSIST
-		# print TAGED_TO_PERSIST + TAGED_TO_OCR
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
-		print ("QUERY 9 FAILED")
-		COMPONENT_STATUS="FAILED"
+	# if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
+		# print ("QUERY 9 FAILED")
+		# COMPONENT_STATUS="FAILED"
 
 
 
@@ -483,6 +487,7 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.status')""" %(PARSERLOGFILE, DAY, MONTH))
 
@@ -497,7 +502,7 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTS_TRANSMITTED:
+	if int(i[0]) < (TAGED_TO_OCR + TAGED_TO_PERSIST):
 		print ("QUERY 10 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -555,6 +560,7 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.status')""" %(OCRLOGFILE, DAY, MONTH))
 
@@ -597,10 +603,10 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='center'>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td align='center'>"+str(i[3])+"</td></tr>"
+			<td align='center'>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -635,6 +641,7 @@ if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.status')""" %(PERSISTLOGFILE, DAY, MONTH))
 
@@ -691,6 +698,39 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 	if ROW > 0:
 		print ("QUERY 15 FAILED")
 		COMPONENT_STATUS="FAILED"
+
+
+if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
+	QUERY_DESC="Persist autocorrections with org uuid and info"
+	print ("Running PERSIST query #18 - retrieve %s ...") % (QUERY_DESC)
+
+	cur.execute("""SELECT get_json_object(line, '$.orgId') as org, \
+		get_json_object(line, '$.patient.uuid') as uuid, \
+		get_json_object(line, '$.patient.info') as info \
+		FROM %s \
+		WHERE 
+		get_json_object(line, '$.autocorrection') = 'true' and
+		day=%s and month=%s""" % (PERSISTLOGFILE, DAY, MONTH))
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
+		# COMPONENT_STATUS="PASSED"
+	#else:
+		#COMPONENT_STATUS="FAILED"
+	REPORT = REPORT+"</table><br>"
+	#if ROW > 0:
+		#print ("QUERY 18 FAILED")
+		#COMPONENT_STATUS="FAILED"
+
 
 
 
