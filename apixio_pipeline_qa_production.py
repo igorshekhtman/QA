@@ -193,12 +193,20 @@ ORGMAP = { \
 
 
 def test(debug_type, debug_msg):
-    print "debug(%d): %s" % (debug_type, debug_msg)
+	print "debug(%d): %s" % (debug_type, debug_msg)
+
+def componentFooter():
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+		COMPONENT_STATUS="PASSED"
+	REPORT = REPORT+"<br><br>"
 
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QUERY_NUMBER=8
+QNTORUN=14
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -211,14 +219,14 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 # =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
 
 SENDER="donotreply@apixio.com"
-# RECEIVERS="ishekhtman@apixio.com"
-RECEIVERS="eng@apixio.com"
+RECEIVERS="ishekhtman@apixio.com"
+# RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
 # TO: Engineering <ishekhtman@apixio.com, alarocca@apixio.com, aaitken@apixio.com, jschneider@apixio.com, nkrishna@apixio.com, lschneider@apixio.com>
-To: Engineering <eng@apixio.com>
-# To: Igor <ishekhtman@apixio.com>
+# To: Engineering <eng@apixio.com>
+To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
@@ -253,9 +261,12 @@ cur.execute("""SET mapred.job.queue.name=hive""")
 
 REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
 
-if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
+
+
+QN=1
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents uploaded"
-	print ("Running DOC-RECEIVER query #3 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
@@ -287,14 +298,14 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	#if int(i[0]) < DOCUMENTCOUNTER:
-		#print ("QUERY 3 FAILED")
+		#print ("QUERY %s FAILED") % (QN)
 		#COMPONENT_STATUS="FAILED"
 
 
-
-if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
+QN=2
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents archived to S3"
-	print ("Running DOC-RECEIVER query #4 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
 		get_json_object(line, '$.archive.afs.status') as status, \
@@ -325,13 +336,13 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if ARCHTOS3 < UPLOADED_DR:
-		print ("QUERY 4 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
-
-if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
+QN=3
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents added to sequence file(s)"
-	print ("Running DOC-RECEIVER query #5 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
 		get_json_object(line, '$.seqfile.file.document.status') as status, \
@@ -362,14 +373,14 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if ADDTOSF < UPLOADED_DR:
-		print ("QUERY 5 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-
-if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
+QN=4
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of seq. files and individual documents sent to redis per Org"
-	print ("Running DOC-RECEIVER query #6 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.submit.post.orgid') as orgid, \
 		get_json_object(line, '$.submit.post.queue.name') as redis_queue_name, \
@@ -398,28 +409,23 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
 	REPORT = REPORT+"</table><br>"
 	#if int(i[3]) < DOCUMENTCOUNTER:
-		#print ("QUERY 6 FAILED")
+		#print ("QUERY %s FAILED") % (QN)
 		#COMPONENT_STATUS="FAILED"
 
 
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
-REPORT = REPORT+"<br><br>"
+componentFooter()
 
 # ===================================================================================================================================
 # =============================== COORDINATOR related queries =======================================================================
 # ===================================================================================================================================
 
-
 REPORT = REPORT+SUBHDR % "COORDINATOR"
 
-if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
+
+QN=5
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of job types succeeded and/or failed by coordinator"
-	print ("Running COORDINATOR query #7 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
 		get_json_object(line, '$.job.activity') as activity, \
@@ -437,20 +443,23 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[2])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+			<td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td> \
+			<td align='center'>"+str(i[2])+"</td></tr>"
 		if (str(i[2]).lower() == 'error'):
-			print ("QUERY 7 FAILED")
+			print ("QUERY %s FAILED") % (QN)
 			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY 7 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"				
 	REPORT = REPORT+"</table><br>"
 
 
-if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
+QN=6
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Failed job types by coordinator per org"
-	print ("Running COORDINATOR query #17 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.coordinator.job.jobType') as job_type, \
 		get_json_object(line, '$.coordinator.job.hadoopJobID') as hadoop_Job_ID, \
@@ -476,19 +485,11 @@ if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
-		print ("QUERY 17 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"			
 	
 
-
-
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
-REPORT = REPORT+"<br><br>"
+componentFooter()
 
 # ===================================================================================================================================
 # =============================== PARSER related queries ============================================================================
@@ -497,10 +498,10 @@ REPORT = REPORT+"<br><br>"
 REPORT = REPORT+SUBHDR % "PARSER"
 
 
-
-if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
+QN=7
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to OCR"
-	print ("Running PARSER query #8 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR, \
 		get_json_object(line, '$.orgId') as orgid \
@@ -526,14 +527,14 @@ if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	if TAGED_TO_OCR < DOCUMENTS_TO_OCR:
-		print ("QUERY 8 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-
-if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
+QN=8
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to Persist"
-	print ("Running PARSER query #9 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist, \
 		get_json_object(line, '$.orgId') as orgid \
@@ -559,14 +560,14 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
 	# if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
-		# print ("QUERY 9 FAILED")
+		# print ("QUERY %s FAILED") % (QN)
 		# COMPONENT_STATUS="FAILED"
 
 
-
-if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
+QN=9
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs succeeded or failed"
-	print ("Running PARSER query #10 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Parser_distinct_UUIDs, \
 		get_json_object(line, '$.status') as status, \
@@ -593,14 +594,14 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
 	if int(i[0]) < (TAGED_TO_OCR + TAGED_TO_PERSIST):
-		print ("QUERY 10 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-
-if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
+QN=10
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of Parser errors, class-name and specific error messages"
-	print ("Running PARSER query #11 - retrieve %s ...") %  (QUERY_DESC)
+	print ("Running PARSER query #%s - retrieve %s ...") %  (QN, QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.error.message') as parser_error_message, \
 		get_json_object(line, '$.className') as class_name, \
@@ -624,17 +625,11 @@ if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
-		print ("QUERY 11 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
-REPORT = REPORT+"<br><br>"
+componentFooter()
 
 # ===================================================================================================================================
 # =============================== OCR related queries ===============================================================================
@@ -642,17 +637,20 @@ REPORT = REPORT+"<br><br>"
 
 REPORT = REPORT+SUBHDR % "OCR"
 
-if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
+QN=11
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs passed or failed by OCR"
-	print ("Running OCR query #12 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running OCR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  OCR_distinct_UUIDs, \
-		get_json_object(line, '$.status') as status \
+		get_json_object(line, '$.status') as status, \
+		get_json_object(line, '$.orgId') as org_id \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.status')""" %(OCRLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId')""" %(OCRLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -660,20 +658,26 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
-			<td align='left'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td align='left'>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		if str(i[1]) == "error":
+			COMPONENT_STATUS="FAILED"
+			print ("QUERY 12 FAILED")
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
-		print ("QUERY 12 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTS_TO_OCR:
-		COMPONENT_STATUS="FAILED"
+	#if int(i[0]) < DOCUMENTS_TO_OCR:
+		#COMPONENT_STATUS="FAILED"
 
 
-if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
+QN=12
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of OCR errors and specific error messages per org"
-	print ("Running PERSIST query #13 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.error.message') as ocr_error_message, \
 		get_json_object(line, '$.orgId') as org_id, \
@@ -706,18 +710,11 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
-		print ("QUERY 13 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
-REPORT = REPORT+"<br><br>"
+componentFooter()
 
 # ===================================================================================================================================
 # =============================== PERSIST related queries ===========================================================================
@@ -725,17 +722,20 @@ REPORT = REPORT+"<br><br>"
 
 REPORT = REPORT+SUBHDR % "PERSIST"
 
-if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
+QN=13
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs passed or failed to Persist"
-	print ("Running PERSIST query #14 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Persist_distinct_UUIDs, \
-		get_json_object(line, '$.status') as status \
+		get_json_object(line, '$.status') as status, \
+		get_json_object(line, '$.orgId') as org_id \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.status')""" %(PERSISTLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId')""" %(PERSISTLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -743,19 +743,26 @@ if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td align='left'>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		if str(i[1]) == "error":
+			COMPONENT_STATUS="FAILED"
+			print ("QUERY %s FAILED") % (QN)
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTCOUNTER:
-		print ("QUERY 14 FAILED")
-		COMPONENT_STATUS="FAILED"
+	#if int(i[0]) < DOCUMENTCOUNTER:
+		#print ("QUERY %s FAILED") % (QN)
+		#COMPONENT_STATUS="FAILED"
 
 
-if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
+QN=14
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Persist errors and specific error messages per org per class_name"
-	print ("Running PERSIST query #15 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT COUNT (*) as error_count, \
 		get_json_object(line, '$.error.message') as persist_error_message, \
@@ -788,13 +795,14 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
-		print ("QUERY 15 FAILED")
+		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
 
-if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
+QN=15
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Persist autocorrections with org uuid and info"
-	print ("Running PERSIST query #18 - retrieve %s ...") % (QUERY_DESC)
+	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT get_json_object(line, '$.orgId') as org, \
 		get_json_object(line, '$.patient.uuid') as uuid, \
@@ -821,18 +829,11 @@ if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
 		#COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
 	#if ROW > 0:
-		#print ("QUERY 18 FAILED")
+		#print ("QUERY %s FAILED") % (QN)
 		#COMPONENT_STATUS="FAILED"
 
 
-
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
-REPORT = REPORT+"<br><br>"
+componentFooter()
 
 cur.close()
 conn.close()
