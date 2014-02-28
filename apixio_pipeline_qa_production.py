@@ -196,13 +196,6 @@ ORGMAP = { \
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
 
-def componentFooter():
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-	else:
-		REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"
-
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
@@ -293,6 +286,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 		UPLOADED_DR = UPLOADED_DR + int(i[0])
+		if str(i[1]) == "error":
+			print ("QUERY %s FAILED") % (QN)
+			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -331,6 +327,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 		ARCHTOS3 = ARCHTOS3 + int(i[0])
+		if str(i[1]) == "error":
+			print ("QUERY %s FAILED") % (QN)
+			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -368,6 +367,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 		ADDTOSF = ADDTOSF + int(i[0])
+		if str(i[1]) == "error":
+			print ("QUERY %s FAILED") % (QN)
+			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -385,12 +387,13 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT get_json_object(line, '$.submit.post.orgid') as orgid, \
 		get_json_object(line, '$.submit.post.queue.name') as redis_queue_name, \
 		count(get_json_object(line, '$.submit.post.numfiles')) as seq_files_sent_to_redis, \
-		count(get_json_object(line, '$.submit.post.apxfiles.count')) as ind_files \
+		sum(get_json_object(line, '$.submit.post.apxfiles.count')) as ind_files \
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.submit.post.orgid'), get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
+		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -413,7 +416,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		#COMPONENT_STATUS="FAILED"
 
 
-componentFooter()
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
 # =============================== COORDINATOR related queries =======================================================================
@@ -435,7 +442,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		day='%s' and month='%s' and \
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' \
-		GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.job.status'), \
+		get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -489,7 +497,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"			
 	
 
-componentFooter()
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
 # =============================== PARSER related queries ============================================================================
@@ -628,8 +640,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
-
-componentFooter()
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
 # =============================== OCR related queries ===============================================================================
@@ -715,7 +730,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		COMPONENT_STATUS="FAILED"
 
 
-componentFooter()
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
 # =============================== PERSIST related queries ===========================================================================
@@ -835,7 +854,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		#COMPONENT_STATUS="FAILED"
 
 
-componentFooter()
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 cur.close()
 conn.close()
