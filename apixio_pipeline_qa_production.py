@@ -15,6 +15,7 @@ import re
 import smtplib
 import string
 from datetime import datetime
+import datetime as DT
 
 os.system('clear')
 
@@ -134,6 +135,10 @@ for C in range(0, DAYSBACK):
 
 DAY=CURDAY
 MONTH=CURMONTH
+
+# DAY="13"
+# MONTH="2"
+
 print ("DAY: %s") % DAY
 print ("MONTH: %s") % MONTH
 print ("ENVIRONMANT = %s") % ENVIRONMENT
@@ -212,14 +217,14 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 # =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
 
 SENDER="donotreply@apixio.com"
-RECEIVERS="ishekhtman@apixio.com"
-# RECEIVERS="eng@apixio.com"
+# RECEIVERS="ishekhtman@apixio.com"
+RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
 # TO: Engineering <ishekhtman@apixio.com, alarocca@apixio.com, aaitken@apixio.com, jschneider@apixio.com, nkrishna@apixio.com, lschneider@apixio.com>
-# To: Engineering <eng@apixio.com>
-To: Igor <ishekhtman@apixio.com>
+To: Engineering <eng@apixio.com>
+# To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
@@ -281,7 +286,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"</td> \
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
@@ -322,7 +327,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"</td> \
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
@@ -362,7 +367,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"</td> \
 			<td>"+str(i[2])+"</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
@@ -404,7 +409,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+str(int(i[3]))+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[0])]+"</td></tr>"
 	if (ROW == 0):
@@ -486,11 +491,12 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
+		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIME+"&nbsp;&nbsp;</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY %s FAILED") % (QN)
@@ -530,7 +536,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 		TAGED_TO_OCR = TAGED_TO_OCR+int(i[0])
@@ -563,7 +569,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 		TAGED_TO_PERSIST = TAGED_TO_PERSIST+int(i[0])
@@ -597,7 +603,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
@@ -617,7 +623,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT get_json_object(line, '$.error.message') as parser_error_message, \
 		get_json_object(line, '$.className') as class_name, \
-		round((get_json_object(line, '$.file.bytes') / 1024 / 1024),2) as file_size_mb \
+		get_json_object(line, '$.orgId') as orgid, \
+		get_json_object(line, '$.datestamp') as datestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
@@ -629,7 +636,12 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
+		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIME+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -695,17 +707,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of OCR errors and specific error messages per org"
 	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT get_json_object(line, '$.error.message') as ocr_error_message, \
-		get_json_object(line, '$.orgId') as org_id, \
+	cur.execute("""SELECT COUNT (*) as error_count, \
+		get_json_object(line, '$.error.message') as ocr_error_message, \
 		get_json_object(line, '$.className') as class_name, \
-		COUNT (*) as error_count \
+		get_json_object(line, '$.orgId') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.error.message'), \
 		get_json_object(line, '$.orgId'), \
-		get_json_object(line, '$.className')""" %(OCRLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.className')""" % (OCRLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -714,11 +726,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -787,9 +799,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT COUNT (*) as error_count, \
 		get_json_object(line, '$.error.message') as persist_error_message, \
-		get_json_object(line, '$.orgId') as org_id, \
-		get_json_object(line, '$.columnFamily') as column_family, \
-		get_json_object(line, '$.className') as class_name \
+		get_json_object(line, '$.className') as class_name, \
+		get_json_object(line, '$.orgId') as org_id \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
@@ -804,11 +815,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[4])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
