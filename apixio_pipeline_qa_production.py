@@ -24,6 +24,7 @@ os.system('clear')
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
 
+
 # Environment for SanityTest is passed as a paramater. Assign Staging if none or wrong is passed
 if len(sys.argv) < 2:
 	ENVIRONMENT="Staging"
@@ -200,7 +201,6 @@ def componentFooter():
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
 	REPORT = REPORT+"<br><br>"
 
 
@@ -260,7 +260,7 @@ cur.execute("""SET mapred.job.queue.name=hive""")
 # ===================================================================================================================================
 
 REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
-
+COMPONENT_STATUS="PASSED"
 
 
 QN=1
@@ -420,7 +420,7 @@ componentFooter()
 # ===================================================================================================================================
 
 REPORT = REPORT+SUBHDR % "COORDINATOR"
-
+COMPONENT_STATUS="PASSED"
 
 QN=5
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
@@ -496,7 +496,7 @@ componentFooter()
 # ===================================================================================================================================
 
 REPORT = REPORT+SUBHDR % "PARSER"
-
+COMPONENT_STATUS="PASSED"
 
 QN=7
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
@@ -636,6 +636,7 @@ componentFooter()
 # ===================================================================================================================================
 
 REPORT = REPORT+SUBHDR % "OCR"
+COMPONENT_STATUS="PASSED"
 
 QN=11
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
@@ -721,6 +722,7 @@ componentFooter()
 # ===================================================================================================================================
 
 REPORT = REPORT+SUBHDR % "PERSIST"
+COMPONENT_STATUS="PASSED"
 
 QN=13
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
