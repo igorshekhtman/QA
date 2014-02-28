@@ -198,7 +198,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QUERY_NUMBER=18
+QUERY_NUMBER=8
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -211,14 +211,14 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 # =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
 
 SENDER="donotreply@apixio.com"
-RECEIVERS="ishekhtman@apixio.com"
-# RECEIVERS="eng@apixio.com"
+# RECEIVERS="ishekhtman@apixio.com"
+RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
 # TO: Engineering <ishekhtman@apixio.com, alarocca@apixio.com, aaitken@apixio.com, jschneider@apixio.com, nkrishna@apixio.com, lschneider@apixio.com>
-# To: Engineering <eng@apixio.com>
-To: Igor <ishekhtman@apixio.com>
+To: Engineering <eng@apixio.com>
+# To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
@@ -258,30 +258,37 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 	print ("Running DOC-RECEIVER query #3 - retrieve %s ...") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
-		get_json_object(line, '$.upload.document.status') as status \
+		get_json_object(line, '$.upload.document.status') as status, \
+		get_json_object(line, '$.upload.document.orgid') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.upload.document.docid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.upload.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		GROUP BY \
+		get_json_object(line, '$.upload.document.status'), \
+		get_json_object(line, '$.upload.document.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
+	UPLOADED_DR = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		UPLOADED_DR=int(i[0])
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+			<td>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		UPLOADED_DR = UPLOADED_DR + int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTCOUNTER:
-		print ("QUERY 3 FAILED")
-		COMPONENT_STATUS="FAILED"
+	#if int(i[0]) < DOCUMENTCOUNTER:
+		#print ("QUERY 3 FAILED")
+		#COMPONENT_STATUS="FAILED"
 
 
 
@@ -290,26 +297,34 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 	print ("Running DOC-RECEIVER query #4 - retrieve %s ...") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
-		get_json_object(line, '$.archive.afs.status') as status \
+		get_json_object(line, '$.archive.afs.status') as status, \
+		get_json_object(line, '$.archive.afs.orgid') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.archive.afs.docid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.archive.afs.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		GROUP BY \
+		get_json_object(line, '$.archive.afs.status'), \
+		get_json_object(line, '$.archive.afs.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
+	ARCHTOS3 = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+			<td>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		ARCHTOS3 = ARCHTOS3 + int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < UPLOADED_DR:
+	if ARCHTOS3 < UPLOADED_DR:
 		print ("QUERY 4 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -319,26 +334,34 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 	print ("Running DOC-RECEIVER query #5 - retrieve %s ...") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
-		get_json_object(line, '$.seqfile.file.document.status') as status \
+		get_json_object(line, '$.seqfile.file.document.status') as status, \
+		get_json_object(line, '$.seqfile.file.document.orgid') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.seqfile.file.document.docid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		GROUP BY \
+		get_json_object(line, '$.seqfile.file.document.status'), \
+		get_json_object(line, '$.seqfile.file.document.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
+	ADDTOSF = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+			<td>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		ADDTOSF = ADDTOSF + int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < UPLOADED_DR:
+	if ADDTOSF < UPLOADED_DR:
 		print ("QUERY 5 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -479,11 +502,13 @@ if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to OCR"
 	print ("Running PARSER query #8 - retrieve %s ...") % (QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR \
+	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR, \
+		get_json_object(line, '$.orgId') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.ocr.status') = "success" and \
-		day=%s and month=%s""" %(PARSERLOGFILE, DAY, MONTH))
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -492,8 +517,10 @@ if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
-		TAGED_TO_OCR = int(i[0])
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+		TAGED_TO_OCR = TAGED_TO_OCR+int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -508,11 +535,13 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to Persist"
 	print ("Running PARSER query #9 - retrieve %s ...") % (QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist \
+	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist, \
+		get_json_object(line, '$.orgId') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.persist.status') = "success" and \
-		day=%s and month=%s""" %(PARSERLOGFILE, DAY, MONTH))
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -521,8 +550,10 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
-		TAGED_TO_PERSIST = int(i[0])
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+		TAGED_TO_PERSIST = TAGED_TO_PERSIST+int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0']
@@ -538,12 +569,14 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 	print ("Running PARSER query #10 - retrieve %s ...") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Parser_distinct_UUIDs, \
-		get_json_object(line, '$.status') as status \
+		get_json_object(line, '$.status') as status, \
+		get_json_object(line, '$.orgId') as orgid \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.status')""" %(PARSERLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -551,7 +584,10 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
@@ -624,7 +660,8 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
+			<td align='left'>"+str(i[1])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
