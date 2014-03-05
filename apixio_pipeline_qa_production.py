@@ -204,7 +204,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QNTORUN=14
+QNTORUN=12
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -217,12 +217,11 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 # =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
 
 SENDER="donotreply@apixio.com"
-# RECEIVERS="ishekhtman@apixio.com"
 RECEIVERS="eng@apixio.com"
+# RECEIVERS="ishekhtman@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
-# TO: Engineering <ishekhtman@apixio.com, alarocca@apixio.com, aaitken@apixio.com, jschneider@apixio.com, nkrishna@apixio.com, lschneider@apixio.com>
 To: Engineering <eng@apixio.com>
 # To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
@@ -729,8 +728,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
+		if (i[3] == None):
+			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+		else:
+			REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"

@@ -293,7 +293,7 @@ if ENVIRONMENT == "Staging":
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 60
+PAUSE_LIMIT = 180
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
