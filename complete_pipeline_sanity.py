@@ -22,34 +22,24 @@ os.system('clear')
 
 TEST_TYPE="SanityTest"
 
-# Environment for SanityTest is passed as a paramater. Assign Staging if none or wrong is passed
-if len(sys.argv) < 2:
-	ENVIRONMENT="Staging"
-else:
-	ENVIRONMENT=str(sys.argv[1])
-
-if ENVIRONMENT == "":
-	ENVIRONMENT="Staging"
-elif ENVIRONMENT == "Production":
-	ENVIRONMENT="Production"
-elif ENVIRONMENT == "Staging":
-	ENVIRONMENT="Staging"
-else:
-	ENVIRONMENT="Staging"
-
-if ENVIRONMENT == "Staging":
-	USERNAME="apxdemot0182"
-	ORGID="190"
-	PASSWORD="Hadoop.4522"
-	HOST="https://supload.apixio.com:8443"
-if ENVIRONMENT == "Production":
+# Environment for SanityTest is passed as a paramater. Staging is a default value
+if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	USERNAME="apxdemot0138"
 	ORGID="10000279"
 	PASSWORD="Hadoop.4522"
 	HOST="https://dr.apixio.com:8443"
+	ENVIRONMENT="Production"
+else:
+	USERNAME="apxdemot0182"
+	ORGID="190"
+	PASSWORD="Hadoop.4522"
+	HOST="https://supload.apixio.com:8443"
+	ENVIRONMENT="Staging"
 
+	
 
 print ("ENVIRONMANT = %s") % ENVIRONMENT
+time.sleep(15)
 
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"

@@ -26,32 +26,24 @@ TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
 
 
-# Environment for SanityTest is passed as a paramater. Assign Staging if none or wrong is passed
+# Environment for SanityTest is passed as a paramater. Staging is a default value
 if len(sys.argv) < 2:
 	ENVIRONMENT="Staging"
 else:
 	ENVIRONMENT=str(sys.argv[1])
 
-if ENVIRONMENT == "":
-	ENVIRONMENT="Staging"
-elif ENVIRONMENT == "Production":
-	ENVIRONMENT="Production"
-elif ENVIRONMENT == "Staging":
-	ENVIRONMENT="Staging"
-else:
-	ENVIRONMENT="Staging"
 
-if ENVIRONMENT == "Staging":
-	USERNAME="apxdemot0182"
-	ORGID="190"
-	PASSWORD="Hadoop.4522"
-	HOST="https://supload.apixio.com:8443"
-if ENVIRONMENT == "Production":
+if (ENVIRONMENT.upper() == "PRODUCTION"):
 	USERNAME="apxdemot0138"
 	ORGID="10000279"
 	PASSWORD="Hadoop.4522"
 	HOST="https://dr.apixio.com:8443"
-
+else:
+	USERNAME="apxdemot0182"
+	ORGID="190"
+	PASSWORD="Hadoop.4522"
+	HOST="https://supload.apixio.com:8443"
+	
 
 ENVIRONMENT = "Production"
 LOGTYPE = "epoch"
