@@ -99,7 +99,9 @@ PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 ORGID="N/A"
 BATCHID="N/A"
 USERNAME="N/A"
-
+UPLOADED_DR = 0
+ARCHTOS3 = 0
+ADDTOSF = 0
 
 #======== obtain day and month for previous from current day and month ===========================================
 
@@ -196,7 +198,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QNTORUN=6
+QNTORUN=2
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -259,7 +261,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
-		get_json_object(line, '$.upload.document.orgid') as orgid \
+		get_json_object(line, '$.upload.document.orgid') as orgid, \
+		get_json_object(line, '$.message') as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -267,20 +270,25 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		day=%s and month=%s \
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
-		get_json_object(line, '$.upload.document.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.upload.document.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
-	UPLOADED_DR = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
+		if (i[3] == None):
+			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
+		else:
+			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			
 		UPLOADED_DR = UPLOADED_DR + int(i[0])
 		if str(i[1]) == "error":
 			print ("QUERY %s FAILED") % (QN)
@@ -301,7 +309,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
 		get_json_object(line, '$.archive.afs.status') as status, \
-		get_json_object(line, '$.archive.afs.orgid') as orgid \
+		get_json_object(line, '$.archive.afs.orgid') as orgid, \
+		get_json_object(line, '$.message') as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -309,19 +318,25 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		day=%s and month=%s \
 		GROUP BY \
 		get_json_object(line, '$.archive.afs.status'), \
-		get_json_object(line, '$.archive.afs.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.archive.afs.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
-	ARCHTOS3 = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
+		if (i[3] == None):
+			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
+		else:
+			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+
 		ARCHTOS3 = ARCHTOS3 + int(i[0])
 		if str(i[1]) == "error":
 			print ("QUERY %s FAILED") % (QN)
@@ -341,7 +356,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
 		get_json_object(line, '$.seqfile.file.document.status') as status, \
-		get_json_object(line, '$.seqfile.file.document.orgid') as orgid \
+		get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
+		get_json_object(line, '$.message') as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -349,19 +365,26 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		day=%s and month=%s \
 		GROUP BY \
 		get_json_object(line, '$.seqfile.file.document.status'), \
-		get_json_object(line, '$.seqfile.file.document.orgid')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.seqfile.file.document.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
-	ADDTOSF = 0
+
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
+		if (i[3] == None):
+			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
+		else:
+			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+
 		ADDTOSF = ADDTOSF + int(i[0])
 		if str(i[1]) == "error":
 			print ("QUERY %s FAILED") % (QN)
@@ -467,14 +490,14 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 
 	cur.execute("""SELECT get_json_object(line, '$.coordinator.job.jobType') as job_type, \
 		get_json_object(line, '$.coordinator.job.hadoopJobID') as hadoop_Job_ID, \
-		get_json_object(line, '$.coordinator.job.context.organization') as organization, \
-		get_json_object(line, '$.datestamp') as date_and_time \
+		get_json_object(line, '$.coordinator.job.context.organization') as orgid, \
+		get_json_object(line, '$.datestamp') as datestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = 'EVENT' and \
 		get_json_object(line, '$.coordinator.job.status') = 'error' and \
 		day=%s and month=%s \
-		ORDER BY job_type ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
+		ORDER BY hadoop_Job_ID ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -491,7 +514,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		else:
 			REPORT = REPORT+"<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
 	
-		REPORT = REPORT+"<td>"+FORMATEDTIME+"&nbsp;&nbsp;</td></tr>"
+		REPORT = REPORT+"<td>"+FORMATEDTIME+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY %s FAILED") % (QN)
@@ -616,14 +639,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of Parser errors, class-name and specific error messages"
 	print ("Running PARSER query #%s - retrieve %s ...") %  (QN, QUERY_DESC)
 
-	cur.execute("""SELECT get_json_object(line, '$.error.message') as parser_error_message, \
+	cur.execute("""SELECT COUNT(*) as number, 
+		get_json_object(line, '$.error.message') as parser_error_message, \
 		get_json_object(line, '$.className') as class_name, \
 		get_json_object(line, '$.orgId') as orgid, \
-		get_json_object(line, '$.datestamp') as datestamp \
+		min(get_json_object(line, '$.datestamp')) as mindatestamp, \
+		max(get_json_object(line, '$.datestamp')) as maxdatestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		day=%s and month=%s""" %(PARSERLOGFILE, DAY, MONTH))
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), \
+		get_json_object(line, '$.className'), \
+		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -631,12 +659,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[5])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIME+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[3])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMAX+"</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
