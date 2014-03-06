@@ -196,7 +196,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QNTORUN=12
+QNTORUN=6
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -485,9 +485,13 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIME+"&nbsp;&nbsp;</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
+		if str(i[2]) == "genManifest":
+			REPORT = REPORT+"<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
+		else:
+			REPORT = REPORT+"<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
+	
+		REPORT = REPORT+"<td>"+FORMATEDTIME+"&nbsp;&nbsp;</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY %s FAILED") % (QN)
