@@ -186,6 +186,8 @@ ORGMAP = { \
 	"10000285":"Scripps [Test]", \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
+	"genManifest":"genManifest", \
+	"None":"Missing Orgname", \
 }
 
 # print ORGMAP[ORGID]
@@ -202,7 +204,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QNTORUN=14
+QNTORUN=12
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
