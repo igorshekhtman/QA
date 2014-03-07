@@ -22,6 +22,8 @@ os.system('clear')
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
 
+
+
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
 
@@ -61,6 +63,7 @@ TIMESTAMP=strftime("%s", gmtime())
 DATESTAMP=strftime("%m/%d/%y %r", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
+YEAR=strftime("%Y", gmtime())
 DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
@@ -103,6 +106,9 @@ UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
 
+
+
+
 #======== obtain day and month for previous from current day and month ===========================================
 
 for C in range(0, DAYSBACK):
@@ -130,14 +136,12 @@ for C in range(0, DAYSBACK):
 DAY=CURDAY
 MONTH=CURMONTH
 
-# DAY="13"
-# MONTH="2"
-
 print ("DAY: %s") % DAY
 print ("MONTH: %s") % MONTH
+print ("YEAR: %s") % YEAR
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("CUR_TIME = %s") % CUR_TIME
-#time.sleep(3)
+# time.sleep(10)
 
 #===================== ORGID - ORGNAME MAP ========================================================================
 # ORGID="10000247"
@@ -198,7 +202,7 @@ def test(debug_type, debug_msg):
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
 
-QNTORUN=2
+QNTORUN=14
 PROCESS_ALL_QUERIES=bool(1)
 
 #========================================================================================================================================================
@@ -733,10 +737,12 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of OCR errors and specific error messages per org"
 	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT COUNT (*) as error_count, \
+	cur.execute("""SELECT COUNT (*) as number, \
 		get_json_object(line, '$.error.message') as ocr_error_message, \
 		get_json_object(line, '$.className') as class_name, \
-		get_json_object(line, '$.orgId') as orgid \
+		get_json_object(line, '$.orgId') as orgid, \
+		min(get_json_object(line, '$.datestamp')) as mindatestamp, \
+		max(get_json_object(line, '$.datestamp')) as maxdatestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
@@ -752,14 +758,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
+		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[5])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
-		else:
-			REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[3])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMAX+"</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -829,7 +836,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT COUNT (*) as error_count, \
 		get_json_object(line, '$.error.message') as persist_error_message, \
 		get_json_object(line, '$.className') as class_name, \
-		get_json_object(line, '$.orgId') as org_id \
+		get_json_object(line, '$.orgId') as org_id, \
+		min(get_json_object(line, '$.datestamp')) as mindatestamp, \
+		max(get_json_object(line, '$.datestamp')) as maxdatestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
@@ -844,11 +853,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
+		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[5])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+			<td>"+ORGMAP[str(i[3])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIMEMAX+"</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
 		# COMPONENT_STATUS="PASSED"
@@ -910,6 +923,18 @@ conn.close()
 
 REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
+
+# ============================= ARCHIVE REPORT TO A FILE ============================================================================
+REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+REPORTFILENAME=str(DAY)+".html"
+print (REPORTFOLDER)
+print (REPORTFILENAME)
+os.chdir(REPORTFOLDER)
+REPORTFILE = open(REPORTFILENAME, 'w')
+REPORTFILE.write(REPORT)
+REPORTFILE.close()
+os.chdir("/mnt/automation")
+# ===================================================================================================================================
 
 
 s=smtplib.SMTP()
