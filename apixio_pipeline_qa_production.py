@@ -19,10 +19,18 @@ import datetime as DT
 
 os.system('clear')
 
+#================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
-# ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
+# Specific Query Number to Run
+QNTORUN=9
 
+# Run one or all queries
+PROCESS_ALL_QUERIES=bool(1)
 
+# Send report emails and archive report html file
+DEBUG_MODE=bool(0)
+
+# ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
@@ -86,6 +94,8 @@ NUMBEROFDOCUMENTS=0
 DOCUMENTS_TRANSMITTED=20
 DOCUMENTS_TO_OCR=0
 DOCUMENTS_TO_PERSIST=0
+TAGED_TO_OCR=0
+TAGED_TO_PERSIST=0
 
 
 QUERY_DESC=""
@@ -201,12 +211,6 @@ ORGMAP = { \
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
 
-
-#================ CONTROLS TO WORK ON ONE SPECIFIC QUERY ===============================================================================================
-
-QNTORUN=12
-PROCESS_ALL_QUERIES=bool(1)
-
 #========================================================================================================================================================
 
 
@@ -217,14 +221,20 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 # =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
 
 SENDER="donotreply@apixio.com"
-RECEIVERS="eng@apixio.com"
-# RECEIVERS="ishekhtman@apixio.com"
+if DEBUG_MODE:
+	RECEIVERS="ishekhtman@apixio.com"
+else:
+	RECEIVERS="eng@apixio.com"
 
 
-REPORT = """From: Apixio QA <QA@apixio.com>
-To: Engineering <eng@apixio.com>
-# To: Igor <ishekhtman@apixio.com>
-MIME-Version: 1.0
+REPORT = "From: Apixio QA <QA@apixio.com>\n"
+if DEBUG_MODE:
+	REPORT = REPORT + "To: Igor <ishekhtman@apixio.com>\n"
+else:
+	REPORT = REPORT + "To: Engineering <eng@apixio.com>\n"	
+
+
+REPORT = REPORT + """MIME-Version: 1.0
 Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
 
@@ -514,13 +524,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		if str(i[2]) == "genManifest":
-			REPORT = REPORT+"<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		else:
-			REPORT = REPORT+"<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-	
-		REPORT = REPORT+"<td>"+FORMATEDTIME+"</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
+			<td>"+FORMATEDTIME+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY %s FAILED") % (QN)
@@ -545,13 +551,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to OCR"
 	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR, \
-		get_json_object(line, '$.orgId') as orgid \
+	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as number, \
+		get_json_object(line, '$.orgId') as orgid,  \
+		get_json_object(line, '$.tag.ocr.status') as tagged_to_OCR \
 		FROM %s \
 		WHERE \
-		get_json_object(line, '$.tag.ocr.status') = "success" and \
+		get_json_object(line, '$.tag.ocr.status') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.ocr.status') \
+		ORDER BY orgid, tagged_to_OCR ASC""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -561,6 +569,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 		TAGED_TO_OCR = TAGED_TO_OCR+int(i[0])
@@ -578,13 +587,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs tagged to Persist"
 	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist, \
-		get_json_object(line, '$.orgId') as orgid \
+	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as number, \
+		get_json_object(line, '$.orgId') as orgid,  \
+		get_json_object(line, '$.tag.persist.status') as tagged_to_Persist \
 		FROM %s \
 		WHERE \
-		get_json_object(line, '$.tag.persist.status') = "success" and \
+		get_json_object(line, '$.tag.persist.status') is not null and \
 		day=%s and month=%s \
-		GROUP BY get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
+		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.persist.status') \
+		ORDER BY orgid, tagged_to_Persist ASC""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -594,6 +605,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 		TAGED_TO_PERSIST = TAGED_TO_PERSIST+int(i[0])
@@ -611,15 +623,16 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of distinct UUIDs succeeded or failed"
 	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Parser_distinct_UUIDs, \
-		get_json_object(line, '$.status') as status, \
-		get_json_object(line, '$.orgId') as orgid \
+	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  number, \
+		get_json_object(line, '$.orgId') as orgid, \
+		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.status'), \
-		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.orgId') \
+		ORDER BY orgid, status ASC""" %(PARSERLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -628,9 +641,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
@@ -927,15 +940,16 @@ REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TY
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
-REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-REPORTFILENAME=str(DAY)+".html"
-print (REPORTFOLDER)
-print (REPORTFILENAME)
-os.chdir(REPORTFOLDER)
-REPORTFILE = open(REPORTFILENAME, 'w')
-REPORTFILE.write(REPORT)
-REPORTFILE.close()
-os.chdir("/mnt/automation")
+if not DEBUG_MODE:
+	REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFILENAME=str(DAY)+".html"
+	print (REPORTFOLDER)
+	print (REPORTFILENAME)
+	os.chdir(REPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
+	os.chdir("/mnt/automation")
 # ===================================================================================================================================
 
 
