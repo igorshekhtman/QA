@@ -18,6 +18,7 @@ from datetime import datetime
 import datetime as DT
 
 os.system('clear')
+<<<<<<< HEAD
 # =======================================================================================================================================================================
 # =======================================================================================================================================================================
 # ================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ==========================================================
@@ -86,6 +87,52 @@ print ("ENDINGMONTH = %s") % ENDINGMONTH
 print ("ENDINGDAY = %s") % ENDINGDAY
 
 time.sleep(1)
+=======
+
+#================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
+
+# Specific Query Number to Run
+QNTORUN=9
+
+# Run one or all queries
+PROCESS_ALL_QUERIES=bool(1)
+
+# Send report emails and archive report html file
+DEBUG_MODE=bool(0)
+
+# ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
+
+TEST_TYPE="SanityTest"
+REPORT_TYPE="Daily engineering QA"
+
+
+# Environment for SanityTest is passed as a paramater. Staging is a default value
+if len(sys.argv) < 2:
+	ENVIRONMENT="Staging"
+else:
+	ENVIRONMENT=str(sys.argv[1])
+
+
+if (ENVIRONMENT.upper() == "PRODUCTION"):
+	USERNAME="apxdemot0138"
+	ORGID="10000279"
+	PASSWORD="Hadoop.4522"
+	HOST="https://dr.apixio.com:8443"
+else:
+	USERNAME="apxdemot0182"
+	ORGID="190"
+	PASSWORD="Hadoop.4522"
+	HOST="https://supload.apixio.com:8443"
+	
+
+ENVIRONMENT = "Production"
+LOGTYPE = "epoch"
+
+print ("Version 1.0.0")
+print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("LOGTYPE = %s") % LOGTYPE
+
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 
@@ -105,8 +152,13 @@ DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
 
+<<<<<<< HEAD
 # print ("CURDAY = %s") % CURDAY
 # print ("CURMONTH = %s") % CURMONTH
+=======
+print ("CURDAY = %s") % CURDAY
+print ("CURMONTH = %s") % CURMONTH
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
@@ -133,7 +185,11 @@ PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
 OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
 PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 
+<<<<<<< HEAD
 # ORGID="N/A"
+=======
+ORGID="N/A"
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 BATCHID="N/A"
 USERNAME="N/A"
 UPLOADED_DR = 0
@@ -170,11 +226,19 @@ for C in range(0, DAYSBACK):
 DAY=CURDAY
 MONTH=CURMONTH
 
+<<<<<<< HEAD
 # print ("DAY: %s") % DAY
 # print ("MONTH: %s") % MONTH
 # print ("YEAR: %s") % YEAR
 # print ("ENVIRONMANT = %s") % ENVIRONMENT
 # print ("CUR_TIME = %s") % CUR_TIME
+=======
+print ("DAY: %s") % DAY
+print ("MONTH: %s") % MONTH
+print ("YEAR: %s") % YEAR
+print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("CUR_TIME = %s") % CUR_TIME
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 # time.sleep(10)
 
 #===================== ORGID - ORGNAME MAP ========================================================================
@@ -227,6 +291,13 @@ ORGMAP = { \
 # print ORGMAP[ORGID]
 #===================================================================================================================
 
+<<<<<<< HEAD
+=======
+#ORGID="10000246"
+#print orgmap(ORGID)
+#time.sleep(30)
+
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
@@ -256,7 +327,11 @@ else:
 
 REPORT = REPORT + """MIME-Version: 1.0
 Content-type: text/html
+<<<<<<< HEAD
 Subject: %s Pipeline QA Report - %s
+=======
+Subject: Daily %s Pipeline QA Report - %s
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time: <b>%s</b><br>
@@ -264,10 +339,15 @@ Report type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
+<<<<<<< HEAD
 User name: <b>%s</b><br>
 Starting: <b>%s/%s</b><br>
 Ending: <b>%s/%s</b><br><br>
 """ % (ENVIRONMENT, CUR_TIME, CUR_TIME, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY)
+=======
+User name: <b>%s</b><br><br>
+""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -303,6 +383,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.message') as message \
 		FROM %s \
 		WHERE \
+<<<<<<< HEAD
 		get_json_object(line, '$.level') = 'EVENT' and \
 		get_json_object(line, '$.upload.document.docid') is not null and \
 		get_json_object(line, '$.upload.document.orgid')='%s' and \
@@ -312,6 +393,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
 		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		get_json_object(line, '$.level') = "EVENT" and \
+		get_json_object(line, '$.upload.document.docid') is not null and \
+		day=%s and month=%s \
+		GROUP BY \
+		get_json_object(line, '$.upload.document.status'), \
+		get_json_object(line, '$.upload.document.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -355,6 +445,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.archive.afs.docid') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.archive.afs.orgid')='%s' and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
@@ -362,6 +453,13 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.archive.afs.status'), \
 		get_json_object(line, '$.archive.afs.orgid'), \
 		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY \
+		get_json_object(line, '$.archive.afs.status'), \
+		get_json_object(line, '$.archive.afs.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -404,6 +502,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.seqfile.file.document.docid') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.seqfile.file.document.orgid')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
@@ -411,6 +510,13 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.seqfile.file.document.status'), \
 		get_json_object(line, '$.seqfile.file.document.orgid'), \
 		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY \
+		get_json_object(line, '$.seqfile.file.document.status'), \
+		get_json_object(line, '$.seqfile.file.document.orgid'), \
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -454,11 +560,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
+<<<<<<< HEAD
 		get_json_object(line, '$.submit.post.orgid')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
 		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
+		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -504,12 +616,20 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.job.status') as status \
 		FROM %s \
 		WHERE \
+<<<<<<< HEAD
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.job.status'), \
 		get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day='%s' and month='%s' and \
+		get_json_object(line, '$.job.status') is not null and \
+		get_json_object(line, '$.job.status') <> 'start' \
+		GROUP BY get_json_object(line, '$.job.status'), \
+		get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -543,9 +663,14 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.level') = 'EVENT' and \
 		get_json_object(line, '$.coordinator.job.status') = 'error' and \
+<<<<<<< HEAD
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		ORDER BY hadoop_Job_ID ASC""" % (COORDINATORLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		ORDER BY hadoop_Job_ID ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -589,11 +714,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.ocr.status') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.ocr.status') \
 		ORDER BY orgid, tagged_to_OCR ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.ocr.status') \
+		ORDER BY orgid, tagged_to_OCR ASC""" %(PARSERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -627,11 +758,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.persist.status') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.persist.status') \
 		ORDER BY orgid, tagged_to_Persist ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.persist.status') \
+		ORDER BY orgid, tagged_to_Persist ASC""" %(PARSERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -665,12 +802,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId') \
 		ORDER BY orgid, status ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId') \
+		ORDER BY orgid, status ASC""" %(PARSERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -705,12 +849,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), \
 		get_json_object(line, '$.className'), \
 		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), \
+		get_json_object(line, '$.className'), \
+		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -761,11 +912,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId')""" %(OCRLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId')""" %(OCRLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -803,12 +960,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), \
 		get_json_object(line, '$.orgId'), \
 		get_json_object(line, '$.className')""" % (OCRLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), \
+		get_json_object(line, '$.orgId'), \
+		get_json_object(line, '$.className')""" % (OCRLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -861,11 +1025,17 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId')""" %(PERSISTLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.status'), \
+		get_json_object(line, '$.orgId')""" %(PERSISTLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -903,12 +1073,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
+<<<<<<< HEAD
 		get_json_object(line, '$.orgId')=%s and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), get_json_object(line, '$.orgId'), \
 		get_json_object(line, '$.columnFamily'), \
 		get_json_object(line, '$.className')""" %(PERSISTLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.error.message'), get_json_object(line, '$.orgId'), \
+		get_json_object(line, '$.columnFamily'), \
+		get_json_object(line, '$.className')""" %(PERSISTLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -945,10 +1122,16 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.patient.uuid') as uuid, \
 		get_json_object(line, '$.patient.info') as info \
 		FROM %s \
+<<<<<<< HEAD
 		WHERE \
 		get_json_object(line, '$.autocorrection') = 'true' and \
 		((month>=%s and day>=%s) and \
 		(month<=%s and day<=%s))""" % (PERSISTLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+=======
+		WHERE 
+		get_json_object(line, '$.autocorrection') = 'true' and
+		day=%s and month=%s""" % (PERSISTLOGFILE, DAY, MONTH))
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -985,6 +1168,7 @@ conn.close()
 # ===================================================================================================================================
 
 
+<<<<<<< HEAD
 REPORT=REPORT+"<table><tr><td><br>End of %s report - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
@@ -999,6 +1183,22 @@ REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 #	REPORTFILE.write(REPORT)
 #	REPORTFILE.close()
 #	os.chdir("/mnt/automation")
+=======
+REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
+
+# ============================= ARCHIVE REPORT TO A FILE ============================================================================
+if not DEBUG_MODE:
+	REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFILENAME=str(DAY)+".html"
+	print (REPORTFOLDER)
+	print (REPORTFILENAME)
+	os.chdir(REPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
+	os.chdir("/mnt/automation")
+>>>>>>> eb97358a8a7e3a9b74c93b0ee7fb6d8e35e55504
 # ===================================================================================================================================
 
 
