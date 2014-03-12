@@ -1,0 +1,88 @@
+<html>
+  <head>
+		<title>Coordinator Queues</title>
+	 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	 	<link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+			$(function() {
+				$( "#startdate" ).datepicker();
+				$( "#enddate" ).datepicker();
+			});
+      google.load("visualization", "1", {packages:["corechart"]});
+      //google.setOnLoadCallback(drawChart);
+      function getChart() {
+		    	var environment = $( "#environment" ).val();
+		    	var startdate = $( "#startdate" ).val();
+		    	var enddate = $( "#enddate" ).val();
+		    	console.log("Environment: " +  environment);
+		    	console.log("Start Date: " +  startdate);
+		    	console.log("End Date: " +  enddate);
+		    	
+      			var url = "/hive/json/" + environment + "/queue";
+		    	var params = "startdate="+startdate+"&enddate="+enddate;
+     			$.get(url, params).done(function( values ) {
+		    		console.log(values);
+		    		drawChart(values);
+		    	  });
+		    	return false;
+      }
+      
+      function drawChart(values) {
+    	  var data = new google.visualization.DataTable();
+    	  data.addColumn('date', 'time');
+    	  data.addColumn('number', 'parser');
+    	  data.addColumn('number', 'ocr');
+    	  data.addColumn('number', 'persist');
+    	  data.addColumn('number', 'trace');
+    	  for(var i=0;i<values.length;i++){
+    	        var obj = values[i];
+    	        
+    	        var array = [new Date(obj['time']), obj['parserqueue'], obj['ocrqueue'], obj['persistqueue'], obj['tracequeue']];
+    	        //for(var key in obj){
+    	        //    var attrName = key;
+    	        //    var attrValue = obj[key];
+    	        //    array.push(attrValue);
+    	           // if (array=="")
+    	           // 	array = "'" + attrValue + "'";
+    	           // else
+    	           // 	array = array + ", " + "'" + attrValue + "'";
+    	        //}
+    	        //array = "[" + array + "]";
+    	        //console.log(array);
+	            data.addRow(array);
+    	    }
+        //var data = google.visualization.arrayToDataTable([
+        //  ['Year', 'Sales', 'Expenses'],
+        //  ['2004',  1000,      400],
+        //  ['2005',  1170,      460],
+        //  ['2006',  660,       1120],
+        //  ['2007',  1030,      540]
+        //]);
+		//var data = google.visualization.arrayToDataTable(values);
+        var options = {
+          title: 'Coordinator Queues',
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <form id="submitRawJson" onsubmit="return false">
+			<p>Environment: 
+				<select id="environment">
+		  			<option value="production">Production</option>
+		  			<option value="staging">Staging</option>
+				</select> 	
+			</p>
+			<p>Start Date: <input type="text" id="startdate"></p>
+			<p>End Date: <input type="text" id="enddate"></p>
+			<p><input type="submit" value="Run Query" onclick="getChart();"></p>
+	</form>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>

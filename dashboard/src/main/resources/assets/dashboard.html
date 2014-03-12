@@ -1,0 +1,145 @@
+<html>
+	<head>
+		<title>Apixio Hive Dashboard</title>
+	 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	 	<link rel="stylesheet" href="style.css">
+	 	<script>
+
+			$(function() {
+				$( "#startdate" ).datepicker();
+				$( "#enddate" ).datepicker();
+			});
+			
+		    function checkbox(name, value) {
+		    	document.getElementById(name).checked = value;
+	        }
+			
+		    function submitRawJson() {
+		    	var environment = $( "#environment" ).val();
+		    	var component = $( "#component" ).val();
+		    	var usestartdate =  $( "#usestartdate" ).is(':checked');
+		    	var startdate = $( "#startdate" ).val();
+		    	var useenddate =  $( "#useenddate" ).is(':checked');
+		    	var enddate = $( "#enddate" ).val();
+		    	var uselevel =  $( "#uselevel" ).is(':checked');
+		    	var level = $( "#level" ).val();
+		    	var useconditionone =  $( "#conditionone" ).is(':checked');
+		    	var conditiononeobject = $( "#conditiononeobject" ).val();
+		    	var conditiononevalue = $( "#conditiononevalue" ).val();
+		    	var useconditiontwo =  $( "#conditiontwo" ).is(':checked');
+		    	var conditiontwoobject = $( "#conditiontwoobject" ).val();
+		    	var conditiontwovalue = $( "#conditiontwovalue" ).val();
+		    	var uselimit =  $( "#uselimit" ).is(':checked');
+		    	var limit = $( "#limit" ).val();
+		    	
+		    	console.log("Environment: " +  environment);
+		    	console.log("Component: " +  component);
+		    	console.log("Use Start Date: " +  usestartdate);
+		    	console.log("Start Date: " +  startdate);
+		    	console.log("Use End Date: " +  useenddate);
+		    	console.log("End Date: " +  enddate);
+		    	console.log("Use Level: " +  uselevel);
+		    	console.log("Level: " +  level);
+		    	console.log("Use Condition One: " +  useconditionone);
+		    	console.log("Condition One Object: " +  conditiononeobject);
+		    	console.log("Condition One Value: " +  conditiononevalue);
+		    	console.log("Use Condition Two: " +  useconditiontwo);
+		    	console.log("Condition Two Object: " +  conditiontwoobject);
+		    	console.log("Condition Two Value: " +  conditiontwovalue);
+		    	console.log("Use Limit: " +  uselimit);
+		    	console.log("Limit: " +  limit);
+		    	
+		    	var url = "/hive/json/" + environment + "/" + component;
+		    	var params = "";
+		    	if (usestartdate)
+		    		params = params + "startdate="+startdate+"&";
+		    	if (useenddate)
+		    		params = params + "enddate="+enddate+"&";
+		    	if (uselevel)
+		    		params = params + "level="+level+"&";
+		    	if (useconditionone) {
+		    		params = params + "conditiononeobject="+conditiononeobject+"&conditiononevalue="+conditiononevalue+"&";
+		    	}
+		    	if (useconditiontwo) {
+		    		params = params + "conditiontwoobject="+conditiontwoobject+"&conditiontwovalue="+conditiontwovalue+"&";
+		    	}
+		    	if (uselimit)
+		    		params = params + "limit="+limit+"&";
+		    	console.log("Params: " +  params);
+		    	$.get(url, params).done(function( data ) {
+		    		console.log(data);
+			    	var renderedHtml = renderJSON(data);
+			    	console.log(renderedHtml);
+			    	$("#jsonDisplay").html(renderedHtml);
+		    	  });
+		    	return false;
+	        }
+		    
+		    function renderJSON(obj) {
+		        'use strict';
+		        var keys = [],
+		            retValue = "";
+		        for (var key in obj) {
+		            if (typeof obj[key] === 'object') {
+		                retValue += "<div class='tree'>" + key;
+		                retValue += renderJSON(obj[key]);
+		                retValue += "</div>";
+		            } else {
+		                retValue += "<div class='tree'>" + key + " = " + obj[key] + "</div>";
+		            }
+
+		            keys.push(key);
+		        }
+		        return retValue;
+		    }
+		</script>
+	</head>
+	<body>
+		<form id="submitRawJson" onsubmit="return submitRawJson()">
+			<b>Raw JSON Query:</b>
+			<p>Environment: 
+				<select id="environment">
+		  			<option value="production">Production</option>
+		  			<option value="staging">Staging</option>
+				</select> 	
+			</p>
+			<p>Component: 
+				<select id="component">
+		  			<option value="coordinator">Coordinator</option>
+		  			<option value="docreceiver">Doc Receiver</option>
+		  			<option value="ocr">OCR</option>
+		  			<option value="parser">Parser</option>
+		  			<option value="persist">Persist</option>
+		  			<option value="trace">Trace</option>
+		  		<!--<option value="manifest">Manifest</option>
+		  			<option value="hcc">HCC</option>
+		  			<option value="opprouter">Opp Router</option>   -->	
+				</select> 	
+			</p>
+			<p><input type="checkbox" id="usestartdate">Start Date: <input type="text" id="startdate" onchange="checkbox('usestartdate','true')"></p>
+			<p><input type="checkbox" id="useenddate">End Date: <input type="text" id="enddate" onchange="checkbox('useenddate','true')"></p>
+			<p><input type="checkbox" id="uselevel">Level: 
+				<select id="level" onchange="checkbox('uselevel','true')">
+		  			<option value="error">Error</option>
+		  			<option value="event">Event</option>
+		  			<option value="info">Info</option>
+		  			<option value="warn">Warn</option>
+				</select> 	
+			</p>
+			<p>
+				<input type="checkbox" id="conditionone">and: <input type="text" size="50" id="conditiononeobject" onchange="checkbox('conditionone','true')"> = 
+				<input type="text" id="conditiononevalue" onchange="checkbox('conditionone','true')">
+			</p>
+			<p>
+				<input type="checkbox" id="conditiontwo">and: <input type="text" size="50"  id="conditiontwoobject" onchange="checkbox('conditiontwo','true')"> = 
+				<input type="text" id="conditiontwovalue" onchange="checkbox('conditiontwo','true')">
+			</p>
+			<p><input type="checkbox" id="uselimit">Limit: <input type="text" id="limit" onchange="checkbox('uselimit','true')"></p>
+			<p><input type="submit" value="Run Query"></p>
+		</form>
+		<div id="jsonDisplay">
+		</div>
+	</body>	
+</html>
