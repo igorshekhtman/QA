@@ -25,10 +25,10 @@ os.system('clear')
 # =======================================================================================================================================================================
 
 # Specific Query Number to Run
-QNTORUN=1
+QNTORUN=3
 
 # Run one or all queries
-PROCESS_ALL_QUERIES=bool(1)
+PROCESS_ALL_QUERIES=bool(0)
 
 # Send report emails and archive report html file
 DEBUG_MODE=bool(1)
@@ -46,7 +46,7 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "epoch"
 RECIPIENT = "ishekhtman@apixio.com"
 STARTINGMONTH = 3
-STARTINGDAY = 10
+STARTINGDAY = 9
 ENDINGMONTH = 3
 ENDINGDAY = 11
 
@@ -306,8 +306,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.level') = 'EVENT' and \
 		get_json_object(line, '$.upload.document.docid') is not null and \
 		get_json_object(line, '$.upload.document.orgid')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
@@ -356,8 +356,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.archive.afs.docid') is not null and \
 		get_json_object(line, '$.archive.afs.orgid')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY \
 		get_json_object(line, '$.archive.afs.status'), \
 		get_json_object(line, '$.archive.afs.orgid'), \
@@ -404,9 +404,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.seqfile.file.document.docid') is not null and \
-		get_json_object(line, '$.seqfile.file.document.orgid')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.seqfile.file.document.orgid')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY \
 		get_json_object(line, '$.seqfile.file.document.status'), \
 		get_json_object(line, '$.seqfile.file.document.orgid'), \
@@ -454,9 +454,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
-		get_json_object(line, '$.submit.post.orgid')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.submit.post.orgid')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
 		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -506,8 +506,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.job.status'), \
 		get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -543,8 +543,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		WHERE \
 		get_json_object(line, '$.level') = 'EVENT' and \
 		get_json_object(line, '$.coordinator.job.status') = 'error' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		ORDER BY hadoop_Job_ID ASC""" % (COORDINATORLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -589,9 +589,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.ocr.status') is not null and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.ocr.status') \
 		ORDER BY orgid, tagged_to_OCR ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -627,9 +627,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.tag.persist.status') is not null and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.orgId'), get_json_object(line, '$.tag.persist.status') \
 		ORDER BY orgid, tagged_to_Persist ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -665,9 +665,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId') \
 		ORDER BY orgid, status ASC""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
@@ -705,9 +705,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), \
 		get_json_object(line, '$.className'), \
 		get_json_object(line, '$.orgId')""" %(PARSERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
@@ -761,9 +761,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId')""" %(OCRLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -803,9 +803,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), \
 		get_json_object(line, '$.orgId'), \
 		get_json_object(line, '$.className')""" % (OCRLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
@@ -861,9 +861,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.documentuuid') is not null and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.status'), \
 		get_json_object(line, '$.orgId')""" %(PERSISTLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
@@ -903,9 +903,9 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.orgId')='%s' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s')) \
+		get_json_object(line, '$.orgId')=%s and \
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s)) \
 		GROUP BY get_json_object(line, '$.error.message'), get_json_object(line, '$.orgId'), \
 		get_json_object(line, '$.columnFamily'), \
 		get_json_object(line, '$.className')""" %(PERSISTLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
@@ -947,8 +947,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.autocorrection') = 'true' and \
-		((month>='%s' and day>='%s') and \
-		(month<='%s' and day<='%s'))""" % (PERSISTLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+		((month>=%s and day>=%s) and \
+		(month<=%s and day<=%s))""" % (PERSISTLOGFILE, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
