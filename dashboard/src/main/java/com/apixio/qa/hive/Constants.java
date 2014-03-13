@@ -25,14 +25,14 @@ public class Constants
                 return "ocrjob";
             }
         }, 
-        PARSERJOB
+        PARSER
         {
             public String getTableName()
             {
                 return "parserjob";
             }
         }, 
-        PERSISTJOB
+        PERSIST
         {
             public String getTableName()
             {

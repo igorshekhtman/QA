@@ -23,8 +23,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.apixio.qa.hive.Constants.COMPONENTS;
-
 public class QueryHive
 {
     private static String driverName = "org.apache.hive.jdbc.HiveDriver";
@@ -162,7 +160,7 @@ public class QueryHive
                 + "from temp_partition_docreceiver_upload_document group by org_id, status, if(message like '/mnt%','No space left on device',message)";
         obj.put("upload", queryHiveJson(uploadQuery));
 
-        String seqfileQuery = "select s.org_id, u.status, s.document_status, count(distinct seqfile_doc_id) as num_files, count(distinct seqfile_file) num_seq_files, max(s.time) as last_upload_time "
+        /*String seqfileQuery = "select s.org_id, u.status, s.document_status, count(distinct seqfile_doc_id) as num_files, count(distinct seqfile_file) num_seq_files, max(s.time) as last_upload_time "
                 + "from temp_partition_docreceiver_seqfile_document s left outer join temp_partition_docreceiver_upload_document u on s.seqfile_doc_id = u.upload_doc_id and s.org_id = u.org_id "
                 + "where u.upload_doc_id is not null group by s.org_id, u.status, s.document_status";
         obj.put("seqfile", queryHiveJson(seqfileQuery));
@@ -196,7 +194,7 @@ public class QueryHive
                 + "regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfile_name), '') = c.input_dir "
                 + "where p.status is not null group by p.org_id, p.status, p.error_message";
 
-        obj.put("persistDetails", queryHiveJson(persistDetailsQuery));
+        obj.put("persistDetails", queryHiveJson(persistDetailsQuery));*/
 
         IOUtils.write(obj.toString(), new FileOutputStream("reports.json"));
     }
@@ -205,7 +203,7 @@ public class QueryHive
             String conditionTwoValue, String limit) throws SQLException, JSONException
     {
 
-        String tableName = environment + "_logs_" + component + "_epoch";
+        String tableName = environment + "_logs_" + (Constants.COMPONENTS.valueOf(component)).getTableName() + "_epoch";
 
         String whereClause = "";
         whereClause = addtoWhereClause(whereClause, getDateRange(startDate, endDate));
@@ -293,37 +291,7 @@ public class QueryHive
 
         return dateRange;
     }
-    //TODO... some work needed here.
-    private static String getComponentTableName(Constants.COMPONENTS component)
-    {
-        String componentTableName = "";
-        switch (component)
-        {
-            case COORDINATOR:
-                componentTableName = COMPONENTS.COORDINATOR.name().toLowerCase();
-                break;
-            case DOCRECEIVER:
-                componentTableName = COMPONENTS.DOCRECEIVER.name().toLowerCase();
-                break;
-            case PARSERJOB:
-                componentTableName = COMPONENTS.PARSERJOB.name().toLowerCase();
-                break;
-            case PERSISTJOB:
-                componentTableName = COMPONENTS.PERSISTJOB.name().toLowerCase();
-                break;
-            case OCRJOB:
-                componentTableName = COMPONENTS.OCRJOB.name().toLowerCase();
-                break;
-            case JSON2TRACE:
-                componentTableName = COMPONENTS.JSON2TRACE.name().toLowerCase();
-                break;
-            default:
-                componentTableName = "";
-                break;
-        }
-        return componentTableName;
-    }
-
+   
     /**
      * @param args
      * @throws SQLException
