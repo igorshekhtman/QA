@@ -1,0 +1,5 @@
+hiveAddress: jdbc:hive2://184.169.209.24:10000
+updateInterval: 90
+# HTTP-specific options.
+http:
+  port: 8099

@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>Hive Query Test</title>
+<!-- Odometr includes init(); getdetails(); -->
+<link rel="stylesheet" href="http://github.hubspot.com/odometer/themes/odometer-theme-digital.css" />
+<link rel="stylesheet" href="http://github.hubspot.com/odometer/themes/odometer-theme-minimal.css" />
+<link rel="stylesheet" href="http://github.hubspot.com/odometer/themes/odometer-theme-slot.css" />
+
+<script src="http://github.hubspot.com/odometer/odometer.js"></script>
+
+<!-- Extra styles for this example -->
+<style>
+.odometer {
+    font-size: 100px;
+}
+</style>
+<script language="javascript">
+
+
+    var xmlhttp;
+    function setTheme() {
+		var theme = document.getElementById("type").value;
+		od = new Odometer({
+  			el: document.querySelector('.odometer'),
+  			value: 333555,
+  			format: '',
+  			theme: 'minimal'
+		});
+		od.render();
+		od.update(999999);
+    }
+    function init() {
+    	window.odometerOptions = {
+  			auto: false, // Don't automatically initialize everything with class 'odometer'
+  			selector: '.odometer', // Change the selector used to automatically find things to be animated
+  			format: '(,ddd).dd', // Change how digit groups are formatted, and how many digits are shown after the decimal point
+  			duration: 60000, // Change how long the javascript expects the CSS animation to take
+  			theme: 'slot' // Specify the theme (if you have more than one theme css file on the page)
+		};
+       xmlhttp = new XMLHttpRequest();
+       setInterval(function(){getdetails();}, 60000);
+    }
+    function getdetails() {
+        var url = "/query-hive?query=SELECT+count%28distinct+get_json_object%28line%2C+%27%24.patient.uuid%27%29%29+FROM+staging_logs_persistjob_epoch+WHERE+get_json_object%28line%2C+%27%24.level%27%29+%3D+%22EVENT%22+and+get_json_object%28line%2C+%27%24.patient.uuid%27%29+is+not+null+and+day%3D12+and+month%3D12";
+        xmlhttp.open('GET',url,true);
+       	xmlhttp.timeout = 300000;
+       	xmlhttp.ontimeout = function () { alert("Timed out!!!"); }
+        xmlhttp.send(null);
+        xmlhttp.onreadystatechange = function() {
+               var odometer =  document.getElementById("odometer");
+               if (xmlhttp.readyState == 4) {
+                  if ( xmlhttp.status == 200) {
+                       var det = eval( "(" +  xmlhttp.responseText + ")");
+                       odometer.innerHTML = det.lines[0];
+                 }
+              }
+        };
+    }
+  </script>
+</head>
+<body onload="init();setTheme();" style="background:#000;">
+<div id="odometer" class="odometer" >00000</div>
+<form>
+<select id="type" onchange="reset();">
+  <option value="production">Production</option>
+  <option value="staging">Staging</option>
+</select> 
+<select id="type" onchange="setTheme();">
+  <option value="default">Default</option>
+  <option value="minimal">Minimal</option>
+  <option value="car">Car</option>
+  <option value="plaza">Plaza</option>
+  <option value="slot-machine">Slot Machine</option>
+</select> 
+</form>
+</body>
+</html>
