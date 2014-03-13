@@ -39,13 +39,15 @@ else:
 	
 
 print ("ENVIRONMANT = %s") % ENVIRONMENT
-time.sleep(15)
+# time.sleep(15)
 
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
+DAY=strftime("%d", gmtime())
+MONTH=strftime("%m", gmtime())
 
 #BATCHID=strftime("%d%m%Y%H%M%S", gmtime())
 #bad - does not exist in any logs
@@ -283,7 +285,7 @@ if ENVIRONMENT == "Staging":
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 260
+PAUSE_LIMIT = 240
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
@@ -407,7 +409,8 @@ if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
 	print ("Running INDEXER query #1 - retrieve %s ...") % (QUERY_DESC)
 	cur.execute("""SELECT count(DISTINCT apixiouuid) as total_number_of_documents_indexer \
 		FROM %s \
-		WHERE batchid = '%s'""" %(INDEXERLOGFILE,BATCH))
+		WHERE \
+		batchid = '%s'""" %(INDEXERLOGFILE, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -429,8 +432,9 @@ if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
 	print ("Running INDEXER query #2 - retrieve %s ...") % (QUERY_DESC)
 	cur.execute("""SELECT filetype, count(filetype) as qty_each \
 		FROM %s \
-		WHERE batchid = '%s' \
-		GROUP BY filetype""" %(INDEXERLOGFILE,BATCH))
+		WHERE \
+		batchid = '%s' \
+		GROUP BY filetype""" %(INDEXERLOGFILE, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	TOTAL = 0
@@ -472,9 +476,11 @@ if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status \
 		FROM %s \
-		WHERE get_json_object(line, '$.level') = 'EVENT' and \
+		WHERE \
+		get_json_object(line, '$.level') = 'EVENT' and \
+		day=%s and month=%s and \
 		get_json_object(line, '$.upload.document.batchid') = '%s' \
-		GROUP BY get_json_object(line, '$.upload.document.status')""" %(DOCRECEIVERLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.upload.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -500,8 +506,9 @@ if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
+		day=%s and month=%s and \
 		get_json_object(line, '$.archive.afs.batchid') = '%s' \
-		GROUP BY get_json_object(line, '$.archive.afs.status')""" %(DOCRECEIVERLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.archive.afs.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -526,8 +533,9 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
+		day=%s and month=%s and \
 		get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
-		GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(DOCRECEIVERLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -553,8 +561,9 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
+		day=%s and month=%s and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
-		get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE,BATCH))
+		get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -594,10 +603,11 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.job.status') as status \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.job.context.batchID') = '%s' and \
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' \
-		GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" %(COORDINATORLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" %(COORDINATORLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -636,8 +646,9 @@ if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.tag.ocr.status') = "success" and \
-		get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE,BATCH))
+		get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -663,8 +674,9 @@ if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.tag.persist.status') = "success" and \
-		get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE,BATCH))
+		get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -693,8 +705,9 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.batchId') = '%s' \
-		GROUP BY get_json_object(line, '$.status')""" %(PARSERLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.status')""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -720,8 +733,9 @@ if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
 		round((get_json_object(line, '$.file.bytes') / 1024 / 1024),2) as file_size_mb \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.jobname') LIKE '%s%%'""" %(PARSERLOGFILE,BATCH))
+		get_json_object(line, '$.jobname') LIKE '%s%%'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -761,8 +775,9 @@ if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.batchId') = '%s' \
-		GROUP BY get_json_object(line, '$.status')""" %(OCRLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.status')""" %(OCRLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -787,8 +802,9 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.file.bytes') as file_size_bytes \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.batchId') = '%s'""" %(OCRLOGFILE,BATCH))
+		get_json_object(line, '$.batchId') = '%s'""" %(OCRLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -829,8 +845,9 @@ if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.status') as status \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.batchId') = '%s' \
-		GROUP BY get_json_object(line, '$.status')""" %(PERSISTLOGFILE,BATCH))
+		GROUP BY get_json_object(line, '$.status')""" %(PERSISTLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -856,8 +873,9 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.file.bytes') as file_size_bytes \
 		FROM %s \
 		WHERE \
+		day=%s and month=%s and \
 		get_json_object(line, '$.status') = "error" and \
-		get_json_object(line, '$.batchId') = '%s'""" %(PERSISTLOGFILE,BATCH))
+		get_json_object(line, '$.batchId') = '%s'""" %(PERSISTLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
