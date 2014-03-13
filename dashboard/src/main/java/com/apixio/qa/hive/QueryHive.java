@@ -203,7 +203,7 @@ public class QueryHive
             String conditionTwoValue, String limit) throws SQLException, JSONException
     {
 
-        String tableName = environment + "_logs_" + (Constants.COMPONENTS.valueOf(component)).getTableName() + "_epoch";
+        String tableName = environment + "_logs_" + (Constants.COMPONENTS.valueOf(component.toUpperCase())).getTableName() + "_epoch";
 
         String whereClause = "";
         whereClause = addtoWhereClause(whereClause, getDateRange(startDate, endDate));
