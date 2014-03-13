@@ -189,5 +189,6 @@ month,
 day
 from production_logs_coordinator_epoch
 where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null 
+and ($dateRange);
 
 EOF

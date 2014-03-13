@@ -22,6 +22,7 @@ import javax.swing.text.DateFormatter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,6 +33,12 @@ public class QueryHive {
 	public static void main(String[] args) {
 		try
 		{
+			String sql = "select count(DISTINCT get_json_object(line, '$.upload.document.docid')) as count from production_logs_docreceiver_epoch WHERE get_json_object(line, '$.level') = 'EVENT' and get_json_object(line, '$.upload.document.status') = 'success' and (day = 13  and month = 3)";
+			System.out.println("running sql: " + sql);
+			String response = QueryHive.queryHive(sql);
+			JSONObject obj = new JSONObject(response);
+			Integer newNumber = (Integer) obj.get("count");
+			System.out.println("got newNumber " + newNumber);
 			createReport();
 			//createScopedReport(1);
 //			//String query = "select status, count(distinct upload_doc_id) as num_docs FROM temp_partition_docreceiver_seqfile_document where org_id = '10000286' group by status";
@@ -338,11 +345,11 @@ public class QueryHive {
 		}
 		return queryResult;
 	}
-	/**
-	 * @param args
-	 * @throws SQLException
-	 * @throws JSONException 
-	 */
+	
+	public static JSONObject queryHiveJsonFirstResult(String sql) throws SQLException, JSONException {
+		ArrayList results = (ArrayList) queryHiveJson(sql);
+		return ((JSONObject) results.get(0));
+	}
 	public static Object queryHiveJson(String sql) throws SQLException, JSONException {
 		Object queryResult = "";
 		try {
