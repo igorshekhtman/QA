@@ -17,12 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.text.DateFormatter;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,11 +32,10 @@ public class QueryHive {
 		{
 			String sql = "select count(DISTINCT get_json_object(line, '$.upload.document.docid')) as count from production_logs_docreceiver_epoch WHERE get_json_object(line, '$.level') = 'EVENT' and get_json_object(line, '$.upload.document.status') = 'success' and (day = 13  and month = 3)";
 			System.out.println("running sql: " + sql);
-			String response = QueryHive.queryHive(sql);
-			JSONObject obj = new JSONObject(response);
+			JSONObject obj = QueryHive.queryHiveJsonFirstResult("jdbc:hive2://184.169.209.24:10000", sql);
 			Integer newNumber = (Integer) obj.get("count");
 			System.out.println("got newNumber " + newNumber);
-			createReport();
+			//createReport();
 			//createScopedReport(1);
 //			//String query = "select status, count(distinct upload_doc_id) as num_docs FROM temp_partition_docreceiver_seqfile_document where org_id = '10000286' group by status";
 //			String query = "select document_status, count(distinct seqfile_doc_id) as num_docs, count(distinct seqfile_file) as num_seq_file FROM temp_partition_docreceiver_seqfile_document " +
@@ -92,7 +88,7 @@ public class QueryHive {
     }
 
 	
-	private static void createScopedReport(int daysBack) throws JSONException, SQLException, FileNotFoundException, IOException {
+	private static void createScopedReport(String hiveAddress, int daysBack) throws JSONException, SQLException, FileNotFoundException, IOException {
 		Date today = new Date();
 
 		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
@@ -100,94 +96,95 @@ public class QueryHive {
 		JSONObject obj = new JSONObject();
 		String uploadQuery = "select org_id, status, if(message like '/mnt%','No space left on device',message) as message, count(distinct upload_doc_id) as docs_uploaded, max(time) as last_upload_time " +
 							 "from temp_partition_docreceiver_upload_document s where " + dateRange + " group by org_id, status, if(message like '/mnt%','No space left on device',message)";
-		obj.put("upload", queryHiveJson(uploadQuery));
+		obj.put("upload", queryHiveJson(hiveAddress, uploadQuery));
 		
 		String seqfileQuery = "select s.org_id, u.status, s.document_status, count(distinct seqfile_doc_id) as num_files, count(distinct seqfile_file) num_seq_files, max(s.time) as last_upload_time " +
 							  "from temp_partition_docreceiver_seqfile_document s left outer join temp_partition_docreceiver_upload_document u on s.seqfile_doc_id = u.upload_doc_id and s.org_id = u.org_id " +
 							  "where u.upload_doc_id is not null and " + dateRange + " group by s.org_id, u.status, s.document_status";
-		obj.put("seqfile", queryHiveJson(seqfileQuery));
+		obj.put("seqfile", queryHiveJson(hiveAddress, seqfileQuery));
 		
 		String abandonedSeqFileQuery = "select s.org_id, s.seqfile_file, count(s.seqfile_doc_id) as num_docs, max(s.time) as last_written_to from temp_partition_docreceiver_seqfile_document s left outer join " +
 									   "temp_partition_coordinator_hdfsmove c on c.move_from = s.seqfile_directory where c.move_from is null and s.document_status = 'success' and s.seqfile_file is not null " +
 									   "and " + dateRange + " group by s.org_id, s.seqfile_file";
 		
-		obj.put("abandonedSeqFile",  queryHiveJson(abandonedSeqFileQuery));
+		obj.put("abandonedSeqFile",  queryHiveJson(hiveAddress, abandonedSeqFileQuery));
 		
 		String jobDetailsQuery = "select c.org_id as org_id, c.job_type as job_type, c.status as status, count(distinct c.job_id) as num_jobs,  max(c.time) as last_update_time from temp_partition_coordinator_job c " + 
 								 "inner join (select job_id, max(time) as time from temp_partition_coordinator_job s where " + dateRange + " group by job_id) m on m.job_id = c.job_id and c.time = m.time group by c.org_id, c.job_type, c.status";
 		
-		obj.put("jobDetails", queryHiveJson(jobDetailsQuery));
+		obj.put("jobDetails", queryHiveJson(hiveAddress, jobDetailsQuery));
 		
 		String parserDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, sum(if(p.ocr_tag_status = 'success',1,0)) as ocr_num, sum(if(p.persist_tag_status = 'success',1,0)) as persist_num, max(p.time) as last_parse_time from " +
 									"temp_partition_parser_tag p join (select input_dir from temp_partition_coordinator_job s where job_type='parser' and status='success' and " + dateRange + ") c  on " +
 									"regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfile_name), '') = c.input_dir " +
 									"where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("parserDetails", queryHiveJson(parserDetailsQuery));
+		obj.put("parserDetails", queryHiveJson(hiveAddress, parserDetailsQuery));
 		
 		String ocrDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, max(p.time) as last_parse_time from temp_partition_ocr p join (select input_dir from temp_partition_coordinator_job s where " + 
 								 "job_type='ocr' and status='success' and " + dateRange + ") c  on " +
 								 "regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfil_name), '') = c.input_dir " +
 								 "where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("ocrDetails", queryHiveJson(ocrDetailsQuery));
+		obj.put("ocrDetails", queryHiveJson(hiveAddress, ocrDetailsQuery));
 		
 		String persistDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, max(p.time) as last_parse_time from temp_partition_persist_mapper p join (select input_dir from temp_partition_coordinator_job s where " + 
 									 "job_type='persist' and status='success' and " + dateRange + ") c  on " +
 								 	 "regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfile_name), '') = c.input_dir " +
 									 "where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("persistDetails", queryHiveJson(persistDetailsQuery));
+		obj.put("persistDetails", queryHiveJson(hiveAddress, persistDetailsQuery));
 		
 		IOUtils.write(obj.toString(), new FileOutputStream("C:\\eclipse_new\\workspace\\hive-query-web-trunk\\src\\main\\resources\\assets\\report_" + daysBack + ".json"));
 	}
 	
-	private static void createReport() throws JSONException, SQLException, FileNotFoundException, IOException {
+	private static void createReport(String hiveAddress) throws JSONException, SQLException, FileNotFoundException, IOException {
 		JSONObject obj = new JSONObject();
 		String uploadQuery = "select org_id, status, if(message like '/mnt%','No space left on device',message) as message, count(distinct upload_doc_id) as docs_uploaded, max(time) as last_upload_time " +
 							 "from temp_partition_docreceiver_upload_document group by org_id, status, if(message like '/mnt%','No space left on device',message)";
-		obj.put("upload", queryHiveJson(uploadQuery));
+		obj.put("upload", queryHiveJson(hiveAddress, uploadQuery));
 		
 		String seqfileQuery = "select s.org_id, u.status, s.document_status, count(distinct seqfile_doc_id) as num_files, count(distinct seqfile_file) num_seq_files, max(s.time) as last_upload_time " +
 							  "from temp_partition_docreceiver_seqfile_document s left outer join temp_partition_docreceiver_upload_document u on s.seqfile_doc_id = u.upload_doc_id and s.org_id = u.org_id " +
 							  "where u.upload_doc_id is not null group by s.org_id, u.status, s.document_status";
-		obj.put("seqfile", queryHiveJson(seqfileQuery));
+		obj.put("seqfile", queryHiveJson(hiveAddress, seqfileQuery));
 		
 		String abandonedSeqFileQuery = "select s.org_id, s.seqfile_file, count(s.seqfile_doc_id) as num_docs, max(s.time) as last_written_to from temp_partition_docreceiver_seqfile_document s left outer join " +
 									   "temp_partition_coordinator_hdfsmove c on c.move_from = s.seqfile_directory where c.move_from is null and s.document_status = 'success' and s.seqfile_file is not null group by s.org_id, s.seqfile_file";
 		
-		obj.put("abandonedSeqFile",  queryHiveJson(abandonedSeqFileQuery));
+		obj.put("abandonedSeqFile",  queryHiveJson(hiveAddress, abandonedSeqFileQuery));
 		
 		String jobDetailsQuery = "select c.org_id as org_id, c.job_type as job_type, c.status as status, count(distinct c.job_id) as num_jobs,  max(c.time) as last_update_time from temp_partition_coordinator_job c " + 
 								 "inner join (select job_id, max(time) as time from temp_partition_coordinator_job group by job_id) m on m.job_id = c.job_id and c.time = m.time group by c.org_id, c.job_type, c.status";
 		
-		obj.put("jobDetails", queryHiveJson(jobDetailsQuery));
+		obj.put("jobDetails", queryHiveJson(hiveAddress, jobDetailsQuery));
 		
 		String parserDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, sum(if(p.ocr_tag_status = 'success',1,0)) as ocr_num, sum(if(p.persist_tag_status = 'success',1,0)) as persist_num, max(p.time) as last_parse_time from " +
 									"temp_partition_parser_tag p join (select input_dir from temp_partition_coordinator_job where job_type='parser' and status='success') c  on " +
 									"regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfile_name), '') = c.input_dir " +
 									"where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("parserDetails", queryHiveJson(parserDetailsQuery));
+		obj.put("parserDetails", queryHiveJson(hiveAddress, parserDetailsQuery));
 		
 		String ocrDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, max(p.time) as last_parse_time from temp_partition_ocr p join (select input_dir from temp_partition_coordinator_job where " + 
 								 "job_type='ocr' and status='success') c  on " +
 								 "regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfil_name), '') = c.input_dir " +
 								 "where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("ocrDetails", queryHiveJson(ocrDetailsQuery));
+		obj.put("ocrDetails", queryHiveJson(hiveAddress, ocrDetailsQuery));
 		
 		String persistDetailsQuery = "select p.org_id, p.status, p.error_message, count(distinct p.doc_id) as total_num, max(p.time) as last_parse_time from temp_partition_persist_mapper p join (select input_dir from temp_partition_coordinator_job where " + 
 									 "job_type='persist' and status='success') c  on " +
 								 	 "regexp_replace(regexp_replace(p.input_seqfile_path, 'hdfs://ip-10-199-6-149.us-west-1.compute.internal:8020', ''), concat('/',p.input_seqfile_name), '') = c.input_dir " +
 									 "where p.status is not null group by p.org_id, p.status, p.error_message";
 		
-		obj.put("persistDetails", queryHiveJson(persistDetailsQuery));
+		obj.put("persistDetails", queryHiveJson(hiveAddress, persistDetailsQuery));
 		
 		IOUtils.write(obj.toString(), new FileOutputStream("C:\\eclipse_new\\workspace\\hive-query-web-trunk\\src\\main\\resources\\assets\\report.json"));
 	}
 
-	public static String rawQuery(String environment, 
+	public static String rawQuery(String hiveAddress,
+								  String environment, 
 								  String component, 
 								  String startDate, 
 								  String endDate, 
@@ -208,26 +205,26 @@ public class QueryHive {
 		
 		String limitClause = getLimitClause(limit);
 		String sql = "select line FROM " + tableName + whereClause + limitClause;
-		return  getLineJson(sql);
+		return  getLineJson(hiveAddress, sql);
 	}
 	
-	public static String getQueueStats(String environment, String startDate, String endDate) throws SQLException, JSONException {
+	public static String getQueueStats(String hiveAddress, String environment, String startDate, String endDate) throws SQLException, JSONException {
 		String sql = "select time, cast(parserQueue as int) as parserQueue, cast(ocrQueue as int) as ocrQueue, cast(traceQueue as int) as traceQueue, cast(persistQueue as int) as persistQueue " +
 					 //"from " + environment + "_logs_coordinator_epoch TABLESAMPLE(1 PERCENT) s " +
 					 "from temp_partition_coordinator_stats " +
 					 "where " + getDateRange(startDate, endDate) +
 					 " order by time asc ";
-		return queryHive(sql);
+		return queryHive(hiveAddress, sql);
 	}
 	
-	public static String getJobStats(String environment, String startDate, String endDate, String status) throws SQLException, JSONException {
+	public static String getJobStats(String hiveAddress, String environment, String startDate, String endDate, String status) throws SQLException, JSONException {
 		String sql = "select get_json_object(line, '$.datestamp') as time, " +
 				     "get_json_object(line, '$.coordinator.job.jobType') as jobType, " +
 				     "get_json_object(line, '$.coordinator.job.jobID'), " +
 				     "get_json_object(line, '$.coordinator.job.status') from " + environment + "_logs_coordinator_epoch " +
 				     "where " + getDateRange(startDate, endDate) +
 					 " order by time asc ";
-		return queryHive(sql);
+		return queryHive(hiveAddress, sql);
 	}
 	
 	
@@ -285,29 +282,21 @@ public class QueryHive {
 
 	private static String getComponentTableName(String component) {
 		String componentTableName = "";
-		switch (component) {
-	        case "coordinator":  
-	        	componentTableName = "coordinator";
-	        	break;
-	        case "docreceiver":  
-	        	componentTableName = "docreceiver";
-	            break;
-	        case "ocr": 
-        		componentTableName = "ocrjob";
-            	break;
-	        case "parser": 
-        		componentTableName = "parserjob";
-            	break;
-	        case "persist": 
-        		componentTableName = "persistjob";
-            	break;
-	        case "trace": 
-        		componentTableName = "json2trace";
-            	break;
-	        default: 
-	        	componentTableName = "";
-                break;
-		}
+		if (component.equals("coordinator"))  
+	    	componentTableName = "coordinator";
+		if (component.equals("docreceiver"))  
+	    	componentTableName = "docreceiver";
+		if (component.equals("ocr"))  
+	    	componentTableName = "ocrjob";
+		if (component.equals("parser"))  
+	    	componentTableName = "parserjob";
+		if (component.equals("persist"))  
+	    	componentTableName = "persistjob";
+		if (component.equals("trace"))  
+	    	componentTableName = "json2trace";
+		else
+			componentTableName = "";
+		
 		return componentTableName;
 	}
 
@@ -316,11 +305,11 @@ public class QueryHive {
 	 * @throws SQLException
 	 * @throws JSONException 
 	 */
-	public static String queryHive(String sql) throws SQLException, JSONException {
+	public static String queryHive(String hiveAddress, String sql) throws SQLException, JSONException {
 		String queryResult = "";
 		try {
 			Class.forName(driverName);
-			Connection connection = DriverManager.getConnection("jdbc:hive2://184.169.209.24:10000", "hive", "");
+			Connection connection = DriverManager.getConnection(hiveAddress, "hive", "");
 			
 			try {
 				Statement statement = connection.createStatement();
@@ -346,15 +335,15 @@ public class QueryHive {
 		return queryResult;
 	}
 	
-	public static JSONObject queryHiveJsonFirstResult(String sql) throws SQLException, JSONException {
-		ArrayList results = (ArrayList) queryHiveJson(sql);
+	public static JSONObject queryHiveJsonFirstResult(String hiveAddress,String sql) throws SQLException, JSONException {
+		ArrayList results = (ArrayList) queryHiveJson(hiveAddress,sql);
 		return ((JSONObject) results.get(0));
 	}
-	public static Object queryHiveJson(String sql) throws SQLException, JSONException {
+	public static Object queryHiveJson(String hiveAddress,String sql) throws SQLException, JSONException {
 		Object queryResult = "";
 		try {
 			Class.forName(driverName);
-			Connection connection = DriverManager.getConnection("jdbc:hive2://184.169.209.24:10000", "hive", "");
+			Connection connection = DriverManager.getConnection(hiveAddress, "hive", "");
 			
 			try {
 				Statement statement = connection.createStatement();
@@ -379,11 +368,11 @@ public class QueryHive {
 		}
 		return queryResult;
 	}
-	private static String getLineJson(String sql) {
+	private static String getLineJson(String hiveAddress, String sql) {
 		String queryResult = "";
 		try {
 			Class.forName(driverName);
-			Connection connection = DriverManager.getConnection("jdbc:hive2://184.169.209.24:10000", "hive", "");
+			Connection connection = DriverManager.getConnection(hiveAddress, "hive", "");
 			
 			try {
 				Statement statement = connection.createStatement();

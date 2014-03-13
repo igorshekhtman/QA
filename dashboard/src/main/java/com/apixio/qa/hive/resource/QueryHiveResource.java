@@ -23,7 +23,7 @@ public class QueryHiveResource {
     public QueryHiveResource(String hiveAddress, String updateInterval) {
         this.hiveAddress = hiveAddress;
         this.counter = new AtomicLong();
-        this.dcm = new DocumentCountManager(updateInterval);
+        this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
     }
 
     @GET
@@ -32,7 +32,7 @@ public class QueryHiveResource {
     public String query(@QueryParam("query") String query) {
         try
         {
-    		return QueryHive.queryHive(query);
+    		return QueryHive.queryHive(hiveAddress,query);
         }
         catch (Exception ex) {
         	return ex.toString();
@@ -67,7 +67,7 @@ public class QueryHiveResource {
     					   @QueryParam("limit") Optional<String> limit) {
         try
         {
-    		return QueryHive.rawQuery(environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
+    		return QueryHive.rawQuery(hiveAddress,environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
         }
         catch (Exception ex) {
         	return ex.toString();
@@ -82,7 +82,7 @@ public class QueryHiveResource {
     					   @QueryParam("enddate") String endDate) {
         try
         {
-    		return QueryHive.getQueueStats(environment, startDate, endDate);
+    		return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
         }
         catch (Exception ex) {
         	return ex.toString();
@@ -98,7 +98,7 @@ public class QueryHiveResource {
     					   @QueryParam("status") Optional<String> status) {
         try
         {
-    		return QueryHive.getJobStats(environment, startDate, endDate, status.or(""));
+    		return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
         }
         catch (Exception ex) {
         	return ex.toString();
