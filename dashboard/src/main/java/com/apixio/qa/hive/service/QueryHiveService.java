@@ -1,8 +1,7 @@
-package apixio.hive.service;
+package com.apixio.qa.hive.service;
 
-import apixio.hive.conf.QueryHiveConfiguration;
-import apixio.hive.resource.QueryHiveResource;
-
+import com.apixio.qa.hive.conf.QueryHiveConfiguration;
+import com.apixio.qa.hive.resource.QueryHiveResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;

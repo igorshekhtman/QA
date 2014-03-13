@@ -1,4 +1,4 @@
-package apixio.hive.resource;
+package com.apixio.qa.hive.resource;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -9,9 +9,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import apixio.hive.DocumentCountManager;
-import apixio.hive.QueryHive;
-
+import com.apixio.qa.hive.QueryHive;
+import com.apixio.qa.hive.manager.DocumentCountManager;
 import com.google.common.base.Optional;
 import com.yammer.metrics.annotation.Timed;
 

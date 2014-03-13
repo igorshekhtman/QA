@@ -1,4 +1,4 @@
-package apixio.hive.conf;
+package com.apixio.qa.hive.conf;
 
 import com.yammer.dropwizard.config.Configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;

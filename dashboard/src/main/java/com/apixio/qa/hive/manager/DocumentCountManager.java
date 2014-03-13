@@ -1,4 +1,4 @@
-package apixio.hive;
+package com.apixio.qa.hive.manager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,6 +16,8 @@ import java.util.TimerTask;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.apixio.qa.hive.QueryHive;
 
 public class DocumentCountManager {
 	private static String driverName = "org.apache.hive.jdbc.HiveDriver";
