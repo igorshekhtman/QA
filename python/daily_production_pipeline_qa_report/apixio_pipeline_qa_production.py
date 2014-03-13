@@ -242,13 +242,14 @@ Content-type: text/html
 Subject: Daily %s Pipeline QA Report - %s
 
 <h1>Apixio Pipeline QA Report</h1>
-Date & Time: <b>%s</b><br>
+Date & Time (run): <b>%s</b><br>
+Month/Day (queries): <b>%s/%s</b><br>
 Report type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -943,7 +944,6 @@ REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TY
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
-# report.txt file string "Daily Production Report - March 11, 2014	reports/production/pipeline/2014/3/11.html"
 
 if not DEBUG_MODE:
 	# REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
@@ -952,11 +952,11 @@ if not DEBUG_MODE:
 	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME
 	REPORTXTFILENAME="reports.txt"
 	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
-	print (REPORTFOLDER)
-	print (REPORTFILENAME)
-	print (REPORTXTSTRING)
-	print (REPORTXTFILENAME)
-	print (REPORTXTFILEFOLDER)
+	# print (REPORTFOLDER)
+	# print (REPORTFILENAME)
+	# print (REPORTXTSTRING)
+	# print (REPORTXTFILENAME)
+	# print (REPORTXTFILEFOLDER)
 	os.chdir(REPORTFOLDER)
 	REPORTFILE = open(REPORTFILENAME, 'w')
 	REPORTFILE.write(REPORT)
@@ -966,6 +966,7 @@ if not DEBUG_MODE:
 	REPORTFILETXT.write(REPORTXTSTRING)
 	REPORTFILETXT.close()
 	os.chdir("/mnt/automation")
+
 # ===================================================================================================================================
 
 
