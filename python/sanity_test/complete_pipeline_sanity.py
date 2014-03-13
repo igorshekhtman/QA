@@ -323,12 +323,12 @@ PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 
 
 SENDER="donotreply@apixio.com"
-RECEIVERS="ishekhtman@apixio.com"
+# RECEIVERS="ishekhtman@apixio.com"
+RECEIVERS="eng@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>
 To: Engineering <eng@apixio.com>
-# To: Igor <ishekhtman@apixio.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Pipeline QA Report %s batchID %s - %s
