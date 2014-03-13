@@ -1,0 +1,49 @@
+<html>
+<head>
+	<title>Daily Reports</title>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="reportstyle.css">
+	<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script>
+		$(document).ready(function() {
+			$.ajax({
+				type: "GET",
+				url: "reports.txt",
+				dataType: "text",
+				success: function(data) {processData(data);}
+			 });
+		});
+		function processData(allText) {
+			var record_num = 2;  // or however many elements there are in each row
+			var allTextLines = allText.split(/\r\n|\n/);
+			var output = [];
+			for (var i=1; i<allTextLines.length; i++) {
+				var data = allTextLines[i].split('\t');
+				if (data.length == 2) {
+					console.log('Adding Select Option');
+					output.push('<option value="'+ data[1] +'">'+ data[0] +'</option>');
+				} else {
+				}
+			}
+			$('#controlSelect').html(output.join(''));
+			$('#controlSelect option:last-child').attr('selected', 'selected');
+			loadReport();
+		}
+		function loadReport() {
+			var selected_report = $("#controlSelect").val();
+			$("#report").attr("src", selected_report);
+		}
+	</script>
+</head>
+<body>
+<div class="title">Daily Reports</div>
+<div class="control">
+	<p>Please select a report:</p>
+	<select id="controlSelect" onchange='javascript:loadReport()'></select>
+</div>
+<div class="frame">
+	<iframe id="report" scrolling="auto" runat="server" width="100%" height="100%"></iframe>
+</div>
+</body>
+</html>

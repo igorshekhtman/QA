@@ -26,7 +26,7 @@ public class QueryHiveResource
     {
         this.hiveAddress = hiveAddress;
         this.counter = new AtomicLong();
-        this.dcm = new DocumentCountManager(updateInterval);
+        this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
     }
 
     @GET
@@ -36,7 +36,7 @@ public class QueryHiveResource
     {
         try
         {
-            return QueryHive.queryHive(query);
+    		return QueryHive.queryHive(hiveAddress,query);
         }
         catch (Exception ex)
         {
@@ -69,8 +69,7 @@ public class QueryHiveResource
     {
         try
         {
-            return QueryHive.rawQuery(environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""),
-                    conditionTwoValue.or(""), limit.or(""));
+    		return QueryHive.rawQuery(hiveAddress,environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
         }
         catch (Exception ex)
         {
@@ -85,7 +84,7 @@ public class QueryHiveResource
     {
         try
         {
-            return QueryHive.getQueueStats(environment, startDate, endDate);
+    		return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
         }
         catch (Exception ex)
         {
@@ -101,7 +100,7 @@ public class QueryHiveResource
     {
         try
         {
-            return QueryHive.getJobStats(environment, startDate, endDate, status.or(""));
+    		return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
         }
         catch (Exception ex)
         {

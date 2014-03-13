@@ -1,0 +1,511 @@
+<html>
+	<head>
+		<title>Apixio Hive Dashboard</title>
+	 	<link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script src="mustache.js"></script>
+	 	<link rel="stylesheet" href="style.css">
+	 	<script>
+ 		var orgs = {};
+ 		var summaryorg = new Object();
+	 	var orgmap = {};
+	 	orgmap["99"] = "zStaging Test Org";
+	 	orgmap["219"] = "zStaging Test Org";
+	 	orgmap["10000230"] = "Sutter Health";
+	 	orgmap["10000232"] = "MMG";
+	 	orgmap["10000235"] = "GWU";
+	 	orgmap["10000236"] = "PMGV";
+	 	orgmap["10000237"] = "PHP";
+	 	orgmap["10000246"] = "CCHCA";
+	 	orgmap["10000247"] = "EHR Integration Services";
+	 	orgmap["10000248"] = "Apixio";
+	 	orgmap["10000249"] = "Apixio";
+	 	orgmap["10000250"] = "onlok";
+	 	orgmap["10000251"] = "PipelineTest3";
+	 	orgmap["10000252"] = "PipelineTest4";
+	 	orgmap["10000253"] = "RPN";
+	 	orgmap["10000254"] = "Pipeline Test5";
+	 	orgmap["10000255"] = "Pipeline Test6";
+	 	orgmap["10000256"] = "Apixio Pipeline Test 7";
+	 	orgmap["10000257"] = "Apixio Pipeline Test 8";
+	 	orgmap["10000259"] = "Monarch";
+	 	orgmap["10000260"] = "New Temple";
+	 	orgmap["10000261"] = "org1";
+	 	orgmap["10000262"] = "United Health Services";
+	 	orgmap["10000263"] = "CCHCA";
+	 	orgmap["10000264"] = "HCC Optimizer Demo";
+	 	orgmap["10000265"] = "Prosper Care Health";
+	 	orgmap["10000268"] = "Apixio";
+	 	orgmap["10000270"] = "Monarch";
+	 	orgmap["10000271"] = "org0001";
+	 	orgmap["10000272"] = "org0002";
+	 	orgmap["10000275"] = "org0005";
+	 	orgmap["10000278"] = "Hill Physicians";
+	 	orgmap["10000279"] = "org0138";
+	 	orgmap["10000280"] = "Prosper Care Health";
+	 	orgmap["10000281"] = "Prosperity Health Care";
+	 	orgmap["10000282"] = "Apixio Coder Training";
+	 	orgmap["10000283"] = "RMC [Test]";
+	 	orgmap["10000284"] = "RMC";
+	 	orgmap["10000285"] = "Scripps [Test]";
+	 	orgmap["10000286"] = "Scripps";
+	 	orgmap["10000288"] = "UHS";
+	 	
+	
+		var org_details = "<div class='org_details'>\
+							<div class='org_title'>{{org_name}} (Org ID: {{org_id}})</div>\
+							<div class='section'>\
+								<div class='title'>Upload:</div>\
+								<div class='jobclass'>Successful Uploads: {{upload.success_files}} (Last Success: {{upload.last_success_time}})</div>\
+								<div class='error'>Upload Errors:\
+									<ul>{{#upload.errors}}<li>Last Error: {{last_error_time}} ({{error_files}} files) - {{message}}</li>{{/upload.errors}}</ul>\
+								</div>\
+							</div>\
+							<div class='section'>\
+								<div class='title'>Sequence Files</div>\
+								<div class='jobclass'>Created {{seqfile.success_seq_files}} sequence files with {{seqfile.success_files}} documents (last file: {{seqfile.last_upload_time}})</div>\
+								<div class='error'>Unprocessed Sequence Files:\
+									<ul>{{#seqfile.unprocessed}}<li>Last Written: {{last_update}} ({{num_docs}} documents) - {{path}}</li>{{/seqfile.unprocessed}}</ul>\
+								</div>\
+							</div>\
+							<div class='section'>\
+								<div class='title'>Parser:</div>\
+								<div class='jobclass'>\
+									<ul>\
+										<li>{{jobs.parser.success.num_jobs}} jobs succeeded (last at: {{jobs.parser.success.last_job_time}}) \
+											<ul>\
+												<li>{{jobs.parser.success.num_files}} total documents</li>\
+												<li>{{jobs.parser.success.ocr_files}} tagged to OCR</li>\
+												<li>{{jobs.parser.success.persist_files}} tagged to Persist</li>\
+											</ul>\
+										</li>\
+										<li>{{jobs.parser.error.num_jobs}} jobs errored (last at: {{jobs.parser.error.last_job_time}})</li>\
+										<li>{{jobs.parser.start.num_jobs}} jobs incomplete (last at: {{jobs.parser.start.last_job_time}})</li>\
+									</ul>\
+									<div class='error'>Parser Errors:\
+										<ul>{{#jobs.parser.error.errors}}<li>Last error: {{last_error_time}} ({{error_files}} documents) - {{message}}</li>{{/jobs.parser.error.errors}}</ul>\
+									</div>\
+								</div>\
+							</div>\
+							<div class='section'>\
+								<div class='title'>OCR:</div>\
+								<div class='jobclass'>\
+									<ul>\
+										<li>{{jobs.ocr.success.num_jobs}} jobs succeeded (last at: {{jobs.ocr.success.last_job_time}}) \
+											<ul>\
+												<li>{{jobs.ocr.success.num_files}} total documents</li>\
+												<li>{{jobs.ocr.error.num_jobs}} jobs errored (last at: {{jobs.ocr.error.last_job_time}})</li>\
+												<li>{{jobs.ocr.start.num_jobs}} jobs incomplete (last at: {{jobs.ocr.start.last_job_time}})</li>\
+											</ul>\
+										</li>\
+									</ul>\
+									<div class='error'>OCR Errors:\
+										<ul>{{#jobs.ocr.error.errors}}<li>Last error: {{last_error_time}} ({{error_files}} documents) - {{message}}</li>{{/jobs.ocr.error.errors}}</ul>\
+									</div>\
+								</div>\
+							</div>\
+							<div class='section'>\
+								<div class='title'>Persist:</div>\
+								<div class='jobclass'>\
+									<ul>\
+										<li>{{jobs.persist.success.num_jobs}} jobs succeeded (last at: {{jobs.persist.success.last_job_time}})\
+											<ul>\
+												<li>{{jobs.persist.success.num_files}} total documents</li>\
+												<li>{{jobs.persist.error.num_jobs}} jobs errored (last at: {{jobs.persist.error.last_job_time}})</li>\
+												<li>{{jobs.persist.start.num_jobs}} jobs incomplete (last at: {{jobs.persist.start.last_job_time}})</li>\
+											</ul>\
+										</li>\
+									</ul>\
+									<div class='error'>Persist Errors:\
+										<ul>{{#jobs.persist.error.errors}}<li>Last error: {{last_error_time}} ({{error_files}} documents) - {{message}}</li>{{/jobs.persist.error.errors}}</ul>\
+									</div>\
+								</div>\
+							</div>\
+						</div>";
+						
+	 	var combo_box = "<select onchange='javascript:loadOrg(this)'>{{#orgs}}<option value='{{org_id}}'>{{org_name}} (Org ID: {{org_id}})</option>{{/orgs}}</select>";
+		function doIt() {
+	 		$.getJSON( "report.json", function (data ) {
+	 			console.log('got json: ' + data);
+	 			var val = buildOrgObjects (data);
+	 			console.log(val);
+	 			$("#selectOrg").html(Mustache.render(combo_box, val));
+	 			
+	 		});
+	 	}
+		function loadRange(option) {
+	 		$.getJSON( option.value, function (data ) {
+	 			console.log('got json: ' + data);
+	 			var val = buildOrgObjects (data);
+	 			console.log(val);
+	 			$("#selectOrg").html(Mustache.render(combo_box, val));
+	 			
+	 		});
+	 	}
+		function loadOrg(option) {
+			var selected_org_id = option.value;
+			var org = orgs[selected_org_id];
+
+ 			$("#orgDetails").html(Mustache.render(org_details, org));
+		}
+	 	
+	 	function getOrg(org_id) {
+
+        	var org = new Object();
+        	if (org_id in orgs)
+        		org = orgs[org_id];
+        	org.org_id = org_id;
+        	org.org_name = orgmap[org_id];
+        	return org;
+	 	}	 	
+	 	
+	 	function getSummaryOrg(org_id) {
+
+        	var org = new Object();
+        	if (org_id in orgs) {
+        		org = orgs[org_id];
+        	}
+        	else {
+        		org.org_name = 'All Orgs Summary';
+        		org.jobs = new Object();
+        		org.jobs.ocr = new Object();
+        		org.jobs.ocr.errors = new Array();
+        		org.jobs.parser = new Object();
+        		org.jobs.parser.errors = new Array();
+        		org.jobs.persist = new Object();
+        		org.jobs.persist.errors = new Array();
+        	}
+        	org.org_id = org_id;
+        	return org;
+	 	}
+	 	
+	 	function buildOrgObjects(obj) {
+	 		var report = {};
+	 		orgs = {};
+	 		summaryorg = getSummaryOrg("0");
+	        for (var key in obj) {
+	        	if (key == 'seqfile') {
+	        		buildSeqFile(obj[key]);
+	            } else if (key == 'upload'){
+	                buildUpload(obj[key]);
+	            } else if (key == 'abandonedSeqFile'){
+	                buildAbandonedSeqFile(obj[key]);
+	            } 
+	            else if (key == 'jobDetails'){
+	                buildJobDetails(obj[key]);
+	            } else if (key == 'parserDetails'){
+	                buildParserDetails(obj[key]);
+	            } else if (key == 'ocrDetails'){
+	                buildOcrDetails(obj[key]);
+	            } else if (key == 'persistDetails'){
+	                buildPersistDetails(obj[key]);
+	            }
+	        }
+	        //return orgs;
+	        var orgArray = [];
+	        for (var org_id in orgs) {
+	        	var org = orgs[org_id]; 
+	        	orgArray.push(org);
+	        	console.log("adding " + org_id + " to array");	        	
+	        }
+	        orgArray.push(summaryorg);
+	        orgArray.sort(compareOrgs);
+	        report['orgs'] = orgArray;
+	        return report;
+	 	}
+	 	function compareOrgs(a,b) {
+	 		  if (a.org_name < b.org_name)
+	 		     return -1;
+	 		  if (a.org_name > b.org_name)
+	 		    return 1;
+	 		  return 0;
+		}
+	 	
+	 	function buildPersistDetails(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering ocr details line ' + key);
+	        	var parserDetailsLine = obj[key];
+	        	var org_id = parserDetailsLine.org_id;
+				var org = getOrg(String(org_id));
+        		var jobs = new Object();
+        		if ('jobs' in org)
+        			jobs = org.jobs;
+        		var job_type_details = new Object();
+        		if ('persist' in jobs)
+        			job_type_details = org.jobs['persist'];
+        		var job_status = parserDetailsLine.status;
+        		var job_status_details = new Object();
+        		if (job_status in job_type_details)
+        			job_status_details = job_type_details[job_status];
+        		if (job_status == 'success') {
+        			job_status_details.num_files = parserDetailsLine.total_num;
+        			job_status_details.last_file_time = parserDetailsLine.last_parse_time;
+        		} else if (job_status == 'error') {
+	        		var errors = new Array();
+	        		if ('errors' in job_status_details)
+	        			errors = job_status_details.errors;
+	        		var error = new Object();
+	        		error.error_files = parserDetailsLine.total_num;
+	        		error.last_error_time = parserDetailsLine.last_parse_time;
+	        		error.message = parserDetailsLine.error_message;
+	        		errors.push(error);
+	        		summaryorg.jobs.persist.errors.push(error);
+	        		errors.sort(compareErrors);
+	        		job_status_details.errors = errors;        			
+        		}
+        		job_type_details[job_status] = job_status_details;        		
+        		jobs['persist'] = job_type_details;
+        		org.jobs = jobs;
+	        	orgs[org_id] = org;
+	        }	 			 		
+	 	}
+	 	
+	 	function buildOcrDetails(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering ocr details line ' + key);
+	        	var parserDetailsLine = obj[key];
+	        	var org_id = parserDetailsLine.org_id;
+				var org = getOrg(String(org_id));
+        		var jobs = new Object();
+        		if ('jobs' in org)
+        			jobs = org.jobs;
+        		var job_type_details = new Object();
+        		if ('ocr' in jobs)
+        			job_type_details = org.jobs['ocr'];
+        		var job_status = parserDetailsLine.status;
+        		var job_status_details = new Object();
+        		if (job_status in job_type_details)
+        			job_status_details = job_type_details[job_status];
+        		if (job_status == 'success') {
+        			job_status_details.num_files = parserDetailsLine.total_num;
+        			job_status_details.last_file_time = parserDetailsLine.last_parse_time;
+        		} else if (job_status == 'error') {
+	        		var errors = new Array();
+	        		if ('errors' in job_status_details)
+	        			errors = job_status_details.errors;
+	        		var error = new Object();
+	        		error.error_files = parserDetailsLine.total_num;
+	        		error.last_error_time = parserDetailsLine.last_parse_time;
+	        		error.message = parserDetailsLine.error_message;
+	        		errors.push(error);
+	        		summaryorg.jobs.ocr.errors.push(error);
+	        		errors.sort(compareErrors);
+	        		job_status_details.errors = errors;     	   			
+        		}
+        		job_type_details[job_status] = job_status_details;        		
+        		jobs['ocr'] = job_type_details;
+        		org.jobs = jobs;
+	        	orgs[org_id] = org;
+	        }	 		
+	 	}
+	 	
+	 	function buildParserDetails(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering parser details line ' + key);
+	        	var parserDetailsLine = obj[key];
+	        	var org_id = parserDetailsLine.org_id;
+				var org = getOrg(String(org_id));
+        		var jobs = new Object();
+        		if ('jobs' in org)
+        			jobs = org.jobs;
+        		var job_type_details = new Object();
+        		if ('parser' in jobs)
+        			job_type_details = org.jobs['parser'];
+        		var job_status = parserDetailsLine.status;
+        		var job_status_details = new Object();
+        		if (job_status in job_type_details)
+        			job_status_details = job_type_details[job_status];
+        		if (job_status == 'success') {
+        			job_status_details.num_files = parserDetailsLine.total_num;
+        			job_status_details.last_file_time = parserDetailsLine.last_parse_time;
+        			job_status_details.ocr_files = parserDetailsLine.ocr_num;
+        			job_status_details.persist_files = parserDetailsLine.persist_num;
+        		} else if (job_status == 'error') {
+	        		var errors = new Array();
+	        		if ('errors' in job_status_details)
+	        			errors = job_status_details.errors;
+	        		var error = new Object();
+	        		error.error_files = parserDetailsLine.total_num;
+	        		error.last_error_time = parserDetailsLine.last_parse_time;
+	        		error.message = parserDetailsLine.error_message;
+	        		errors.push(error);
+	        		summaryorg.jobs.parser.errors.push(error);	
+	        		errors.sort(compareErrors);
+	        		job_status_details.errors = errors;   	     			
+        		}
+        		job_type_details[job_status] = job_status_details;        		
+        		jobs['parser'] = job_type_details;
+        		org.jobs = jobs;
+	        	orgs[org_id] = org;
+	        }
+	 	}
+	 	
+	 	function buildJobDetails(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering job details line ' + key);
+	        	var jobDetailsLine = obj[key];
+	        	var org_id = jobDetailsLine.org_id;
+				var org = getOrg(String(org_id));
+        		var jobs = new Object();
+        		if ('jobs' in org)
+        			jobs = org.jobs;
+        		var job_type = jobDetailsLine.job_type;
+        		var job_type_details = new Object();
+        		if (job_type in jobs)
+        			job_type_details = org.jobs[job_type];
+        		var job_status = jobDetailsLine.status;
+        		var job_status_details = new Object();
+        		job_status_details.num_jobs = jobDetailsLine.num_jobs;
+        		job_status_details.last_job_time = jobDetailsLine.last_update_time;
+        		job_type_details[job_status] = job_status_details;        		
+        		jobs[job_type] = job_type_details;
+        		org.jobs = jobs;
+	        	orgs[org_id] = org;
+	        }
+	 	}
+	 	
+	 	function buildAbandonedSeqFile(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering abandoned sequence file line ' + key);
+	        	var unprocessedLine = obj[key];
+	        	var org_id = unprocessedLine.org_id;
+				var org = getOrg(String(org_id));
+        		var seqfile = new Object();
+        		if ('seqfile' in org)
+        			seqfile = org.seqfile;
+        		
+        		var unprocessed = new Array();
+        		if ('unprocessed' in seqfile)
+        			unprocessed = seqfile.unprocessed;
+        		var stale_seq_file = new Object();
+        		stale_seq_file.path = unprocessedLine.seqfile_file;
+        		stale_seq_file.num_docs = unprocessedLine.num_docs;
+        		stale_seq_file.last_update = unprocessedLine.last_written_to;
+        		unprocessed.push(stale_seq_file);
+        		unprocessed.sort(compareAbandoned);
+        		seqfile.unprocessed = unprocessed;
+	
+	        	org.seqfile = seqfile;
+	        	orgs[org_id] = org;
+	        }
+	 	}
+	 	function compareAbandoned(a,b) {
+	 		  if (a.last_update > b.last_update)
+	 		     return -1;
+	 		  if (a.last_update < b.last_update)
+	 		    return 1;
+	 		  return 0;
+		}
+	 	
+	 	function buildSeqFile(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering sequence file line ' + key);
+	        	var seqfileLine = obj[key];
+	        	var org_id = seqfileLine.org_id;
+				var org = getOrg(String(org_id));
+        		var seqfile = new Object();
+        		if ('seqfile' in org)
+        			seqfile = org.seqfile;
+	        	if (seqfileLine.document_status == 'success') {
+	        		seqfile.success_files = seqfileLine.num_files;
+	        		seqfile.success_seq_files = seqfileLine.num_seq_files;
+	        		seqfile.last_upload_time = seqfileLine.last_upload_time;
+	        	} else if (seqfileLine.document_status == 'error') {
+	        		var error;
+	        		seqfile.error_files = seqfileLine.num_files;
+	        		seqfile.last_error_time = seqfileLine.last_upload_time;
+	        	}
+	        	org.seqfile = seqfile;
+	        	orgs[org_id] = org;
+	        }
+	 	}
+
+	 	function buildUpload(obj) {
+	 		for (var key in obj) {
+	        	console.log ('rendering upload line ' + key);
+	        	var uploadline = obj[key];
+	        	var org_id = uploadline.org_id;
+				var org = getOrg(String(org_id));
+        		var upload = new Object();
+        		if ('upload' in org)
+        			upload = org.upload;
+	        	if (uploadline.status == 'success') {
+	        		upload.success_files = uploadline.docs_uploaded;
+	        		upload.last_success_time = uploadline.last_upload_time;
+	        	} else if (uploadline.status == 'error') {
+	        		var errors = new Array();
+	        		if ('errors' in upload)
+	        			errors = upload.errors;
+	        		var error = new Object();
+	        		error.error_files = uploadline.docs_uploaded;
+	        		error.last_error_time = uploadline.last_upload_time;
+	        		error.message = uploadline.message;
+	        		errors.push(error);
+	        		errors.sort(compareErrors);
+	        		upload.errors = errors;
+	        	}
+	        	org.upload = upload;
+	        	orgs[org_id] = org;
+	        }
+	 	}
+	 	function compareErrors(a,b) {
+	 		  if (a.last_error_time > b.last_error_time)
+	 		     return -1;
+	 		  if (a.last_error_time < b.last_error_time)
+	 		    return 1;
+	 		  return 0;
+ 		}
+	 	
+// 	    function renderJSON(obj) {
+// 	        'use strict';
+// 	        var keys = [],
+// 	            retValue = "";
+// 	        for (var key in obj) {
+// 	        	if (key == 'seqfile') {
+// 	        		retValue += renderSeqFile(obj[key]);
+// 	            } else if (key == 'upload'){
+// 	                retValue += renderUpload(obj[key]);
+// 	            }
+// 	        	console.log('top level key: ' + key);
+
+// 	            keys.push(key);
+// 	        }
+// 	        return retValue;
+// 	    }
+// 	    function renderSeqFile(obj) {
+// 	    	console.log('rendering sequence file')
+// 	    	var retValue = "";
+// 	        for (var key in obj) {
+// 	        	console.log ('rendering sequence file line ' + key);
+// 	        	var seqfileLine = obj[key];
+// 	        	retValue += "<div class='field'>Org: " + seqfileLine.org_id + " | Num Files: " + seqfileLine.num_files + "</div>";
+// 	        	for (var item in seqfileLine) {
+// 		        	console.log ('rendering sequence file line key ' + item);
+// 		        	if (item === 'num_files')
+// 		        		retValue += "<div class='field'>Num Files: " + seqfileLine[item] + "</div>";
+// 		        	console.log('sequence file key: ' + key);
+// 	        	}
+// 	        }
+// 	        return retValue; 
+// 	    }
+// 	    function renderUpload(obj) {
+// 	    	console.log('rendering upload')
+// 	    	var retValue = "";
+// 	        for (var key in obj) {
+	       
+// 	        	if (key === 'docs_uploaded')
+// 	        		retValue += "<div class='field'>Num Files: " + obj[key] + "</div>";
+
+// 	        	console.log('upload key: ' + key);
+// 	        }
+// 	        return retValue; 
+// 	    }
+		</script>
+	</head>
+	<body onload="doIt();">
+		<select onchange='javascript:loadRange(this)'><option value='report.json'>All Dates</option><option value='report_1.json'>Previous Day</option><option value='report_7.json'>Last Week</option></select>
+		<div id="selectOrg"></div>
+		<div id="orgDetails"></div>
+	</body>	
+</html>

@@ -20,15 +20,17 @@ public class DocumentCountManager
     private Map<String, String> currentCount = new HashMap<String, String>();
     private Timer timer = null;
     private Integer seconds = 60;
+    private String hiveAddress;
 
     public static void main(String[] args)
     {
-        DocumentCountManager dcm = new DocumentCountManager("60");
+        DocumentCountManager dcm = new DocumentCountManager("jdbc:hive2://184.169.209.24:10000", "60");
         log.info(dcm.getDocumentCount("staging"));
     }
 
-    public DocumentCountManager(String updateInterval)
+    public DocumentCountManager(String hiveAddress, String updateInterval)
     {
+        this.hiveAddress = hiveAddress;
         try
         {
             seconds = Integer.valueOf(updateInterval);
@@ -59,12 +61,13 @@ public class DocumentCountManager
         // query hive and get base number
         try
         {
-            String sql = "select sum(cast(documents_uploaded_to_s3 as int)) as prevCount, max(concat(month,concat('/',day))) as maxDate from qa_summary_test_s3Upload_" + environment;
-            String response = QueryHive.queryHive(sql);
-            JSONObject obj = new JSONObject(response);
-            Integer oldNumber = (Integer) obj.get("prevcount");
-            oldCount.put(environment, oldNumber);
-            log.info("Got old count " + oldNumber.toString() + " for environment " + environment);
+            String sql = "select count(distinct upload_doc_id) as prevcount from  temp_partition_docreceiver_upload_document";
+            // String response =
+            JSONObject prevcount = QueryHive.queryHiveJsonFirstResult(hiveAddress, "select count(distinct upload_doc_id) as prevCount from  temp_partition_docreceiver_upload_document");
+            Integer count = prevcount.getInt("prevcount");
+            System.out.println("got count: " + count);
+            oldCount.put(environment, count);
+            log.info("Got old count " + count.toString() + " for environment " + environment);
             setupTimer();
         }
         catch (Exception ex)
@@ -103,9 +106,9 @@ public class DocumentCountManager
                 String sql = "select count(DISTINCT get_json_object(line, '$.upload.document.docid')) as count from " + environment
                         + "_logs_docreceiver_epoch WHERE get_json_object(line, '$.level') = 'EVENT' and get_json_object(line, '$.upload.document.status') = 'success' and (day = " + day
                         + " and month = " + month + ")";
-                String response = QueryHive.queryHive(sql);
-                JSONObject obj = new JSONObject(response);
-                Integer newNumber = (Integer) obj.get("count");
+                System.out.println("running sql: " + sql);
+                JSONObject newCount = QueryHive.queryHiveJsonFirstResult(hiveAddress, sql);
+                Integer newNumber = newCount.getInt("count");
                 log.info("Got new count " + newNumber.toString() + " for environment " + environment);
                 currentCount.put(environment, String.valueOf(oldCount.get(environment) + newNumber));
             }
