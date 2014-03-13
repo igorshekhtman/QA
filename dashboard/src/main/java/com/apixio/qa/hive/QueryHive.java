@@ -86,7 +86,6 @@ public class QueryHive {
         cal.add(Calendar.DATE, days); //minus number would decrement the days
         return cal.getTime();
     }
-
 	
 	private static void createScopedReport(String hiveAddress, int daysBack) throws JSONException, SQLException, FileNotFoundException, IOException {
 		Date today = new Date();

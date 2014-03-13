@@ -12,11 +12,12 @@ import org.json.JSONObject;
 
 import com.apixio.qa.hive.QueryHive;
 
-public class DocumentCountManager {
-	private static String driverName = "org.apache.hive.jdbc.HiveDriver";
-	private static Logger log = Logger.getLogger(DocumentCountManager.class);
-	private Map<String, Integer> oldCount = new HashMap<String, Integer>();
-	private Map<String, String> currentCount = new HashMap<String, String>();
+public class DocumentCountManager
+{
+    private static String driverName = "org.apache.hive.jdbc.HiveDriver";
+    private static Logger log = Logger.getLogger(DocumentCountManager.class);
+    private Map<String, Integer> oldCount = new HashMap<String, Integer>();
+    private Map<String, String> currentCount = new HashMap<String, String>();
     private Timer timer = null;
     private Integer seconds = 60;
     private String hiveAddress;

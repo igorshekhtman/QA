@@ -16,11 +16,14 @@ import com.yammer.metrics.annotation.Timed;
 
 @Path("/hive")
 @Produces(MediaType.APPLICATION_JSON)
-public class QueryHiveResource {
+public class QueryHiveResource
+{
     private final String hiveAddress;
     private final AtomicLong counter;
     private DocumentCountManager dcm;
-    public QueryHiveResource(String hiveAddress, String updateInterval) {
+
+    public QueryHiveResource(String hiveAddress, String updateInterval)
+    {
         this.hiveAddress = hiveAddress;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
@@ -29,79 +32,79 @@ public class QueryHiveResource {
     @GET
     @Path("/query")
     @Timed
-    public String query(@QueryParam("query") String query) {
+    public String query(@QueryParam("query") String query)
+    {
         try
         {
     		return QueryHive.queryHive(hiveAddress,query);
         }
-        catch (Exception ex) {
-        	return ex.toString();
+        catch (Exception ex)
+        {
+            return ex.toString();
         }
     }
 
     @GET
     @Path("/document_count/{environment}")
     @Timed
-    public String documentCount(@PathParam("environment") String environment) {
+    public String documentCount(@PathParam("environment") String environment)
+    {
         try
         {
-    		return dcm.getDocumentCount(environment);
+            return dcm.getDocumentCount(environment);
         }
-        catch (Exception ex) {
-        	return ex.toString();
+        catch (Exception ex)
+        {
+            return ex.toString();
         }
     }
 
     @GET
     @Path("/json/{environment}/{component}")
     @Timed
-    public String rawQuery(@PathParam("environment") String environment,
-    					   @PathParam("component") String component,
-    					   @QueryParam("startdate") Optional<String> startDate,
-    					   @QueryParam("enddate") Optional<String> endDate,
-    					   @QueryParam("level") Optional<String> level,
-    					   @QueryParam("conditiononeobject") Optional<String> conditionOneObject,
-    					   @QueryParam("conditiononevalue") Optional<String> conditionOneValue,
-    					   @QueryParam("conditiontwoobject") Optional<String> conditionTwoObject,
-    					   @QueryParam("conditiontwovalue") Optional<String> conditionTwoValue,
-    					   @QueryParam("limit") Optional<String> limit) {
+    public String rawQuery(@PathParam("environment") String environment, @PathParam("component") String component, @QueryParam("startdate") Optional<String> startDate,
+            @QueryParam("enddate") Optional<String> endDate, @QueryParam("level") Optional<String> level, @QueryParam("conditiononeobject") Optional<String> conditionOneObject,
+            @QueryParam("conditiononevalue") Optional<String> conditionOneValue, @QueryParam("conditiontwoobject") Optional<String> conditionTwoObject,
+            @QueryParam("conditiontwovalue") Optional<String> conditionTwoValue, @QueryParam("limit") Optional<String> limit)
+    {
         try
         {
     		return QueryHive.rawQuery(hiveAddress,environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
         }
-        catch (Exception ex) {
-        	return ex.toString();
+        catch (Exception ex)
+        {
+            return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/json/{environment}/queue")
     @Timed
-    public String coordinatorQueue(@PathParam("environment") String environment,
-    					   @QueryParam("startdate") String startDate,
-    					   @QueryParam("enddate") String endDate) {
+    public String coordinatorQueue(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate)
+    {
         try
         {
     		return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
         }
-        catch (Exception ex) {
-        	return ex.toString();
+        catch (Exception ex)
+        {
+            return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/json/{environment}/failed")
     @Timed
-    public String coordinatorStatus(@PathParam("environment") String environment,
-    					   @QueryParam("startdate") String startDate,
-    					   @QueryParam("enddate") String endDate,
-    					   @QueryParam("status") Optional<String> status) {
+    public String coordinatorStatus(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate,
+            @QueryParam("status") Optional<String> status)
+    {
         try
         {
     		return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
         }
-        catch (Exception ex) {
-        	return ex.toString();
+        catch (Exception ex)
+        {
+            return ex.toString();
         }
     }
 }

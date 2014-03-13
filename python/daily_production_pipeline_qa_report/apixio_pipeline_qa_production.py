@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=9
+QNTORUN=1
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -71,6 +71,7 @@ TIMESTAMP=strftime("%s", gmtime())
 DATESTAMP=strftime("%m/%d/%y %r", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
+MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
 DAYSBACK=1
 CURDAY=("%d", gmtime())
@@ -81,6 +82,8 @@ DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
 
+
+print ("MONTH_FMN = %s") % MONTH_FMN
 print ("CURDAY = %s") % CURDAY
 print ("CURMONTH = %s") % CURMONTH
 
@@ -278,7 +281,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
 		get_json_object(line, '$.upload.document.orgid') as orgid, \
-		get_json_object(line, '$.message') as message \
+		substr(get_json_object(line, '$.message'),62,50) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -287,7 +290,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -373,7 +376,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
 		get_json_object(line, '$.seqfile.file.document.status') as status, \
 		get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
-		get_json_object(line, '$.message') as message \
+		substr(get_json_object(line, '$.message'),62,50) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -382,7 +385,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.seqfile.file.document.status'), \
 		get_json_object(line, '$.seqfile.file.document.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -897,8 +900,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		get_json_object(line, '$.patient.uuid') as uuid, \
 		get_json_object(line, '$.patient.info') as info \
 		FROM %s \
-		WHERE 
-		get_json_object(line, '$.autocorrection') = 'true' and
+		WHERE \
+		get_json_object(line, '$.autocorrection') = 'true' and \
 		day=%s and month=%s""" % (PERSISTLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -940,15 +943,28 @@ REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TY
 REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
+# report.txt file string "Daily Production Report - March 11, 2014	reports/production/pipeline/2014/3/11.html"
+
 if not DEBUG_MODE:
-	REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	# REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	REPORTFILENAME=str(DAY)+".html"
+	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME
+	REPORTXTFILENAME="reports.txt"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 	print (REPORTFOLDER)
 	print (REPORTFILENAME)
+	print (REPORTXTSTRING)
+	print (REPORTXTFILENAME)
+	print (REPORTXTFILEFOLDER)
 	os.chdir(REPORTFOLDER)
 	REPORTFILE = open(REPORTFILENAME, 'w')
 	REPORTFILE.write(REPORT)
 	REPORTFILE.close()
+	os.chdir(REPORTXTFILEFOLDER)
+	REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+	REPORTFILETXT.write(REPORTXTSTRING)
+	REPORTFILETXT.close()
 	os.chdir("/mnt/automation")
 # ===================================================================================================================================
 
