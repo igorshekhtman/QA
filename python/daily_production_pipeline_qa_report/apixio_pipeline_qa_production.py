@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=1
+QNTORUN=6
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -200,6 +200,7 @@ ORGMAP = { \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
 	"genManifest":"genManifest", \
+	"defaultOrgID":"defaultOrgID", \
 	"None":"Missing Orgname", \
 }
 
@@ -474,15 +475,18 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT count(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
+		get_json_object(line, '$.job.status') as status, \
 		get_json_object(line, '$.job.activity') as activity, \
-		get_json_object(line, '$.job.status') as status \
+		get_json_object(line, '$.job.context.organization') as orgid \
 		FROM %s \
 		WHERE \
-		day='%s' and month='%s' and \
+		day=%s and month=%s and \
 		get_json_object(line, '$.job.status') is not null and \
 		get_json_object(line, '$.job.status') <> 'start' \
 		GROUP BY get_json_object(line, '$.job.status'), \
-		get_json_object(line, '$.job.activity')""" % (COORDINATORLOGFILE, DAY, MONTH))
+		get_json_object(line, '$.job.activity'), \
+		get_json_object(line, '$.job.context.organization') \
+		ORDER BY orgid, activity ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -490,10 +494,12 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td> \
-			<td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td> \
-			<td align='center'>"+str(i[2])+"</td></tr>"
-		if (str(i[2]).lower() == 'error'):
+		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
+			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+		if (str(i[1]).lower() == 'error'):
 			print ("QUERY %s FAILED") % (QN)
 			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -508,14 +514,14 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Failed job types by coordinator per org"
 	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT get_json_object(line, '$.coordinator.job.jobType') as job_type, \
-		get_json_object(line, '$.coordinator.job.hadoopJobID') as hadoop_Job_ID, \
-		get_json_object(line, '$.coordinator.job.context.organization') as orgid, \
+	cur.execute("""SELECT get_json_object(line, '$.job.initiator') as initiator, \
+		get_json_object(line, '$.job.hadoopJobID') as hadoop_Job_ID, \
+		get_json_object(line, '$.job.context.organization') as orgid, \
 		get_json_object(line, '$.datestamp') as datestamp \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = 'EVENT' and \
-		get_json_object(line, '$.coordinator.job.status') = 'error' and \
+		get_json_object(line, '$.job.status') = 'error' and  \
 		day=%s and month=%s \
 		ORDER BY hadoop_Job_ID ASC""" % (COORDINATORLOGFILE, DAY, MONTH))
 
