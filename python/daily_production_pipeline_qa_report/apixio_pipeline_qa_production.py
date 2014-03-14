@@ -951,13 +951,16 @@ REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
 
+# /usr/lib/apx-reporting/html/assets/reports/production/pipeline/2014/3
+
+
 if not DEBUG_MODE:
 	# REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-	REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	REPORTFILENAME=str(DAY)+".html"
-	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME
+	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME="reports.txt"
-	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 	# print (REPORTFOLDER)
 	# print (REPORTFILENAME)
 	# print (REPORTXTSTRING)
