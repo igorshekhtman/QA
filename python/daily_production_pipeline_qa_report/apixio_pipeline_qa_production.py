@@ -244,13 +244,13 @@ Subject: Daily %s Pipeline QA Report - %s
 
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time (run): <b>%s</b><br>
-Month/Day (queries): <b>%s/%s</b><br>
+Date (logs & queries): <b>%s/%s/%s</b><br>
 Report type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, YEAR, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -955,7 +955,7 @@ REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 
 if not DEBUG_MODE:
-	# REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	REPORTFILENAME=str(DAY)+".html"
 	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
@@ -966,6 +966,10 @@ if not DEBUG_MODE:
 	# print (REPORTXTSTRING)
 	# print (REPORTXTFILENAME)
 	# print (REPORTXTFILEFOLDER)
+	os.chdir(BACKUPREPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
 	os.chdir(REPORTFOLDER)
 	REPORTFILE = open(REPORTFILENAME, 'w')
 	REPORTFILE.write(REPORT)
