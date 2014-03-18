@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=6
+QNTORUN=4
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -402,7 +402,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
 		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
+			REPORT = REPORT+"<td><i>None</i></td></tr>"			
 		else:
 			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
 
@@ -431,6 +431,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
+		get_json_object(line, '$.submit.post.queue.name') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
 		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
@@ -447,6 +448,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(int(i[3]))+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[0])]+"</td></tr>"
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
