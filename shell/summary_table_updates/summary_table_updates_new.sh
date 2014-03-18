@@ -1,7 +1,53 @@
 #! /bin/sh
 
+#=========================================== Assigning default variable values =====================================
+
 export TZ=America/Los_Angeles
+
+timestamp=$(date +'%s')
+datestamp=$(date +'%m/%d/%y %r')
+day=$(date +'%d')
+month=$(date +'%m')
+daysBack=1
+curDay=$(date +%d)
+curMonth=$(date +%m)
+
 daysBack=$1
+
+#======== obtain day and month for previous from current day and month ===========================================
+for (( c=1; c<=$daysBack; c++ ))
+do
+	if [ "$dateRange" == "" ];
+	then
+		dateRange="(month=$curMonth and day=$curDay)"
+	else
+		dateRange="$dateRange or (month=$curMonth and day=$curDay)"
+	fi
+
+	curDay=$(($curDay-1))
+	if [ "$curDay" == "0" ];
+	then
+		curMonth=$(($curMonth - 1))
+		if [ "$curMonth" == "0" ];
+		then
+			curMonth=12
+		fi
+
+		if [ "$curMonth" == "4" ] || [ "$curMonth" == "6" ] || [ "$curMonth" == "9" ] || [ "$curMonth" == "11" ];
+		then
+			curDay=30
+		else 
+			if [ "$curMonth" == "2" ];
+			then
+				curDay=28
+			else
+				curDay=31
+			fi
+		fi
+	fi
+done
+#============ adjust day and month of the report =================================================================
+
 
 if [ -z $1 ]; then
 	echo ">>> Days back not provided, assigning value of 1"
