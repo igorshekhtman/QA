@@ -73,7 +73,7 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=6
+DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 DATERANGE=""
@@ -972,6 +972,12 @@ REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 if not DEBUG_MODE:
 	BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	#
+	if not os.path.exists(BACKUPREPORTFOLDER):
+    		os.makedirs(BACKUPREPORTFOLDER)	
+	if not os.path.exists(REPORTFOLDER):
+    		os.makedirs(REPORTFOLDER)
+	#
 	REPORTFILENAME=str(DAY)+".html"
 	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME="reports.txt"
