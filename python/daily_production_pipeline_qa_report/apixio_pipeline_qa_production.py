@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=4
+QNTORUN=3
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -73,7 +73,7 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=1
+DAYSBACK=6
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 DATERANGE=""
@@ -274,6 +274,13 @@ cur.execute("""SET mapred.job.queue.name=hive""")
 REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
 COMPONENT_STATUS="PASSED"
 
+# substr(get_json_object(line, '$.message'),62,50) as message
+# % is a special character in python
+# [11:52:44 AM] Anthony LaRocca: so the fact that it is included in your if statement is breaking it.
+# [11:53:07 AM] Anthony LaRocca: you need to make the '/mnt%' --> '/mnt%%'
+# [11:53:31 AM] Anthony LaRocca: also, in your case you would need to change the reference to "message" to "get_json_object(line, '$.message')
+# if(message like '/mnt%%','No space left on device',message) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
 
 QN=1
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
@@ -283,7 +290,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
 		get_json_object(line, '$.upload.document.orgid') as orgid, \
-		substr(get_json_object(line, '$.message'),62,50) as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -292,7 +299,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
-		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -301,14 +309,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='left'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 			
 		UPLOADED_DR = UPLOADED_DR + int(i[0])
 		if str(i[1]) == "error":
@@ -331,7 +340,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
 		get_json_object(line, '$.archive.afs.status') as status, \
 		get_json_object(line, '$.archive.afs.orgid') as orgid, \
-		get_json_object(line, '$.message') as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -340,7 +349,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.archive.afs.status'), \
 		get_json_object(line, '$.archive.afs.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -349,14 +359,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='left'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 
 		ARCHTOS3 = ARCHTOS3 + int(i[0])
 		if str(i[1]) == "error":
@@ -378,7 +389,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
 		get_json_object(line, '$.seqfile.file.document.status') as status, \
 		get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
-		substr(get_json_object(line, '$.message'),62,50) as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -387,7 +398,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.seqfile.file.document.status'), \
 		get_json_object(line, '$.seqfile.file.document.orgid'), \
-		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -397,14 +409,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td align='left'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td><i>None</i></td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"				
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 
 		ADDTOSF = ADDTOSF + int(i[0])
 		if str(i[1]) == "error":
