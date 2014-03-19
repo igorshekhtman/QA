@@ -1,5 +1,6 @@
 package com.apixio.qa.hive.resource;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
@@ -9,8 +10,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.json.JSONObject;
+
 import com.apixio.qa.hive.QueryHive;
 import com.apixio.qa.hive.manager.DocumentCountManager;
+import com.apixio.qa.hive.resource.generated.Queries.Group;
+import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery;
 import com.google.common.base.Optional;
 import com.yammer.metrics.annotation.Timed;
 
@@ -21,12 +26,14 @@ public class QueryHiveResource
     private final String hiveAddress;
     private final AtomicLong counter;
     private DocumentCountManager dcm;
+    private QueryHandler queryManager;
 
     public QueryHiveResource(String hiveAddress, String updateInterval)
     {
         this.hiveAddress = hiveAddress;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
+        queryManager = new QueryHandler();
     }
 
     @GET
@@ -101,6 +108,35 @@ public class QueryHiveResource
         try
         {
     		return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
+        }
+        catch (Exception ex)
+        {
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/json/{environment}/{groupName}")
+    @Timed
+    public String runGroup(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate,
+            @QueryParam("groupName") String groupName)
+    {
+        try
+        {
+            Group groupToRun = QueryConfig.getQueryGroupByName(groupName);
+            QueryHandler qm = new QueryHandler();
+            
+            List<RunQuery> rQs = groupToRun.getRunQuery();
+            
+            if (rQs != null)
+            {
+                for (RunQuery rQ : rQs)
+                {
+                    List<JSONObject> results = qm.runQuery(rQ);
+                    
+                }
+            }
+            return null;
         }
         catch (Exception ex)
         {
