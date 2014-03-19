@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=3
+QNTORUN=4
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -274,33 +274,39 @@ cur.execute("""SET mapred.job.queue.name=hive""")
 REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
 COMPONENT_STATUS="PASSED"
 
-# substr(get_json_object(line, '$.message'),62,50) as message
-# % is a special character in python
-# [11:52:44 AM] Anthony LaRocca: so the fact that it is included in your if statement is breaking it.
-# [11:53:07 AM] Anthony LaRocca: you need to make the '/mnt%' --> '/mnt%%'
-# [11:53:31 AM] Anthony LaRocca: also, in your case you would need to change the reference to "message" to "get_json_object(line, '$.message')
-# if(message like '/mnt%%','No space left on device',message) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
-
 
 QN=1
 if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents uploaded"
 	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
-		get_json_object(line, '$.upload.document.status') as status, \
-		get_json_object(line, '$.upload.document.orgid') as orgid, \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	#cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	#	get_json_object(line, '$.upload.document.status') as status, \
+	#	get_json_object(line, '$.upload.document.orgid') as orgid, \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	get_json_object(line, '$.level') = "EVENT" and \
+	#	get_json_object(line, '$.upload.document.docid') is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	get_json_object(line, '$.upload.document.status'), \
+	#	get_json_object(line, '$.upload.document.orgid'), \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+	#	ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+
+	cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+		if(error_message like '/mnt%%','No space left on device', error_message) as message \
 		FROM %s \
 		WHERE \
-		get_json_object(line, '$.level') = "EVENT" and \
-		get_json_object(line, '$.upload.document.docid') is not null and \
+		doc_id is not null and \
 		day=%s and month=%s \
 		GROUP BY \
-		get_json_object(line, '$.upload.document.status'), \
-		get_json_object(line, '$.upload.document.orgid'), \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
-		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		status, org_id, \
+		if(error_message like '/mnt%%','No space left on device', error_message) \
+		ORDER BY message ASC""" %("summary_docreceiver_upload", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -337,20 +343,31 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents archived to S3"
 	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
-		get_json_object(line, '$.archive.afs.status') as status, \
-		get_json_object(line, '$.archive.afs.orgid') as orgid, \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	# cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
+	#	get_json_object(line, '$.archive.afs.status') as status, \
+	#	get_json_object(line, '$.archive.afs.orgid') as orgid, \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	get_json_object(line, '$.level') = "EVENT" and \
+	#	get_json_object(line, '$.archive.afs.docid') is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	get_json_object(line, '$.archive.afs.status'), \
+	#	get_json_object(line, '$.archive.afs.orgid'), \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+	#	ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+		if(error_message like '/mnt%%','No space left on device', error_message) as message \
 		FROM %s \
 		WHERE \
-		get_json_object(line, '$.level') = "EVENT" and \
-		get_json_object(line, '$.archive.afs.docid') is not null and \
+		doc_id is not null and \
 		day=%s and month=%s \
 		GROUP BY \
-		get_json_object(line, '$.archive.afs.status'), \
-		get_json_object(line, '$.archive.afs.orgid'), \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
-		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		status, org_id, if(error_message like '/mnt%%','No space left on device', error_message) \
+		ORDER BY message ASC""" %("summary_docreceiver_archive", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -386,20 +403,32 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents added to sequence file(s)"
 	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
-		get_json_object(line, '$.seqfile.file.document.status') as status, \
-		get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	# cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
+	#	get_json_object(line, '$.seqfile.file.document.status') as status, \
+	#	get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	get_json_object(line, '$.level') = "EVENT" and \
+	#	get_json_object(line, '$.seqfile.file.document.docid') is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	get_json_object(line, '$.seqfile.file.document.status'), \
+	#	get_json_object(line, '$.seqfile.file.document.orgid'), \
+	#	if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+	#	ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+		if(error_message like '/mnt%%','No space left on device', error_message) as message \
 		FROM %s \
 		WHERE \
-		get_json_object(line, '$.level') = "EVENT" and \
-		get_json_object(line, '$.seqfile.file.document.docid') is not null and \
+		doc_id is not null and \
 		day=%s and month=%s \
 		GROUP BY \
-		get_json_object(line, '$.seqfile.file.document.status'), \
-		get_json_object(line, '$.seqfile.file.document.orgid'), \
-		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
-		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		status, org_id, \
+		if(error_message like '/mnt%%','No space left on device', error_message) \
+		ORDER BY message ASC""" %("summary_docreceiver_seqfile", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -448,6 +477,16 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
 		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	#cur.execute("""SELECT org_id as orgid, seqfile_path as seqfile_path, \
+	#	count(DISTINCT seqfile_path) as number, \
+	#	sum(num_docs) as ind_files \
+	#	FROM %s \
+	#	WHERE \
+	#	status = "success" and \
+	#	day=%s and month=%s \
+	#	GROUP BY org_id, seqfile_path""" %("summary_docreceiver_seqfile_post", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
