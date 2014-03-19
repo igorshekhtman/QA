@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=6
+QNTORUN=4
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -244,13 +244,13 @@ Subject: Daily %s Pipeline QA Report - %s
 
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time (run): <b>%s</b><br>
-Month/Day (queries): <b>%s/%s</b><br>
+Date (logs & queries): <b>%s/%s/%s</b><br>
 Report type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, YEAR, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -283,7 +283,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
 		get_json_object(line, '$.upload.document.orgid') as orgid, \
-		substr(get_json_object(line, '$.message'),62,50) as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -292,7 +292,20 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
-		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+
+	#cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+	#	if(error_message like '/mnt%%','No space left on device', error_message) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	doc_id is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	status, org_id, \
+	#	if(error_message like '/mnt%%','No space left on device', error_message) \
+	#	ORDER BY message ASC""" %("summary_docreceiver_upload", DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -301,14 +314,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 			
 		UPLOADED_DR = UPLOADED_DR + int(i[0])
 		if str(i[1]) == "error":
@@ -331,7 +345,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
 		get_json_object(line, '$.archive.afs.status') as status, \
 		get_json_object(line, '$.archive.afs.orgid') as orgid, \
-		get_json_object(line, '$.message') as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -340,7 +354,19 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.archive.afs.status'), \
 		get_json_object(line, '$.archive.afs.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	#cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+	#	if(error_message like '/mnt%%','No space left on device', error_message) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	doc_id is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	status, org_id, if(error_message like '/mnt%%','No space left on device', error_message) \
+	#	ORDER BY message ASC""" %("summary_docreceiver_archive", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -349,14 +375,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 
 		ARCHTOS3 = ARCHTOS3 + int(i[0])
 		if str(i[1]) == "error":
@@ -378,7 +405,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
 		get_json_object(line, '$.seqfile.file.document.status') as status, \
 		get_json_object(line, '$.seqfile.file.document.orgid') as orgid, \
-		substr(get_json_object(line, '$.message'),62,50) as message \
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) as message \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
@@ -387,7 +414,20 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY \
 		get_json_object(line, '$.seqfile.file.document.status'), \
 		get_json_object(line, '$.seqfile.file.document.orgid'), \
-		substr(get_json_object(line, '$.message'),62,50) ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+		if(get_json_object(line, '$.message') like '/mnt%%','No space left on device', get_json_object(line, '$.message')) \
+		ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	#cur.execute("""SELECT count(DISTINCT doc_id) as number, status as status, org_id as orgid, \
+	#	if(error_message like '/mnt%%','No space left on device', error_message) as message \
+	#	FROM %s \
+	#	WHERE \
+	#	doc_id is not null and \
+	#	day=%s and month=%s \
+	#	GROUP BY \
+	#	status, org_id, \
+	#	if(error_message like '/mnt%%','No space left on device', error_message) \
+	#	ORDER BY message ASC""" %("summary_docreceiver_seqfile", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -397,14 +437,15 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td>"
-		if (i[3] == None):
-			REPORT = REPORT+"<td>&nbsp;</td></tr>"			
-		else:
-			REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"
+			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
+		if (str(i[1]) == 'error'):
+			if (i[3] == None):
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"				
+			else:
+				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
 
 		ADDTOSF = ADDTOSF + int(i[0])
 		if str(i[1]) == "error":
@@ -431,9 +472,20 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		FROM %s \
 		WHERE get_json_object(line, '$.level') = "EVENT" and \
 		get_json_object(line, '$.submit.post.status') = "success" and \
+		get_json_object(line, '$.submit.post.queue.name') is not null and \
 		day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.submit.post.orgid'), \
 		get_json_object(line, '$.submit.post.queue.name')""" %(DOCRECEIVERLOGFILE, DAY, MONTH))
+
+	#cur.execute("""SELECT org_id as orgid, seqfile_path as seqfile_path, \
+	#	count(DISTINCT seqfile_path) as number, \
+	#	sum(num_docs) as ind_files \
+	#	FROM %s \
+	#	WHERE \
+	#	status = "success" and \
+	#	day=%s and month=%s \
+	#	GROUP BY org_id, seqfile_path""" %("summary_docreceiver_seqfile_post", DAY, MONTH))
+
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -447,6 +499,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(int(i[3]))+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[0])]+"</td></tr>"
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
@@ -951,18 +1004,31 @@ REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
 
+# /usr/lib/apx-reporting/html/assets/reports/production/pipeline/2014/3
+
+
 if not DEBUG_MODE:
-	# REPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-	REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+	#
+	if not os.path.exists(BACKUPREPORTFOLDER):
+    		os.makedirs(BACKUPREPORTFOLDER)	
+	if not os.path.exists(REPORTFOLDER):
+    		os.makedirs(REPORTFOLDER)
+	#
 	REPORTFILENAME=str(DAY)+".html"
-	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME
+	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME="reports.txt"
-	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 	# print (REPORTFOLDER)
 	# print (REPORTFILENAME)
 	# print (REPORTXTSTRING)
 	# print (REPORTXTFILENAME)
 	# print (REPORTXTFILEFOLDER)
+	os.chdir(BACKUPREPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
 	os.chdir(REPORTFOLDER)
 	REPORTFILE = open(REPORTFILENAME, 'w')
 	REPORTFILE.write(REPORT)
