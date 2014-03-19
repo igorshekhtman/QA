@@ -4,50 +4,9 @@
 
 export TZ=America/Los_Angeles
 
-timestamp=$(date +'%s')
-datestamp=$(date +'%m/%d/%y %r')
-day=$(date +'%d')
-month=$(date +'%m')
 daysBack=1
-curDay=$(date +%d)
-curMonth=$(date +%m)
-
 daysBack=$1
-
-#======== obtain day and month for previous from current day and month ===========================================
-for (( c=1; c<=$daysBack; c++ ))
-do
-	if [ "$dateRange" == "" ];
-	then
-		dateRange="(month=$curMonth and day=$curDay)"
-	else
-		dateRange="$dateRange or (month=$curMonth and day=$curDay)"
-	fi
-
-	curDay=$(($curDay-1))
-	if [ "$curDay" == "0" ];
-	then
-		curMonth=$(($curMonth - 1))
-		if [ "$curMonth" == "0" ];
-		then
-			curMonth=12
-		fi
-
-		if [ "$curMonth" == "4" ] || [ "$curMonth" == "6" ] || [ "$curMonth" == "9" ] || [ "$curMonth" == "11" ];
-		then
-			curDay=30
-		else 
-			if [ "$curMonth" == "2" ];
-			then
-				curDay=28
-			else
-				curDay=31
-			fi
-		fi
-	fi
-done
-#============ adjust day and month of the report =================================================================
-
+dateRange="";
 
 if [ -z $1 ]; then
 	echo ">>> Days back not provided, assigning value of 1"
@@ -56,8 +15,17 @@ if [ -z $1 ]; then
 fi
 curDay=$(date +%d);
 curMonth=$(date +%m);
+scurDay=$(date +%d);
+scurMonth=$(date +%m);
 
-dateRange="";
+
+echo "Current day: $curDay"
+echo "Current month: $curMonth"
+echo " "
+
+
+
+#======== obtain day and month for previous from current day and month ===========================================
 
 for (( c=1; c<=$daysBack; c++ ))
 do
@@ -91,9 +59,24 @@ do
 	fi
 done
 
+#============ adjust day and month of the report =================================================================
+
+#============ Overwrite day and month values ======
+#==================================================
+
+day=$scurDay
+month=$scurMonth
+
+#==================================================
+#==================================================
+
 
 echo "Updating partitioned summary tables with date range: $dateRange"
+echo "Day: $day"
+echo "Month: $month"
 echo " "
+
+sleep 10000
 
 /usr/bin/hive --service beeline -u jdbc:hive2://10.196.47.205:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
 set hive.exec.dynamic.partition=true;
