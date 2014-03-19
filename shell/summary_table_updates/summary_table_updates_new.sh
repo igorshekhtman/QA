@@ -160,9 +160,11 @@ insert overwrite table summary_docreceiver_seqfile_post partition (month, day, o
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.submit.post.path') as seqfile_path,
+cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
 get_json_object(line, '$.submit.post.batchid') as batch_id,
+get_json_object(line, '$.submit.post.queue.name') as redis_queue_name,
 get_json_object(line, '$.submit.post.status') as status,
 get_json_object(line, '$.message') as error_message,
 month,
@@ -449,13 +451,16 @@ FROM staging_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.upload.document') is not null
 and ($dateRange);
 
+
 insert overwrite table summary_docreceiver_seqfile_post_staging partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.submit.post.path') as seqfile_path,
+cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
 get_json_object(line, '$.submit.post.batchid') as batch_id,
+get_json_object(line, '$.submit.post.queue.name') as redis_queue_name,
 get_json_object(line, '$.submit.post.status') as status,
 get_json_object(line, '$.message') as error_message,
 month,
