@@ -390,7 +390,7 @@ get_json_object(line, '$.patient.info') as patient_info,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
-from production_logs_qafromseqfile_epoch where get_json_object(line, '$.level')='EVENT'
+from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
 
@@ -683,7 +683,7 @@ get_json_object(line, '$.patient.info') as patient_info,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
-from staging_logs_qafromseqfile_epoch where get_json_object(line, '$.level')='EVENT'
+from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
 EOF
