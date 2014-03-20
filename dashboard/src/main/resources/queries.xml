@@ -31,7 +31,7 @@
     <query name="persist_count">
         <text>
             select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count 
-            from summary_persist_mapper_staging a 
+            from summary_persist_mapper a 
             join summary_coordinator_jobfinish b 
             on a.job_id = b.job_id 
             where b.status = "success"
