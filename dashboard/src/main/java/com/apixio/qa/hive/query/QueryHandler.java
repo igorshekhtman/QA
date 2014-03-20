@@ -1,4 +1,4 @@
-package com.apixio.qa.hive.resource;
+package com.apixio.qa.hive.query;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,10 +13,10 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.apixio.qa.hive.resource.generated.Queries.Group;
-import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery;
-import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery.Param;
-import com.apixio.qa.hive.resource.generated.Queries.Query;
+import com.apixio.qa.hive.query.generated.Queries.Group;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery.Param;
+import com.apixio.qa.hive.query.generated.Queries.Query;
 
 public class QueryHandler
 {

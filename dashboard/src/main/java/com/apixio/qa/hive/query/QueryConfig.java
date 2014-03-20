@@ -1,14 +1,14 @@
-package com.apixio.qa.hive.resource;
+package com.apixio.qa.hive.query;
 
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
-import com.apixio.qa.hive.resource.generated.Queries;
-import com.apixio.qa.hive.resource.generated.Queries.Group;
-import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery;
-import com.apixio.qa.hive.resource.generated.Queries.Query;
+import com.apixio.qa.hive.query.generated.Queries;
+import com.apixio.qa.hive.query.generated.Queries.Group;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
+import com.apixio.qa.hive.query.generated.Queries.Query;
 
 public class QueryConfig
 {

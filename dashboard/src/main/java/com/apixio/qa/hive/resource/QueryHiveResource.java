@@ -17,8 +17,10 @@ import org.json.JSONObject;
 
 import com.apixio.qa.hive.QueryHive;
 import com.apixio.qa.hive.manager.DocumentCountManager;
-import com.apixio.qa.hive.resource.generated.Queries.Group;
-import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery;
+import com.apixio.qa.hive.query.QueryConfig;
+import com.apixio.qa.hive.query.QueryHandler;
+import com.apixio.qa.hive.query.generated.Queries.Group;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 import com.google.common.base.Optional;
 import com.yammer.metrics.annotation.Timed;
 
