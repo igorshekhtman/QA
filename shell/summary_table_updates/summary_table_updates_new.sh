@@ -268,7 +268,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM production_logs_parserjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT'
+WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
 insert overwrite table summary_ocr partition (month, day, org_id)
@@ -290,7 +290,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM production_logs_ocrjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT'
+WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
 insert overwrite table summary_persist_mapper partition (month, day, org_id)
@@ -311,7 +311,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM production_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.className') = 'com.apixio.jobs.docimport.persist.mapper.PersistMapper'
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
 
 insert overwrite table summary_persist_reducer partition (month, day, org_id)
@@ -332,7 +332,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM production_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.className') = 'PersistReducer'
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
 
 insert overwrite table summary_qafromseqfile partition(month, day, org_id)
@@ -378,6 +378,9 @@ day,
 get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
+
+
+
 
 
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
@@ -562,7 +565,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM staging_logs_parserjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT'
+WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
 insert overwrite table summary_ocr_staging partition (month, day, org_id)
@@ -584,7 +587,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM staging_logs_ocrjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT'
+WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
 insert overwrite table summary_persist_mapper_staging partition (month, day, org_id)
@@ -605,7 +608,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM staging_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.className') = 'com.apixio.jobs.docimport.persist.mapper.PersistMapper'
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
 
 insert overwrite table summary_persist_reducer_staging partition (month, day, org_id)
@@ -626,7 +629,7 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 FROM staging_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.className') = 'PersistReducer'
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
 
 insert overwrite table summary_qafromseqfile_staging partition(month, day, org_id)
@@ -674,3 +677,5 @@ from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EV
 and ($dateRange);
 
 EOF
+
+chmod 777 update_summary.log
