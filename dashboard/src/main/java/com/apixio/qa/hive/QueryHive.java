@@ -158,7 +158,7 @@ public class QueryHive
         IOUtils.write(obj.toString(), new FileOutputStream("C:\\eclipse_new\\workspace\\hive-query-web-trunk\\src\\main\\resources\\assets\\report_" + daysBack + ".json"));
     }
 
-    private static void createReport(String hiveAddress) throws JSONException, SQLException, FileNotFoundException, IOException
+    public static void createReport(String hiveAddress) throws JSONException, SQLException, FileNotFoundException, IOException
     {
         JSONObject obj = new JSONObject();
         String uploadQuery = "select org_id, status, if(message like '/mnt%','No space left on device',message) as message, count(distinct upload_doc_id) as docs_uploaded, max(time) as last_upload_time "
@@ -201,7 +201,7 @@ public class QueryHive
 
         obj.put("persistDetails", queryHiveJson(hiveAddress, persistDetailsQuery));
 
-        IOUtils.write(obj.toString(), new FileOutputStream("C:\\eclipse_new\\workspace\\hive-query-web-trunk\\src\\main\\resources\\assets\\report.json"));
+        IOUtils.write(obj.toString(), new FileOutputStream("/usr/lib/apx-reporting/html/assets/report.json"));
     }
 
     public static String rawQuery(String hiveAddress, String environment, String component, String startDate, String endDate, String level, String conditionOneObject, String conditionOneValue,
@@ -211,12 +211,12 @@ public class QueryHive
         String tableName = environment + "_logs_" + (Constants.COMPONENTS.valueOf(component)).getTableName() + "_epoch";
 
         String whereClause = "";
-        whereClause = addtoWhereClause(whereClause, getDateRange(startDate, endDate));
-        whereClause = addtoWhereClause(whereClause, getLevel(level));
-        whereClause = addtoWhereClause(whereClause, getCondition(conditionOneObject, conditionOneValue));
-        whereClause = addtoWhereClause(whereClause, getCondition(conditionTwoObject, conditionTwoValue));
+        whereClause = QueryHiveUtilities.addtoWhereClause(whereClause, QueryHiveUtilities.getDateRange(startDate, endDate));
+        whereClause = QueryHiveUtilities.addtoWhereClause(whereClause, getLevel(level));
+        whereClause = QueryHiveUtilities.addtoWhereClause(whereClause, getCondition(conditionOneObject, conditionOneValue));
+        whereClause = QueryHiveUtilities.addtoWhereClause(whereClause, getCondition(conditionTwoObject, conditionTwoValue));
 
-        String limitClause = getLimitClause(limit);
+        String limitClause = QueryHiveUtilities.getLimitClause(limit);
         String sql = "select line FROM " + tableName + whereClause + limitClause;
         return getLineJson(hiveAddress, sql);
     }
@@ -224,23 +224,15 @@ public class QueryHive
     public static String getQueueStats(String hiveAddress, String environment, String startDate, String endDate) throws SQLException, JSONException
     {
         String sql = "select time, cast(parserQueue as int) as parserQueue, cast(ocrQueue as int) as ocrQueue, cast(traceQueue as int) as traceQueue, cast(persistQueue as int) as persistQueue " +
-                "from temp_partition_coordinator_stats " + "where " + getDateRange(startDate, endDate) + " order by time asc ";
+                "from temp_partition_coordinator_stats " + "where " + QueryHiveUtilities.getDateRange(startDate, endDate) + " order by time asc ";
         return queryHive(hiveAddress, sql);
     }
 
     public static String getJobStats(String hiveAddress, String environment, String startDate, String endDate, String status) throws SQLException, JSONException
     {
         String sql = "select get_json_object(line, '$.datestamp') as time, " + "get_json_object(line, '$.coordinator.job.jobType') as jobType, " + "get_json_object(line, '$.coordinator.job.jobID'), "
-                + "get_json_object(line, '$.coordinator.job.status') from " + environment + "_logs_coordinator_epoch " + "where " + getDateRange(startDate, endDate) + " order by time asc ";
+                + "get_json_object(line, '$.coordinator.job.status') from " + environment + "_logs_coordinator_epoch " + "where " + QueryHiveUtilities.getDateRange(startDate, endDate) + " order by time asc ";
         return queryHive(hiveAddress, sql);
-    }
-
-    private static String getLimitClause(String limit)
-    {
-        String limitClause = "";
-        if (!StringUtils.isBlank(limit))
-            limitClause = " limit " + limit;
-        return limitClause;
     }
 
     private static String getCondition(String conditionObject, String conditionValue)
@@ -259,41 +251,6 @@ public class QueryHive
         return levelClause;
     }
 
-    private static String addtoWhereClause(String whereClause, String clause)
-    {
-        if (!StringUtils.isBlank(clause))
-        {
-            if (StringUtils.isBlank(whereClause))
-                whereClause = " WHERE (" + clause + ")";
-            else
-                whereClause += " AND (" + clause + ")";
-        }
-        return whereClause;
-    }
-
-    private static String getDateRange(String startDate, String endDate)
-    {
-        String dateRange = "";
-        if (!StringUtils.isBlank(endDate) && endDate.length() == 10)
-        {
-            String endMonth = endDate.substring(0, 2);
-            String endDay = endDate.substring(3, 5);
-            dateRange = "((month < " + endMonth + ") OR (month = " + endMonth + " AND day <= " + endDay + "))";
-        }
-
-        if (!StringUtils.isBlank(startDate) && startDate.length() == 10)
-        {
-            String startMonth = startDate.substring(0, 2);
-            String startDay = startDate.substring(3, 5);
-            String beginClause = "((month > " + startMonth + ") OR (month = " + startMonth + " AND day >= " + startDay + "))";
-            if (StringUtils.isBlank(dateRange))
-                dateRange = beginClause;
-            else
-                dateRange += " AND " + beginClause;
-        }
-
-        return dateRange;
-    }
 
     /**
      * @param args

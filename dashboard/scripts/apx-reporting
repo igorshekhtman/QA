@@ -1,0 +1,34 @@
+#! /bin/sh
+pidfile="/var/run/apx-reporting.pid"
+PID=""
+if [ -e "$pidfile" ]
+then
+	PID=$(cat $pidfile) 
+fi
+if [ -z $1 ]
+then
+	echo "No parameter provided. Supported: start, stop"
+elif [ "$1" = "start" ]
+then
+	if [ -z $PID ]
+	then
+		echo "Starting Apixio QA Reporting Server"
+		nohup java -cp apx-reporting.jar:../html/ com.apixio.qa.hive.service.QueryHiveService server ../conf/apx-reporting.yaml > apx-reporting.log 2>&1 &
+		echo $! > /var/run/apx-reporting.pid
+	else
+		echo "Process appears to be running with process id: " $PID
+	fi
+elif [ "$1" = "stop" ]
+then
+	if [ -z $PID ]
+	then
+		echo "Process doesn't appear to be running."
+		echo "No PID file found at: " $pidfile
+	else
+		echo "Stopping Apixio QA Reporting Server"
+		kill -9 $PID
+		rm $pidfile
+	fi
+else
+	echo "Invalid parameter: " $1
+fi

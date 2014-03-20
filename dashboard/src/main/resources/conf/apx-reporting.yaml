@@ -1,5 +1,6 @@
 hiveAddress: jdbc:hive2://10.196.47.205:10000
 updateInterval: 90
+outputDir: /usr/lib/apx-reporting/html/assets/reports/json/
 # HTTP-specific options.
 http:
 

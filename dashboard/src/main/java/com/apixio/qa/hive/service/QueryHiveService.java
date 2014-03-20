@@ -26,6 +26,7 @@ public class QueryHiveService extends Service<QueryHiveConfiguration>
     {
         final String hiveAddress = configuration.getHiveAddress();
         final String updateInterval = configuration.getUpdateInterval();
-        environment.addResource(new QueryHiveResource(hiveAddress, updateInterval));
+        final String outputDir = configuration.getOutputDir();
+        environment.addResource(new QueryHiveResource(hiveAddress, updateInterval, outputDir));
     }
 }

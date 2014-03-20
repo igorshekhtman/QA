@@ -1,5 +1,6 @@
 package com.apixio.qa.hive.resource;
 
+import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,6 +11,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
 import com.apixio.qa.hive.QueryHive;
@@ -24,13 +27,15 @@ import com.yammer.metrics.annotation.Timed;
 public class QueryHiveResource
 {
     private final String hiveAddress;
+    private final String outputDir;
     private final AtomicLong counter;
     private DocumentCountManager dcm;
     private QueryHandler queryManager;
 
-    public QueryHiveResource(String hiveAddress, String updateInterval)
+    public QueryHiveResource(String hiveAddress, String updateInterval, String outputDir)
     {
         this.hiveAddress = hiveAddress;
+        this.outputDir = outputDir;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
         queryManager = new QueryHandler();
@@ -67,7 +72,7 @@ public class QueryHiveResource
     }
 
     @GET
-    @Path("/json/{environment}/{component}")
+    @Path("/json/{environment}/component/{component}")
     @Timed
     public String rawQuery(@PathParam("environment") String environment, @PathParam("component") String component, @QueryParam("startdate") Optional<String> startDate,
             @QueryParam("enddate") Optional<String> endDate, @QueryParam("level") Optional<String> level, @QueryParam("conditiononeobject") Optional<String> conditionOneObject,
@@ -116,10 +121,9 @@ public class QueryHiveResource
     }
     
     @GET
-    @Path("/json/{environment}/{groupName}")
+    @Path("/json/{environment}/group/{groupName}")
     @Timed
-    public String runGroup(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate,
-            @QueryParam("groupName") String groupName)
+    public String runGroup(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
     {
         try
         {
@@ -132,7 +136,10 @@ public class QueryHiveResource
             {
                 for (RunQuery rQ : rQs)
                 {
-                    List<JSONObject> results = qm.runQuery(rQ);
+                	String fileName = outputDir + rQ.getName();
+                    List<JSONObject> results = qm.runQuery(hiveAddress, rQ);
+                    
+                    IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
                     
                 }
             }
