@@ -41,10 +41,11 @@ public class QueryManager
         List<RunQuery> rQs = groupToRun.getRunQuery();
 
         JSONObject processedGroup = null;
-        if (groupName.equalsIgnoreCase("completeness"))
+        if (groupToRun.getName().equalsIgnoreCase("completeness"))
         {
             processedGroup = processCompletenessGroup(rQs);
         }
+        //TODO else just run the group and return results.. 
         return processedGroup;
     }
 
