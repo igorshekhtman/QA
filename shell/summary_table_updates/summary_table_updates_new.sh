@@ -675,3 +675,5 @@ from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EV
 and ($dateRange);
 
 EOF
+
+chmod 777 update_summary.log
