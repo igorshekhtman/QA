@@ -1,4 +1,4 @@
-package com.apixio.qa.hive.resource;
+package com.apixio.qa.hive.query;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,8 +10,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
-import com.apixio.qa.hive.resource.generated.Queries.Group;
-import com.apixio.qa.hive.resource.generated.Queries.Group.RunQuery;
+import com.apixio.qa.hive.query.generated.Queries.Group;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 
 public class QueryManager
 {

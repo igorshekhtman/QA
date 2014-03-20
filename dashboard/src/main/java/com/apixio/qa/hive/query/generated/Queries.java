@@ -6,7 +6,7 @@
 //
 
 
-package com.apixio.qa.hive.resource.generated;
+package com.apixio.qa.hive.query.generated;
 
 import java.util.ArrayList;
 import java.util.List;

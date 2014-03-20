@@ -2,10 +2,9 @@
 
 	<query name="archivedToS3_count">
 		<text>
-			select org_id, count(distinct(doc_id)) as doc_count 
-			from summary_docreceiver_archive 
-			where status=? 
-			group by org_id
+			select org_id, count(distinct(doc_id)) as doc_count, status, error_message
+			from summary_docreceiver_archive  
+			group by org_id, status, error_message
 		</text>
 	</query>
 	<query name="parse_count">
