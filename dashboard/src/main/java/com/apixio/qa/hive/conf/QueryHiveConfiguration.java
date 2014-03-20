@@ -23,4 +23,13 @@ public class QueryHiveConfiguration extends Configuration
     {
         return updateInterval;
     }
+
+    @NotEmpty
+    @JsonProperty
+    private String outputDir;
+
+    public String getOutputDir()
+    {
+        return outputDir;
+    }
 }
