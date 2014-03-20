@@ -326,6 +326,7 @@ cast(get_json_object(line, '$.patient.search.millis') as int) as mysql_patient_s
 get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
@@ -377,9 +378,6 @@ day,
 get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
-
-
-
 
 
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
@@ -622,6 +620,7 @@ cast(get_json_object(line, '$.patient.search.millis') as int) as mysql_patient_s
 get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
@@ -675,5 +674,3 @@ from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EV
 and ($dateRange);
 
 EOF
-
-chmod 777 update_summary.log
