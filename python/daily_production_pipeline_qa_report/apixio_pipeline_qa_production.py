@@ -552,7 +552,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		GROUP BY status, \
 		activity, \
 		org_id \
-		ORDER BY orgid, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
+		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
 
 
 
