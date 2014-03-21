@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=6
+QNTORUN=1
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -99,6 +99,7 @@ DOCUMENTS_TO_OCR=0
 DOCUMENTS_TO_PERSIST=0
 TAGED_TO_OCR=0
 TAGED_TO_PERSIST=0
+TAGGED_TOTAL=0
 
 
 QUERY_DESC=""
@@ -771,6 +772,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
+	TAGGED_TOTAL=0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
@@ -778,11 +780,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+		TAGGED_TOTAL = TAGGED_TOTAL+int(i[0])
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < (TAGED_TO_OCR + TAGED_TO_PERSIST):
+	if TAGGED_TOTAL < (TAGED_TO_OCR + TAGED_TO_PERSIST):
 		print ("QUERY %s FAILED") % (QN)
 		COMPONENT_STATUS="FAILED"
 
@@ -820,7 +822,6 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td colspan='5'>Error: <i>"+str(i[1])+"</i></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		# COMPONENT_STATUS="PASSED"
 	else:
 		COMPONENT_STATUS="FAILED"
 	REPORT = REPORT+"</table><br>"
