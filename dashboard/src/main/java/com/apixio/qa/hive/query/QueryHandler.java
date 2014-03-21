@@ -22,21 +22,27 @@ public class QueryHandler
 {
     private static String driverName = "org.apache.hive.jdbc.HiveDriver";
     private static Logger log = Logger.getLogger(QueryHandler.class);
+    private String hiveAddress;
+    
+    public QueryHandler(String hiveAddress)
+    {
+        this.hiveAddress = hiveAddress;
+    }
 
-    public List<JSONObject> runQuery(String hiveAddress, RunQuery queryToRun) throws SQLException, JSONException
+    public List<JSONObject> runQuery(RunQuery queryToRun) throws SQLException, JSONException
     {
         Query query = QueryConfig.getQuery(queryToRun.getName());
         
         String queryText = query.getText();
         
-        return queryHive(hiveAddress, queryToRun.getParam(), queryText);
+        return queryHive(queryToRun.getParam(), queryText);
     }
     
     public static void main(String[] args)
     {
     	String hiveAddress = "jdbc:hive2://184.169.209.24:10000";
         Group groupToRun = QueryConfig.getQueryGroupByName("completeness");
-        QueryHandler qm = new QueryHandler();
+        QueryHandler qh = new QueryHandler(hiveAddress);
         
         List<RunQuery> rQs = groupToRun.getRunQuery();
         
@@ -46,7 +52,7 @@ public class QueryHandler
             {
                 try
                 {
-                    System.out.println(qm.runQuery(hiveAddress,rQ).toString());
+                    System.out.println(qh.runQuery(rQ).toString());
                 }
                 catch (SQLException e)
                 {
@@ -62,7 +68,7 @@ public class QueryHandler
         }
     }
     
-    private List<JSONObject> queryHive(String hiveAddress, List<Param> parameters, String sql) throws SQLException, JSONException
+    private List<JSONObject> queryHive(List<Param> parameters, String sql) throws SQLException, JSONException
     {
         try
         {

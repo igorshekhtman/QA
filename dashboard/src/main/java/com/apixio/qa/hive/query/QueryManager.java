@@ -2,7 +2,6 @@ package com.apixio.qa.hive.query;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +19,6 @@ import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 public class QueryManager
 {
     private QueryHandler queryHandler;
-    private String hiveAddress;
     private String outputDir;
     private Properties orgProperties;
 
@@ -34,9 +32,8 @@ public class QueryManager
 
     public QueryManager(String hiveAddress, String outputDir)
     {
-        this.hiveAddress = hiveAddress;
         this.outputDir = outputDir;
-        queryHandler = new QueryHandler();
+        queryHandler = new QueryHandler(hiveAddress);
         
         try
         {
@@ -89,7 +86,7 @@ public class QueryManager
                 }
                 else
                 {
-                    results = queryHandler.runQuery(hiveAddress, rQ);
+                    results = queryHandler.runQuery(rQ);
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(jsonFile));
                 }
 

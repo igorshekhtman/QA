@@ -41,7 +41,7 @@ public class QueryHiveResource
         this.outputDir = outputDir;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
-        queryManager = new QueryHandler();
+        queryManager = new QueryHandler(hiveAddress);
     }
 
     @GET
@@ -131,7 +131,7 @@ public class QueryHiveResource
         try
         {
             Group groupToRun = QueryConfig.getQueryGroupByName(groupName);
-            QueryHandler qm = new QueryHandler();
+            QueryHandler qm = new QueryHandler(hiveAddress);
             
             List<RunQuery> rQs = groupToRun.getRunQuery();
             
@@ -140,7 +140,7 @@ public class QueryHiveResource
                 for (RunQuery rQ : rQs)
                 {
                 	String fileName = outputDir + rQ.getName();
-                    List<JSONObject> results = qm.runQuery(hiveAddress, rQ);
+                    List<JSONObject> results = qm.runQuery(rQ);
                     
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
                 }
