@@ -1,9 +1,58 @@
-{"org_id":"10000232","status":"error","error_message":"Java heap space","doc_count":3}
-{"org_id":"10000232","status":"success","doc_count":10753,"sent_to_persist":"success"}
-{"org_id":"10000250","status":"success","doc_count":9514,"sent_to_persist":"success"}
-{"org_id":"10000250","sent_to_ocr":"success","status":"success","doc_count":1474}
-{"org_id":"10000262","status":"error","doc_count":1}
-{"org_id":"10000262","status":"error","error_message":"The document appears to be corrupted and cannot be loaded.","doc_count":441}
-{"org_id":"10000262","status":"error","error_message":"Unknown file format.","doc_count":12}
-{"org_id":"10000262","status":"success","doc_count":692138,"sent_to_persist":"success"}
-{"org_id":"10000262","sent_to_ocr":"success","status":"success","doc_count":34495}
+{"org_id":"10000232","status":"error","error_message":"Java heap space","doc_count":26}
+{"org_id":"10000232","status":"success","doc_count":495396,"sent_to_persist":"success"}
+{"org_id":"10000232","sent_to_ocr":"success","status":"success","doc_count":228440}
+{"org_id":"10000250","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":1}
+{"org_id":"10000250","status":"success","doc_count":129996,"sent_to_persist":"success"}
+{"org_id":"10000250","sent_to_ocr":"success","status":"success","doc_count":47066}
+{"org_id":"10000259","status":"error","error_message":"Unknown file format.","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"Unknown file format.","doc_count":54}
+{"org_id":"10000263","status":"error","error_message":"Java heap space","doc_count":5}
+{"org_id":"10000263","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":1}
+{"org_id":"10000263","status":"success","doc_count":1062374,"sent_to_persist":"success"}
+{"org_id":"10000263","sent_to_ocr":"success","status":"success","doc_count":703648}
+{"org_id":"10000265","status":"success","doc_count":8,"sent_to_persist":"success"}
+{"org_id":"10000265","sent_to_ocr":"success","status":"success","doc_count":4}
+{"org_id":"10000270","sent_to_ocr":"success","status":"success","doc_count":1}
+{"org_id":"10000272","status":"success","doc_count":20,"sent_to_persist":"success"}
+{"org_id":"10000272","sent_to_ocr":"success","status":"success","doc_count":12}
+{"org_id":"10000278","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":1}
+{"org_id":"10000278","status":"success","doc_count":815875,"sent_to_persist":"success"}
+{"org_id":"10000278","sent_to_ocr":"success","status":"success","doc_count":516756}
+{"org_id":"10000281","status":"success","doc_count":3,"sent_to_persist":"success"}
+{"org_id":"10000281","sent_to_ocr":"success","status":"success","doc_count":1}
+{"org_id":"10000283","status":"success","doc_count":239689,"sent_to_persist":"success"}
+{"org_id":"10000283","sent_to_ocr":"success","status":"success","doc_count":38099}
+{"org_id":"10000285","status":"success","doc_count":337528,"sent_to_persist":"success"}
+{"org_id":"10000286","status":"error","error_message":"Unknown file format.","doc_count":9}
+{"org_id":"10000259","status":"success","doc_count":318189,"sent_to_persist":"success"}
+{"org_id":"10000259","sent_to_ocr":"success","status":"success","doc_count":430347}
+{"org_id":"10000262","status":"error","doc_count":2}
+{"org_id":"10000262","status":"error","error_message":"Java heap space","doc_count":3}
+{"org_id":"10000262","status":"error","error_message":"The document appears to be corrupted and cannot be loaded.","doc_count":2489}
+{"org_id":"10000262","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":6}
+{"org_id":"10000262","status":"success","doc_count":11218467,"sent_to_persist":"success"}
+{"org_id":"10000262","sent_to_ocr":"success","status":"success","doc_count":3801556}
+{"org_id":"10000268","status":"success","doc_count":176,"sent_to_persist":"success"}
+{"org_id":"10000268","sent_to_ocr":"success","status":"success","doc_count":223}
+{"org_id":"10000271","status":"success","doc_count":23,"sent_to_persist":"success"}
+{"org_id":"10000271","sent_to_ocr":"success","status":"success","doc_count":12}
+{"org_id":"10000273","status":"success","doc_count":10,"sent_to_persist":"success"}
+{"org_id":"10000273","sent_to_ocr":"success","status":"success","doc_count":6}
+{"org_id":"10000275","status":"success","doc_count":510,"sent_to_persist":"success"}
+{"org_id":"10000275","sent_to_ocr":"success","status":"success","doc_count":306}
+{"org_id":"10000278","status":"error","error_message":"Unknown file format.","doc_count":4}
+{"org_id":"10000279","status":"success","doc_count":224,"sent_to_persist":"success"}
+{"org_id":"10000279","sent_to_ocr":"success","status":"success","doc_count":144}
+{"org_id":"10000280","status":"success","doc_count":2,"sent_to_persist":"success"}
+{"org_id":"10000280","sent_to_ocr":"success","status":"success","doc_count":1}
+{"org_id":"10000282","status":"success","doc_count":32,"sent_to_persist":"success"}
+{"org_id":"10000284","status":"success","doc_count":228020,"sent_to_persist":"success"}
+{"org_id":"10000284","sent_to_ocr":"success","status":"success","doc_count":38709}
+{"org_id":"10000286","status":"error","error_message":"Java heap space","doc_count":8}
+{"org_id":"10000286","status":"success","doc_count":1292668,"sent_to_persist":"success"}
+{"org_id":"10000286","sent_to_ocr":"success","status":"success","doc_count":717355}
+{"org_id":"10000288","status":"success","doc_count":17,"sent_to_persist":"success"}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","doc_count":0}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","doc_count":0}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","error_message":"Could not decrypt the data.","doc_count":0}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","error_message":"Java heap space","doc_count":0}

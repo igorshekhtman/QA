@@ -1,0 +1,37 @@
+{"org_id":"10000232","status":"error","error_message":"Property: trace_datastore_folder is not found for this user:vulyanov4_mmg@apixio.com","doc_count":5}
+{"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (no host was tried)","doc_count":103}
+{"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.198.10.236 ([/10.198.10.236] Channel has been closed))","doc_count":1}
+{"org_id":"10000263","status":"success","doc_count":1751890}
+{"org_id":"10000272","status":"success","doc_count":32}
+{"org_id":"10000275","status":"success","doc_count":816}
+{"org_id":"10000278","status":"success","doc_count":1327889}
+{"org_id":"10000281","status":"success","doc_count":4}
+{"org_id":"10000284","status":"success","doc_count":266726}
+{"org_id":"10000285","status":"error","error_message":"Could not compute document key.","doc_count":251873}
+{"org_id":"10000232","status":"error","error_message":"Java heap space","doc_count":16}
+{"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.197.17.113 ([/10.197.17.113] Channel has been closed))","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"Java heap space","doc_count":11}
+{"org_id":"10000265","status":"error","error_message":"Property: trace_datastore_folder is not found for this user:hccdemomvp","doc_count":12}
+{"org_id":"10000270","status":"success","doc_count":1}
+{"org_id":"10000273","status":"success","doc_count":16}
+{"org_id":"10000279","status":"success","doc_count":368}
+{"org_id":"10000282","status":"success","doc_count":32}
+{"org_id":"10000285","status":"success","doc_count":31000}
+{"org_id":"10000286","status":"error","error_message":"Java heap space","doc_count":1}
+{"org_id":"10000288","status":"success","doc_count":17}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","error_message":"Could not compute document key.","doc_count":392704}
+{"org_id":"10000232","status":"success","doc_count":718701}
+{"org_id":"10000250","status":"success","doc_count":175142}
+{"org_id":"10000259","status":"success","doc_count":723409}
+{"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.197.17.113 ([/10.197.17.113] Connection has been closed))","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.199.49.10 ([/10.199.49.10] Channel has been closed))","doc_count":2}
+{"org_id":"10000262","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: no keyspace has been specified","doc_count":7}
+{"org_id":"10000262","status":"success","doc_count":14700298}
+{"org_id":"10000263","status":"error","error_message":"Java heap space","doc_count":1}
+{"org_id":"10000268","status":"success","doc_count":295}
+{"org_id":"10000271","status":"success","doc_count":35}
+{"org_id":"10000280","status":"success","doc_count":3}
+{"org_id":"10000283","status":"success","doc_count":277785}
+{"org_id":"10000286","status":"success","doc_count":1977223}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: Prepared statement of size 215663768 bytes is larger than allowed maximum of 15073280 bytes.","doc_count":1}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"success","doc_count":8772246}

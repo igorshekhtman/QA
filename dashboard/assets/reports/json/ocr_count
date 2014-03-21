@@ -1,4 +1,41 @@
-{"org_id":"10000232","status":"success","doc_count":2201}
-{"org_id":"10000250","status":"success","doc_count":1474}
-{"org_id":"10000262","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":5}
-{"org_id":"10000262","status":"success","doc_count":115091}
+{"org_id":"10000232","status":"error","error_message":"Java heap space","doc_count":6}
+{"org_id":"10000232","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":20}
+{"org_id":"10000232","status":"error","error_message":"This file type is not supported:CCR. Only PDF files are supported.","doc_count":950}
+{"org_id":"10000232","status":"error","error_message":"This file type is not supported:DOCX. Only PDF files are supported.","doc_count":2258}
+{"org_id":"10000232","status":"success","doc_count":223817}
+{"org_id":"10000250","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":3}
+{"org_id":"10000250","status":"success","doc_count":47063}
+{"org_id":"10000259","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":22856}
+{"org_id":"10000259","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":75}
+{"org_id":"10000259","status":"success","doc_count":406174}
+{"org_id":"10000262","status":"error","error_message":"Java heap space","doc_count":4}
+{"org_id":"10000262","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":21520}
+{"org_id":"10000262","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":413}
+{"org_id":"10000262","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":97}
+{"org_id":"10000262","status":"success","doc_count":3656106}
+{"org_id":"10000263","status":"error","error_message":"Java heap space","doc_count":1}
+{"org_id":"10000263","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":3}
+{"org_id":"10000263","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":34}
+{"org_id":"10000263","status":"success","doc_count":693038}
+{"org_id":"10000265","status":"success","doc_count":4}
+{"org_id":"10000268","status":"success","doc_count":181}
+{"org_id":"10000270","status":"success","doc_count":1}
+{"org_id":"10000271","status":"success","doc_count":12}
+{"org_id":"10000272","status":"success","doc_count":12}
+{"org_id":"10000273","status":"success","doc_count":6}
+{"org_id":"10000275","status":"success","doc_count":306}
+{"org_id":"10000278","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":1347}
+{"org_id":"10000278","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":32}
+{"org_id":"10000278","status":"success","doc_count":512014}
+{"org_id":"10000279","status":"success","doc_count":144}
+{"org_id":"10000280","status":"success","doc_count":1}
+{"org_id":"10000281","status":"success","doc_count":1}
+{"org_id":"10000283","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":3}
+{"org_id":"10000283","status":"success","doc_count":38096}
+{"org_id":"10000284","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":3}
+{"org_id":"10000284","status":"success","doc_count":38706}
+{"org_id":"10000286","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":2}
+{"org_id":"10000286","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:134","doc_count":25}
+{"org_id":"10000286","status":"success","doc_count":684556}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","doc_count":0}
+{"org_id":"__HIVE_DEFAULT_PARTITION__","status":"error","doc_count":0}
