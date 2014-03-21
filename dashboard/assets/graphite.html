@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>Graphite Experiment</title>
+	<script language="javascript" type="text/javascript" src="js/raphael-min.js"></script> <!-- Raphael 1.5.2 - JavaScript Vector Library -->
+	<script language="javascript" type="text/javascript" src="js/jgauge.js"></script> <!-- jGauge JavaScript. -->
+ 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script>
+	var metric_url = "/graphite/speed?environment=staging&from=-10min&sample=5";
+	
+
+</script>
+</head>
+<body onload="ready();">
+	<div id="uploadSpeed" style="float: left; margin: 10px 0 10px 25px;"></div>
+	<script type="text/javascript">
+
+			    // DEMOGAUGE1 - A very basic example...
+				var demoGauge1 = new jGauge('uploadSpeed'); 
+
+				// This function is called on page load...
+				function ready()
+				{
+					demoGauge1.init(); // Put the jGauge on the page by initializing it.
+					updateSpeed();
+					setInterval('updateSpeed()', 5000);
+				}
+				
+				function updateSpeed()
+				{
+
+	     			$.get(metric_url, null).done(function( values ) {
+			    		demoGauge1.setValue(values, demoGauge1.needle[0]);
+			    	  });
+					
+				}
+
+	</script>
+	
+</body>
+</html>

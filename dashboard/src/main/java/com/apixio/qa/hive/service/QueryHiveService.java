@@ -1,6 +1,7 @@
 package com.apixio.qa.hive.service;
 
 import com.apixio.qa.hive.conf.QueryHiveConfiguration;
+import com.apixio.qa.hive.resource.GraphiteResource;
 import com.apixio.qa.hive.resource.QueryHiveResource;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
@@ -28,5 +29,6 @@ public class QueryHiveService extends Service<QueryHiveConfiguration>
         final String updateInterval = configuration.getUpdateInterval();
         final String outputDir = configuration.getOutputDir();
         environment.addResource(new QueryHiveResource(hiveAddress, updateInterval, outputDir));
+        environment.addResource(new GraphiteResource());
     }
 }
