@@ -76,7 +76,6 @@ echo "Day: $day"
 echo "Month: $month"
 echo " "
 
-sleep 10000
 
 /usr/bin/hive --service beeline -u jdbc:hive2://10.196.47.205:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
 set hive.exec.dynamic.partition=true;
