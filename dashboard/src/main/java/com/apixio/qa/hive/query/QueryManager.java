@@ -151,21 +151,9 @@ public class QueryManager
                             orgObject.put("sent_to_ocr", doc_count);
                         }
                     }
-                    else if (typeOfResults.equalsIgnoreCase("persist_count"))
+                    else
                     {
-                        orgObject.put("persist_success", doc_count);
-                    }
-                    else if (typeOfResults.equalsIgnoreCase("ocr_count"))
-                    {
-                        orgObject.put("ocr_success", doc_count);
-                    }
-                    else if (typeOfResults.equalsIgnoreCase("verified_count"))
-                    {
-                        orgObject.put("persist_verified", doc_count);
-                    }
-                    else if (typeOfResults.equalsIgnoreCase("archivedToS3_count"))
-                    {
-                        orgObject.put("archive_success", doc_count);
+                        orgObject.put(typeOfResults, doc_count);
                     }
                 }
                 else if (status.equals("error"))
@@ -216,10 +204,43 @@ public class QueryManager
                         
                         orgObject.put("archive_errors", errorObject);
                     }
+                    else if (typeOfResults.equalsIgnoreCase("upload_count"))
+                    {
+                        if (orgObject.has("upload_errors"))
+                        {
+                            errorObject = (JSONObject)orgObject.get("upload_errors");
+                        }
+                        errorObject.put(errorMsg, errorObject.has(errorMsg)?
+                                (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                        
+                        orgObject.put("upload_errors", errorObject);
+                    }
                 }
                 
                 orgDetails.put(orgId, orgObject);
             }
         }
+    }
+    
+    private JSONObject getChartDataForOrgs(List<JSONObject> results, String typeOfResults, JSONObject orgChartDetails) throws Exception
+    {
+        for (JSONObject result : results)
+        {
+            String orgId = result.getString("org_id");
+            if (orgId != null && !orgId.equalsIgnoreCase("__HIVE_DEFAULT_PARTITION__"))
+            {
+                if (orgChartDetails.has(orgId))
+                {
+                    orgChartDetails = orgChartDetails.getJSONObject(orgId);
+                }
+                else
+                {
+                    orgChartDetails = new JSONObject();
+                    orgChartDetails.put("subtitle", orgId);
+                    orgChartDetails.put("title", orgProperties.getProperty(orgId, ""));
+                }
+            }
+        }
+        return null;
     }
 }
