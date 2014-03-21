@@ -7,6 +7,13 @@
 			group by org_id, status, error_message
 		</text>
 	</query>
+	<query name="upload_count">
+        <text>
+            select org_id, count(distinct(doc_id)) as doc_count, status, error_message
+            from summary_docreceiver_upload   
+            group by org_id, status, error_message
+        </text>
+    </query>
 	<query name="parse_count">
 		<text>
 			select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count, a.sent_to_ocr, a.sent_to_persist
@@ -47,13 +54,16 @@
     </query>
 	
 	<group name="completeness">
-		<run-query name="archivedToS3_count">
-			<param index="1" val="success"/>
-		</run-query>
+		<run-query name="archivedToS3_count"/>
+		<run-query name="upload_count"/> 
 		<run-query name="parse_count"/>
 		<run-query name="ocr_count"/>
 		<run-query name="persist_count"/>
 		<run-query name="verified_count"/>
+	</group>
+	
+	<group name="upload">
+	   <run-query name="upload_count"/>
 	</group>
 	
 </queries>
