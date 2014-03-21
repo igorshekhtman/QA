@@ -40,9 +40,10 @@ public class QueryManager
         
         try
         {
+            orgProperties = new Properties();
             orgProperties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("prod_orgid_names.properties"));
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             e.printStackTrace();
         }
