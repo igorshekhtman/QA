@@ -19,6 +19,7 @@ import com.apixio.qa.hive.QueryHive;
 import com.apixio.qa.hive.manager.DocumentCountManager;
 import com.apixio.qa.hive.query.QueryConfig;
 import com.apixio.qa.hive.query.QueryHandler;
+import com.apixio.qa.hive.query.QueryManager;
 import com.apixio.qa.hive.query.generated.Queries.Group;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 import com.google.common.base.Optional;
@@ -40,7 +41,7 @@ public class QueryHiveResource
         this.outputDir = outputDir;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
-        queryManager = new QueryHandler();
+        queryManager = new QueryHandler(hiveAddress);
     }
 
     @GET
@@ -130,7 +131,7 @@ public class QueryHiveResource
         try
         {
             Group groupToRun = QueryConfig.getQueryGroupByName(groupName);
-            QueryHandler qm = new QueryHandler();
+            QueryHandler qm = new QueryHandler(hiveAddress);
             
             List<RunQuery> rQs = groupToRun.getRunQuery();
             
@@ -139,13 +140,29 @@ public class QueryHiveResource
                 for (RunQuery rQ : rQs)
                 {
                 	String fileName = outputDir + rQ.getName();
-                    List<JSONObject> results = qm.runQuery(hiveAddress, rQ);
+                    List<JSONObject> results = qm.runQuery(rQ);
                     
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
-                    
                 }
             }
             return null;
+        }
+        catch (Exception ex)
+        {
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/json/{environment}/ui/group/{groupName}")
+    @Timed
+    public String runGroupUI(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
+    {
+        try
+        {
+            QueryManager qm = new QueryManager(hiveAddress, outputDir);
+            
+            return qm.processQueryGroup(groupName).toString();
         }
         catch (Exception ex)
         {

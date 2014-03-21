@@ -3,11 +3,14 @@ package com.apixio.qa.hive.query;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.apixio.qa.hive.query.generated.Queries.Group;
@@ -16,8 +19,8 @@ import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 public class QueryManager
 {
     private QueryHandler queryHandler;
-    private String hiveAddress;
     private String outputDir;
+    private Properties orgProperties;
 
     public static void main(String[] args) throws Exception
     {
@@ -29,9 +32,18 @@ public class QueryManager
 
     public QueryManager(String hiveAddress, String outputDir)
     {
-        this.hiveAddress = hiveAddress;
         this.outputDir = outputDir;
-        queryHandler = new QueryHandler();
+        queryHandler = new QueryHandler(hiveAddress);
+        
+        try
+        {
+            orgProperties = new Properties();
+            orgProperties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("prod_orgid_names.properties"));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public JSONObject processQueryGroup(String groupName) throws Exception
@@ -74,16 +86,21 @@ public class QueryManager
                 }
                 else
                 {
-                    results = queryHandler.runQuery(hiveAddress, rQ);
+                    results = queryHandler.runQuery(rQ);
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(jsonFile));
                 }
 
                 getOrgObject(results, rQ.getName(), orgDetails);
             }
 
-            resultObj.put("orgDetails", orgDetails);
+            Iterator it = orgDetails.keys();
+            JSONArray orgs = new JSONArray();
+            while (it.hasNext())
+            {
+                orgs.put(orgDetails.get(it.next().toString()));
+            }
+            resultObj.put("orgs", orgs);
         }
-        System.out.println(resultObj);
         return resultObj;
     }
 
@@ -91,110 +108,118 @@ public class QueryManager
     {
         for (JSONObject result : results)
         {
-            String org_id = result.getString("org_id");
-            String status = "NotKnown";
-            String errorMsg = "NotKnown";
+            String orgId = result.getString("org_id");
             
-            if (result.has("error_message"))
-                errorMsg = result.getString("error_message");
-            
-            Integer doc_count = result.getInt("doc_count");
-            
-            JSONObject orgObject = null;
-            
-            if (orgDetails.has(org_id))
+            if (orgId != null && !orgId.equalsIgnoreCase("__HIVE_DEFAULT_PARTITION__"))
             {
-                orgObject = orgDetails.getJSONObject(org_id);
-            }
-            else
-            {
-                orgObject = new JSONObject();
-            }
-            
-            if (result.has("status"))
-                status = result.getString("status");
-            
-            if (status.equals("success"))
-            {
-                if (typeOfResults.equalsIgnoreCase("parse_count"))
-                {
-                    if (result.has("sent_to_persist"))
-                    {
-                        orgObject.put("sent_to_persist", doc_count);
-                    }
-                    else if (result.has("sent_to_ocr"))
-                    {
-                        orgObject.put("sent_to_ocr", doc_count);
-                    }
-                }
-                else if (typeOfResults.equalsIgnoreCase("persist_count"))
-                {
-                    orgObject.put("persist_success", doc_count);
-                }
-                else if (typeOfResults.equalsIgnoreCase("ocr_count"))
-                {
-                    orgObject.put("ocr_success", doc_count);
-                }
-                else if (typeOfResults.equalsIgnoreCase("verified_count"))
-                {
-                    orgObject.put("persist_verified", doc_count);
-                }
-                else if (typeOfResults.equalsIgnoreCase("archivedToS3_count"))
-                {
-                    orgObject.put("archive_success", doc_count);
-                }
-            }
-            else if (status.equals("error"))
-            {
-                JSONObject errorObject = new JSONObject();
+                String status = "NotKnown";
+                String errorMsg = "NotKnown";
                 
-                if (typeOfResults.equalsIgnoreCase("parse_count"))
+                if (result.has("error_message"))
+                    errorMsg = result.getString("error_message");
+                
+                Integer doc_count = result.getInt("doc_count");
+                
+                JSONObject orgObject = null;
+                
+                if (orgDetails.has(orgId))
                 {
-                    if (orgObject.has("parse_errors"))
-                    {
-                        errorObject = (JSONObject)orgObject.get("parse_errors");
-                    }
-                    errorObject.put(errorMsg, errorObject.has(errorMsg)?
-                            (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
-                    
-                    orgObject.put("parse_errors", errorObject);
+                    orgObject = orgDetails.getJSONObject(orgId);
                 }
-                else if (typeOfResults.equalsIgnoreCase("persist_count"))
+                else
                 {
-                    if (orgObject.has("persist_errors"))
-                    {
-                        errorObject = (JSONObject)orgObject.get("persist_errors");
-                    }
-                    errorObject.put(errorMsg, errorObject.has(errorMsg)?
-                            (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
-                    
-                    orgObject.put("persist_errors", errorObject);
+                    orgObject = new JSONObject();
+                    orgObject.put("org_id", orgId);
+                    orgObject.put("org_name", orgProperties.getProperty(orgId, ""));
                 }
-                else if (typeOfResults.equalsIgnoreCase("ocr_count"))
+                
+                if (result.has("status"))
+                    status = result.getString("status");
+                else
+                    orgObject.put("persist_verified", doc_count);
+                
+                if (status.equals("success"))
                 {
-                    if (orgObject.has("ocr_errors"))
+                    if (typeOfResults.equalsIgnoreCase("parse_count"))
                     {
-                        errorObject = (JSONObject)orgObject.get("ocr_errors");
+                        if (result.has("sent_to_persist"))
+                        {
+                            orgObject.put("sent_to_persist", doc_count);
+                        }
+                        else if (result.has("sent_to_ocr"))
+                        {
+                            orgObject.put("sent_to_ocr", doc_count);
+                        }
                     }
-                    errorObject.put(errorMsg, errorObject.has(errorMsg)?
-                            (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
-                    
-                    orgObject.put("ocr_errors", errorObject);
+                    else if (typeOfResults.equalsIgnoreCase("persist_count"))
+                    {
+                        orgObject.put("persist_success", doc_count);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("ocr_count"))
+                    {
+                        orgObject.put("ocr_success", doc_count);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("verified_count"))
+                    {
+                        orgObject.put("persist_verified", doc_count);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("archivedToS3_count"))
+                    {
+                        orgObject.put("archive_success", doc_count);
+                    }
                 }
-                else if (typeOfResults.equalsIgnoreCase("archivedToS3_count"))
+                else if (status.equals("error"))
                 {
-                    if (orgObject.has("archive_errors"))
-                    {
-                        errorObject = (JSONObject)orgObject.get("archive_errors");
-                    }
-                    errorObject.put(errorMsg, errorObject.has(errorMsg)?
-                            (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                    JSONObject errorObject = new JSONObject();
                     
-                    orgObject.put("archive_errors", errorObject);
+                    if (typeOfResults.equalsIgnoreCase("parse_count"))
+                    {
+                        if (orgObject.has("parse_errors"))
+                        {
+                            errorObject = (JSONObject)orgObject.get("parse_errors");
+                        }
+                        errorObject.put(errorMsg, errorObject.has(errorMsg)?
+                                (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                        
+                        orgObject.put("parse_errors", errorObject);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("persist_count"))
+                    {
+                        if (orgObject.has("persist_errors"))
+                        {
+                            errorObject = (JSONObject)orgObject.get("persist_errors");
+                        }
+                        errorObject.put(errorMsg, errorObject.has(errorMsg)?
+                                (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                        
+                        orgObject.put("persist_errors", errorObject);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("ocr_count"))
+                    {
+                        if (orgObject.has("ocr_errors"))
+                        {
+                            errorObject = (JSONObject)orgObject.get("ocr_errors");
+                        }
+                        errorObject.put(errorMsg, errorObject.has(errorMsg)?
+                                (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                        
+                        orgObject.put("ocr_errors", errorObject);
+                    }
+                    else if (typeOfResults.equalsIgnoreCase("archivedToS3_count"))
+                    {
+                        if (orgObject.has("archive_errors"))
+                        {
+                            errorObject = (JSONObject)orgObject.get("archive_errors");
+                        }
+                        errorObject.put(errorMsg, errorObject.has(errorMsg)?
+                                (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
+                        
+                        orgObject.put("archive_errors", errorObject);
+                    }
                 }
+                
+                orgDetails.put(orgId, orgObject);
             }
-            
-            orgDetails.put(org_id, orgObject);
         }
     }
 }

@@ -18,7 +18,7 @@ public class QueryConfig
     {
         try
         {
-            JAXBContext jaxbContext = JAXBContext.newInstance("com.apixio.qa.hive.resource.generated");
+            JAXBContext jaxbContext = JAXBContext.newInstance("com.apixio.qa.hive.query.generated");
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             
             queries = (Queries)unmarshaller.unmarshal(Thread.currentThread().getContextClassLoader().getResourceAsStream("queries.xml"));
