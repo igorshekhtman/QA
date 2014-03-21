@@ -9,9 +9,9 @@
 	</query>
 	<query name="upload_count">
         <text>
-            select org_id, count(distinct(doc_id)) as doc_count, status, error_message
+            select org_id, count(distinct(doc_id)) as doc_count, status, if(error_message like '/mnt%','No space left on device',error_message)
             from summary_docreceiver_upload   
-            group by org_id, status, error_message
+            group by org_id, status, if(error_message like '/mnt%','No space left on device',error_message)
         </text>
     </query>
 	<query name="parse_count">
@@ -36,7 +36,7 @@
     </query>
     <query name="persist_count">
         <text>
-            select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count 
+            select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count
             from summary_persist_mapper a 
             join summary_coordinator_jobfinish b 
             on a.hadoopjob_id = b.hadoop_job_id 
