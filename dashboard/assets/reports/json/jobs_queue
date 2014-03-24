@@ -1,0 +1,11 @@
+{"seqfile_count":12,"org_id":"10000232","activity":"recoverDocumentUUIDLink"}
+{"seqfile_count":9,"org_id":"10000232","activity":"recoverPatientUUIDLink"}
+{"seqfile_count":7,"org_id":"10000250","activity":"recoverDocumentUUIDLink"}
+{"seqfile_count":1,"org_id":"10000250","activity":"recoverPatientUUIDLink"}
+{"seqfile_count":176,"org_id":"10000262","activity":"parser"}
+{"seqfile_count":248,"org_id":"10000262","activity":"persist"}
+{"seqfile_count":1489,"org_id":"10000262","activity":"recoverDocumentUUIDLink"}
+{"seqfile_count":329,"org_id":"10000262","activity":"recoverPatientUUIDLink"}
+{"seqfile_count":246,"org_id":"10000262","activity":"trace"}
+{"seqfile_count":12,"org_id":"10000263","activity":"recoverDocumentUUIDLink"}
+{"seqfile_count":8,"org_id":"10000263","activity":"recoverPatientUUIDLink"}

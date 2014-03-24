@@ -52,6 +52,16 @@
             group by org_id
         </text>
     </query>
+    <query name="jobs_queue">
+        <text>
+            select jr.org_id, jr.activity, count(distinct(jr.seqfile)) as seqfile_count
+            from summary_coordinator_jobrequest jr
+            left outer join summary_coordinator_jobfinish jf
+            on jr.job_id=jf.job_id and jr.work_id=jf.work_id 
+            where jf.job_id is null
+            group by jr.org_id, jr.activity
+        </text>
+    </query>
 	
 	<group name="completeness">
 		<run-query name="archivedToS3_count"/>
@@ -65,5 +75,9 @@
 	<group name="upload">
 	   <run-query name="upload_count"/>
 	</group>
+	
+	<group name="jobsPending">
+       <run-query name="jobs_queue"/>
+    </group>
 	
 </queries>
