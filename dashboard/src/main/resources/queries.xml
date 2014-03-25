@@ -72,7 +72,7 @@
 		<run-query name="ocr_count"/>
 		<run-query name="persist_count"/>
 		<run-query name="verified_count"/>
-		<run-query name="jobs_queue"/>
+		<run-query name="docs_queue"/>
 	</group>
 	
 	<group name="upload">
