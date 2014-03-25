@@ -26,7 +26,7 @@
 {"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.197.17.113 ([/10.197.17.113] Connection has been closed))","doc_count":1}
 {"org_id":"10000262","status":"error","error_message":"All host(s) tried for query failed (tried: /10.199.49.10 ([/10.199.49.10] Channel has been closed))","doc_count":2}
 {"org_id":"10000262","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: no keyspace has been specified","doc_count":7}
-{"org_id":"10000262","status":"success","doc_count":14700298}
+{"org_id":"10000262","status":"success","doc_count":14761465}
 {"org_id":"10000263","status":"error","error_message":"Java heap space","doc_count":1}
 {"org_id":"10000268","status":"success","doc_count":295}
 {"org_id":"10000271","status":"success","doc_count":35}
