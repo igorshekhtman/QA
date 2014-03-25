@@ -61,19 +61,18 @@ done
 
 #============ adjust day and month of the report =================================================================
 
-#============ Overwrite day and month values ======
-#==================================================
+#============ Overwrite day,month and dateRange values ======
+#============================================================
 
 day=$scurDay
 month=$scurMonth
+dateRange="(month=$curMonth and day=$curDay)"
 
-#==================================================
-#==================================================
+#===========================================================
+#===========================================================
 
 
 echo "Updating partitioned summary tables with date range: $dateRange"
-echo "Day: $day"
-echo "Month: $month"
 echo " "
 
 

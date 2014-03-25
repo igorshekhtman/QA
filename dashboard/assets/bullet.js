@@ -63,8 +63,10 @@ d3.bullet = function() {
       var measure = g.selectAll("rect.measure")
           .data(measurez);
 
+      var measureArr = measures.call(this, d, i).slice();
+      
       measure.enter().append("rect")
-          .attr("class", function(d, i) { return "measure s" + i; })
+          .attr("class", function(d, i) { return "measure s" + measureArr.indexOf(d); })
           .attr("width", w0)
           .attr("height", height / 3)
           .attr("x", reverse ? x0 : 0)
@@ -237,5 +239,4 @@ function bulletWidth(x) {
     return Math.abs(x(d) - x0);
   };
 }
-
 })();
