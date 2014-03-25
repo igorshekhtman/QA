@@ -30,7 +30,8 @@ public class ReportingService extends Service<ReportingServiceConfiguration>
         final String updateInterval = "90";
         final String outputDir = configuration.getApplicationConfiguration().getOutputDir();
         environment.addResource(new QueryHiveResource(hiveAddress, updateInterval, outputDir));
-        environment.addResource(new GraphiteResource());
+        
+        environment.addResource(new GraphiteResource(configuration.getGraphiteConfiguration()));
         
         final String nagiosUrl = configuration.getNagiosConfiguration().getUrl();
         final String nagiosUsername = configuration.getNagiosConfiguration().getUsername();

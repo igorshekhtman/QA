@@ -12,14 +12,19 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
+import com.apixio.qa.reporting.conf.GraphiteConfiguration;
 import com.yammer.metrics.annotation.Timed;
 
 @Path("/graphite")
 @Produces(MediaType.APPLICATION_JSON)
 public class GraphiteResource {
     
+	private GraphiteConfiguration graphiteConfig;
+	public GraphiteResource(GraphiteConfiguration graphiteConfig) {
+		this.graphiteConfig = graphiteConfig;
+	}
+	
     @GET
     @Path("/speed")
     @Timed
@@ -29,9 +34,9 @@ public class GraphiteResource {
         {
         	Integer sampleMinutes = Integer.valueOf(sample);
         	float scale = 1 / Float.valueOf(sampleMinutes * 60);
-        	String url = "http://dashboard.apixio.com/render?from=" + from + "&until=-0hour&target=scale(summarize(" + environment + ".docreceiver.upload.document.bytes,%22" + sampleMinutes + "min%22),%22" + scale + "%22)&format=json";
+        	String speedUrl = graphiteConfig.getUrl() + "?from=" + from + "&until=-0hour&target=scale(summarize(" + environment + ".docreceiver.upload.document.bytes,%22" + sampleMinutes + "min%22),%22" + scale + "%22)&format=json";
         	 
-    		URL obj = new URL(url);
+    		URL obj = new URL(speedUrl);
     		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
      
     		// optional default is GET
@@ -41,7 +46,7 @@ public class GraphiteResource {
     		con.setRequestProperty("User-Agent", "ReportServer");
      
     		int responseCode = con.getResponseCode();
-    		System.out.println("\nSending 'GET' request to URL : " + url);
+    		System.out.println("\nSending 'GET' request to URL : " + speedUrl);
     		System.out.println("Response Code : " + responseCode);
      
     		BufferedReader in = new BufferedReader(
@@ -75,13 +80,13 @@ public class GraphiteResource {
     }
     
     @GET
-    @Path("/speed")
+    @Path("/document_count")
     @Timed
-    public String getDocumentCount(@QueryParam("environment") String environment, @QueryParam("from") String from, @QueryParam("sample") String sample)
+    public String getDocumentCount(@QueryParam("environment") String environment, @QueryParam("range") String range)
     {
         try
         {
-        	String url = "";// "http://dashboard.apixio.com/render?from=" + from + "&until=-0hour&target=scale(summarize(" + environment + ".docreceiver.upload.document.bytes,%22" + sampleMinutes + "min%22),%22" + scale + "%22)&format=json";
+        	String url = graphiteConfig.getUrl() + "?from=-" + range + "&target=summarize(" + environment + ".docreceiver.seqfile.file.document.count,\"" + range + "\",\"sum\",true)&format=json";
         	 
     		URL obj = new URL(url);
     		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -109,16 +114,16 @@ public class GraphiteResource {
     		System.out.println(responseText);
     		JSONArray data = new JSONArray(responseText);
     		JSONArray datapoints = data.getJSONObject(0).getJSONArray("datapoints");
-    		String speed = "0";
+    		String documentCount = "0";
     		for (int i = 0; i < datapoints.length(); i++) {
     			JSONArray datapoint = datapoints.getJSONArray(i);
     			if (!datapoint.get(0).toString().equals("null")) {
-    				Float value = new Float(datapoint.get(0).toString());
-    				Float speedValue = value / (1024*1024);
-    				speed = speedValue.toString();
+    				Double docs = (Double)datapoint.get(0);
+    				documentCount = String.format("%.0f", docs);
+    				System.out.println("Got Document Count: " + documentCount);
     			}
     		}
-    		return speed;
+    		return documentCount;
         }
         catch (Exception ex)
         {
