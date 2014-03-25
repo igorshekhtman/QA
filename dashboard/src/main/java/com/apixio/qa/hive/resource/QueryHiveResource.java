@@ -166,6 +166,25 @@ public class QueryHiveResource
         }
         catch (Exception ex)
         {
+            ex.printStackTrace();
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/chart/{environment}/group/{groupName}")
+    @Timed
+    public String runGroupChart(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
+    {
+        try
+        {
+            QueryManager qm = new QueryManager(hiveAddress, outputDir);
+            
+            return qm.processQueryGroupChart(groupName);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
             return ex.toString();
         }
     }
