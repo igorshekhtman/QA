@@ -1,6 +1,5 @@
 package com.apixio.qa.reporting.service;
 
-import com.apixio.qa.hive.conf.QueryHiveConfiguration;
 import com.apixio.qa.hive.resource.GraphiteResource;
 import com.apixio.qa.hive.resource.NagiosResource;
 import com.apixio.qa.hive.resource.QueryHiveResource;
