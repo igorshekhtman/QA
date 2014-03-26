@@ -19,8 +19,12 @@
 	fill: #ddd;
 }
 
+.bullet .range.s1 {
+    fill: #E9D98F;
+}
+
 .bullet .measure.s0 {
-	fill: lightsteelblue;
+	fill: green;
 }
 
 .bullet .measure.s1 {
@@ -32,7 +36,7 @@
 }
 
 .bullet .measure.s3 {
-	fill: green;
+	fill: lightsteelblue;
 }
 
 .bullet .title {
@@ -42,6 +46,15 @@
 
 .bullet .subtitle {
 	fill: #999;
+}
+
+.alternate.s0 {
+    border-color: #003478;
+    border: 1;
+}
+.alternate.s1 {
+    border-color: #58A618;
+    border: 1;
 }
 </style>
 
@@ -69,11 +82,14 @@
            
              $.get(url).done(function( values ) {
             	 
-            	 var orgHtml = "";
+            	 var alternate = 0;
+            	 var orgHtml = "<ul>";
             	 $.each(values.orgs, function(n, data) {
             		 
+            		 orgHtml = orgHtml + "<li class='alternate s"+alternate+"'>";
+            		 
             		 var org_details = "\
-                         <table border='1'> \
+                         <table border='1' class='success'> \
                          <tr><th>Org Name (Org Id)</th><th>Successful archives</th><th>Successful Uploads to Pipeline</th><th>Sent To OCR</th><th>Sent To Persist</th><th>OCRed</th><th>Persisted</th><th>Verified Persistence</th><th>Pending Parser documents</th><th>Pending Persist documents</th><th>Pending OCR documents</th></tr>\
                          <tr>\
                          <td>{{org_name}} ({{org_id}})</td>\
@@ -83,10 +99,10 @@
                          <td align='center'>{{sent_to_persist}}</td>\
                          <td align='center'>{{ocr_count}}</td>\
                          <td align='center'>{{persist_count}}</td>\
-                         <td align='center'>{{persist_verified}}</td>\
-                         <td align='center'>{{parser_pending_count}}</td>\
-                         <td align='center'>{{ocr_pending_count}}</td>\
-                         <td align='center'>{{persist_pending_count}}</td>\
+                         <td align='center'>{{verified_count}}</td>\
+                         <td align='center' class='notice'>{{pending_parsers}}</td>\
+                         <td align='center' class='notice'>{{pending_ocrs}}</td>\
+                         <td align='center' class='notice'>{{pending_persists}}</td>\
                          </tr>\
                          </table>\
                          ";
@@ -95,18 +111,46 @@
                          
                          var chartId = 'chart'+n;
                          orgHtml = orgHtml + "<div id='"+chartId+"'></div><br/>";
+                         
+                         var errorObj = new Object();
+                         
+                         errorObj.org_name = data.org_name;
+                         errorObj.org_id = data.org_id;
+                         errorObj.upload_errors = processErrors(data.upload_errors);
+                         errorObj.archive_errors = processErrors(data.archive_errors);
+                         errorObj.parser_errors = processErrors(data.parse_errors);
+                         errorObj.persist_errors = processErrors(data.persist_errors);
+                         errorObj.ocr_errors = processErrors(data.ocr_errors);
+                         
+                         var errorDiv = "<table border='1' class='error'>\
+                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th></tr>\
+                                         <tr><td>{{org_name}} ({{org_id}})</td><td>Total:<b>{{archive_errors.total}}</b><br/>{{#archive_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/archive_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{upload_errors.total}}</b><br/><b>Details:</b><br/>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{parser_errors.total}}</b><br/><b>Details:</b><br/>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{ocr_errors.total}}</b><br/><b>Details:</b><br/>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td></tr>\
+                                         </table>";
+                                         
+                         orgHtml = orgHtml + Mustache.render(errorDiv, errorObj);
+                         
+                         orgHtml = orgHtml + "</li>";
+                         
+                         if (alternate == 0)
+                        	 alternate = 1;
+                         else alternate = 0;
             		}); 
+            	 
+            	 orgHtml = orgHtml + "</ul>";
             	 
             	 $("#orgDetails").html(orgHtml);
             	 
             	 $.each(values.orgs, function(n, data) {
-            		 var chartData = data.chart;
-            			 
-            		 console.log("chart:"+chartData);
+            		 
+            		 var constructedJson = constructChartJson(data);
             		 var chartId = 'chart'+n;
             		 
                      var svg = d3.select("#"+chartId).selectAll("svg")
-                    .data(chartData)
+                    .data(constructedJson)
                   .enter().append("svg")
                     .attr("class", "bullet")
                     .attr("width", width + margin.left + margin.right)
@@ -129,7 +173,60 @@
 	                   .text(function(d) { return d.subtitle; }); 
             	 });
               }); 
-          //------------Fetching data script ends---------------
+             
+           function constructChartJson(data) {
+        	   var jsonStr = "";
+        	   var sentToOcr = data.sent_to_ocr;
+        	   var sentToPersist = data.sent_to_persist;
+        	   var persisted = data.persist_count;
+        	   var persistVerified = data.verified_count;
+        	   var ocr = data.ocr_count;
+        	   var uploadRange = data.upload_count;
+        	   var ocrRange = data.sent_to_ocr;
+        	   
+        	   if (sentToOcr == undefined)
+        		   sentToOcr = 0;
+        	   if (sentToPersist == undefined)
+        		   sentToPersist = 0;
+        	   if (persisted == undefined)
+        		   persisted = 0;
+        	   if (persistVerified == undefined)
+        		   persistVerified = 0;
+        	   if (ocr == undefined)
+        		   ocr = 0;
+        	   if (uploadRange == undefined)
+        		   uploadRange = 0;
+        	   if (ocrRange == undefined)
+        		   ocrRange = 0;
+        	   
+        	   jsonStr = [{"title":data.org_name,"subtitle":data.org_id,"measures":[persistVerified,persisted,ocr,sentToOcr+sentToPersist],"ranges":[uploadRange,sentToOcr],"markers":[uploadRange]}];
+        	   
+        	   return jsonStr;
+           }  
+           
+           function processErrors(errors) {
+        	   
+        	   if (errors != undefined) {
+        		   var errorDetails = new Object();
+        		   var errorArr = new Array();
+        		   var i = 0;
+        		   var total = 0;
+        		   $.each(errors, function(key, value){
+                       errorArr[i] = {"error_msg":key,"count":value};
+                       total = total + value;
+                       i ++;
+                    });
+        		   
+        		   errorDetails.errorGroup = errorArr;
+        		   errorDetails.total = total;
+        		   
+        		   return errorDetails;
+        	   }
+        	   else {
+        		   return {};
+        	   }
+           }
+          
         </script>
 </head>
 

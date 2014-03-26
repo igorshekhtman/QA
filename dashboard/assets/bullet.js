@@ -42,9 +42,11 @@ d3.bullet = function() {
       // Update the range rects.
       var range = g.selectAll("rect.range")
           .data(rangez);
+      
+      var rangeArr = ranges.call(this, d, i).slice();
 
       range.enter().append("rect")
-          .attr("class", function(d, i) { return "range s" + i; })
+          .attr("class", function(d, i) { return "range s" + rangeArr.indexOf(d); })
           .attr("width", w0)
           .attr("height", height)
           .attr("x", reverse ? x0 : 0)

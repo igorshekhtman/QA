@@ -14,7 +14,7 @@
 {"org_id":"10000286","doc_count":0}
 {"org_id":"10000232","_c3":"Error Recovery for block blk_-4380119000762146085_7131516 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","status":"error","doc_count":1}
 {"org_id":"10000262","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":97815}
-{"org_id":"10000262","status":"success","doc_count":15617500}
+{"org_id":"10000262","status":"success","doc_count":15630057}
 {"org_id":"10000263","status":"error","doc_count":1}
 {"org_id":"10000271","status":"success","doc_count":12}
 {"org_id":"10000278","doc_count":0}

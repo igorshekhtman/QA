@@ -99,13 +99,14 @@ public class QueryManager
             while (it.hasNext())
             {
                 String key = it.next().toString();
+                
                 orgs.put(orgDetails.get(key));
             }
             resultObj.put("orgs", orgs);
         }
         return resultObj;
     }
-
+    
     private void getOrgObject(List<JSONObject> results, String typeOfResults, JSONObject orgDetails) throws Exception
     {
         for (JSONObject result : results)
