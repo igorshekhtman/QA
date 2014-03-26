@@ -49,15 +49,6 @@ BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 
-#BATCHID=strftime("%d%m%Y%H%M%S", gmtime())
-#bad - does not exist in any logs
-#BATCHID = "061918020232"
-#old - missing pipeline logs but not indexer
-#BATCHID="021914020236"
-#good
-#BATCHID="022114020236"
-
-
 
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 TOKEN_URL="%s/auth/token/" % (HOST)
@@ -145,16 +136,8 @@ def uploadData():
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
 
-# FILE = FILES[0]
-
-# print (FILES)
-# print ('Processing files in: ', DIR);
-
 print ("\nUploading ...\n")
 
-# if (NUMBEROFDOCUMENTS > 0):
-# elif:
-#for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 
 for FILE in FILES:
 		import uuid
@@ -210,20 +193,8 @@ for FILE in FILES:
 		MANIFEST_FILE=MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 
 
-		#print (TOKEN), (ORGANIZATION), (ORGID), (CODE), (USER_ID), (S3_BUCKET), (ROLES), (TRACE_COLFAM), (DOCUMENT_ID)
-		#print (PATIENT_ID), (PATIENT_ID_AA), (PATIENT_FIRST_NAME), (PATIENT_LAST_NAME), (PATIENT_MIDDLE_NAME), (PATIENT_DOB), (PATIENT_GENDER), (ORGANIZATION)
-		#print (PRACTICE_NAME), (FILE_LOCATION), (FILE_FORMAT), (DOCUMENT_TYPE), (CREATION_DATE), (MODIFIED_DATE), (DESCRIPTION), (METATAGS), (SOURCE_SYSTEM)
-		#print (TOKEN_URL), (UPLOAD_URL)
-		#print (" ")
-		#print (CATALOG_FILE)
-		#print (" ")
-		#print (MANIFEST_FILE)
-		#print (" ")
-
 # ========================================================== Finish by closing batch ======================================================================================
 
-
-# print (MANIFEST_FILE)
 	
 print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
 
@@ -265,27 +236,10 @@ if ENVIRONMENT == "Staging":
 	print ("Manifest file transmitted ...\n")
 
 
-# =========================================================================================================================================================================
-
-# print ("ORGID = %s") % ORGID
-# print ("TEST_TYPE = %s") % TEST_TYPE
-# print ("ENVIRONMANT = %s") % ENVIRONMENT
-# print ("BATCHID = %s") % BATCHID
-# print ("")
-# print ("BATCH = %s") % BATCH
-# MANIFEST_FILENAME=BATCH+"_manifest.txt"
-# print ("")
-# print ("UPLOAD_URL = %s") % UPLOAD_URL
-# print ("TOKEN_URL = %s") % TOKEN_URL
-# print ("USERNAME = %s") % USERNAME
-# print ("PASSWORD = %s") % PASSWORD
-# print ("HOST = %s") % HOST
-# print ("DIR = %s") % DIR
-
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 240
+PAUSE_LIMIT = 1
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
@@ -301,8 +255,8 @@ time.sleep(PAUSE_LIMIT)
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY =========================================================================
 
-QUERY_NUMBER=13
-PROCESS_ALL_QUERIES=bool(1)
+QUERY_NUMBER=1
+PROCESS_ALL_QUERIES=bool(0)
 
 #=================================================================================================================================
 
@@ -325,17 +279,17 @@ PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 
 
 SENDER="donotreply@apixio.com"
-# RECEIVERS="ishekhtman@apixio.com"
-RECEIVERS="eng@apixio.com"
+RECEIVERS="ishekhtman@apixio.com"
+# RECEIVERS="eng@apixio.com"
 
+REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+# REPORT = REPORT + """To: Engineering <eng@apixio.com>\n"""
+REPORT = REPORT + """To: Igor <ishekhtman@apixio.com>\n"""
+REPORT = REPORT + """MIME-Version: 1.0\n"""
+REPORT = REPORT + """Content-type: text/html\n"""
+REPORT = REPORT + """Subject: DR Returned Status Code Report %s batchID %s - %s
 
-REPORT = """From: Apixio QA <QA@apixio.com>
-To: Engineering <eng@apixio.com>
-MIME-Version: 1.0
-Content-type: text/html
-Subject: Pipeline QA Report %s batchID %s - %s
-
-<h1>Apixio Pipeline QA Report</h1>
+<h1>Apixio DR Returned Status Code QA Report</h1>
 Date & Time: <b>%s</b><br>
 Test type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
@@ -356,26 +310,6 @@ cur = conn.cursor()
 
 
 
-# print ("ORGID = %s") % ORGID
-# print ("TEST_TYPE = %s") % TEST_TYPE
-# print ("ENVIRONMANT = %s") % ENVIRONMENT
-# print ("BATCHID = %s") % BATCHID
-# print ("")
-# print ("BATCH = %s") % BATCH
-# print ("")
-# print ("UPLOAD_URL = %s") % UPLOAD_URL
-# print ("TOKEN_URL = %s") % TOKEN_URL
-# print ("USERNAME = %s") % USERNAME
-# print ("PASSWORD = %s") % PASSWORD
-# print ("HOST = %s") % HOST
-# print ("DIR = %s") % DIR
-# print ("")
-# print ("INDEXERLOGFILE = %s") % INDEXERLOGFILE
-# print ("DOCRECEIVERLOGFILE = %s") % DOCRECEIVERLOGFILE
-# print ("COORDINATORLOGFILE = %s") % COORDINATORLOGFILE
-# print ("PARSERLOGFILE = %s") % PARSERLOGFILE
-# print ("OCRLOGFILE = %s") % OCRLOGFILE
-# print ("PERSISTLOGFILE = %s") % PERSISTLOGFILE
 
 
 # time.sleep(15)
@@ -407,24 +341,24 @@ REPORT = REPORT+SUBHDR % "INDEXER"
 if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents transmitted"
 	print ("Running INDEXER query #1 - retrieve %s ...") % (QUERY_DESC)
-	cur.execute("""SELECT count(DISTINCT apixiouuid) as total_number_of_documents_indexer \
-		FROM %s \
-		WHERE \
-		batchid = '%s'""" %(INDEXERLOGFILE, BATCH))
+	#cur.execute("""SELECT count(DISTINCT apixiouuid) as total_number_of_documents_indexer \
+	#	FROM %s \
+	#	WHERE \
+	#	batchid = '%s'""" %(INDEXERLOGFILE, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='center'>"+"Test"+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td><i>Logs data is missing</i></td></tr>"
-		i = ['0']
+	#	i = ['0']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTCOUNTER:
-		print ("QUERY 1 FAILED")
-		COMPONENT_STATUS="FAILED"
+	#if int(i[0]) < DOCUMENTCOUNTER:
+	#	print ("QUERY 1 FAILED")
+	#	COMPONENT_STATUS="FAILED"
 
 
 if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
