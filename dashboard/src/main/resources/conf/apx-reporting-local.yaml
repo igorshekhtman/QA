@@ -1,6 +1,16 @@
-hiveAddress: jdbc:hive2://184.169.209.24:10000
-updateInterval: 90
-outputDir: C:\alarocca_git\QA\dashboard\assets\reports\json\
-# HTTP-specific options.
+applicationConfiguration:
+  outputDir: C:\alarocca_git\QA\dashboard\assets\reports\json\
+
+hiveConfiguration:
+  url: jdbc:hive2://184.169.209.24:10000
+  
+graphiteConfiguration:
+  url: http://dashboard.apixio.com/render
+  
+nagiosConfiguration:
+  url: http://ec2-54-215-109-178.us-west-1.compute.amazonaws.com/nagios/statusJsonMod.php
+  username: nagiosadmin
+  password: 8p1clu19
+  
 http:
   port: 8099

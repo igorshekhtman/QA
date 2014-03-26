@@ -1,0 +1,79 @@
+<html>	
+    <head>
+        <title>Apixio Hive Dashboard</title>
+		<script type='text/javascript' src='https://www.google.com/jsapi'></script>
+	 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+        <script>
+
+      		google.load('visualization', '1', {packages:['corechart']});
+        	google.setOnLoadCallback(completeSetup);         
+
+      
+    		function completeSetup() {
+                var url = "/hive/json/production/ui/group/completeness";
+                      
+                $.get(url).done(function( values ) {
+              	  //var data = new google.visualization.DataTable();
+            	  //data.addColumn('string', 'Organization');
+            	  //data.addColumn('number', 'Verified');
+            	  //data.addColumn('number', 'Persisted');
+            	  //data.addColumn('number', 'Parsed');
+            	  //data.addColumn('number', 'Archived');
+            	  //data.addColumn('string', { role: 'annotation' } );
+            	  var data = [['Organization', 'Verified', 'Persisted', 'Parsed', 'Archived', { role: 'annotation' }]];
+            	  //data.addRow(headers);
+                	
+                	for (var key in values.orgs) {
+                		var org_details = values.orgs[key];
+                		console.log(org_details);
+                		var org_name = org_details.org_name;
+                		var verified = org_details.persist_verified;
+                		if (verified == null)
+                			verified = 0;
+                		var upload_count = org_details.upload_count;
+                		var sent_to_ocr = org_details.sent_to_ocr;
+                		var sent_to_persist = org_details.sent_to_persist;
+                		var ocr_success = org_details.ocr_success;
+                		var persist_count = org_details.persist_count;
+
+                		var persisted_not_verified = persist_count - verified;
+                		var parsed_total = sent_to_ocr + sent_to_persist;
+                		var parsed_not_persisted = parsed_total - persist_count;
+                		var uploaded_not_parsed = upload_count - parsed_total;
+                		
+                		var total = upload_count / 100;
+            	        var array = [org_name, verified / total, persisted_not_verified / total, parsed_not_persisted / total, uploaded_not_parsed / total, ''];
+            	        //console.log(array);
+                		if (uploaded_not_parsed>0 && persist_count != null) {
+                		
+        	            	data.push(array);
+                		}
+                	}
+                	console.log(data);
+                	 var dataTable = google.visualization.arrayToDataTable(data);
+                	 
+                       var options = {
+                         width: 600,
+                         height: 400,
+                         legend: { position: 'top', maxLines: 3 },
+                 	bar: { groupWidth: '75%' },
+                 		colors: ['green', 'blue','yellow', 'red'],
+                         isStacked: true,
+                       };
+                       
+                       var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+                       chart.draw(dataTable, options);
+                    
+                  });
+    			
+    		}
+
+    	</script>
+    </head>
+    
+    <body>
+	<div id="chart_div"></div>
+    </body>
+</html>

@@ -166,6 +166,7 @@ public class QueryHiveResource
         }
         catch (Exception ex)
         {
+            ex.printStackTrace();
             return ex.toString();
         }
     }

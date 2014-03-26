@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC 
+  "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+<HTML>
+  <HEAD>
+    <TITLE>Apixio Reports</TITLE>
+ 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script src="mustache.js"></script>
+	<script>
+	function loadData() {
+		var nagios_url = "/nagios/alerts";
+		var nagiosDataTemplate = "<ul>{{#alerts}}<li>{{hostname}}<ul>{{#hostalerts}}<li>{{.}}</li>{{/hostalerts}}</li>{{/alerts}}</ul>";
+		$.get(nagios_url, null).done(function( values ) {
+ 			console.log(values); 			
+ 			$("#nagiosData").html(Mustache.render(nagiosDataTemplate, values));
+ 		});
+ 	}
+	</script>
+  </HEAD>
+  <BODY onload="loadData();">
+  	<div id="nagiosData"></div>
+  </BODY>
+</HTML>

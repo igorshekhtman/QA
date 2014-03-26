@@ -1,121 +1,237 @@
 <html>
-	<style>
-	button {
-	  position: absolute;
-	  right: 10px;
-	  top: 10px;
-	}
-	
-	.bullet { font: 10px sans-serif; }
-	.bullet .marker { stroke: #000; stroke-width: 2px; }
-	.bullet .tick line { stroke: #666; stroke-width: .5px; }
-	.bullet .range.s0 { fill: #eee; }
-	.bullet .range.s1 { fill: #ddd; }
-	.bullet .range.s2 { fill: #ccc; }
-	.bullet .measure.s0 { fill: lightsteelblue; }
-	.bullet .measure.s1 { fill: steelblue; }
-	.bullet .title { font-size: 14px; font-weight: bold; }
-	.bullet .subtitle { fill: #999; }
-	
-	</style>
-	
-    <head>
-        <title>Apixio Hive Dashboard</title>
-        <script src="//code.jquery.com/jquery-1.9.1.js"></script>
-        <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-        <script src="mustache.js"></script>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
-        <script src="bullet.js"></script>
 
-        <script>
+<style>
+.bullet {
+	font: 10px sans-serif;
+}
+
+.bullet .marker {
+	stroke: #000;
+	stroke-width: 2px;
+}
+
+.bullet .tick line {
+	stroke: #666;
+	stroke-width: .5px;
+}
+
+.bullet .range.s0 {
+	fill: #ddd;
+}
+
+.bullet .range.s1 {
+    fill: #E9D98F;
+}
+
+.bullet .measure.s0 {
+	fill: green;
+}
+
+.bullet .measure.s1 {
+	fill: steelblue;
+}
+
+.bullet .measure.s2 {
+	fill: orange;
+}
+
+.bullet .measure.s3 {
+	fill: lightsteelblue;
+}
+
+.bullet .title {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.bullet .subtitle {
+	fill: #999;
+}
+
+.alternate.s0 {
+    border-color: #003478;
+    border: 1;
+}
+.alternate.s1 {
+    border-color: #58A618;
+    border: 1;
+}
+</style>
+
+<head>
+<title>Apixio Hive Dashboard</title>
+<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script src="mustache.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="bullet.js"></script>
+<link rel="stylesheet" href="cat.css" type="text/css" />
+
+<script>
         //------------Fetching data script---------------
             var url = "/hive/json/production/ui/group/completeness";
-           
-            $.get(url).done(function( values ) {
             
-                var org_details = " <table border='1'> \
-					                <tr><th>Org Name (Org Id)</th><th>Successful archives</th><th>Successful Uploads to Pipeline</th><th>Sent To OCR</th><th>Sent To Persist</th><th>OCRed</th><th>Persisted</th><th>Verified Persistence</th></tr>\
-					                {{#orgs}}<tr>\
-					                <td>{{org_name}} ({{org_id}})</td>\
-					                <td align='center'>{{archivedToS3_count}}</td>\
-					                <td align='center'>{{upload_count}}</td>\
-					                <td align='center'>{{sent_to_ocr}}</td>\
-					                <td align='center'>{{sent_to_persist}}</td>\
-					                <td align='center'>{{ocr_count}}</td>\
-					                <td align='center'>{{persist_count}}</td>\
-					                <td align='center'>{{persist_verified}}</td>\
-					                </tr>{{/orgs}}\
-					                </table> ";
-                
-                $("#orgDetails").html(Mustache.render(org_details, values));
-                
-              });
-          //------------Fetching data script ends---------------
-          /* //------------Bullet chart script-----------------------
+          //------------Bullet chart script-----------------------
             var margin = {top: 5, right: 40, bottom: 20, left: 120},
             width = 960 - margin.left - margin.right,
             height = 50 - margin.top - margin.bottom;
 
-	        var chart = d3.bullet()
-	            .width(width)
-	            .height(height);
-	        
-	        d3.json("bullets.json", function(error, data) {
-	        	
-	          var svg = d3.select("orgDetails_bulletchart").selectAll("svg")
-	              .data(data)
-	            .enter().append("svg")
-	              .attr("class", "bullet")
-	              .attr("width", width + margin.left + margin.right)
-	              .attr("height", height + margin.top + margin.bottom)
-	            .append("g")
-	              .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-	              .call(chart);
-	
-	          var title = svg.append("g")
-	              .style("text-anchor", "end")
-	              .attr("transform", "translate(-6," + height / 2 + ")");
-	
-	          title.append("text")
-	              .attr("class", "title")
-	              .text(function(d) { return d.title; });
-	
-	          title.append("text")
-	              .attr("class", "subtitle")
-	              .attr("dy", "1em")
-	              .text(function(d) { return d.subtitle; });
-	
-	          d3.selectAll("button").on("click", function() {
-	            svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
-	          });
-	        });
-	
-	        function randomize(d) {
-	          if (!d.randomizer) d.randomizer = randomizer(d);
-	          d.ranges = d.ranges.map(d.randomizer);
-	          d.markers = d.markers.map(d.randomizer);
-	          d.measures = d.measures.map(d.randomizer);
-	          return d;
-	        }
-	
-	        function randomizer(d) {
-	          var k = d3.max(d.ranges) * .2;
-	          return function(d) {
-	            return Math.max(0, d + k * (Math.random() - .5));
-	          };
-	        }
-	      //------------Bullet chart script ends----------------------- */
-	        
+            var chart = d3.bullet()
+                .width(width)
+                .height(height);
+           
+             $.get(url).done(function( values ) {
+            	 
+            	 var alternate = 0;
+            	 var orgHtml = "<ul>";
+            	 $.each(values.orgs, function(n, data) {
+            		 
+            		 orgHtml = orgHtml + "<li class='alternate s"+alternate+"'>";
+            		 
+            		 var org_details = "\
+                         <table border='1' class='success'> \
+                         <tr><th>Org Name (Org Id)</th><th>Successful archives</th><th>Successful Uploads to Pipeline</th><th>Sent To OCR</th><th>Sent To Persist</th><th>OCRed</th><th>Persisted</th><th>Verified Persistence</th><th>Pending Parser documents</th><th>Pending Persist documents</th><th>Pending OCR documents</th></tr>\
+                         <tr>\
+                         <td>{{org_name}} ({{org_id}})</td>\
+                         <td align='center'>{{archivedToS3_count}}</td>\
+                         <td align='center'>{{upload_count}}</td>\
+                         <td align='center'>{{sent_to_ocr}}</td>\
+                         <td align='center'>{{sent_to_persist}}</td>\
+                         <td align='center'>{{ocr_count}}</td>\
+                         <td align='center'>{{persist_count}}</td>\
+                         <td align='center'>{{verified_count}}</td>\
+                         <td align='center' class='notice'>{{pending_parsers}}</td>\
+                         <td align='center' class='notice'>{{pending_ocrs}}</td>\
+                         <td align='center' class='notice'>{{pending_persists}}</td>\
+                         </tr>\
+                         </table>\
+                         ";
+     
+                         orgHtml = orgHtml + Mustache.render(org_details, data);
+                         
+                         var chartId = 'chart'+n;
+                         orgHtml = orgHtml + "<div id='"+chartId+"'></div><br/>";
+                         
+                         var errorObj = new Object();
+                         
+                         errorObj.org_name = data.org_name;
+                         errorObj.org_id = data.org_id;
+                         errorObj.upload_errors = processErrors(data.upload_errors);
+                         errorObj.archive_errors = processErrors(data.archive_errors);
+                         errorObj.parser_errors = processErrors(data.parse_errors);
+                         errorObj.persist_errors = processErrors(data.persist_errors);
+                         errorObj.ocr_errors = processErrors(data.ocr_errors);
+                         
+                         var errorDiv = "<table border='1' class='error'>\
+                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th></tr>\
+                                         <tr><td>{{org_name}} ({{org_id}})</td><td>Total:<b>{{archive_errors.total}}</b><br/>{{#archive_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/archive_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{upload_errors.total}}</b><br/><b>Details:</b><br/>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{parser_errors.total}}</b><br/><b>Details:</b><br/>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{ocr_errors.total}}</b><br/><b>Details:</b><br/>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</td>\
+                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td></tr>\
+                                         </table>";
+                                         
+                         orgHtml = orgHtml + Mustache.render(errorDiv, errorObj);
+                         
+                         orgHtml = orgHtml + "</li>";
+                         
+                         if (alternate == 0)
+                        	 alternate = 1;
+                         else alternate = 0;
+            		}); 
+            	 
+            	 orgHtml = orgHtml + "</ul>";
+            	 
+            	 $("#orgDetails").html(orgHtml);
+            	 
+            	 $.each(values.orgs, function(n, data) {
+            		 
+            		 var constructedJson = constructChartJson(data);
+            		 var chartId = 'chart'+n;
+            		 
+                     var svg = d3.select("#"+chartId).selectAll("svg")
+                    .data(constructedJson)
+                  .enter().append("svg")
+                    .attr("class", "bullet")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                    .call(chart);
+      
+	               var title = svg.append("g")
+	                   .style("text-anchor", "end")
+	                   .attr("transform", "translate(-6," + height / 2 + ")");
+	     
+	               title.append("text")
+	                   .attr("class", "title")
+	                   .text(function(d) { return d.title; });
+	     
+	               title.append("text")
+	                   .attr("class", "subtitle")
+	                   .attr("dy", "1em")
+	                   .text(function(d) { return d.subtitle; }); 
+            	 });
+              }); 
+             
+           function constructChartJson(data) {
+        	   var jsonStr = "";
+        	   var sentToOcr = data.sent_to_ocr;
+        	   var sentToPersist = data.sent_to_persist;
+        	   var persisted = data.persist_count;
+        	   var persistVerified = data.verified_count;
+        	   var ocr = data.ocr_count;
+        	   var uploadRange = data.upload_count;
+        	   var ocrRange = data.sent_to_ocr;
+        	   
+        	   if (sentToOcr == undefined)
+        		   sentToOcr = 0;
+        	   if (sentToPersist == undefined)
+        		   sentToPersist = 0;
+        	   if (persisted == undefined)
+        		   persisted = 0;
+        	   if (persistVerified == undefined)
+        		   persistVerified = 0;
+        	   if (ocr == undefined)
+        		   ocr = 0;
+        	   if (uploadRange == undefined)
+        		   uploadRange = 0;
+        	   if (ocrRange == undefined)
+        		   ocrRange = 0;
+        	   
+        	   jsonStr = [{"title":data.org_name,"subtitle":data.org_id,"measures":[persistVerified,persisted,ocr,sentToOcr+sentToPersist],"ranges":[uploadRange,sentToOcr],"markers":[uploadRange]}];
+        	   
+        	   return jsonStr;
+           }  
+           
+           function processErrors(errors) {
+        	   
+        	   if (errors != undefined) {
+        		   var errorDetails = new Object();
+        		   var errorArr = new Array();
+        		   var i = 0;
+        		   var total = 0;
+        		   $.each(errors, function(key, value){
+                       errorArr[i] = {"error_msg":key,"count":value};
+                       total = total + value;
+                       i ++;
+                    });
+        		   
+        		   errorDetails.errorGroup = errorArr;
+        		   errorDetails.total = total;
+        		   
+        		   return errorDetails;
+        	   }
+        	   else {
+        		   return {};
+        	   }
+           }
+          
         </script>
-    </head>
-    
-    <body>
-	    <h1>
-	       Pipeline Upload Summary
-	    </h1>
-        <div id="orgDetails">
-        </div>
-        <div id="orgDetails_bulletchart">
-        </div>
-    </body>
+</head>
+
+<body>
+	<h1>Pipeline Upload Summary</h1>
+	<div id="orgDetails"></div>
+</body>
 </html>

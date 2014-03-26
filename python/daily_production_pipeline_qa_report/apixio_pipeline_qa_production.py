@@ -73,7 +73,9 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
+
 DAYSBACK=1
+
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 DATERANGE=""
@@ -202,6 +204,10 @@ ORGMAP = { \
 	"10000288":"UHS", \
 	"genManifest":"genManifest", \
 	"defaultOrgID":"defaultOrgID", \
+	"CCHCA":"CCHCA", \
+	"HILL":"Hill Physicians", \
+	"MMG":"MMG", \
+	"ONLOK":"ONLOK", \
 	"None":"Missing Orgname", \
 }
 
@@ -487,8 +493,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[1])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		print ("QUERY %s FAILED") % (QN)
@@ -520,8 +529,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
+		if str(i[3]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[3])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		print ("QUERY %s FAILED") % (QN)
@@ -551,8 +563,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		print ("QUERY %s FAILED") % (QN)
@@ -582,8 +597,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		print i
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[2])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		print ("QUERY %s FAILED") % (QN)
@@ -621,8 +639,11 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
+		if str(i[3]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[3])+"</td></tr>"
 		if (str(i[1]).lower() == 'error'):
 			print ("QUERY %s FAILED") % (QN)
 			COMPONENT_STATUS="FAILED"
@@ -656,9 +677,12 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 		print i
 		FORMATEDTIME = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIME+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:
 		print ("QUERY %s FAILED") % (QN)
@@ -872,8 +896,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			print ("QUERY 12 FAILED")
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		COMPONENT_STATUS="FAILED"
-		print ("QUERY %s FAILED") % (QN)
+		# COMPONENT_STATUS="FAILED"
+		print ("QUERY %s missing logs") % (QN)
 	REPORT = REPORT+"</table><br>"
 	#if int(i[0]) < DOCUMENTS_TO_OCR:
 		#COMPONENT_STATUS="FAILED"

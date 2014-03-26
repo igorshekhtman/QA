@@ -52,13 +52,15 @@
             group by org_id
         </text>
     </query>
-    <query name="jobs_queue">
+    <query name="docs_queue">
         <text>
-            select jr.org_id, jr.activity, count(distinct(jr.seqfile)) as seqfile_count
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
             from summary_coordinator_jobrequest jr
             left outer join summary_coordinator_jobfinish jf
             on jr.job_id=jf.job_id and jr.work_id=jf.work_id 
-            where jf.job_id is null
+            left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
+            left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            where jf.job_id is null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
             group by jr.org_id, jr.activity
         </text>
     </query>
@@ -70,14 +72,15 @@
 		<run-query name="ocr_count"/>
 		<run-query name="persist_count"/>
 		<run-query name="verified_count"/>
+		<run-query name="docs_queue"/>
 	</group>
 	
 	<group name="upload">
 	   <run-query name="upload_count"/>
 	</group>
 	
-	<group name="jobsPending">
-       <run-query name="jobs_queue"/>
+	<group name="documentsPending">
+       <run-query name="docs_queue"/>
     </group>
 	
 </queries>
