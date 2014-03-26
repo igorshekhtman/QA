@@ -896,8 +896,8 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 			print ("QUERY 12 FAILED")
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		COMPONENT_STATUS="FAILED"
-		print ("QUERY %s FAILED") % (QN)
+		# COMPONENT_STATUS="FAILED"
+		print ("QUERY %s missing logs") % (QN)
 	REPORT = REPORT+"</table><br>"
 	#if int(i[0]) < DOCUMENTS_TO_OCR:
 		#COMPONENT_STATUS="FAILED"
