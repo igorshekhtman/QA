@@ -386,8 +386,38 @@ get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
+insert overwrite table summary_careopt_load partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.id') as patient_sql_id,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandra_load_millis,
+cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.patient.cassandraload.millis') is not null 
+and ($dateRange);
 
 
+insert overwrite table summary_careopt_search partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
+get_json_object(line, '$.patientaccess.user.id') as user_id,
+get_json_object(line, '$.patientaccess.user.username') as username,
+get_json_object(line, '$.patientaccess.errorMessage') as error_message,
+cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
+get_json_object(line, '$.hostname') as hostname,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.patientaccess.patient.id') is not null 
+and ($dateRange);
 
 
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
@@ -691,6 +721,50 @@ day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
+
+insert overwrite table summary_careopt_load_staging partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.id') as patient_sql_id,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandra_load_millis,
+cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.patient.cassandraload.millis') is not null 
+and ($dateRange);
+
+
+insert overwrite table summary_careopt_search_staging partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
+get_json_object(line, '$.patientaccess.user.id') as user_id,
+get_json_object(line, '$.patientaccess.user.username') as username,
+get_json_object(line, '$.patientaccess.errorMessage') as error_message,
+cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
+get_json_object(line, '$.hostname') as hostname,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.patientaccess.patient.id') is not null 
+and ($dateRange);
+
+insert overwrite table summary_careopt_errors_staging partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.message') as error_message,
+get_json_object(line, '$.loggerName') as source,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.level') = 'ERROR' 
 
 EOF
 
