@@ -63,7 +63,7 @@
 <script src="//code.jquery.com/jquery-1.9.1.js"></script>
 <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 <script src="mustache.js"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.v3.min.js"></script>
 <script src="bullet.js"></script>
 <link rel="stylesheet" href="cat.css" type="text/css" />
 
@@ -121,14 +121,18 @@
                          errorObj.parser_errors = processErrors(data.parse_errors);
                          errorObj.persist_errors = processErrors(data.persist_errors);
                          errorObj.ocr_errors = processErrors(data.ocr_errors);
+                         errorObj.failed_parsers = data.failed_parsers;
+                         errorObj.failed_ocrs = data.failed_ocrs;
+                         errorObj.failed_persists = data.failed_persists;
                          
                          var errorDiv = "<table border='1' class='error'>\
-                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th></tr>\
+                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th><th>Failed Parser Documents</th><th>Failed OCR Documents</th><th>Failed Persist Documents</th></tr>\
                                          <tr><td>{{org_name}} ({{org_id}})</td><td>Total:<b>{{archive_errors.total}}</b><br/>{{#archive_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/archive_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{upload_errors.total}}</b><br/><b>Details:</b><br/>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{parser_errors.total}}</b><br/><b>Details:</b><br/>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{ocr_errors.total}}</b><br/><b>Details:</b><br/>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</td>\
-                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td></tr>\
+                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td>\
+                                         <td class='notice'>{{failed_parsers}}</td><td class='notice'>{{failed_ocrs}}</td><td class='notice'>{{failed_persists}}</td></tr>\
                                          </table>";
                                          
                          orgHtml = orgHtml + Mustache.render(errorDiv, errorObj);
