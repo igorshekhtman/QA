@@ -246,6 +246,15 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')!='start' and get_json_object(line, '$.job.status') is not null
 and ($dateRange);
 
+insert overwrite table summary_coordinator_stats partition(month, day)
+select 
+get_json_object(line, '$.datestamp') as time, 
+get_json_object(line, '$.coordinator.stats') as stats_json, 
+month, 
+day
+from production_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
+and ($dateRange);
+
 insert overwrite table summary_parser partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -541,6 +550,15 @@ day,
 get_json_object(line, '$.job.context.organization') as org_id
 FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')!='start' and get_json_object(line, '$.job.status') is not null
+and ($dateRange);
+
+insert overwrite table summary_coordinator_stats_staging partition(month, day)
+select 
+get_json_object(line, '$.datestamp') as time, 
+get_json_object(line, '$.coordinator.stats') as stats_json, 
+month, 
+day
+from staging_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
 and ($dateRange);
 
 insert overwrite table summary_parser_staging partition (month, day, org_id)
