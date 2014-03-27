@@ -41,6 +41,30 @@ public class QueryHiveUtilities {
     }  
 
 
+    public static String getDateRangeTable(String startDate, String endDate, String tableName)
+    {
+        String dateRange = "";
+        if (!StringUtils.isBlank(endDate) && endDate.length() == 10)
+        {
+            String endMonth = endDate.substring(0, 2);
+            String endDay = endDate.substring(3, 5);
+            dateRange = "((" + tableName + ".month < " + endMonth + ") OR (" + tableName + ".month = " + endMonth + " AND " + tableName + ".day <= " + endDay + "))";
+        }
+
+        if (!StringUtils.isBlank(startDate) && startDate.length() == 10)
+        {
+            String startMonth = startDate.substring(0, 2);
+            String startDay = startDate.substring(3, 5);
+            String beginClause = "((" + tableName + ".month > " + startMonth + ") OR (" + tableName + ".month = " + startMonth + " AND " + tableName + ".day >= " + startDay + "))";
+            if (StringUtils.isBlank(dateRange))
+                dateRange = beginClause;
+            else
+                dateRange += " AND " + beginClause;
+        }
+
+        return dateRange;
+    }
+
     public static String getLimitClause(String limit)
     {
         String limitClause = "";

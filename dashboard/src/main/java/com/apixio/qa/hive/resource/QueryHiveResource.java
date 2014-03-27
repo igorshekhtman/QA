@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
 import com.apixio.qa.hive.QueryHive;
+import com.apixio.qa.hive.SummaryQueryUtilities;
 import com.apixio.qa.hive.manager.DocumentCountManager;
 import com.apixio.qa.hive.query.QueryConfig;
 import com.apixio.qa.hive.query.QueryHandler;
@@ -100,6 +101,21 @@ public class QueryHiveResource
         try
         {
     		return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
+        }
+        catch (Exception ex)
+        {
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/json/{environment}/stats")
+    @Timed
+    public String coordinatorStats(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate, @QueryParam("filterStat") Optional<String> filterStat)
+    {
+        try
+        {
+    		return 	SummaryQueryUtilities.getCoordinatorStats(hiveAddress, filterStat.or(""), startDate, endDate).toString();
         }
         catch (Exception ex)
         {

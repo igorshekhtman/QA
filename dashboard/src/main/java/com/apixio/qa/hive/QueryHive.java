@@ -66,30 +66,6 @@ public class QueryHive
         }
     }
 
-    private static String getDateRangeTable(String startDate, String endDate, String tableName)
-    {
-        String dateRange = "";
-        if (!StringUtils.isBlank(endDate) && endDate.length() == 10)
-        {
-            String endMonth = endDate.substring(0, 2);
-            String endDay = endDate.substring(3, 5);
-            dateRange = "((" + tableName + ".month < " + endMonth + ") OR (" + tableName + ".month = " + endMonth + " AND " + tableName + ".day <= " + endDay + "))";
-        }
-
-        if (!StringUtils.isBlank(startDate) && startDate.length() == 10)
-        {
-            String startMonth = startDate.substring(0, 2);
-            String startDay = startDate.substring(3, 5);
-            String beginClause = "((" + tableName + ".month > " + startMonth + ") OR (" + tableName + ".month = " + startMonth + " AND " + tableName + ".day >= " + startDay + "))";
-            if (StringUtils.isBlank(dateRange))
-                dateRange = beginClause;
-            else
-                dateRange += " AND " + beginClause;
-        }
-
-        return dateRange;
-    }
-
     private static Date addDays(Date date, int days)
     {
         Calendar cal = Calendar.getInstance();
@@ -103,7 +79,7 @@ public class QueryHive
         Date today = new Date();
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-        String dateRange = getDateRangeTable(sdf.format(addDays(today, -1)), sdf.format(addDays(today, -1 * (daysBack))), "s");
+        String dateRange = QueryHiveUtilities.getDateRangeTable(sdf.format(addDays(today, -1)), sdf.format(addDays(today, -1 * (daysBack))), "s");
         JSONObject obj = new JSONObject();
         String uploadQuery = "select org_id, status, if(message like '/mnt%','No space left on device',message) as message, count(distinct upload_doc_id) as docs_uploaded, max(time) as last_upload_time "
                 + "from temp_partition_docreceiver_upload_document s where " + dateRange + " group by org_id, status, if(message like '/mnt%','No space left on device',message)";
@@ -259,45 +235,7 @@ public class QueryHive
      */
     public static String queryHive(String hiveAddress, String sql) throws SQLException, JSONException
     {
-        String queryResult = "";
-        try
-        {
-            Class.forName(driverName);
-            Connection connection = DriverManager.getConnection(hiveAddress, "hive", "");
-
-            try
-            {
-                Statement statement = connection.createStatement();
-
-                try
-                {
-                    log.info("Running: " + sql);
-                    ResultSet resultSet = statement.executeQuery(sql);
-
-                    try
-                    {
-                        queryResult = getJson(resultSet).toString();
-                    }
-                    finally
-                    {
-                        resultSet.close();
-                    }
-                }
-                finally
-                {
-                    statement.close();
-                }
-            }
-            finally
-            {
-                connection.close();
-            }
-        }
-        catch (Exception ex)
-        {
-
-        }
-        return queryResult;
+    	return queryHiveJson(hiveAddress, sql).toString();
     }
 
     public static JSONObject queryHiveJsonFirstResult(String hiveAddress, String sql) throws SQLException, JSONException
@@ -306,9 +244,9 @@ public class QueryHive
         return ((JSONObject) results.get(0));
     }
 
-    public static Object queryHiveJson(String hiveAddress, String sql) throws SQLException, JSONException
+    public static List<JSONObject> queryHiveJson(String hiveAddress, String sql) throws SQLException, JSONException
     {
-        Object queryResult = "";
+    	List<JSONObject> queryResult = null;
         try
         {
             Class.forName(driverName);
@@ -397,7 +335,7 @@ public class QueryHive
         return queryResult;
     }
 
-    private static Object getJson(ResultSet rs) throws SQLException, JSONException
+    private static List<JSONObject> getJson(ResultSet rs) throws SQLException, JSONException
     {
         List<JSONObject> objSet = new ArrayList<JSONObject>();
 
