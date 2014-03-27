@@ -1,2 +1,4 @@
-{"org_id":"10000262","sent_to_ocr_count":0,"doc_count":54014,"sent_to_persist_count":0,"activity":"parser"}
-{"org_id":"10000262","sent_to_ocr_count":3839,"doc_count":0,"sent_to_persist_count":51526,"activity":"persist"}
+{"org_id":"10000232","sent_to_ocr_count":261,"doc_count":0,"sent_to_persist_count":0,"activity":"ocr"}
+{"org_id":"10000262","sent_to_ocr_count":3752,"doc_count":0,"sent_to_persist_count":0,"activity":"ocr"}
+{"org_id":"10000262","sent_to_ocr_count":0,"doc_count":1024,"sent_to_persist_count":0,"activity":"parser"}
+{"org_id":"10000262","sent_to_ocr_count":112,"doc_count":0,"sent_to_persist_count":5574,"activity":"persist"}
