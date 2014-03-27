@@ -139,7 +139,9 @@ public class QueryManager
                 }
                 
                 if (result.has("status"))
+                {
                     status = result.getString("status");
+                }
                 else
                 {
                     fillPendingDocsData(orgObject, result, typeOfResults, doc_count);
@@ -175,7 +177,7 @@ public class QueryManager
     
     private void fillSucceededData(JSONObject orgObject, JSONObject result, String typeOfResults, int doc_count) throws Exception
     {
-        if (typeOfResults.equalsIgnoreCase("parse_count"))
+        if (typeOfResults.equalsIgnoreCase("parse_success_count"))
         {
             if (result.has("sent_to_persist"))
             {
@@ -193,7 +195,7 @@ public class QueryManager
     {
         JSONObject errorObject = new JSONObject();
         
-        if (typeOfResults.equalsIgnoreCase("parse_count"))
+        if (typeOfResults.equalsIgnoreCase("parse_error_count"))
         {
             if (orgObject.has("parse_errors"))
             {
@@ -204,7 +206,7 @@ public class QueryManager
             
             orgObject.put("parse_errors", errorObject);
         }
-        else if (typeOfResults.equalsIgnoreCase("persist_count"))
+        else if (typeOfResults.equalsIgnoreCase("persist_error_count"))
         {
             if (orgObject.has("persist_errors"))
             {
@@ -215,7 +217,7 @@ public class QueryManager
             
             orgObject.put("persist_errors", errorObject);
         }
-        else if (typeOfResults.equalsIgnoreCase("ocr_count"))
+        else if (typeOfResults.equalsIgnoreCase("ocr_error_count"))
         {
             if (orgObject.has("ocr_errors"))
             {
