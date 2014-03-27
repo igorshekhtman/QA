@@ -12,10 +12,11 @@ nagiosConfiguration:
   username: nagiosadmin
   password: 8p1clu19
 
+apiConfiguration:
+  url: https://localprodapi.apixio.com/API
+  
 # HTTP-specific options.
 http:
-
-
   # The port on which the HTTP server listens for service requests.
   connectorType: nonblocking+ssl
   port: 8443
