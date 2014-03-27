@@ -97,8 +97,8 @@
                          <td align='center'>{{upload_count}}</td>\
                          <td align='center'>{{sent_to_ocr}}</td>\
                          <td align='center'>{{sent_to_persist}}</td>\
-                         <td align='center'>{{ocr_count}}</td>\
-                         <td align='center'>{{persist_count}}</td>\
+                         <td align='center'>{{ocr_success_count}}</td>\
+                         <td align='center'>{{persist_success_count}}</td>\
                          <td align='center'>{{verified_count}}</td>\
                          <td align='center' class='notice'>{{pending_parsers}}</td>\
                          <td align='center' class='notice'>{{pending_ocrs}}</td>\
@@ -178,9 +178,9 @@
         	   var jsonStr = "";
         	   var sentToOcr = data.sent_to_ocr;
         	   var sentToPersist = data.sent_to_persist;
-        	   var persisted = data.persist_count;
+        	   var persisted = data.persist_success_count;
         	   var persistVerified = data.verified_count;
-        	   var ocr = data.ocr_count;
+        	   var ocr = data.ocr_success_count;
         	   var uploadRange = data.upload_count;
         	   var ocrRange = data.sent_to_ocr;
         	   
