@@ -50,6 +50,8 @@ obju=""
 buf=""
 bufu=""
 UUID=""
+FILES=""
+FILES=""
 
 SENDER="donotreply@apixio.com"
 RECEIVERS="ishekhtman@apixio.com"
@@ -123,46 +125,88 @@ def storeToken():
 	TOKEN=obj["token"]
 			
 
-def uploadDocument():
-	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
-	global obju, bufu
-	
+def createCatalogFile(type):
+	# possible types: good, bad, empty
+	global CATALOG_FILE, FILE, FILES
+	global DOCUMENT_ID, SOURCE_SYSTEM, ORGANIZATION, FILE_FORMAT
+	global obj
 	FILES = os.listdir(DIR)
 	FILE = FILES[0]
+	if type == "good":
+		ORGANIZATION=obj["organization"]
+		ORGID=obj["org_id"]
+		CODE=obj["code"]
+		USER_ID=obj["user_id"]
+		S3_BUCKET=obj["s3_bucket"]
+		ROLES=obj["roles"]
+		TRACE_COLFAM=obj["trace_colFam"]
+		DOCUMENT_ID=uuid.uuid1()
+		PATIENT_ID=uuid.uuid1()
+		PATIENT_ID_AA="RANDOM_UUID"
+		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+		PATIENT_MIDDLE_NAME="MiddleName"
+		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		PATIENT_DOB="19670809"
+		PATIENT_GENDER="M"
+		ORGANIZATION="ORGANIZATION_VALUE"
+		PRACTICE_NAME="PRACTICE_NAME_VALUE"
+		FILE_LOCATION=("%s" % (FILE))
+		FILE_FORMAT_TEMP=FILE.split(".")
+		FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
+		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
+		CREATION_DATE="1967-05-11T10:00:47-07:00"
+		MODIFIED_DATE="1967-05-11T10:00:47-07:00"
+		DESCRIPTION=("%s" % (FILE))
+		METATAGS="METATAGS_VALUE"
+		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE"
+		TOKEN_URL="%s/auth/token/" % (HOST)
+		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
+	elif type == "empty":
+		CATALOG_FILE=""
+
+			
+			
+def uploadDocument():
+	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
+	global CATALOG_FILE, FILE, FILES
+	global obju, bufu, obj
+	
+	#FILES = os.listdir(DIR)
+	#FILE = FILES[0]
 	DOCUMENTCOUNTER=0
 	
 	print ("Start uploading to DR ...\n")
 	
 	DOCUMENTCOUNTER=DOCUMENTCOUNTER+1
-	ORGANIZATION=obj["organization"]
-	ORGID=obj["org_id"]
-	CODE=obj["code"]
-	USER_ID=obj["user_id"]
-	S3_BUCKET=obj["s3_bucket"]
-	ROLES=obj["roles"]
-	TRACE_COLFAM=obj["trace_colFam"]
-	DOCUMENT_ID=uuid.uuid1()
-	PATIENT_ID=uuid.uuid1()
-	PATIENT_ID_AA="RANDOM_UUID"
-	PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()));
-	PATIENT_MIDDLE_NAME="MiddleName";
-	PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()));
-	PATIENT_DOB="19670809";
-	PATIENT_GENDER="M";
-	ORGANIZATION="ORGANIZATION_VALUE";
-	PRACTICE_NAME="PRACTICE_NAME_VALUE";
-	FILE_LOCATION=("%s" % (FILE));
-	FILE_FORMAT_TEMP=FILE.split(".")
-	FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
-	DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE";
-	CREATION_DATE="1967-05-11T10:00:47-07:00";
-	MODIFIED_DATE="1967-05-11T10:00:47-07:00";
-	DESCRIPTION=("%s" % (FILE));
-	METATAGS="METATAGS_VALUE";
-	SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
-	TOKEN_URL="%s/auth/token/" % (HOST);
-	# UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
-	CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
+	#ORGANIZATION=obj["organization"]
+	#ORGID=obj["org_id"]
+	#CODE=obj["code"]
+	#USER_ID=obj["user_id"]
+	#S3_BUCKET=obj["s3_bucket"]
+	#ROLES=obj["roles"]
+	#TRACE_COLFAM=obj["trace_colFam"]
+	#DOCUMENT_ID=uuid.uuid1()
+	#PATIENT_ID=uuid.uuid1()
+	#PATIENT_ID_AA="RANDOM_UUID"
+	#PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+	#PATIENT_MIDDLE_NAME="MiddleName"
+	#PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+	#PATIENT_DOB="19670809"
+	#PATIENT_GENDER="M"
+	#ORGANIZATION="ORGANIZATION_VALUE"
+	#PRACTICE_NAME="PRACTICE_NAME_VALUE"
+	#FILE_LOCATION=("%s" % (FILE))
+	#FILE_FORMAT_TEMP=FILE.split(".")
+	#FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
+	#DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
+	#CREATION_DATE="1967-05-11T10:00:47-07:00"
+	#MODIFIED_DATE="1967-05-11T10:00:47-07:00"
+	#DESCRIPTION=("%s" % (FILE))
+	#METATAGS="METATAGS_VALUE"
+	#SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE"
+	#TOKEN_URL="%s/auth/token/" % (HOST)
+	
+	#CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
 	bufu = io.BytesIO()
@@ -181,15 +225,13 @@ def uploadDocument():
 
 	MANIFEST_FILE=MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 	print ("End uploading to DR ...\n")	
-	print ("Total number of documents uploaded: %s\n" % (DOCUMENTCOUNTER));
+	print ("Total number of documents uploaded: %s\n" % (DOCUMENTCOUNTER))
 
 def storeUUID():
 	global obju, bufu, UUID
 	obju=json.loads(bufu.getvalue())
 	UUID=obju["uuid"]	
 	print ("Document UUID: %s" % (UUID))
-
-
 	
 
 def closeBatch():	
@@ -202,6 +244,8 @@ def closeBatch():
 	c.setopt(c.URL, CLOSE_URL)
 	c.setopt(c.HTTPPOST, [("token", str(TOKEN))])
 	c.setopt(c.WRITEFUNCTION, bufc.write)
+	c.setopt(c.VERBOSE, True)
+	c.setopt(c.SSL_VERIFYPEER, 1)
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()
 	objc=json.loads(bufc.getvalue())
@@ -223,10 +267,11 @@ def transmitManifest():
 	c.setopt(c.CUSTOMREQUEST, "PUT")
 	c.setopt(c.HTTPPOST, [("token", str(TOKEN)), ("file", (c.FORM_CONTENTS, str(MANIFEST_FILE)))])
 	c.setopt(c.WRITEFUNCTION, bufm.write)
+	c.setopt(c.VERBOSE, True)
+	c.setopt(c.SSL_VERIFYPEER, 1)
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()
 	print ("Finished transmitting manifest file ...\n")
-
 
 
 def writeReportHeader():
@@ -292,6 +337,7 @@ TEST_DESCRIPTION = "Positive Test - valid credentials, valid document, valid cat
 EXPECTED_CODE = "200"
 getUserData()
 storeToken()
+createCatalogFile("good")
 uploadDocument()
 storeUUID()
 closeBatch()
@@ -331,6 +377,7 @@ SAVED_TOKEN = TOKEN
 TOKEN = TOKEN[4: ]+"-BAD"
 # print TOKEN
 # time.sleep(4)
+createCatalogFile("good")
 uploadDocument()
 # storeUUID()
 # closeBatch()
@@ -340,6 +387,19 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TOKEN = SAVED_TOKEN
 
 #========= CASE #5 ========================================================================
+
+TEST_DESCRIPTION = "Negative Test - Empty Catalog File"
+EXPECTED_CODE = "500"
+# getUserData()
+# storeToken()
+createCatalogFile("empty")
+uploadDocument()
+# storeUUID()
+# closeBatch()
+#if ENVIRONMENT == "Staging":
+#	transmitManifest()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
 #========= CASE #6 ========================================================================
 #========= CASE #7 ========================================================================
 #========= CASE #8 ========================================================================
