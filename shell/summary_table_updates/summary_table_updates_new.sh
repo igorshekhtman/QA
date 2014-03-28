@@ -273,7 +273,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
@@ -295,7 +297,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
@@ -316,7 +320,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
@@ -337,7 +343,9 @@ get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
