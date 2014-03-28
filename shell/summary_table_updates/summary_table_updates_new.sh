@@ -140,7 +140,7 @@ and ($dateRange);
 insert overwrite table summary_docreceiver_seqfile_post partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.submit.post.path') as seqfile_path,
+regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
 cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
@@ -158,8 +158,8 @@ and ($dateRange);
 insert overwrite table summary_coordinator_workrequest partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.work.sourcedir') as source_dir,
-regexp_replace(get_json_object(line, '$.work.filesmoved'), concat(get_json_object(line, '$.work.sourcedir'),'/'), '') as seqfile,
+regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) as source_dir,
+regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
 get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.context.batchID') as batch_id,
 get_json_object(line, '$.work.workID') as work_id,
@@ -273,7 +273,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
@@ -295,7 +297,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
@@ -316,7 +320,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
@@ -337,7 +343,9 @@ get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);

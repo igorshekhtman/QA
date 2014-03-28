@@ -81,20 +81,34 @@
     </query>
     <query name="docs_queue">
         <text>
-            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count, count(distinct(o.doc_id)) as sent_to_persist_byOcr_count
             from summary_coordinator_jobrequest jr
             left outer join summary_coordinator_jobfinish jf
             on jr.job_id=jf.job_id and jr.work_id=jf.work_id 
             left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
             left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            left outer join summary_ocr o on o.job_id=jr.from_job_id and o.status='success'
             where jf.job_id is null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
+            group by jr.org_id, jr.activity
+        </text>
+    </query>
+    <query name="docs_in_failedjobs">
+        <text>
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
+            from summary_coordinator_jobrequest jr
+            join summary_coordinator_jobfinish jf
+            on jr.job_id=jf.job_id and jr.work_id=jf.work_id and jf.status="error" 
+            left outer join summary_coordinator_jobfinish jfs on jfs.status="success" and jfs.orig_job_id=jr.orig_job_id and jfs.orig_job_id is not null
+            left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
+            left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            where jfs.orig_job_id is null and jf.job_id is not null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
             group by jr.org_id, jr.activity
         </text>
     </query>
 	
 	<group name="completeness">
 	    <run-query name="archivedToS3_count"/>
-		<run-query name="upload_count"/> -->
+		<run-query name="upload_count"/> 
 		<run-query name="parse_success_count"/>
 		<run-query name="parse_error_count"/>
 		<run-query name="ocr_success_count"/>
@@ -103,6 +117,7 @@
 		<run-query name="persist_error_count"/>
 		<run-query name="verified_count"/>
 		<run-query name="docs_queue"/> 
+		<run-query name="docs_in_failedjobs"/>
 	</group>
 	
 	<group name="upload">
@@ -111,6 +126,10 @@
 	
 	<group name="documentsPending">
        <run-query name="docs_queue"/>
+    </group>
+    
+    <group name="documentsFailed">
+       <run-query name="docs_in_failedjobs"/>
     </group>
 	
 </queries>

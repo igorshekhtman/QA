@@ -63,7 +63,7 @@
 <script src="//code.jquery.com/jquery-1.9.1.js"></script>
 <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 <script src="mustache.js"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.v3.min.js"></script>
 <script src="bullet.js"></script>
 <link rel="stylesheet" href="cat.css" type="text/css" />
 
@@ -82,11 +82,10 @@
            
              $.get(url).done(function( values ) {
             	 
-            	 var alternate = 0;
             	 var orgHtml = "<ul>";
             	 $.each(values.orgs, function(n, data) {
             		 
-            		 orgHtml = orgHtml + "<li class='alternate s"+alternate+"'>";
+            		 orgHtml = orgHtml + "<li>";
             		 
             		 var org_details = "\
                          <table border='1' class='success'> \
@@ -121,23 +120,35 @@
                          errorObj.parser_errors = processErrors(data.parse_errors);
                          errorObj.persist_errors = processErrors(data.persist_errors);
                          errorObj.ocr_errors = processErrors(data.ocr_errors);
+                         errorObj.failed_parsers = data.failed_parsers;
+                         errorObj.failed_ocrs = data.failed_ocrs;
+                         errorObj.failed_persists = data.failed_persists;
                          
-                         var errorDiv = "<table border='1' class='error'>\
-                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th></tr>\
+                         var errorDiv = "<table class='error'>\
+                                         <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th><th>Failed Parser Documents</th><th>Failed OCR Documents</th><th>Failed Persist Documents</th></tr>\
                                          <tr><td>{{org_name}} ({{org_id}})</td><td>Total:<b>{{archive_errors.total}}</b><br/>{{#archive_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/archive_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{upload_errors.total}}</b><br/><b>Details:</b><br/>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{parser_errors.total}}</b><br/><b>Details:</b><br/>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</td>\
                                          <td>Total:<b>{{ocr_errors.total}}</b><br/><b>Details:</b><br/>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</td>\
-                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td></tr>\
+                                         <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td>\
+                                         <td class='notice'>{{failed_parsers}}</td><td class='notice'>{{failed_ocrs}}</td><td class='notice'>{{failed_persists}}</td></tr>\
                                          </table>";
                                          
                          orgHtml = orgHtml + Mustache.render(errorDiv, errorObj);
                          
+                         var missingDocsData = calculateMissingDocuments(data, errorObj);
+                         missingDocsData.org_name = data.org_name;
+                         missingDocsData.org_id = data.org_id;
+                         
+                         var missingDocsDiv = "<table class='error'>\
+                        	                   <tr><th>Org Name (Org Id)</th><th>Documents Not submitted to Coordinator yet</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
+                        	                   <tr><td>{{org_name}} ({{org_id}})</td><td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
+                        	                   ";
+                         
+                         orgHtml = orgHtml + Mustache.render(missingDocsDiv, missingDocsData);
+                         
                          orgHtml = orgHtml + "</li>";
                          
-                         if (alternate == 0)
-                        	 alternate = 1;
-                         else alternate = 0;
             		}); 
             	 
             	 orgHtml = orgHtml + "</ul>";
@@ -205,7 +216,6 @@
            }  
            
            function processErrors(errors) {
-        	   
         	   if (errors != undefined) {
         		   var errorDetails = new Object();
         		   var errorArr = new Array();
@@ -225,6 +235,60 @@
         	   else {
         		   return {};
         	   }
+           }
+           
+           function calculateMissingDocuments(data, errorDetails) {
+        	   var missingDocs = new Object();
+        	   var sentToOcr = data.sent_to_ocr;
+               var sentToPersist = data.sent_to_persist;
+               var persisted = data.persist_success_count;
+               var ocr = data.ocr_success_count;
+               var uploaded = data.upload_count;
+               var pendingParsers = data.pending_parsers;
+               var pendingPersists = data.pending_persists;
+               var pendingOcrs = data.pending_ocrs;
+               var errorParsers = errorDetails.parser_errors.total;
+               var errorPersists = errorDetails.persist_errors.total;
+               var errorOcrs = errorDetails.ocr_errors.total;
+               var failedParsers = data.failed_parsers;
+               var failedPersists = data.failed_persists;
+               var failedOcrs = data.failed_ocrs;
+               
+               if (sentToOcr == undefined)
+                   sentToOcr = 0;
+               if (sentToPersist == undefined)
+                   sentToPersist = 0;
+               if (persisted == undefined)
+                   persisted = 0;
+               if (ocr == undefined)
+                   ocr = 0;
+               if (uploaded == undefined)
+            	   uploaded = 0;
+               if (pendingParsers == undefined)
+            	   pendingParsers = 0;
+               if (pendingPersists == undefined)
+            	   pendingPersists = 0;
+               if (pendingOcrs == undefined)
+            	   pendingOcrs = 0;
+               if (failedParsers == undefined)
+            	   failedParsers = 0;
+               if (failedOcrs == undefined)
+            	   failedOcrs = 0;
+               if (failedPersists == undefined)
+            	   failedPersists = 0;
+               if (errorParsers == undefined)
+            	   errorParsers = 0;
+               if (errorOcrs == undefined)
+            	   errorOcrs = 0;
+               if (errorPersists == undefined)
+            	   errorPersists = 0;
+        	   
+        	   missingDocs.missingParser = uploaded - (sentToOcr + sentToPersist + pendingParsers + failedParsers + errorParsers);
+        	   missingDocs.missingOCR = sentToOcr - (ocr + pendingOcrs + failedOcrs + errorOcrs);
+        	   missingDocs.missingPersist = (sentToPersist + ocr) - (persisted + failedPersists + errorPersists + pendingPersists);
+        	   
+        	   missingDocs.totalDocs = missingDocs.missingParser + missingDocs.missingOCR + missingDocs.missingPersist;
+        	   return missingDocs;
            }
           
         </script>

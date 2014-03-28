@@ -172,6 +172,15 @@ public class QueryManager
             else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("ocr"))
                 orgObject.put("pending_ocrs", result.get("sent_to_ocr_count"));
         }
+        else if (typeOfResults.equalsIgnoreCase("docs_in_failedjobs"))
+        {
+            if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("parser"))
+                orgObject.put("failed_parsers", doc_count);
+            else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("persist"))
+                orgObject.put("failed_persists", result.get("sent_to_persist_count"));
+            else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("ocr"))
+                orgObject.put("failed_ocrs", result.get("sent_to_ocr_count"));
+        }
         else orgObject.put(typeOfResults, doc_count);
     }
     
