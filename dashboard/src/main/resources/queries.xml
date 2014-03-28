@@ -81,12 +81,13 @@
     </query>
     <query name="docs_queue">
         <text>
-            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count, count(distinct(o.doc_id)) as sent_to_persist_byOcr_count
             from summary_coordinator_jobrequest jr
             left outer join summary_coordinator_jobfinish jf
             on jr.job_id=jf.job_id and jr.work_id=jf.work_id 
             left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
             left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            left outer join summary_ocr o on o.job_id=jr.from_job_id and o.status='success'
             where jf.job_id is null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
             group by jr.org_id, jr.activity
         </text>

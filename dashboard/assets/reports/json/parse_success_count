@@ -1,7 +1,7 @@
 {"org_id":"10000232","status":"success","doc_count":495396,"sent_to_persist":"success"}
 {"org_id":"10000232","sent_to_ocr":"success","status":"success","doc_count":228440}
-{"org_id":"10000250","status":"success","doc_count":129996,"sent_to_persist":"success"}
-{"org_id":"10000250","sent_to_ocr":"success","status":"success","doc_count":47066}
+{"org_id":"10000250","status":"success","doc_count":135355,"sent_to_persist":"success"}
+{"org_id":"10000250","sent_to_ocr":"success","status":"success","doc_count":47608}
 {"org_id":"10000263","status":"success","doc_count":1062374,"sent_to_persist":"success"}
 {"org_id":"10000263","sent_to_ocr":"success","status":"success","doc_count":703648}
 {"org_id":"10000265","status":"success","doc_count":8,"sent_to_persist":"success"}
