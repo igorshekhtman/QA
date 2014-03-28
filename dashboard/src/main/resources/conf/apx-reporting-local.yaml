@@ -12,5 +12,8 @@ nagiosConfiguration:
   username: nagiosadmin
   password: 8p1clu19
   
+apiConfiguration:
+  url: https://localprodapi.apixio.com/API
+  
 http:
   port: 8099
