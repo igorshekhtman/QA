@@ -140,7 +140,7 @@ and ($dateRange);
 insert overwrite table summary_docreceiver_seqfile_post partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.submit.post.path') as seqfile_path,
+regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
 cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
