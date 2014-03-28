@@ -158,8 +158,8 @@ and ($dateRange);
 insert overwrite table summary_coordinator_workrequest partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.work.sourcedir') as source_dir,
-regexp_replace(get_json_object(line, '$.work.filesmoved'), concat(get_json_object(line, '$.work.sourcedir'),'/'), '') as seqfile,
+regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) as source_dir,
+regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
 get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.context.batchID') as batch_id,
 get_json_object(line, '$.work.workID') as work_id,
