@@ -173,7 +173,10 @@ def createCatalogFile(type):
 		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 	elif type == "missingfileformatag":	
 		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
-
+	elif type == "nocatalogfile":
+		CATALOG_FILE=None
+	elif type == "nodocument":
+		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 		
 def uploadDocument():
 	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
@@ -262,7 +265,7 @@ def writeReportHeader():
 	Date & Time: <b>%s</b><br>
 	Pipeline module: <b>%s</b><br>
 	Test type: <b>%s</b><br>
-	Enviromnent: <b>%s</b><br>
+	Enviromnent: <b><font color='red'>%s</font></b><br>
 	OrgID: <b>%s</b><br>
 	BatchID: <b>%s</b><br>
 	User name: <b>%s</b><br><br>
@@ -396,6 +399,25 @@ EXPECTED_CODE = "400"
 createCatalogFile("missingfileformatag")
 uploadDocument()
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #11 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Missing Catalog File"
+EXPECTED_CODE = "400"
+createCatalogFile("nocatalogfile")
+uploadDocument()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #12 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Missing Document"
+EXPECTED_CODE = "400"
+createCatalogFile("nodocument")
+SAVED_DIR = DIR
+#DIR = "DOESNOTEXIST"
+uploadDocument()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+DIR = SAVED_DIR
 
 #==========================================================================================
 
