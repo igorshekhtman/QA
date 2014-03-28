@@ -44,6 +44,12 @@ BATCH=""
 DRBATCH=""
 MANIFEST_FILENAME=""
 MANIFEST_FILE=""
+data=""
+obj=""
+obju=""
+buf=""
+bufu=""
+UUID=""
 
 SENDER="donotreply@apixio.com"
 RECEIVERS="ishekhtman@apixio.com"
@@ -85,18 +91,14 @@ def checkEnvironment():
 	
 def test(debug_type, debug_msg):
 	global RETURNCODE
-	#print "debug(%d): %s" % (debug_type, debug_msg)
-	#print (debug_msg)
 	if debug_msg[ :4] == "HTTP" :
 		RETURNCODE = debug_msg[9: ]
-		print ("RETURN CODE: %s") % RETURNCODE	
-	
-	
+		print ("RETURN CODE: %s") % RETURNCODE		
 
 		
 def getUserData():
 	global ENVIRONMENT, HOST, USERNAME, PASSWORD, TOKEN_URL, TOKEN, RETURNCODE
-	global data, post, buf, obj
+	global data, obj, buf, TEST_PN
 	
 	TOKEN_URL="%s/auth/token/" % (HOST);
 	data = {'username':USERNAME, 'password':PASSWORD}
@@ -104,23 +106,26 @@ def getUserData():
 	buf = io.BytesIO()
 	
 	c = pycurl.Curl()
-	c.setopt(pycurl.URL, TOKEN_URL)
-	c.setopt(pycurl.HTTPHEADER, ['Accept: application/json', 'Content-Type: application/x-www-form-urlencoded'])
-	c.setopt(pycurl.POST, 1)
-	c.setopt(pycurl.POSTFIELDS, post)
-	c.setopt(pycurl.WRITEFUNCTION, buf.write)
-	c.setopt(pycurl.VERBOSE, True)
+	c.setopt(c.URL, TOKEN_URL)
+	c.setopt(c.HTTPHEADER, ['Accept: application/json', 'Content-Type: application/x-www-form-urlencoded'])
+	c.setopt(c.POST, 1)
+	c.setopt(c.POSTFIELDS, post)
+	c.setopt(c.WRITEFUNCTION, buf.write)
+	c.setopt(c.VERBOSE, True)
 	c.setopt(c.SSL_VERIFYPEER, 1)
-	c.setopt(pycurl.DEBUGFUNCTION, test)
+	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()	
 	
+
+def storeToken():
+	global obj, buf, TOKEN
 	obj=json.loads(buf.getvalue())
 	TOKEN=obj["token"]
-		
-	
+			
 
 def uploadDocument():
-	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE
+	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
+	global obju, bufu
 	
 	FILES = os.listdir(DIR)
 	FILE = FILES[0]
@@ -156,7 +161,7 @@ def uploadDocument():
 	METATAGS="METATAGS_VALUE";
 	SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
 	TOKEN_URL="%s/auth/token/" % (HOST);
-	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
+	# UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
 	CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
@@ -166,16 +171,25 @@ def uploadDocument():
 	c.setopt(c.URL, UPLOAD_URL)
 	c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
 	c.setopt(c.WRITEFUNCTION, bufu.write)
+	c.setopt(c.VERBOSE, True)
+	c.setopt(c.SSL_VERIFYPEER, 1)
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()	
-
-	obju=json.loads(bufu.getvalue())	
-	UUID=obju["uuid"]
-	print ("Document UUID: %s" % (UUID))
+	#obju=json.loads(bufu.getvalue())	
+	#UUID=obju["uuid"]
+	#print ("Document UUID: %s" % (UUID))
 
 	MANIFEST_FILE=MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 	print ("End uploading to DR ...\n")	
 	print ("Total number of documents uploaded: %s\n" % (DOCUMENTCOUNTER));
+
+def storeUUID():
+	global obju, bufu, UUID
+	obju=json.loads(bufu.getvalue())
+	UUID=obju["uuid"]	
+	print ("Document UUID: %s" % (UUID))
+
+
 	
 
 def closeBatch():	
@@ -211,8 +225,6 @@ def transmitManifest():
 	c.setopt(c.WRITEFUNCTION, bufm.write)
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()
-	# objm=json.loads(bufm.getvalue())
-	# print (" ")
 	print ("Finished transmitting manifest file ...\n")
 
 
@@ -239,12 +251,15 @@ def writeReportHeader():
 	""" % (PIPELINE_MODULE, TEST_TYPE, ENVIRONMENT, CUR_TIME, PIPELINE_MODULE, TEST_TYPE, CUR_TIME, PIPELINE_MODULE, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 	
 
-def writeReportDetails(description):
+def writeReportDetails(description, code):
 	global REPORT, ENVIRONMENT, RETURNCODE
-	global SUBHDR, PASSED, FAILED
+	global SUBHDR, PASSED, FAILED, TEST_PN
 	REPORT = REPORT+SUBHDR % description
 	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
-	REPORT = REPORT+PASSED
+	if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
 		
 	
@@ -266,21 +281,81 @@ def emailReport():
 	print ("Batch ID: %s\n") % BATCH
 
 	
+#============== Start of the main body =======================================================================================	
+
 checkEnvironment()
-getUserData()
-uploadDocument()
-closeBatch()
-# Transmit manifest file for Staging environment only - for now
-if ENVIRONMENT == "Staging":
-	transmitManifest()
 writeReportHeader()
 
+#======= CASE #1 ===========================================================================
 
-writeReportDetails("Bad Username")
-writeReportDetails("Bad Password")
-writeReportDetails("Bad Token")
-writeReportDetails("Empty XML")
-writeReportDetails("Malformed XML")
+TEST_DESCRIPTION = "Positive Test - valid credentials, valid document, valid catalog file"
+EXPECTED_CODE = "200"
+getUserData()
+storeToken()
+uploadDocument()
+storeUUID()
+closeBatch()
+if ENVIRONMENT == "Staging":
+	transmitManifest()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#======== CASE #2 ==========================================================================
+
+TEST_DESCRIPTION = "Negative Test - Bad Username"
+EXPECTED_CODE = "401"
+SAVED_USERNAME = USERNAME
+USERNAME = USERNAME[4: ]+"-BAD"
+getUserData()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+USERNAME = SAVED_USERNAME
+
+#========= CASE #3 =========================================================================
+
+TEST_DESCRIPTION = "Negative Test - Bad Password"
+EXPECTED_CODE = "401"
+SAVED_PASSWORD = PASSWORD
+PASSWORD = PASSWORD[4: ]+"-BAD"
+getUserData()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+PASSWORD = SAVED_PASSWORD
+
+#========= CASE #4 ========================================================================
+
+TEST_DESCRIPTION = "Negative Test - Bad Token"
+EXPECTED_CODE = "401"
+# getUserData()
+# storeToken()
+SAVED_TOKEN = TOKEN
+#print TOKEN
+# time.sleep(4)
+TOKEN = TOKEN[4: ]+"-BAD"
+# print TOKEN
+# time.sleep(4)
+uploadDocument()
+# storeUUID()
+# closeBatch()
+#if ENVIRONMENT == "Staging":
+#	transmitManifest()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+TOKEN = SAVED_TOKEN
+
+#========= CASE #5 ========================================================================
+#========= CASE #6 ========================================================================
+#========= CASE #7 ========================================================================
+#========= CASE #8 ========================================================================
+#========= CASE #9 ========================================================================
+#========= CASE #10 =======================================================================
+
+#==========================================================================================
+
+
+
+
+#writeReportDetails("Bad Username")
+#writeReportDetails("Bad Password")
+#writeReportDetails("Bad Token")
+#writeReportDetails("Empty XML")
+#writeReportDetails("Malformed XML")
 
 writeReportFooter()
 emailReport()
