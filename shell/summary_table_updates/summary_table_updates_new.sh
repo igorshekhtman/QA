@@ -117,6 +117,7 @@ day,
 get_json_object(line, '$.seqfile.file.document.orgid') as org_id
 FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.seqfile.file.document') is not null
+and get_json_object(line, '$.seqfile.file.add.filename') is not null
 and ($dateRange);
 
 insert overwrite table summary_docreceiver_upload partition (month, day, org_id)
