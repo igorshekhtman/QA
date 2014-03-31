@@ -38,6 +38,8 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 
 UPLOAD_URL=""
+STOP_URL=""
+START_URL=""
 TOKEN_URL=""
 TOKEN=""
 BATCH=""
@@ -314,10 +316,34 @@ def emailReport():
 	print ("Batch ID: %s\n") % BATCH
 	
 def stopDrService():
-	print "Stopping Doc-Receiver Service ..."
+	print "Stopping Doc-Receiver Service ...\n"
+	STOP_URL="%s/receiver/control/stopped" % (HOST);
+	bufstp = io.BytesIO()
+	response = cStringIO.StringIO()
+	c = pycurl.Curl()
+	c.setopt(c.URL, STOP_URL)
+	c.setopt(c.HTTPPOST, [("token", str(TOKEN))])
+	c.setopt(c.WRITEFUNCTION, bufstp.write)
+	c.setopt(c.VERBOSE, True)
+	c.setopt(c.SSL_VERIFYPEER, 1)
+	c.setopt(c.DEBUGFUNCTION, test)
+	c.perform()
+	print ("Doc-Receiver Service Stopped ...\n")
 	
 def startDrService():
 	print "Starting Doc-Receiver Service ..."
+	START_URL="%s/receiver/control/active" % (HOST);
+	bufstr = io.BytesIO()
+	response = cStringIO.StringIO()
+	c = pycurl.Curl()
+	c.setopt(c.URL, START_URL)
+	c.setopt(c.HTTPPOST, [("token", str(TOKEN))])
+	c.setopt(c.WRITEFUNCTION, bufstr.write)
+	c.setopt(c.VERBOSE, True)
+	c.setopt(c.SSL_VERIFYPEER, 1)
+	c.setopt(c.DEBUGFUNCTION, test)
+	c.perform()
+	print ("Doc-Receiver Service Started ...\n")
 
 	
 #============== Start of the main body =======================================================================================	
@@ -471,20 +497,21 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TEST_DESCRIPTION = "Negative Test - Service is not Available"
 EXPECTED_CODE = "503"
 stopDrService()
+time.sleep(6)
 createCatalogFile("good")
 uploadDocument("docandcat")
-startDrService()
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+startDrService()
 
 #========= CASE #18 =======================================================================
 
-TEST_DESCRIPTION = "Negative Test - Invalid Doc-Receiver URL"
+TEST_DESCRIPTION = "Negative Test - Invalid Doc-Receiver Host URL"
 EXPECTED_CODE = "404"
 createCatalogFile("good")
-SAVED_UPLOAD_URL = UPLOAD_URL
-UPLOAD_URL = "www.google.com"
+SAVED_HOST = HOST
+HOST = "www.google.com"
 uploadDocument("docandcat")
-UPLOAD_URL = SAVED_UPLOAD_URL
+HOST = SAVED_HOST
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #==========================================================================================
