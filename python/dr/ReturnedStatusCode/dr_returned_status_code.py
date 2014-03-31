@@ -312,6 +312,12 @@ def emailReport():
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
 	print ("E-mailing report completed ... Successfully sent email to %s ...\n") % (RECEIVERS)
 	print ("Batch ID: %s\n") % BATCH
+	
+def stopDrService():
+	print "Stopping Doc-Receiver Service ..."
+	
+def startDrService():
+	print "Starting Doc-Receiver Service ..."
 
 	
 #============== Start of the main body =======================================================================================	
@@ -458,6 +464,27 @@ TEST_DESCRIPTION = "Negative Test - Empty Catalog File and Document"
 EXPECTED_CODE = "400"
 createCatalogFile("empty")
 uploadDocument("emptydocument")
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #17 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Service is not Available"
+EXPECTED_CODE = "503"
+stopDrService()
+createCatalogFile("good")
+uploadDocument("docandcat")
+startDrService()
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #18 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Invalid Doc-Receiver URL"
+EXPECTED_CODE = "404"
+createCatalogFile("good")
+SAVED_UPLOAD_URL = UPLOAD_URL
+UPLOAD_URL = "www.google.com"
+uploadDocument("docandcat")
+UPLOAD_URL = SAVED_UPLOAD_URL
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #==========================================================================================
