@@ -139,10 +139,11 @@
                          var missingDocsData = calculateMissingDocuments(data, errorObj);
                          missingDocsData.org_name = data.org_name;
                          missingDocsData.org_id = data.org_id;
+                         missingDocsData.abandoned_docs = data.abandoned_docs;
                          
-                         var missingDocsDiv = "<table class='error'>\
-                        	                   <tr><th>Org Name (Org Id)</th><th>Documents Not submitted to Coordinator yet</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
-                        	                   <tr><td>{{org_name}} ({{org_id}})</td><td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
+                         var missingDocsDiv = "<table class='fatal'>\
+                        	                   <tr><th>Org Name (Org Id)</th><th>Documents abandoned</th><th>Documents Not submitted to Coordinator yet</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
+                        	                   <tr><td>{{org_name}} ({{org_id}})</td><td>{{abandoned_docs}}</td><td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
                         	                   ";
                          
                          orgHtml = orgHtml + Mustache.render(missingDocsDiv, missingDocsData);
