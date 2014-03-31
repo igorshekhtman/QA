@@ -177,8 +177,10 @@ def createCatalogFile(type):
 		CATALOG_FILE=None
 	elif type == "nodocument":
 		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
+
 		
-def uploadDocument():
+def uploadDocument(test_item):
+	# test_item valies: nodocument, nocatalog, nodocandcat, docandcat, emptydocument
 	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
 	global CATALOG_FILE, FILE, FILES
 	global obju, bufu, obj
@@ -193,7 +195,17 @@ def uploadDocument():
 	response = cStringIO.StringIO()
 	c = pycurl.Curl()
 	c.setopt(c.URL, UPLOAD_URL)
-	c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
+	if test_item == "nodocument":
+		c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
+	elif test_item == "nocatalog":
+		c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE))])
+	elif test_item == "nodocnocat":
+		c.setopt(c.HTTPPOST, [("token", str(TOKEN))])	
+	elif test_item == "emptydocument":
+		c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_CONTENTS, str(""))),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
+	else:
+		c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
+		
 	c.setopt(c.WRITEFUNCTION, bufu.write)
 	c.setopt(c.VERBOSE, True)
 	c.setopt(c.SSL_VERIFYPEER, 1)
@@ -314,7 +326,7 @@ EXPECTED_CODE = "200"
 getUserData()
 storeToken()
 createCatalogFile("good")
-uploadDocument()
+uploadDocument("docandcat")
 storeUUID()
 closeBatch()
 if ENVIRONMENT == "Staging":
@@ -348,7 +360,7 @@ EXPECTED_CODE = "401"
 SAVED_TOKEN = TOKEN
 TOKEN = TOKEN[4: ]+"-BAD"
 createCatalogFile("good")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TOKEN = SAVED_TOKEN
 
@@ -357,23 +369,23 @@ TOKEN = SAVED_TOKEN
 TEST_DESCRIPTION = "Negative Test - Empty Catalog File"
 EXPECTED_CODE = "500"
 createCatalogFile("empty")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #6 ========================================================================
 
-TEST_DESCRIPTION = "Negative Test - Catalog File missing DocID"
+TEST_DESCRIPTION = "Negative Test - Catalog File missing DocID tag"
 EXPECTED_CODE = "500"
 createCatalogFile("nodocid")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #7 ========================================================================
 
-TEST_DESCRIPTION = "Negative Test - Catalog File missing PatientID"
+TEST_DESCRIPTION = "Negative Test - Catalog File missing PatientID tag"
 EXPECTED_CODE = "500"
 createCatalogFile("nopatientid")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #8 ========================================================================
@@ -381,7 +393,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TEST_DESCRIPTION = "Negative Test - Corrupted Catalog File - missing random tags"
 EXPECTED_CODE = "400"
 createCatalogFile("missingtags")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #9 ========================================================================
@@ -389,7 +401,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TEST_DESCRIPTION = "Negative Test - Catalog File - missing document type tag"
 EXPECTED_CODE = "400"
 createCatalogFile("missingdocumentypetag")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #10 =======================================================================
@@ -397,30 +409,59 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 TEST_DESCRIPTION = "Negative Test - Catalog File - missing file format tag"
 EXPECTED_CODE = "400"
 createCatalogFile("missingfileformatag")
-uploadDocument()
+uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #11 =======================================================================
 
 TEST_DESCRIPTION = "Negative Test - Missing Catalog File"
 EXPECTED_CODE = "400"
-createCatalogFile("nocatalogfile")
-uploadDocument()
+createCatalogFile("good")
+uploadDocument("nocatalog")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #========= CASE #12 =======================================================================
 
 TEST_DESCRIPTION = "Negative Test - Missing Document"
 EXPECTED_CODE = "400"
-createCatalogFile("nodocument")
-SAVED_DIR = DIR
-#DIR = "DOESNOTEXIST"
-uploadDocument()
+createCatalogFile("good")
+uploadDocument("nodocument")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
-DIR = SAVED_DIR
+
+#========= CASE #13 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Missing both Document and Catalog"
+EXPECTED_CODE = "400"
+createCatalogFile("good")
+uploadDocument("nodocnocat")
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #14 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Empty Catalog but good Document"
+EXPECTED_CODE = "400"
+createCatalogFile("empty")
+uploadDocument("docandcat")
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #15 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Empty Document but good Catalog"
+EXPECTED_CODE = "200"
+createCatalogFile("good")
+uploadDocument("emptydocument")
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+#========= CASE #16 =======================================================================
+
+TEST_DESCRIPTION = "Negative Test - Empty Catalog File and Document"
+EXPECTED_CODE = "400"
+createCatalogFile("empty")
+uploadDocument("emptydocument")
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 
 #==========================================================================================
 
-
+# test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
 writeReportFooter()
 emailReport()

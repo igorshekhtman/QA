@@ -1,5 +1,6 @@
 package com.apixio.qa.reporting.service;
 
+import com.apixio.qa.hive.resource.ApiResource;
 import com.apixio.qa.hive.resource.GraphiteResource;
 import com.apixio.qa.hive.resource.NagiosResource;
 import com.apixio.qa.hive.resource.QueryHiveResource;
@@ -37,5 +38,8 @@ public class ReportingService extends Service<ReportingServiceConfiguration>
         final String nagiosUsername = configuration.getNagiosConfiguration().getUsername();
         final String nagiosPassword = configuration.getNagiosConfiguration().getPassword();
         environment.addResource(new NagiosResource(nagiosUrl, nagiosUsername, nagiosPassword));
+        
+        final String apiUrl = configuration.getApiConfiguration().getUrl();
+        environment.addResource(new ApiResource(apiUrl));
     }
 }

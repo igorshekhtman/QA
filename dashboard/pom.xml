@@ -5,7 +5,17 @@
 	<artifactId>hive-query-web</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>apixio-hive-query-web</name>
-	<dependencies>
+	<dependencies>	
+		<dependency>
+			<groupId>apixio</groupId>
+			<artifactId>apixio-model</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1.2</version>
+		</dependency>
 		<dependency>
 			<groupId>com.yammer.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>

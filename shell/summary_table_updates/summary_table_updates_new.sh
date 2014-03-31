@@ -67,6 +67,7 @@ echo " "
 day=$scurDay
 month=$scurMonth
 dateRange="(month=$curMonth and day=$curDay)"
+# dateRange="(month=$curMonth and day=30)"
 
 #===========================================================
 #===========================================================
@@ -140,7 +141,7 @@ and ($dateRange);
 insert overwrite table summary_docreceiver_seqfile_post partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.submit.post.path') as seqfile_path,
+regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
 cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
@@ -158,8 +159,8 @@ and ($dateRange);
 insert overwrite table summary_coordinator_workrequest partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.work.sourcedir') as source_dir,
-regexp_replace(get_json_object(line, '$.work.filesmoved'), concat(get_json_object(line, '$.work.sourcedir'),'/'), '') as seqfile,
+regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) as source_dir,
+regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
 get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.context.batchID') as batch_id,
 get_json_object(line, '$.work.workID') as work_id,
