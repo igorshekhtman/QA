@@ -375,7 +375,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 #========= CASE #6 ========================================================================
 
 TEST_DESCRIPTION = "Negative Test - Catalog File missing DocID tag"
-EXPECTED_CODE = "500"
+EXPECTED_CODE = "200"
 createCatalogFile("nodocid")
 uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
@@ -383,7 +383,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 #========= CASE #7 ========================================================================
 
 TEST_DESCRIPTION = "Negative Test - Catalog File missing PatientID tag"
-EXPECTED_CODE = "500"
+EXPECTED_CODE = "200"
 createCatalogFile("nopatientid")
 uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
@@ -399,7 +399,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
 #========= CASE #9 ========================================================================
 
 TEST_DESCRIPTION = "Negative Test - Catalog File - missing document type tag"
-EXPECTED_CODE = "400"
+EXPECTED_CODE = "200"
 createCatalogFile("missingdocumentypetag")
 uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
