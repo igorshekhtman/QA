@@ -57,6 +57,7 @@ FILES=""
 
 SENDER="donotreply@apixio.com"
 RECEIVERS="ishekhtman@apixio.com"
+REPORT_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 # RECEIVERS="eng@apixio.com"
 #
 #================================ DONE ASSIGNING GLOBAL VARIABLES =======================================================================================
@@ -64,8 +65,10 @@ RECEIVERS="ishekhtman@apixio.com"
 
 def checkEnvironment():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	# Arg1 - environment
+	# Arg2 - report recepient
 	global USERNAME, ORGID, PASSWORD, HOST, BATCHID, TOKEN_URL, UPLOAD_URL
-	global BATCH, DRBATCH, MANIFEST_FILENAME
+	global BATCH, DRBATCH, MANIFEST_FILENAME, RECEIVERS, REPORT_RECEIVERS
 	global ENVIRONMENT
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 		USERNAME="apxdemot0138"
@@ -84,8 +87,18 @@ def checkEnvironment():
 	BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	MANIFEST_FILENAME=BATCH+"_manifest.txt"
+	
+	if (len(sys.argv) > 2):
+		RECEIVERS=str(sys.argv[2])
+		REPORT_RECEIVERS="""To: Igor <%s>\n""" % str(sys.argv[2])
+	else:
+		RECEIVERS="ishekhtman@apixio.com"
+		REPORT_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+	
 	print ("ENVIRONMENT = %s") % ENVIRONMENT
-	time.sleep(2)
+	print ("RECEIVERS = %s") % RECEIVERS
+	print ("REPORT_RECEIVERS = %s") % REPORT_RECEIVERS
+	time.sleep(15)
 	
 
 
@@ -270,7 +283,8 @@ def writeReportHeader():
 	print ("Begin writing report ...\n")
 	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
 	# REPORT = REPORT + """To: Engineering <eng@apixio.com>\n"""
-	REPORT = REPORT + """To: Igor <ishekhtman@apixio.com>\n"""
+	# REPORT = REPORT + """To: Igor <ishekhtman@apixio.com>\n"""
+	REPORT = REPORT + REPORT_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
 	REPORT = REPORT + """Subject: %s %s Report %s - %s
