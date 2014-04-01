@@ -143,9 +143,9 @@ for C in range(0, DAYSBACK):
 			CURDAY=30
 		else: 
 			if ( CURMONTH == 2 ):
-				curDay=28
+				CURDAY=28
 			else:
-				curDay=31
+				CURDAY=31
 			
 #============ adjust day and month of the report =================================================================
 
@@ -157,7 +157,9 @@ print ("MONTH: %s") % MONTH
 print ("YEAR: %s") % YEAR
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("CUR_TIME = %s") % CUR_TIME
-# time.sleep(10)
+
+#print ("waiting for 60 sec")
+#time.sleep(60)
 
 #===================== ORGID - ORGNAME MAP ========================================================================
 # ORGID="10000247"
