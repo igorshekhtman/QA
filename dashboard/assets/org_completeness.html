@@ -87,29 +87,44 @@
             		 
             		 orgHtml = orgHtml + "<li>";
             		 
-            		 var org_details = "\
-                         <table border='1' class='success'> \
-                         <tr><th>Org Name (Org Id)</th><th>Successful archives</th><th>Successful Uploads to Pipeline</th><th>Sent To OCR</th><th>Sent To Persist</th><th>OCRed</th><th>Persisted</th><th>Verified Persistence</th><th>Pending Parser documents</th><th>Pending Persist documents</th><th>Pending OCR documents</th></tr>\
+            		 var successDiv = "\
+                         <table class='success'> \
+                         <tr><th>Org Name (Org Id)</th><th>Successful archives</th><th>Successful Uploads to Pipeline</th><th>Sent To OCR</th><th>Sent To Persist</th><th>OCRed</th><th>Persisted</th><th>Verified Persistence</th></tr>\
                          <tr>\
                          <td>{{org_name}} ({{org_id}})</td>\
-                         <td align='center'>{{archivedToS3_count}}</td>\
-                         <td align='center'>{{upload_count}}</td>\
-                         <td align='center'>{{sent_to_ocr}}</td>\
-                         <td align='center'>{{sent_to_persist}}</td>\
-                         <td align='center'>{{ocr_success_count}}</td>\
-                         <td align='center'>{{persist_success_count}}</td>\
-                         <td align='center'>{{verified_count}}</td>\
-                         <td align='center' class='notice'>{{pending_parsers}}</td>\
-                         <td align='center' class='notice'>{{pending_ocrs}}</td>\
-                         <td align='center' class='notice'>{{pending_persists}}</td>\
+                         <td>{{archivedToS3_count}}</td>\
+                         <td>{{upload_count}}</td>\
+                         <td>{{sent_to_ocr}}</td>\
+                         <td>{{sent_to_persist}}</td>\
+                         <td>{{ocr_success_count}}</td>\
+                         <td>{{persist_success_count}}</td>\
+                         <td>{{verified_count}}</td>\
                          </tr>\
                          </table>\
                          ";
      
-                         orgHtml = orgHtml + Mustache.render(org_details, data);
+                         orgHtml = orgHtml + Mustache.render(successDiv, data);
                          
                          var chartId = 'chart'+n;
                          orgHtml = orgHtml + "<div id='"+chartId+"'></div><br/>";
+                         
+                     var pendingObj = processPendingDocuments(data);
+                     pendingObj.org_name = data.org_name;
+                     pendingObj.org_id = data.org_id;
+                     pendingObj.pending_parsers = data.pending_parsers;
+                     pendingObj.pending_ocrs = data.pending_ocrs;
+                     pendingObj.pending_persists = data.pending_persists;
+                     
+                     var pendingDiv = "<table class='notice'> \
+                	     <tr><th>Org Name (Org Id)</th><th>Documents in docreceiver's queue</th><th>Pending Parser documents</th><th>Pending Persist documents</th><th>Pending OCR documents</th>\
+                	     <tr><td>{{org_name}}({{org_id}})</td>\
+                	     <td>Total:<b>{{total}}</b> (No. of Seq files: <b>{{totalSeqFiles}}</b>)<br/><b>Details:</b><br/>{{#pendingGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Since: {{since}}<br/>{{/pendingGroup}}</td>\
+                	     <td>{{pending_parsers}}</td>\
+                         <td>{{pending_ocrs}}</td>\
+                         <td>{{pending_persists}}</td></tr>\
+                	     ";       
+                         
+                         orgHtml = orgHtml + Mustache.render(pendingDiv, pendingObj);
                          
                          var errorObj = new Object();
                          
@@ -236,6 +251,26 @@
         	   else {
         		   return {};
         	   }
+           }
+           
+           function processPendingDocuments(data) {
+        	   var pendingObj = new Object();
+        	   var drqArray = new Array();
+        	   var i = 0;
+        	   var total = 0;
+        	   if (data.docreceiver_queue_count != undefined){
+        		   $.each(data.docreceiver_queue_count, function(key, value){
+                       drqArray[i] = {"seqfile":key,"doc_count":value.doc_count, "since":value.last_updated};
+                       if (value.doc_count != undefined)
+                           total = total + value.doc_count;
+                       i ++;
+                   });
+                   pendingObj.total = total;
+                   pendingObj.pendingGroup = drqArray;
+                   pendingObj.totalSeqFiles = i;
+        	   }
+        	   
+        	   return pendingObj;
            }
            
            function calculateMissingDocuments(data, errorDetails) {
