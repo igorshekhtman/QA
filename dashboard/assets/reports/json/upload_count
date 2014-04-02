@@ -14,10 +14,11 @@
 {"org_id":"10000286","doc_count":0}
 {"org_id":"10000232","_c3":"Error Recovery for block blk_-4380119000762146085_7131516 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","status":"error","doc_count":1}
 {"org_id":"10000262","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":97815}
-{"org_id":"10000262","status":"success","doc_count":15661514}
+{"org_id":"10000262","status":"success","doc_count":15796404}
 {"org_id":"10000263","status":"error","doc_count":1}
 {"org_id":"10000271","status":"success","doc_count":12}
 {"org_id":"10000278","doc_count":0}
+{"org_id":"10000279","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":7}
 {"org_id":"10000280","status":"success","doc_count":3}
 {"org_id":"10000285","status":"success","doc_count":366206}
 {"org_id":"99","status":"success","doc_count":30198}
@@ -32,14 +33,15 @@
 {"org_id":"10000262","_c3":"Too many open files","status":"error","doc_count":22928}
 {"org_id":"10000263","_c3":"Error Recovery for block blk_-7017959224168418697_7131594 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1}
 {"org_id":"10000263","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":5469}
-{"org_id":"10000263","status":"success","doc_count":1917227}
+{"org_id":"10000263","status":"success","doc_count":1975764}
 {"org_id":"10000268","status":"success","doc_count":24}
 {"org_id":"10000272","status":"success","doc_count":5}
+{"org_id":"10000279","doc_count":0}
 {"org_id":"10000281","status":"success","doc_count":4}
 {"org_id":"10000286","status":"success","doc_count":1936298}
 {"org_id":"10000232","status":"success","doc_count":756546}
 {"org_id":"10000250","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":17083}
-{"org_id":"10000250","status":"success","doc_count":187576}
+{"org_id":"10000250","status":"success","doc_count":190296}
 {"org_id":"10000262","_c3":"Batch not active: 10000262_backload","status":"error","doc_count":38}
 {"org_id":"10000262","_c3":"Bogus: 10000262/10000262_backload/null/null","status":"error","doc_count":86}
 {"org_id":"10000262","_c3":"Call to ip-10-199-6-149.us-west-1.compute.internal/10.199.6.149:8020 failed on local exception: java.io.IOException: Couldn't set up IO streams","status":"error","doc_count":2507}
@@ -52,6 +54,8 @@
 {"org_id":"10000262","_c3":"batchId does not exist: 10000262_backload_1394232937350","status":"error","doc_count":1}
 {"org_id":"10000278","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":182}
 {"org_id":"10000278","status":"success","doc_count":1334590}
+{"org_id":"10000279","status":"error","doc_count":6}
+{"org_id":"10000279","_c3":"Catalog file is empty","status":"error","doc_count":12}
 {"org_id":"10000282","status":"success","doc_count":32}
 {"org_id":"10000285","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":11471}
 {"org_id":"219","status":"success","doc_count":2057}
@@ -63,7 +67,7 @@
 {"org_id":"10000262","_c3":"File too large, limit: 52428800","status":"error","doc_count":10754}
 {"org_id":"10000265","status":"success","doc_count":12}
 {"org_id":"10000278","_c3":"Error Recovery for block blk_6753559658245079208_6978621 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1}
-{"org_id":"10000279","status":"success","doc_count":391}
+{"org_id":"10000279","status":"success","doc_count":426}
 {"org_id":"10000283","status":"success","doc_count":277889}
 {"org_id":"10000285","doc_count":0}
 {"org_id":"10000286","_c3":"Error Recovery for block blk_5361815383046928285_7448916 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":97716}
