@@ -25,42 +25,66 @@ os.system('clear')
 QNTORUN=1
 
 # Run one or all queries
-PROCESS_ALL_QUERIES=bool(1)
+PROCESS_ALL_QUERIES=bool(0)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
-
-
-# Environment for SanityTest is passed as a paramater. Staging is a default value
-if len(sys.argv) < 2:
-	ENVIRONMENT="Staging"
-else:
-	ENVIRONMENT=str(sys.argv[1])
-
-
-if (ENVIRONMENT.upper() == "PRODUCTION"):
-	USERNAME="apxdemot0138"
-	ORGID="10000279"
-	PASSWORD="Hadoop.4522"
-	HOST="https://dr.apixio.com:8443"
-else:
-	USERNAME="apxdemot0182"
-	ORGID="190"
-	PASSWORD="Hadoop.4522"
-	HOST="https://supload.apixio.com:8443"
-	
-
-ENVIRONMENT = "Production"
 LOGTYPE = "epoch"
+SENDER="donotreply@apixio.com"
+REPORT=""
 
-print ("Version 1.0.0")
-print ("ENVIRONMANT = %s") % ENVIRONMENT
-print ("LOGTYPE = %s") % LOGTYPE
+PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
+
+# =======================================================================================================================================================================
+
+def checkPassedArguments():
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	# Arg1 - environment
+	# Arg2 - report recepient
+	global RECEIVERS, HTML_RECEIVERS
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	print ("Setting environment ...\n")
+	if len(sys.argv) < 2:
+		ENVIRONMENT="Staging"
+	else:
+		ENVIRONMENT=str(sys.argv[1])
+
+	if (ENVIRONMENT.upper() == "PRODUCTION"):
+		USERNAME="apxdemot0138"
+		ORGID="10000279"
+		PASSWORD="Hadoop.4522"
+		HOST="https://dr.apixio.com:8443"
+	else:
+		USERNAME="apxdemot0182"
+		ORGID="190"
+		PASSWORD="Hadoop.4522"
+		HOST="https://supload.apixio.com:8443"
+	
+	if (len(sys.argv) > 2):
+		RECEIVERS=str(sys.argv[2])
+		HTML_RECEIVERS="""To: Igor <%s>\n""" % str(sys.argv[2])
+	elif (len(sys.argv) < 3) or DEBUG_MODE:
+		RECEIVERS="ishekhtman@apixio.com"
+		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+
+				
+	# overwite any previous ENVIRONMENT settings
+	ENVIRONMENT = "Production"
+	print ("Version 1.0.1\n")
+	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
+	print ("Completed setting of enviroment and report receivers ...\n")
+	
+checkPassedArguments()
+	
+	
 
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
@@ -226,40 +250,26 @@ def test(debug_type, debug_msg):
 
 #========================================================================================================================================================
 
+def printReportHeader ():
+	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
+	print ("Begin writing report header...\n")
+	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	REPORT = REPORT + HTML_RECEIVERS
+	REPORT = REPORT + """MIME-Version: 1.0\n"""
+	REPORT = REPORT + """Content-type: text/html\n"""
+	REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
 
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
-
-# =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
-
-SENDER="donotreply@apixio.com"
-if DEBUG_MODE:
-	RECEIVERS="ishekhtman@apixio.com"
-else:
-	RECEIVERS="eng@apixio.com"
-
-
-REPORT = "From: Apixio QA <QA@apixio.com>\n"
-if DEBUG_MODE:
-	REPORT = REPORT + "To: Igor <ishekhtman@apixio.com>\n"
-else:
-	REPORT = REPORT + "To: Engineering <eng@apixio.com>\n"	
-
-
-REPORT = REPORT + """MIME-Version: 1.0
-Content-type: text/html
-Subject: Daily %s Pipeline QA Report - %s
-
-<h1>Apixio Pipeline QA Report</h1>
-Date & Time (run): <b>%s</b><br>
-Date (logs & queries): <b>%s/%s/%s</b><br>
-Report type: <b>%s</b><br>
-Enviromnent: <b>%s</b><br>
-OrgID: <b>%s</b><br>
-BatchID: <b>%s</b><br>
-User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, YEAR, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+	REPORT = REPORT + """<h1>Apixio %s Pipeline QA Report</h1>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
+	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """OrgID: <b>%s</b><br>\n""" % (ORGID)
+	REPORT = REPORT + """BatchID: <b>%s</b><br>\n""" % (BATCHID)
+	REPORT = REPORT + """User name: <b>%s</b><br><br>\n""" % (USERNAME)
+	print ("End writing report header...\n")
+	
+printReportHeader()	
 
 
 conn = pyhs2.connect(host='10.196.47.205',
