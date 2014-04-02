@@ -101,7 +101,7 @@
                          missingDocsData.abandoned_docs = data.abandoned_docs;
                          
                          var missingDocsDiv = "<table class='fatal'>\
-                        	                   <tr><th>Org Name (Org Id)</th><th>Documents abandoned</th><th>Documents Not submitted to Coordinator yet</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
+                        	                   <tr><th>Org Name (Org Id)</th><th>Documents abandoned</th><th>Documents not seen by parser</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
                         	                   <tr><td>{{org_name}} ({{org_id}})</td><td>Total: <b>{{documentsAbandoned.total}}</b>(No. of Seq files: <b>{{documentsAbandoned.totalSeqFiles}}</b>)<br/><b>Details:</b><br/>{{#documentsAbandoned.abGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Posted On: {{since}}<br/>{{/documentsAbandoned.abGroup}}</td>\
                         	                   <td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
                         	                   ";
