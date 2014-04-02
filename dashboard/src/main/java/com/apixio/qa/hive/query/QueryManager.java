@@ -177,7 +177,7 @@ public class QueryManager
             if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("parser"))
                 orgObject.put("failed_parsers", doc_count);
             else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("persist"))
-                orgObject.put("failed_persists", result.get("sent_to_persist_count"));
+                orgObject.put("failed_persists", (result.get("sent_to_persist_count").equals(0)?result.get("ocr_count"):result.get("sent_to_persist_count")));
             else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("ocr"))
                 orgObject.put("failed_ocrs", result.get("sent_to_ocr_count"));
         }
