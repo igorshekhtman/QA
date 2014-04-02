@@ -1,6 +1,8 @@
 package com.apixio.qa.hive.resource;
 
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -9,7 +11,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -21,8 +26,11 @@ import com.apixio.qa.hive.manager.DocumentCountManager;
 import com.apixio.qa.hive.query.QueryConfig;
 import com.apixio.qa.hive.query.QueryHandler;
 import com.apixio.qa.hive.query.QueryManager;
+import com.apixio.qa.hive.query.generated.Queries;
 import com.apixio.qa.hive.query.generated.Queries.Group;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
+import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery.Param;
+import com.apixio.qa.hive.query.generated.Queries.Query;
 import com.google.common.base.Optional;
 import com.yammer.metrics.annotation.Timed;
 
@@ -165,6 +173,30 @@ public class QueryHiveResource
         }
         catch (Exception ex)
         {
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/query/{environment}/{queryName}")
+    @Timed
+    public String runQuery(@PathParam("environment") String environment, @PathParam("queryName") String queryName, @Context UriInfo uriInfo)
+    {
+        try
+        {
+            if (queryName != null)
+            {
+                QueryHandler qh = new QueryHandler(hiveAddress);
+                List<JSONObject> results = qh.runQuery(queryName, uriInfo.getQueryParameters());
+                if (results == null)
+                    return "Error while trying to execute the query "+queryName+". Please make sure that query exists in queries.xml file";
+                return results.toString();
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
             return ex.toString();
         }
     }

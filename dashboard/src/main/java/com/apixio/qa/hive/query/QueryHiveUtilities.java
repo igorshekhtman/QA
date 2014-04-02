@@ -1,9 +1,62 @@
-package com.apixio.qa.hive;
+package com.apixio.qa.hive.query;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang.StringUtils;
 
-public class QueryHiveUtilities {
-
+public class QueryHiveUtilities 
+{
+    public static String addUserParamsToWhereClause(String queryStr, MultivaluedMap<String,String> conditions)
+    {
+        String uParamsPlaceHolder = "and {userParams}";
+        if (queryStr != null && queryStr.indexOf(uParamsPlaceHolder) != -1)
+        {
+            String addedParams = "";
+            if (conditions != null)
+            {
+                Iterator<String> keySet = conditions.keySet().iterator();
+                while (keySet.hasNext())
+                {
+                    String key = keySet.next();
+                    List<String> values = conditions.get(key);
+                    
+                    List<String> processedList = new ArrayList<String>();
+                    for (String value : values)
+                    {
+                        processedList.addAll(Arrays.asList(value.split(",")));
+                    }
+                    
+                    if (processedList.size() == 1)
+                    {
+                        //Only one value. So do "equals" query.
+                        addedParams += " and "+ key + " = '" + processedList.get(0) + "'";
+                    }
+                    else if (processedList.size() > 1)
+                    {
+                        //More than one value. So do "in" query.
+                        addedParams += " and "+ key + " in (";
+                        for (int i = 0; i < processedList.size(); i++)
+                        {
+                            if (i != 0)
+                                addedParams += ",";
+                            addedParams += "'"+processedList.get(i)+"'";
+                        }
+                        addedParams += ")";
+                    }
+                }
+            }
+            
+            return queryStr.replaceAll(Pattern.quote(uParamsPlaceHolder), addedParams);
+        }
+        return queryStr;
+    }
+    
     public static String addtoWhereClause(String whereClause, String clause)
     {
         if (!StringUtils.isBlank(clause))

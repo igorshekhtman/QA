@@ -1,5 +1,6 @@
 package com.apixio.qa.hive.query;
 
+import java.awt.print.Paper;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,7 +8,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -36,6 +41,21 @@ public class QueryHandler
         String queryText = query.getText();
         
         return queryHive(queryToRun.getParam(), queryText);
+    }
+    
+    public List<JSONObject> runQuery(String queryName, MultivaluedMap<String,String> queryParams) throws SQLException, JSONException
+    {
+        Query query = QueryConfig.getQuery(queryName);
+        
+        if (query != null)
+        {
+            String queryText = query.getText();
+            
+            String modifiedQuery = QueryHiveUtilities.addUserParamsToWhereClause(queryText, queryParams);
+            
+            return queryHive(new ArrayList<Param>(), modifiedQuery);
+        }
+        return null;
     }
     
     public static void main(String[] args)

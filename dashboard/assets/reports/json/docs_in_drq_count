@@ -29,6 +29,7 @@
 {"org_id":"10000250","seqfile_file":"file_1393978265263.apxseq","doc_count":96,"updated_time":"2014-03-06T12:19:04.246Z"}
 {"org_id":"10000250","seqfile_file":"file_1394232932282.apxseq","doc_count":32,"updated_time":"2014-03-09T11:08:45.987Z"}
 {"org_id":"10000250","seqfile_file":"file_1395184922853.apxseq","doc_count":1,"updated_time":"2014-03-31T08:26:01.699Z"}
+{"org_id":"10000250","seqfile_file":"file_1396378240448.apxseq","doc_count":24,"updated_time":"2014-04-01T18:52:13.948Z"}
 {"org_id":"10000259","seqfile_file":"file_1386204879910.apxseq","doc_count":1,"updated_time":"2013-12-05T00:58:04.472Z"}
 {"org_id":"10000259","seqfile_file":"file_1386221529066.apxseq","doc_count":823,"updated_time":"2014-01-15T19:14:04.788Z"}
 {"org_id":"10000259","seqfile_file":"file_1389815554773.apxseq","doc_count":81,"updated_time":"2014-01-16T01:05:56.498Z"}
@@ -155,8 +156,16 @@
 {"org_id":"10000262","seqfile_file":"file_1394232938887.apxseq","doc_count":27,"updated_time":"2014-03-18T19:12:30.151Z"}
 {"org_id":"10000262","seqfile_file":"file_1394232938888.apxseq","doc_count":80,"updated_time":"2014-03-18T19:14:06.711Z"}
 {"org_id":"10000262","seqfile_file":"file_1394232938917.apxseq","doc_count":16,"updated_time":"2014-03-18T23:20:42.499Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922854.apxseq","doc_count":543,"updated_time":"2014-03-31T14:07:04.360Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922855.apxseq","doc_count":458,"updated_time":"2014-03-31T14:11:57.405Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922857.apxseq","doc_count":439,"updated_time":"2014-03-31T16:46:17.113Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922858.apxseq","doc_count":508,"updated_time":"2014-03-31T16:52:10.276Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922859.apxseq","doc_count":54,"updated_time":"2014-03-31T16:53:11.650Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922860.apxseq","doc_count":438,"updated_time":"2014-03-31T18:15:17.887Z"}
+{"org_id":"10000262","seqfile_file":"file_1395184922861.apxseq","doc_count":4186,"updated_time":"2014-03-31T18:45:30.311Z"}
 {"org_id":"10000262","seqfile_file":"file_1395184922862.apxseq","doc_count":125,"updated_time":"2014-03-31T18:47:26.653Z"}
 {"org_id":"10000262","seqfile_file":"file_1395184922863.apxseq","doc_count":1,"updated_time":"2014-03-31T21:32:54.809Z"}
+{"org_id":"10000262","seqfile_file":"file_1396378240458.apxseq","doc_count":4,"updated_time":"2014-04-01T22:42:13.561Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528852.apxseq","doc_count":6365,"updated_time":"2014-01-14T10:22:07.567Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528880.apxseq","doc_count":6328,"updated_time":"2014-01-14T19:33:16.410Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528886.apxseq","doc_count":6387,"updated_time":"2014-01-14T20:04:00.293Z"}
@@ -198,6 +207,8 @@
 {"org_id":"10000263","seqfile_file":"file_1391046905090.apxseq","doc_count":324,"updated_time":"2014-01-30T02:02:34.781Z"}
 {"org_id":"10000263","seqfile_file":"file_1391047369096.apxseq","doc_count":101,"updated_time":"2014-01-30T19:15:16.062Z"}
 {"org_id":"10000263","seqfile_file":"file_1391109916736.apxseq","doc_count":171,"updated_time":"2014-01-30T20:12:34.659Z"}
+{"org_id":"10000263","seqfile_file":"file_1395184922856.apxseq","doc_count":12,"updated_time":"2014-03-31T16:01:00.789Z"}
+{"org_id":"10000263","seqfile_file":"file_1395184922866.apxseq","doc_count":24,"updated_time":"2014-04-01T16:18:27.193Z"}
 {"org_id":"10000278","seqfile_file":"file_1386204879906.apxseq","doc_count":145,"updated_time":"2013-12-05T00:58:19.115Z"}
 {"org_id":"10000278","seqfile_file":"file_1386221527115.apxseq","doc_count":308,"updated_time":"2013-12-10T08:24:57.461Z"}
 {"org_id":"10000278","seqfile_file":"file_1386221527971.apxseq","doc_count":1,"updated_time":"2013-12-19T11:26:39.710Z"}

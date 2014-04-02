@@ -1,63 +1,5 @@
 <html>
 
-<style>
-.bullet {
-	font: 10px sans-serif;
-}
-
-.bullet .marker {
-	stroke: #000;
-	stroke-width: 2px;
-}
-
-.bullet .tick line {
-	stroke: #666;
-	stroke-width: .5px;
-}
-
-.bullet .range.s0 {
-	fill: #ddd;
-}
-
-.bullet .range.s1 {
-    fill: #E9D98F;
-}
-
-.bullet .measure.s0 {
-	fill: green;
-}
-
-.bullet .measure.s1 {
-	fill: steelblue;
-}
-
-.bullet .measure.s2 {
-	fill: orange;
-}
-
-.bullet .measure.s3 {
-	fill: lightsteelblue;
-}
-
-.bullet .title {
-	font-size: 14px;
-	font-weight: bold;
-}
-
-.bullet .subtitle {
-	fill: #999;
-}
-
-.alternate.s0 {
-    border-color: #003478;
-    border: 1;
-}
-.alternate.s1 {
-    border-color: #58A618;
-    border: 1;
-}
-</style>
-
 <head>
 <title>Apixio Hive Dashboard</title>
 <script src="//code.jquery.com/jquery-1.9.1.js"></script>
@@ -65,7 +7,9 @@
 <script src="mustache.js"></script>
 <script src="d3.v3.min.js"></script>
 <script src="bullet.js"></script>
+<script src="org_completeness.js"></script>
 <link rel="stylesheet" href="cat.css" type="text/css" />
+<link rel="stylesheet" href="bullet_chart.css" type="text/css" />
 
 <script>
         //------------Fetching data script---------------
@@ -158,13 +102,13 @@
                          
                          var missingDocsDiv = "<table class='fatal'>\
                         	                   <tr><th>Org Name (Org Id)</th><th>Documents abandoned</th><th>Documents Not submitted to Coordinator yet</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
-                        	                   <tr><td>{{org_name}} ({{org_id}})</td><td>{{abandoned_docs}}</td><td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
+                        	                   <tr><td>{{org_name}} ({{org_id}})</td><td>Total: <b>{{documentsAbandoned.total}}</b>(No. of Seq files: <b>{{documentsAbandoned.totalSeqFiles}}</b>)<br/><b>Details:</b><br/>{{#documentsAbandoned.abGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Posted On: {{since}}<br/>{{/documentsAbandoned.abGroup}}</td>\
+                        	                   <td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
                         	                   ";
                          
                          orgHtml = orgHtml + Mustache.render(missingDocsDiv, missingDocsData);
                          
                          orgHtml = orgHtml + "</li>";
-                         
             		}); 
             	 
             	 orgHtml = orgHtml + "</ul>";
@@ -201,132 +145,6 @@
             	 });
               }); 
              
-           function constructChartJson(data) {
-        	   var jsonStr = "";
-        	   var sentToOcr = data.sent_to_ocr;
-        	   var sentToPersist = data.sent_to_persist;
-        	   var persisted = data.persist_success_count;
-        	   var persistVerified = data.verified_count;
-        	   var ocr = data.ocr_success_count;
-        	   var uploadRange = data.upload_count;
-        	   var ocrRange = data.sent_to_ocr;
-        	   
-        	   if (sentToOcr == undefined)
-        		   sentToOcr = 0;
-        	   if (sentToPersist == undefined)
-        		   sentToPersist = 0;
-        	   if (persisted == undefined)
-        		   persisted = 0;
-        	   if (persistVerified == undefined)
-        		   persistVerified = 0;
-        	   if (ocr == undefined)
-        		   ocr = 0;
-        	   if (uploadRange == undefined)
-        		   uploadRange = 0;
-        	   if (ocrRange == undefined)
-        		   ocrRange = 0;
-        	   
-        	   jsonStr = [{"title":data.org_name,"subtitle":data.org_id,"measures":[persistVerified,persisted,ocr,sentToOcr+sentToPersist],"ranges":[uploadRange,sentToOcr],"markers":[uploadRange]}];
-        	   
-        	   return jsonStr;
-           }  
-           
-           function processErrors(errors) {
-        	   if (errors != undefined) {
-        		   var errorDetails = new Object();
-        		   var errorArr = new Array();
-        		   var i = 0;
-        		   var total = 0;
-        		   $.each(errors, function(key, value){
-                       errorArr[i] = {"error_msg":key,"count":value};
-                       total = total + value;
-                       i ++;
-                    });
-        		   
-        		   errorDetails.errorGroup = errorArr;
-        		   errorDetails.total = total;
-        		   
-        		   return errorDetails;
-        	   }
-        	   else {
-        		   return {};
-        	   }
-           }
-           
-           function processPendingDocuments(data) {
-        	   var pendingObj = new Object();
-        	   var drqArray = new Array();
-        	   var i = 0;
-        	   var total = 0;
-        	   if (data.docreceiver_queue_count != undefined){
-        		   $.each(data.docreceiver_queue_count, function(key, value){
-                       drqArray[i] = {"seqfile":key,"doc_count":value.doc_count, "since":value.last_updated};
-                       if (value.doc_count != undefined)
-                           total = total + value.doc_count;
-                       i ++;
-                   });
-                   pendingObj.total = total;
-                   pendingObj.pendingGroup = drqArray;
-                   pendingObj.totalSeqFiles = i;
-        	   }
-        	   
-        	   return pendingObj;
-           }
-           
-           function calculateMissingDocuments(data, errorDetails) {
-        	   var missingDocs = new Object();
-        	   var sentToOcr = data.sent_to_ocr;
-               var sentToPersist = data.sent_to_persist;
-               var persisted = data.persist_success_count;
-               var ocr = data.ocr_success_count;
-               var uploaded = data.upload_count;
-               var pendingParsers = data.pending_parsers;
-               var pendingPersists = data.pending_persists;
-               var pendingOcrs = data.pending_ocrs;
-               var errorParsers = errorDetails.parser_errors.total;
-               var errorPersists = errorDetails.persist_errors.total;
-               var errorOcrs = errorDetails.ocr_errors.total;
-               var failedParsers = data.failed_parsers;
-               var failedPersists = data.failed_persists;
-               var failedOcrs = data.failed_ocrs;
-               
-               if (sentToOcr == undefined)
-                   sentToOcr = 0;
-               if (sentToPersist == undefined)
-                   sentToPersist = 0;
-               if (persisted == undefined)
-                   persisted = 0;
-               if (ocr == undefined)
-                   ocr = 0;
-               if (uploaded == undefined)
-            	   uploaded = 0;
-               if (pendingParsers == undefined)
-            	   pendingParsers = 0;
-               if (pendingPersists == undefined)
-            	   pendingPersists = 0;
-               if (pendingOcrs == undefined)
-            	   pendingOcrs = 0;
-               if (failedParsers == undefined)
-            	   failedParsers = 0;
-               if (failedOcrs == undefined)
-            	   failedOcrs = 0;
-               if (failedPersists == undefined)
-            	   failedPersists = 0;
-               if (errorParsers == undefined)
-            	   errorParsers = 0;
-               if (errorOcrs == undefined)
-            	   errorOcrs = 0;
-               if (errorPersists == undefined)
-            	   errorPersists = 0;
-        	   
-        	   missingDocs.missingParser = uploaded - (sentToOcr + sentToPersist + pendingParsers + failedParsers + errorParsers);
-        	   missingDocs.missingOCR = sentToOcr - (ocr + pendingOcrs + failedOcrs + errorOcrs);
-        	   missingDocs.missingPersist = (sentToPersist + ocr) - (persisted + failedPersists + errorPersists + pendingPersists);
-        	   
-        	   missingDocs.totalDocs = missingDocs.missingParser + missingDocs.missingOCR + missingDocs.missingPersist;
-        	   return missingDocs;
-           }
-          
         </script>
 </head>
 
