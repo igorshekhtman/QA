@@ -428,6 +428,17 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.patientaccess.patient.id') is not null 
 and ($dateRange);
 
+insert overwrite table summary_careopt_errors partition (month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.message') as error_message,
+get_json_object(line, '$.loggerName') as source,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.level') = 'ERROR' 
+and ($dateRange);
 
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
 select
@@ -774,6 +785,7 @@ day
 from 
 staging_logs_careopt_epoch 
 where get_json_object(line, '$.level') = 'ERROR' 
+and ($dateRange);
 
 EOF
 
