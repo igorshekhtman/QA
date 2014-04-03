@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.apixio.qa.hive.query.QueryHiveUtilities;
+
 public class SummaryQueryUtilities {
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
