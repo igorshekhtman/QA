@@ -51,8 +51,8 @@ public class TestApiClient {
 				complexPaths.add("@encounter[sourceEncounter]/originalId/id");
 				complexPaths.add("@encounter[sourceEncounter]/code/displayName");
 				complexPaths.add("@source[documentContents|sourceId]/organization/name");
-				Map<String,String> complexDetails = PatientUtils.getDocumentDetails(patient, document_uuid, complexPaths);
-				System.out.println(complexDetails);
+				//Map<String,String> complexDetails = PatientUtils.getDocumentDetails(patient, document_uuid, complexPaths);
+				//System.out.println(complexDetails);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

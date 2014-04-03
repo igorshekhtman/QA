@@ -46,9 +46,9 @@
 		    	var patient_uuid = $( "#patient_uuid" ).val();
 		    	var document_uuid = $( "#document_uuid" ).val();
 		    	
-    			var url = "/api/document/details";
+    			var url = "/api/document/detail";
 		    	var params = "username="+username+"&password="+password+"&patient_uuid="+patient_uuid+"&document_uuid="+document_uuid;
-		    	params = "username=rmc_hcc@apixio.com&password=8p1rmc19..&patient_uuid=00018d04-3fce-4178-bd07-8aeb1ab6402c&document_uuid=fd199416-6a40-414f-9470-72547d153c7c";
+		    	//params = "username=rmc_hcc@apixio.com&password=8p1rmc19..&patient_uuid=00018d04-3fce-4178-bd07-8aeb1ab6402c&document_uuid=067aa312-839d-4a27-a255-fc69c2714110";
    				$.get(url, params).done(function( values ) {
 		    		console.log(values);
 		 			$("#documentDetails").html(Mustache.render(document_details, values));
