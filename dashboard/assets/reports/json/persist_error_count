@@ -8,6 +8,7 @@
 {"org_id":"10000262","status":"error","error_message":"Java heap space","doc_count":11}
 {"org_id":"10000262","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: no keyspace has been specified","doc_count":7}
 {"org_id":"10000263","status":"error","error_message":"Java heap space","doc_count":1}
+{"org_id":"10000263","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: no keyspace has been specified","doc_count":1}
 {"org_id":"10000265","status":"error","error_message":"Property: trace_datastore_folder is not found for this user:hccdemomvp","doc_count":12}
 {"org_id":"10000285","status":"error","error_message":"Could not compute document key.","doc_count":251873}
 {"org_id":"10000286","status":"error","error_message":"Java heap space","doc_count":1}

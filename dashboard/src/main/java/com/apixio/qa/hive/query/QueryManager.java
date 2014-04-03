@@ -177,9 +177,57 @@ public class QueryManager
             if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("parser"))
                 orgObject.put("failed_parsers", doc_count);
             else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("persist"))
-                orgObject.put("failed_persists", result.get("sent_to_persist_count"));
+                orgObject.put("failed_persists", (result.get("sent_to_persist_count").equals(0)?result.get("ocr_count"):result.get("sent_to_persist_count")));
             else if (result.has("activity") && result.get("activity").toString().equalsIgnoreCase("ocr"))
                 orgObject.put("failed_ocrs", result.get("sent_to_ocr_count"));
+        }
+        else if (typeOfResults.equalsIgnoreCase("docs_in_drq_count"))
+        {
+            JSONObject seqFileObject = new JSONObject();
+            if (result.has("seqfile_file"))
+            {
+                String seqFileName = result.get("seqfile_file").toString();
+                JSONObject seqFileDetails = new JSONObject();
+                if (orgObject.has("docreceiver_queue_count"))
+                {
+                    seqFileObject = (JSONObject)orgObject.get("docreceiver_queue_count");
+                }
+                if (seqFileObject.has(seqFileName))
+                {
+                    seqFileDetails = (JSONObject)seqFileObject.get(seqFileName);
+                }
+                
+                seqFileDetails.put("doc_count", seqFileDetails.has("doc_count")?
+                        (((Integer)seqFileDetails.get("doc_count"))+doc_count):doc_count);
+                seqFileDetails.put("last_updated", (result.has("updated_time")?result.get("updated_time"):""));
+                seqFileObject.put(seqFileName, seqFileDetails);
+            }
+            
+            orgObject.put("docreceiver_queue_count", seqFileObject);
+        }
+        else if (typeOfResults.equalsIgnoreCase("docs_abandoned_coordinator_count"))
+        {
+            JSONObject seqFileObject = new JSONObject();
+            if (result.has("seqfile_file"))
+            {
+                String seqFileName = result.get("seqfile_file").toString();
+                JSONObject seqFileDetails = new JSONObject();
+                if (orgObject.has("docs_abandoned_count"))
+                {
+                    seqFileObject = (JSONObject)orgObject.get("docs_abandoned_count");
+                }
+                if (seqFileObject.has(seqFileName))
+                {
+                    seqFileDetails = (JSONObject)seqFileObject.get(seqFileName);
+                }
+                
+                seqFileDetails.put("doc_count", seqFileDetails.has("doc_count")?
+                        (((Integer)seqFileDetails.get("doc_count"))+doc_count):doc_count);
+                seqFileDetails.put("posted_time", (result.has("posted_time")?result.get("posted_time"):""));
+                seqFileObject.put(seqFileName, seqFileDetails);
+            }
+            
+            orgObject.put("docs_abandoned_count", seqFileObject);
         }
         else orgObject.put(typeOfResults, doc_count);
     }

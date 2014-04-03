@@ -143,9 +143,9 @@ for C in range(0, DAYSBACK):
 			CURDAY=30
 		else: 
 			if ( CURMONTH == 2 ):
-				curDay=28
+				CURDAY=28
 			else:
-				curDay=31
+				CURDAY=31
 			
 #============ adjust day and month of the report =================================================================
 
@@ -157,7 +157,10 @@ print ("MONTH: %s") % MONTH
 print ("YEAR: %s") % YEAR
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("CUR_TIME = %s") % CUR_TIME
-# time.sleep(10)
+
+
+#print ("waiting for 60 sec")
+#time.sleep(60)
 
 #===================== ORGID - ORGNAME MAP ========================================================================
 # ORGID="10000247"
@@ -1142,9 +1145,11 @@ if not DEBUG_MODE:
 	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	# ------------- Create new folder if one does not exist already -------------------------------
 	if not os.path.exists(BACKUPREPORTFOLDER):
-    		os.makedirs(BACKUPREPORTFOLDER)	
+		os.makedirs(BACKUPREPORTFOLDER)
+		os.chmod(BACKUPREPORTFOLDER, 0777)	
 	if not os.path.exists(REPORTFOLDER):
-    		os.makedirs(REPORTFOLDER)
+		os.makedirs(REPORTFOLDER)
+		os.chmod(REPORTFOLDER, 0777)
 	# ---------------------------------------------------------------------------------------------
 	REPORTFILENAME=str(DAY)+".html"
 	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
