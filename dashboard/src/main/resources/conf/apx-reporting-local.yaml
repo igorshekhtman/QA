@@ -1,5 +1,6 @@
 applicationConfiguration:
   outputDir: C:\workspace_3\QA\dashboard\assets\reports\json\
+  manifestDir: C:\workspace_3\QA\dashboard\assets\reports\manifest\
 
 hiveConfiguration:
   url: jdbc:hive2://184.169.209.24:10000
