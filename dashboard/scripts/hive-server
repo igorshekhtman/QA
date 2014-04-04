@@ -1,0 +1,57 @@
+#! /bin/sh
+metastorepidfile="/var/run/hive-metastore.pid"
+hiveserverpidfile="/var/run/hive-server.pid"
+MPID=""
+HPID=""
+if [ -e "$metastorepidfile" ]
+then
+	MPID=$(cat $metastorepidfile)
+fi
+if [ -e "$hiveserverpidfile" ]
+then
+	HPID=$(cat $hiveserverpidfile) 
+fi
+if [ -z $1 ]
+then
+	echo "No parameter provided. Supported: start, stop"
+elif [ "$1" = "start" ]
+then
+	if [ -z $MPID ]
+	then
+		echo "Starting Hive Metastore Service"
+		nohup sh bin/hiveserver2 --service metastore > metastore.log 2>&1 &
+		echo $! > $metastorepidfile
+	else
+		echo "Hive Metastore Service Process appears to be running with process id: " $MPID
+	fi
+	if [ -z $HPID ]
+	then
+		echo "Starting Hive Server Service"
+		nohup sh bin/hiveserver2 > hiveserver2.log 2>&1 &
+		echo $! > $hiveserverpidfile
+	else
+		echo "Hive Server Service Process appears to be running with process id: " $HPID
+	fi
+elif [ "$1" = "stop" ]
+then
+	if [ -z $MPID ]
+	then
+		echo "Hive Metastore Service Process doesn't appear to be running."
+		echo "No PID file found at: " $metastorepidfile
+	else
+		echo "Stopping Hive Metastore Service"
+		kill -9 $MPID
+		rm $metastorepidfile
+	fi
+	if [ -z $HPID ]
+	then
+		echo "Hive Server Service Process doesn't appear to be running."
+		echo "No PID file found at: " $hiveserverpidfile
+	else
+		echo "Stopping Hive Server Service"
+		kill -9 $HPID
+		rm $hiveserverpidfile
+	fi
+else
+	echo "Invalid parameter: " $1
+fi

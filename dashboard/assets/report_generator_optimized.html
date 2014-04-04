@@ -1,0 +1,285 @@
+<html>
+	<head>
+		<title>Report Generator</title>
+	 	<link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	 	<link rel="stylesheet" href="report_style.css">
+		<script src="mustache.js"></script>
+		<script>
+			var lineSplitRegEx = /[^\r\n]+/g;
+			var report_text;
+			var reportData = new Object;
+			var example_line = "<div class='exampleTable'>{{#.}}{{#.}}<div class='field col_{{index}}'>{{field}}</div>{{/.}}<br/>{{/.}}</div>";
+			function setupListener() {
+				$( "#progress" ).progressbar({ disabled: true });
+				$( "#reportFields option" ).mousedown(function(e) {
+				    e.preventDefault();
+				    $(this).prop('selected', !$(this).prop('selected'));
+				    return false;
+				});
+				document.getElementById('file').addEventListener('change', readFile, false);
+				document.getElementById('delimiter').addEventListener('change', parseFile, false);
+				document.getElementById('patient_uuid_index').addEventListener('change', parseFile, false);
+				document.getElementById('document_uuid_index').addEventListener('change', parseFile, false);
+			}
+			function readFile (evt) {
+			    var files = evt.target.files;
+			    var file = files[0];           
+			    var reader = new FileReader();
+			    reader.onload = function() {
+			     // console.log(this.result);       
+			      report_text = this.result;
+				  parseFile(null);
+			    }
+			    reader.readAsText(file);
+			 }
+			function parseFile (evt) {
+				//console.log("rendering first two lines");
+	 			$("#example").html(Mustache.render(example_line, getLineArray(2)));
+	 			highlightPatient();
+			 }
+			function getLineArray(numLines) {
+				var lineArray = [];
+				for (var j=0;j<numLines;j++){
+					var lines = report_text.match(lineSplitRegEx);
+					//console.log("line " + j + ": " + lines[j]);
+					var delimiter = $( "#delimiter" ).val();
+					if (delimiter == "\\t")
+						delimiter = "\t";
+					//console.log(delimiter);
+					var raw_values = lines[j].split(delimiter);
+					var values = [];
+
+					for (var i=0;i<raw_values.length;i++) {
+						var field = new Object;
+						field.index = i;
+						field.field = raw_values[i];
+						values.push(field)				
+					}
+					//console.log(values);
+					lineArray.push(values);
+				}
+				return lineArray;
+			}
+			
+			function highlightPatient (evt) {
+				var values = getLineArray(1);
+				var numCols = values[0].length;
+				//console.log("value length for highlighting: " +numCols);
+				$(".exampleTable").css({"width": 250 * numCols});
+				for (var i=0;i<numCols;i++) {
+					var width = 90 / numCols;
+					var pat_index = parseInt($( "#patient_uuid_index" ).val());
+					//console.log("pat_index: " + pat_index);
+					var doc_index = parseInt($( "#document_uuid_index" ).val());
+					//console.log("doc_index: " + doc_index)
+					if (pat_index == i)
+						$(".col_" + i).css({"color":"green", "width": width + "%"});
+					else if (doc_index == i)
+						$(".col_" + i).css({"color":"blue", "width": width + "%"});
+					else
+						$(".col_" + i).css({"color":"black", "width": width + "%"});
+				}
+			 }
+			function getPatientDocuments() {
+				if (report_text == null)
+					return;
+				var patient_documents = new Object;
+				var lines = report_text.match(lineSplitRegEx);
+				var skipFirstRow = $('#skipHeader').is(':checked')
+				//console.log("skip first row: " + skipFirstRow);
+				var lineCount = lines.length;
+				//lineCount = 100;
+				
+				for (var j=0;j<lineCount;j++){
+					if (j > 0 || !skipFirstRow) {
+						//console.log("line " + j + ": " + lines[j]);
+						var delimiter = $( "#delimiter" ).val();
+						if (delimiter == "\\t")
+							delimiter = "\t";
+						//console.log(delimiter);
+						var raw_values = lines[j].split(delimiter);
+						var pat_index = parseInt($( "#patient_uuid_index" ).val());
+						var doc_index = parseInt($( "#document_uuid_index" ).val());
+						var patient_uuid = raw_values[pat_index];
+						var document_uuid = raw_values[doc_index];
+
+			        	var documents = [];
+			        	if (patient_uuid in patient_documents)
+			        		documents = patient_documents[patient_uuid];
+			        	if (jQuery.inArray(document_uuid, documents) == -1)
+			        		documents.push(document_uuid);
+			        	patient_documents[patient_uuid] = documents;
+					}
+				}
+				//console.log(patient_documents);
+				return patient_documents;
+			}
+			function generateReport() {
+				console.log("clearing report data");
+				reportData = new Object;
+				console.log("calling jquery when / apply");
+				//$.when.apply($, getDataCalls()).done(processData());
+				$.when(getDataCalls());//.then(processData());
+				$(document).ajaxStop(function() {
+					  // place code to be executed on completion of last outstanding ajax call here
+					  processData();
+					});
+
+	      			
+		    	return false;
+			}
+			
+			function getDataCalls() {
+				console.log("Getting data calls");
+			    var dfds = [];
+     			var patient_documents = getPatientDocuments();
+			    $( "#progress" ).progressbar( "option", "max",  Object.keys(patient_documents).length );
+			    $( "#progress" ).progressbar( "enable" );
+		    	for (var patient_uuid in patient_documents) {
+			        dfds.push(new $.Deferred(function(defer) {			
+			    		var current_patient_documents = "";
+			    		$.each(patient_documents[patient_uuid], function( index, value ) {
+			    			if (patient_uuid != "") {
+			    				console.log("Adding document " + value + " to patient " + patient_uuid);
+			    				current_patient_documents += patient_uuid + "|" + value + ";";
+			    			}
+		    			});
+
+			    		//console.log("processing patient " + patient_uuid + " with documents: ");
+			    		console.log(current_patient_documents);
+			    		var url = "/api/document/details/encounter";
+				    	var params = new Object; 
+				    	var username = $( "#username" ).val();
+				    	var password = $( "#password" ).val();
+				    	params.username = username;//"rmc_hcc@apixio.com";
+				    	params.password = password;//"8p1rmc19..";
+				    	params.patient_documents = current_patient_documents;
+		     			console.log("making request");
+		     			$.ajax( {
+		     				type: "POST",
+		     				url: url,
+		     				data: params,
+		     				timeout: 1500000,
+		     				async:true,
+		     	            dataType: 'json',
+		     				success: function(data) {addDataToResponse(data);},
+			     			error: function(request,error) 
+			     			{
+			     			 console.log("got an error: ");
+			     			 console.log(error);
+			     			 //alert ( " Can't do because: " + error );
+			     			}
+		     			});
+                     //}).promise());
+			        })); 
+		    		
+		    	}
+
+			    return dfds;
+			}
+			function addDataToResponse(data) {
+				// getter
+				var value = $( "#progress" ).progressbar( "option", "value" );
+				 
+				value++;
+				console.log("setting progress bar value: " + value);
+				$( "#progress" ).progressbar( "option", "value", value );
+				for (var key in data) {
+					reportData[key] = data[key];
+				}
+			}
+			function processData(data) {
+				$( "#progress" ).progressbar( "disable" );
+				console.log("processing response from request");
+				getReport(reportData);
+			}
+			
+			function getReport(data) {
+				var outputReport = [];
+				var lines = report_text.match(lineSplitRegEx);
+				var lineCount = lines.length;
+				var skipFirstRow = $('#skipHeader').is(':checked')
+				var headerRow = [];
+				var finishHeader = true;
+				//lineCount = 10;
+				var delimiter = $( "#delimiter" ).val();
+				if (delimiter == "\\t")
+					delimiter = "\t";
+				//console.log(delimiter);
+				for (var j=0;j<lineCount;j++){
+					var raw_values = lines[j].split(delimiter);
+					if (j == 0 && skipFirstRow) {
+						headerRow = raw_values;
+					} else if (j > 0 || !skipFirstRow) {
+						var pat_index = parseInt($( "#patient_uuid_index" ).val());
+						var doc_index = parseInt($( "#document_uuid_index" ).val());
+						var patient_uuid = raw_values[pat_index];
+						var document_uuid = raw_values[doc_index];
+	
+						var patient_documents = patient_uuid + "|" + document_uuid;
+						var values = data[patient_documents];
+						console.log("got value for " + patient_documents + ": " + values);
+						for (var key in values) {
+							raw_values.push(values[key]);
+							
+							if (skipFirstRow && finishHeader)
+								headerRow.push(key);
+						}
+						if (skipFirstRow && finishHeader) {
+							outputReport.unshift(headerRow);
+							finishHeader = false;
+						}
+						//console.log(values);
+						outputReport.push(raw_values);
+						
+					}
+				}
+				//console.log(outputReport);
+				download('outputReport', outputReport);
+			}
+			function download(filename, outputReport) {
+				var delimiter = $( "#delimiter" ).val();
+				if (delimiter == "\\t")
+					delimiter = "\t";
+				var text = "";
+				for (var line in outputReport) {
+					var lineFields =  outputReport[line];
+					var lineText = "";
+					for (var field in lineFields) {
+						if (lineText == "") {
+							lineText = lineFields[field];
+						} else {
+							lineText += delimiter + lineFields[field];
+						}
+						//console.log("line text: " + lineText);
+					}
+					text += lineText + "\r\n";
+					//console.log("line: " + line);
+				} 
+			    var pom = document.createElement('a');
+			    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+			    pom.setAttribute('download', filename);
+			    pom.click();
+			}
+		</script>
+	</head>
+	<body onload="setupListener();">
+		<p>Username: <input type="text" id="username" value="rmc_hcc@apixio.com"> Password: <input type="password" id="password" value="8p1rmc19.."></p>
+		<p>Select Report Input: <input type="file" id="file" name="file" enctype="multipart/form-data"/></p>
+		<p>Specify Delimeter: <input type="text" id="delimiter" name="delimiter" value = "\t"/>
+		<input type="checkbox" id="skipHeader" name="header" value="skipHeader" checked=true>File has a header row</p>
+		<p>Patient UUID Field: <select id="patient_uuid_index"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11" selected>11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option></select>
+		Document UUID Field: <select id="document_uuid_index"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12" selected>12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option></select></p>
+		Report Fields: <select name="reportFields" id="reportFields" multiple>
+		  	<option value="@encounter[sourceEncounter]/encounterStartDate">Encounter Start Date</option>
+		  	<option value="@encounter[sourceEncounter]/originalId/id">Encounter Original ID</option>
+		  	<option value="@encounter[sourceEncounter]/code/displayName">Encounter Display Name</option>
+		</select>
+		<p><input type="submit" value="Generate Report" onclick="generateReport();"></p>
+		<hr>
+		Sample Output: <div id="example"></div>
+		<div id="progress"></div>
+	</body>
+</html>

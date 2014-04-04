@@ -25,45 +25,22 @@ os.system('clear')
 QNTORUN=1
 
 # Run one or all queries
-PROCESS_ALL_QUERIES=bool(1)
+PROCESS_ALL_QUERIES=bool(0)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
-
-
-# Environment for SanityTest is passed as a paramater. Staging is a default value
-if len(sys.argv) < 2:
-	ENVIRONMENT="Staging"
-else:
-	ENVIRONMENT=str(sys.argv[1])
-
-
-if (ENVIRONMENT.upper() == "PRODUCTION"):
-	USERNAME="apxdemot0138"
-	ORGID="10000279"
-	PASSWORD="Hadoop.4522"
-	HOST="https://dr.apixio.com:8443"
-else:
-	USERNAME="apxdemot0182"
-	ORGID="190"
-	PASSWORD="Hadoop.4522"
-	HOST="https://supload.apixio.com:8443"
-	
-
-ENVIRONMENT = "Production"
 LOGTYPE = "epoch"
+SENDER="donotreply@apixio.com"
+REPORT=""
 
-print ("Version 1.0.0")
-print ("ENVIRONMANT = %s") % ENVIRONMENT
-print ("LOGTYPE = %s") % LOGTYPE
-
-
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -73,48 +50,25 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-
 DAYSBACK=1
-
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
+CURYEAR=strftime("%Y", gmtime())
 DATERANGE=""
-
-
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
-
-
-print ("MONTH_FMN = %s") % MONTH_FMN
-print ("CURDAY = %s") % CURDAY
-print ("CURMONTH = %s") % CURMONTH
-
-
-BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
-DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
-
+#BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
+#DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
-
 DOCUMENTS_TRANSMITTED=20
 DOCUMENTS_TO_OCR=0
 DOCUMENTS_TO_PERSIST=0
 TAGED_TO_OCR=0
 TAGED_TO_PERSIST=0
 TAGGED_TOTAL=0
-
-
 QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
-
-
-INDEXERLOGFILE="indexer_manifest_epoch"
-DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
-COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
-PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
-OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
-PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
-
 ORGID="N/A"
 BATCHID="N/A"
 USERNAME="N/A"
@@ -122,47 +76,7 @@ UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
 
-
-
-
-#======== obtain day and month for previous from current day and month ===========================================
-
-for C in range(0, DAYSBACK):
-	if DATERANGE == "":
-		DATERANGE="(MONTH=CURMONTH and DAY=CURDAY)"
-	else:
-		DATERANGE="DATERANGE or (MONTH=CURMONTH and DAY=CURDAY)"
-
-	CURDAY=(CURDAY-1)
-	if (CURDAY == 0):
-		CURMONTH=(CURMONTH - 1)
-		if ( CURMONTH == 0):
-			CURMONTH=12
-
-		if (( CURMONTH == 4 ) or ( CURMONTH == 6 ) or ( CURMONTH == 9 ) or ( CURMONTH == 11 )):
-			CURDAY=30
-		else: 
-			if ( CURMONTH == 2 ):
-				CURDAY=28
-			else:
-				CURDAY=31
-			
-#============ adjust day and month of the report =================================================================
-
-DAY=CURDAY
-MONTH=CURMONTH
-
-print ("DAY: %s") % DAY
-print ("MONTH: %s") % MONTH
-print ("YEAR: %s") % YEAR
-print ("ENVIRONMANT = %s") % ENVIRONMENT
-print ("CUR_TIME = %s") % CUR_TIME
-
-#print ("waiting for 60 sec")
-#time.sleep(60)
-
-#===================== ORGID - ORGNAME MAP ========================================================================
-# ORGID="10000247"
+#=== ORGID - ORGNAME MAP ========================================================================
 
 ORGMAP = { \
 	"10000230":"Sutter Health", \
@@ -212,13 +126,81 @@ ORGMAP = { \
 	"ONLOK":"ONLOK", \
 	"None":"Missing Orgname", \
 }
+#===================================================================================
 
-# print ORGMAP[ORGID]
-#===================================================================================================================
+def checkPassedArguments():
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	# Arg1 - environment
+	# Arg2 - report recepient
+	global RECEIVERS, HTML_RECEIVERS
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	print ("Setting environment ...\n")
+	if len(sys.argv) < 2:
+		ENVIRONMENT="Staging"
+	else:
+		ENVIRONMENT=str(sys.argv[1])
 
-#ORGID="10000246"
-#print orgmap(ORGID)
-#time.sleep(30)
+	if (ENVIRONMENT.upper() == "PRODUCTION"):
+		USERNAME="apxdemot0138"
+		ORGID="10000279"
+		PASSWORD="Hadoop.4522"
+		HOST="https://dr.apixio.com:8443"
+	else:
+		USERNAME="apxdemot0182"
+		ORGID="190"
+		PASSWORD="Hadoop.4522"
+		HOST="https://supload.apixio.com:8443"
+	
+	if (len(sys.argv) > 2):
+		RECEIVERS=str(sys.argv[2])
+		HTML_RECEIVERS="""To: Igor <%s>\n""" % str(sys.argv[2])
+	elif ((len(sys.argv) < 3) or DEBUG_MODE):
+		RECEIVERS="ishekhtman@apixio.com"
+		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+
+				
+	# overwite any previous ENVIRONMENT settings
+	ENVIRONMENT = "Production"
+	print ("Version 1.0.1\n")
+	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
+	print ("Completed setting of enviroment and report receivers ...\n")
+	
+checkPassedArguments()
+		
+
+def obtainReportDayandMonth():
+#======== obtain day and month for previous from current day and month ===========================================
+	global DAYSBACK, DATERANGE, CURDAY, CURMONTH, DAY, MONTH, YEAR, CURYEAR
+	print ("Day and month values before %s day(s) back adjustment ...") % (DAYSBACK)
+	print ("DAY = %s, MONTH = %s, YEAR = %s\n") % (CURDAY, CURMONTH, CURYEAR)
+	for C in range(0, DAYSBACK):
+		if DATERANGE == "":
+			DATERANGE="(MONTH=CURMONTH and DAY=CURDAY)"
+		else:
+			DATERANGE="DATERANGE or (MONTH=CURMONTH and DAY=CURDAY)"
+
+		CURDAY=(CURDAY-1)
+		if (CURDAY == 0):
+			CURMONTH=(CURMONTH - 1)
+			if ( CURMONTH == 0):
+				CURMONTH=12
+
+			if (( CURMONTH == 4 ) or ( CURMONTH == 6 ) or ( CURMONTH == 9 ) or ( CURMONTH == 11 )):
+				CURDAY=30
+			else: 
+				if ( CURMONTH == 2 ):
+					CURDAY=28
+				else:
+					CURDAY=31
+
+	DAY = CURDAY
+	MONTH = CURMONTH
+	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
+	print ("DAY: %s, MONTH: %s, YEAR: %s\n") % (DAY, MONTH, YEAR)
+	#time.sleep(15)
+	
+obtainReportDayandMonth()
 
 
 def test(debug_type, debug_msg):
@@ -226,913 +208,108 @@ def test(debug_type, debug_msg):
 
 #========================================================================================================================================================
 
-
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
-
-# =============================== REPORT SENDER and RECEIVER CONFIGURATION ==============================================================================
-
-SENDER="donotreply@apixio.com"
-if DEBUG_MODE:
-	RECEIVERS="ishekhtman@apixio.com"
-else:
-	RECEIVERS="eng@apixio.com"
-
-
-REPORT = "From: Apixio QA <QA@apixio.com>\n"
-if DEBUG_MODE:
-	REPORT = REPORT + "To: Igor <ishekhtman@apixio.com>\n"
-else:
-	REPORT = REPORT + "To: Engineering <eng@apixio.com>\n"	
-
-
-REPORT = REPORT + """MIME-Version: 1.0
-Content-type: text/html
-Subject: Daily %s Pipeline QA Report - %s
-
-<h1>Apixio Pipeline QA Report</h1>
-Date & Time (run): <b>%s</b><br>
-Date (logs & queries): <b>%s/%s/%s</b><br>
-Report type: <b>%s</b><br>
-Enviromnent: <b>%s</b><br>
-OrgID: <b>%s</b><br>
-BatchID: <b>%s</b><br>
-User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, CUR_TIME, CUR_TIME, MONTH, DAY, YEAR, REPORT_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
-
-
-conn = pyhs2.connect(host='10.196.47.205',
-                   port=10000,
-                   authMechanism="PLAIN",
-                   user='hive',
-                   password='',
-                   database='default')
-
-cur = conn.cursor()
-
-
-print ("Assigning queue name to hive ...")
-cur.execute("""SET mapred.job.queue.name=hive""")
-
-
-# ===================================================================================================================================
-# =============================== DOC-RECEIVER related queries ======================================================================
-# ===================================================================================================================================
-
-REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
-COMPONENT_STATUS="PASSED"
-
-
-QN=1
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of documents uploaded"
-	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, status, org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) as message \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY \
-		status, org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %("summary_docreceiver_upload", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
-		if (str(i[1]) == 'error'):
-			if (i[3] == None):
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
-			else:
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
-			
-		UPLOADED_DR = UPLOADED_DR + int(i[0])
-		if str(i[1]) == "error":
-			print ("QUERY %s FAILED") % (QN)
-			COMPONENT_STATUS="FAILED"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0']
-	REPORT = REPORT+"</table><br>"
-	#if int(i[0]) < DOCUMENTCOUNTER:
-		#print ("QUERY %s FAILED") % (QN)
-		#COMPONENT_STATUS="FAILED"
-
-
-QN=2
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of documents archived to S3"
-	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, status, org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) as message \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY \
-		status, org_id, if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %("summary_docreceiver_archive", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
-		if (str(i[1]) == 'error'):
-			if (i[3] == None):
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"			
-			else:
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
-
-		ARCHTOS3 = ARCHTOS3 + int(i[0])
-		if str(i[1]) == "error":
-			print ("QUERY %s FAILED") % (QN)
-			COMPONENT_STATUS="FAILED"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0']
-	REPORT = REPORT+"</table><br>"
-	if ARCHTOS3 < UPLOADED_DR:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
-
-QN=3
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of documents added to sequence file(s)"
-	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, status, org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) as message \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY \
-		status, org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %("summary_docreceiver_seqfile", DAY, MONTH))
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td></tr>"
-		if (str(i[1]) == 'error'):
-			if (i[3] == None):
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>Missing</i></td></tr>"				
-			else:
-				REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[3])+"</i></td></tr>"
-
-		ADDTOSF = ADDTOSF + int(i[0])
-		if str(i[1]) == "error":
-			print ("QUERY %s FAILED") % (QN)
-			COMPONENT_STATUS="FAILED"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0']
-	REPORT = REPORT+"</table><br>"
-	if ADDTOSF < UPLOADED_DR:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
-
-
-QN=4
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of seq. files and individual documents sent to redis per Org"
-	print ("Running DOC-RECEIVER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-
-	cur.execute("""SELECT org_id, \
-		redis_queue_name, \
-		count(num_seq_files) as tot_seq_files, \
-		sum(num_docs) as tot_ind_files \
-		FROM %s \
-		WHERE \
-		status = 'success' and \
-		redis_queue_name is not null and \
-		day=%s and month=%s \
-		GROUP BY org_id, redis_queue_name""" %("summary_docreceiver_seqfile_post", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(int(i[3]))+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[0])]+"</td></tr>"
-
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['10000250', 'prod-coordinator.highpriority', '0', '0']
-	REPORT = REPORT+"</table><br>"
-	#if int(i[3]) < DOCUMENTCOUNTER:
-		#print ("QUERY %s FAILED") % (QN)
-		#COMPONENT_STATUS="FAILED"
-
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-REPORT = REPORT+"<br><br>"
-
-# ===================================================================================================================================
-# =============================== COORDINATOR related queries =======================================================================
-# ===================================================================================================================================
-
-REPORT = REPORT+SUBHDR % "COORDINATOR"
-COMPONENT_STATUS="PASSED"
-
-
-QN=5
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of workrequests by organization"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (DISTINCT work_id) as total, \
-		org_id \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s \
-		GROUP BY org_id \
-		ORDER BY org_id ASC""" % ("summary_coordinator_workrequest", DAY, MONTH))
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td>"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[1])+"</td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"				
-	REPORT = REPORT+"</table><br>"
-
-
-
-QN=6
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of seq files moved by coordinator"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (*) as total, \
-		activity, move_message, org_id \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s \
-		GROUP BY activity, org_id, move_message \
-		ORDER BY org_id, move_message ASC""" % ("summary_coordinator_movefiles", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
-		if str(i[3]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[3])+"</td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"				
-	REPORT = REPORT+"</table><br>"
-
-
-QN=7
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of jobs requested by organization"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (*) as total, \
-		activity, org_id \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s \
-		GROUP BY activity, org_id \
-		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobrequest", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[2])+"</td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"				
-	REPORT = REPORT+"</table><br>"
-
-
-QN=8
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of jobs started by organization"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (*) as total, \
-		activity, org_id \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s \
-		GROUP BY activity, org_id \
-		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobstart", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[2])+"</td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"				
-	REPORT = REPORT+"</table><br>"
-
-
-QN=9
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of jobs succeeded or failed by coordinator"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(job_id) as total, \
-		status, \
-		activity, \
-		org_id \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s and \
-		status is not null and \
-		status <> 'start' \
-		GROUP BY status, \
-		activity, \
-		org_id \
-		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
-
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
-		if str(i[3]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[3])+"</td></tr>"
-		if (str(i[1]).lower() == 'error'):
-			print ("QUERY %s FAILED") % (QN)
-			COMPONENT_STATUS="FAILED"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"				
-	REPORT = REPORT+"</table><br>"
-
-
-QN=10
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Failed job types by coordinator per org"
-	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT hadoop_job_id, \
-		org_id, \
-		time \
-		FROM %s \
-		WHERE \
-		status = 'error' and  \
-		day=%s and month=%s \
-		ORDER BY hadoop_job_id ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIME = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td>"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[1])+"</td></tr>"
-		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"
-	REPORT = REPORT+"</table><br>"
-	if ROW > 0:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"			
+def writeReportHeader ():
+	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
+	print ("Begin writing report header...\n")
+	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	REPORT = REPORT + HTML_RECEIVERS
+	REPORT = REPORT + """MIME-Version: 1.0\n"""
+	REPORT = REPORT + """Content-type: text/html\n"""
+	REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+
+	REPORT = REPORT + """<h1>Apixio %s Pipeline QA Report</h1>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
+	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
+	#REPORT = REPORT + """OrgID: <b>%s</b><br>\n""" % (ORGID)
+	#REPORT = REPORT + """BatchID: <b>%s</b><br>\n""" % (BATCHID)
+	#REPORT = REPORT + """User name: <b>%s</b><br><br>\n""" % (USERNAME)
+	print ("End writing report header...\n")
 	
+writeReportHeader()	
 
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-REPORT = REPORT+"<br><br>"
+def connectToHive():
+	print ("Connecing to Hive ...\n")
+	global cur, conn
+	conn = pyhs2.connect(host='10.196.47.205', port=10000, authMechanism="PLAIN", user='hive', password='', database='default')
+	cur = conn.cursor()
+	print ("Connection to Hive established ...\n")
 
-# ===================================================================================================================================
-# =============================== PARSER related queries ============================================================================
-# ===================================================================================================================================
+connectToHive()
 
-REPORT = REPORT+SUBHDR % "PARSER"
-COMPONENT_STATUS="PASSED"
-
-QN=11
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of distinct UUIDs tagged to OCR"
-	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, \
-		org_id,  \
-		sent_to_ocr \
-		FROM %s \
-		WHERE \
-		sent_to_ocr is not null and \
-		day=%s and month=%s \
-		GROUP BY org_id, sent_to_ocr \
-		ORDER BY org_id, sent_to_ocr ASC""" %("summary_parser", DAY, MONTH))
+def setHiveParameters():
+	print ("Assigning Hive paramaters ...\n")
+	# cur.execute("""SET mapred.job.queue.name=hive""")
+	cur.execute("""set hive.exec.dynamic.partition=true""")
+	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
+	cur.execute("""set mapred.reduce.tasks=16""")
+	cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
+	print ("Completed assigning Hive paramaters ...\n")
+	
+setHiveParameters()
 
 
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	TAGED_TO_OCR=0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		TAGED_TO_OCR = TAGED_TO_OCR+int(i[0])
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0']
-	REPORT = REPORT+"</table><br>"
-	if TAGED_TO_OCR < DOCUMENTS_TO_OCR:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
+def writeReportDetails():
+	global SUBHDR, COMPONENT_STATUS, REPORT
+	
+	REPORT = REPORT + SUBHDR % "DOC-RECEIVER"
+	COMPONENT_STATUS="PASSED"
 
-
-QN=12
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of distinct UUIDs tagged to Persist"
-	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, \
-		org_id,  \
-		sent_to_persist \
-		FROM %s \
-		WHERE \
-		sent_to_persist is not null and \
-		day=%s and month=%s \
-		GROUP BY org_id, sent_to_persist \
-		ORDER BY org_id, sent_to_persist ASC""" %("summary_parser", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	TAGED_TO_PERSIST=0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		TAGED_TO_PERSIST = TAGED_TO_PERSIST+int(i[0])
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0']
-	REPORT = REPORT+"</table><br>"
-	# if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
-		# print ("QUERY %s FAILED") % (QN)
-		# COMPONENT_STATUS="FAILED"
-
-
-QN=13
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of distinct UUIDs succeeded or failed"
-	print ("Running PARSER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, \
-		org_id,  \
-		status \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY status, org_id \
-		ORDER BY org_id, status ASC""" %("summary_parser", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	TAGGED_TOTAL=0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		TAGGED_TOTAL = TAGGED_TOTAL+int(i[0])
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-	REPORT = REPORT+"</table><br>"
-	if TAGGED_TOTAL < (TAGED_TO_OCR + TAGED_TO_PERSIST):
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
-
-
-QN=14
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of Parser errors and specific error messages"
-	print ("Running PARSER query #%s - retrieve %s ...") %  (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT(*) as total, 
-		error_message, \
-		org_id, \
-		min(time), \
-		max(time) \
-		FROM %s \
-		WHERE \
-		status = 'error' and \
-		day=%s and month=%s \
-		GROUP BY error_message, org_id""" %("summary_parser", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMAX+"</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='5'>Error: <i>"+str(i[1])+"</i></td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
 	else:
-		COMPONENT_STATUS="FAILED"
-	REPORT = REPORT+"</table><br>"
-	if ROW > 0:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
 
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-REPORT = REPORT+"<br><br>"
+	REPORT = REPORT+SUBHDR % "COORDINATOR"
+	COMPONENT_STATUS="PASSED"
 
-# ===================================================================================================================================
-# =============================== OCR related queries ===============================================================================
-# ===================================================================================================================================
-
-REPORT = REPORT+SUBHDR % "OCR"
-COMPONENT_STATUS="PASSED"
-
-QN=15
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of distinct UUIDs passed or failed by OCR"
-	print ("Running OCR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, \
-		status, \
-		org_id \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY status, org_id""" %("summary_ocr", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td align='left'>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
-		if str(i[1]) == "error":
-			COMPONENT_STATUS="FAILED"
-			print ("QUERY 12 FAILED")
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		# COMPONENT_STATUS="FAILED"
-		print ("QUERY %s missing logs") % (QN)
-	REPORT = REPORT+"</table><br>"
-	#if int(i[0]) < DOCUMENTS_TO_OCR:
-		#COMPONENT_STATUS="FAILED"
-
-
-QN=16
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of OCR errors and specific error messages per org"
-	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (*) as total, \
-		error_message, \
-		org_id, \
-		min(time), \
-		max(time) \
-		FROM %s \
-		WHERE \
-		status = 'error' and \
-		day=%s and month=%s \
-		GROUP BY error_message, org_id""" % ("summary_ocr", DAY, MONTH))
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMAX+"</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		# COMPONENT_STATUS="PASSED"
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
 	else:
-		COMPONENT_STATUS="FAILED"
-	REPORT = REPORT+"</table><br>"
-	if ROW > 0:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
 
+	REPORT = REPORT+SUBHDR % "PARSER"
+	COMPONENT_STATUS="PASSED"
 
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-REPORT = REPORT+"<br><br>"
-
-# ===================================================================================================================================
-# =============================== PERSIST related queries ===========================================================================
-# ===================================================================================================================================
-
-REPORT = REPORT+SUBHDR % "PERSIST"
-COMPONENT_STATUS="PASSED"
-
-QN=17
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of distinct UUIDs passed or failed to Persist"
-	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT count(DISTINCT doc_id) as total, \
-		status, \
-		org_id \
-		FROM %s \
-		WHERE \
-		doc_id is not null and \
-		day=%s and month=%s \
-		GROUP BY status, org_id""" %("summary_persist_mapper", DAY, MONTH))
-
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td align='right'>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td align='left'>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+ORGMAP[str(i[2])]+"</td></tr>"
-		if str(i[1]) == "error":
-			COMPONENT_STATUS="FAILED"
-			print ("QUERY %s FAILED") % (QN)
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0', 'success']
-	REPORT = REPORT+"</table><br>"
-	#if int(i[0]) < DOCUMENTCOUNTER:
-		#print ("QUERY %s FAILED") % (QN)
-		#COMPONENT_STATUS="FAILED"
-
-
-QN=18
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="PersistMapper errors and specific error messages per org"
-	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
-
-	cur.execute("""SELECT COUNT (*) as total, \
-		error_message, \
-		org_id, \
-		min(time), \
-		max(time) \
-		FROM %s \
-		WHERE \
-		status = 'error' and \
-		day=%s and month=%s \
-		GROUP BY error_message, org_id""" %("summary_persist_mapper", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMAX+"</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		# COMPONENT_STATUS="PASSED"
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
 	else:
-		COMPONENT_STATUS="FAILED"
-	REPORT = REPORT+"</table><br>"
-	if ROW > 0:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
 
-QN=19
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="PersistReducer errors and specific error messages per org"
-	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
+	REPORT = REPORT+SUBHDR % "OCR"
+	COMPONENT_STATUS="PASSED"
 
-	cur.execute("""SELECT COUNT (*) as total, \
-		error_message, \
-		org_id, \
-		min(time), \
-		max(time) \
-		FROM %s \
-		WHERE \
-		status = 'error' and \
-		day=%s and month=%s \
-		GROUP BY error_message, org_id""" %("summary_persist_reducer", DAY, MONTH))
-
-
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIMEMIN = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		FORMATEDTIMEMAX = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[2])]+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMIN+"&nbsp;&nbsp;</td> \
-			<td>"+FORMATEDTIMEMAX+"</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='6'>Error: <i>"+str(i[1])+"</i></td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		# COMPONENT_STATUS="PASSED"
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
 	else:
-		COMPONENT_STATUS="FAILED"
-	REPORT = REPORT+"</table><br>"
-	if ROW > 0:
-		print ("QUERY %s FAILED") % (QN)
-		COMPONENT_STATUS="FAILED"
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
 
+	REPORT = REPORT+SUBHDR % "PERSIST"
+	COMPONENT_STATUS="PASSED"
 
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
 
-QN=20
-if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Persist autocorrections with org uuid and info"
-	print ("Running PERSIST query #%s - retrieve %s ...") % (QN, QUERY_DESC)
+	cur.close()
+	conn.close()
 
-	cur.execute("""SELECT org_id as org_id, \
-		patient_uuid, \
-		patient_key \
-		FROM %s \
-		WHERE \
-		autocorrection = 'true' and \
-		day=%s and month=%s""" % ("summary_persist_reducer", DAY, MONTH))
+writeReportDetails()
 
+def writeReportFooter():
+	global REPORT
+	REPORT = REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+ORGMAP[str(i[0])]+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"</td></tr>"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-		# COMPONENT_STATUS="PASSED"
-	#else:
-		#COMPONENT_STATUS="FAILED"
-	REPORT = REPORT+"</table><br>"
-	#if ROW > 0:
-		#print ("QUERY %s FAILED") % (QN)
-		#COMPONENT_STATUS="FAILED"
-
-
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-REPORT = REPORT+"<br><br>"
-
-cur.close()
-conn.close()
-
-# ===================================================================================================================================
-# ===================================================================================================================================
-# ===================================================================================================================================
-
-
-REPORT=REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
-REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
+writeReportFooter()
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
 
