@@ -89,15 +89,15 @@ set hive.exec.max.dynamic.partitions.pernode = 1000;
 insert overwrite table summary_docreceiver_archive partition (month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.archive.afs.docid') as doc_id,
-get_json_object(line, '$.archive.afs.batchid') as batch_id,
-cast(get_json_object(line, '$.archive.afs.bytes') as int) as file_size,
-get_json_object(line, '$.archive.afs.status') as status,
-cast(get_json_object(line, '$.archive.afs.millis') as int) as archive_time,
+coalesce(get_json_object(line, '$.archive.afs.docid'),get_json_object(line, '$.archive.aps.docid'))  as doc_id,
+coalesce(get_json_object(line, '$.archive.afs.batchid'),get_json_object(line, '$.archive.aps.batchid')) as batch_id,
+coalesce(cast(get_json_object(line, '$.archive.afs.bytes') as int),cast(get_json_object(line, '$.archive.aps.bytes') as int)) as file_size,
+coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) as status,
+coalesce(cast(get_json_object(line, '$.archive.afs.millis') as int),cast(get_json_object(line, '$.archive.aps.millis') as int)) as archive_time,
 get_json_object(line, '$.message') as error_message,
 month,
 day,
-get_json_object(line, '$.archive.afs.orgid') as org_id
+coalesce(get_json_object(line, '$.archive.afs.orgid'),get_json_object(line, '$.archive.aps.orgid')) as org_id
 from production_logs_docreceiver_epoch
 where get_json_object(line, '$.archive') is not null
 and ($dateRange);
