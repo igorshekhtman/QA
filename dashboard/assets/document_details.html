@@ -1,0 +1,68 @@
+<html>
+	<head>
+		<title>Apixio Hive Dashboard</title>
+	 	<link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script src="mustache.js"></script>
+	 	<link rel="stylesheet" href="document_style.css">
+	 	<script>
+	 	
+	 		var document_details = "{{#.}}<div class='patient'>\
+	 									{{#demographics}}<div class='section'>\
+	 										<div class='maintitle'>{{#name.givenNames}}{{.}} {{/name.givenNames}} {{#name.familyNames}}{{.}} {{/name.familyNames}}</div>\
+	 										<div class='field'>Date of Birth: <strong>{{dateOfBirth}}</strong></div>\
+	 										<div class='field'>Gender: <strong>{{gender}}</strong></div>\
+ 										</div>{{/demographics}}\
+ 										{{#encounter}}<div class='section'>\
+ 											<div class='subtitle'>Encounter:</div>\
+ 											<div class='field'>Encounter Type: <strong>{{code.displayName}}</strong></div>\
+ 											<div class='field'>Start Date: <strong>{{#encounterStartDate}}{{.}}{{/encounterStartDate}}</strong></div>\
+ 											<div class='field'>End Date: <strong>{{#encounterEndDate}} to {{.}}{{/encounterEndDate}}</strong></div>\
+ 											<div class='field'>Encounter ID: <strong>{{originalId.id}} ({{originalId.assignAuthority}})</strong></div>\
+										</div>{{/encounter}}\
+										{{#clinicalActor}}<div class='section'>\
+ 											<div class='subtitle'>Author:</div>\
+ 											<div class='field'>Name: <strong>{{#actorGivenName.givenNames}}{{.}} {{/actorGivenName.givenNames}} {{#actorGivenName.familyNames}}{{.}} {{/actorGivenName.familyNames}} {{title}}</strong></div>\
+ 											<div class='field'>ID: <strong>{{originalId.id}} ({{originalId.assignAuthority}}</strong></div>\
+ 											<div class='field'>Role: <strong>{{role}}</strong></div>\
+ 											<div class='field'>Specialties: <strong>{{metadata.specialties}}</strong></div>\
+ 											<div class='field'>Type: <strong>{{metadata.prov_type}}</strong></div>\
+										</div>{{/clinicalActor}}\
+										{{#document}}<div class='section'>\
+											<div class='subtitle'>Document:</div>\
+											<div class='field'>Title: <strong>{{documentTitle}}</strong></div>\
+											<div class='field'>Document Date: <strong>{{#documentDate}}{{.}}{{/documentDate}}</strong></div>\
+											<div class='field'>Document ID: <strong>{{originalId.id}} ({{originalId.assignAuthority}})</strong></div>\
+											<div class='field'>Status: <strong>{{metadata.status}}</strong></div>\
+											<div class='document'>{{{stringContent}}}</div>\
+										</div>{{/document}}\
+									</div>{{/.}}";
+	 		
+	 		var something = "{document}}{{stringContent}}{{/document";
+      		function loadDocumentDetails() {
+		    	var username = $( "#username" ).val();
+		    	var password = $( "#password" ).val();
+		    	var patient_uuid = $( "#patient_uuid" ).val();
+		    	var document_uuid = $( "#document_uuid" ).val();
+		    	
+    			var url = "/api/document/detail";
+		    	var params = "username="+username+"&password="+password+"&patient_uuid="+patient_uuid+"&document_uuid="+document_uuid;
+		    	//params = "username=rmc_hcc@apixio.com&password=8p1rmc19..&patient_uuid=00018d04-3fce-4178-bd07-8aeb1ab6402c&document_uuid=067aa312-839d-4a27-a255-fc69c2714110";
+   				$.get(url, params).done(function( values ) {
+		    		console.log(values);
+		 			$("#documentDetails").html(Mustache.render(document_details, values));
+		    	  });
+		    	return false;
+   			}
+		</script>
+	</head>
+	<body >
+	    <form id="getDocumentDetails" onsubmit="return false">
+				<p>Username: <input type="text" id="username"> Password: <input type="password" id="password"></p>
+				<p>Patient UUID: <input type="text" id="patient_uuid"> Document UUID: <input type="text" id="document_uuid"></p>
+				<p><input type="submit" value="Run Query" onclick="loadDocumentDetails();"></p>
+		</form>
+		<div id="documentDetails"></div>
+	</body>	
+</html>

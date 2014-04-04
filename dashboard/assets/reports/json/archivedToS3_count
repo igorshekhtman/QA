@@ -1,9 +1,9 @@
-{"org_id":"10000263","status":"success","doc_count":1900528}
+{"org_id":"10000263","status":"success","doc_count":1959065}
 {"org_id":"10000278","status":"success","doc_count":588831}
 {"org_id":"10000281","status":"success","doc_count":4}
 {"org_id":"10000284","status":"success","doc_count":266730}
 {"org_id":"10000262","status":"error","doc_count":507}
-{"org_id":"10000279","status":"success","doc_count":374}
+{"org_id":"10000279","status":"success","doc_count":412}
 {"org_id":"10000282","status":"success","doc_count":32}
 {"org_id":"10000285","status":"success","doc_count":366206}
 {"org_id":"10000288","status":"success","doc_count":17}
@@ -11,9 +11,9 @@
 {"org_id":"99","status":"success","doc_count":30198}
 {"org_id":"__HIVE_DEFAULT_PARTITION__","doc_count":0}
 {"org_id":"10000232","status":"success","doc_count":903681}
-{"org_id":"10000250","status":"success","doc_count":103045}
+{"org_id":"10000250","status":"success","doc_count":114628}
 {"org_id":"10000259","status":"success","doc_count":537270}
-{"org_id":"10000262","status":"success","doc_count":15152074}
+{"org_id":"10000262","status":"success","doc_count":15317420}
 {"org_id":"10000263","status":"error","doc_count":1}
 {"org_id":"10000265","status":"success","doc_count":6}
 {"org_id":"10000271","status":"success","doc_count":1}

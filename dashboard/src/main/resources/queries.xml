@@ -14,33 +14,60 @@
             group by org_id, status, if(error_message like '/mnt%','No space left on device',error_message)
         </text>
     </query>
-	<query name="parse_count">
+	<query name="parse_success_count">
 		<text>
-			select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count, a.sent_to_ocr, a.sent_to_persist
+			select a.org_id, count(distinct a.doc_id) as doc_count, a.sent_to_ocr, a.sent_to_persist, a.status
             from summary_parser a
             join summary_coordinator_jobfinish b
             on a.hadoopjob_id = b.hadoop_job_id
-            where b.status = "success"
-            group by a.org_id, a.status, a.error_message, a.sent_to_ocr, a.sent_to_persist
+            where b.status = "success" and a.status = "success"
+            group by a.org_id, a.status, a.sent_to_ocr, a.sent_to_persist
 		</text>
 	</query>
-	<query name="ocr_count">
+	<query name="parse_error_count">
         <text>
-            select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count 
-            from summary_ocr a
-            join summary_coordinator_jobfinish b
-            on a.hadoopjob_id = b.hadoop_job_id
-            where b.status = "success"
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            from summary_parser a join summary_coordinator_jobfinish b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
+            left outer join summary_parser o on o.doc_id=a.doc_id and o.status="success" 
+            where a.status="error" and o.doc_id is null and a.doc_id is not null 
             group by a.org_id, a.status, a.error_message
         </text>
     </query>
-    <query name="persist_count">
+	<query name="ocr_success_count">
         <text>
-            select a.org_id, a.status, a.error_message, count(distinct a.doc_id) as doc_count
+            select a.org_id, count(distinct a.doc_id) as doc_count, a.status 
+            from summary_ocr a
+            join summary_coordinator_jobfinish b
+            on a.hadoopjob_id = b.hadoop_job_id
+            where b.status = "success" and a.status = "success"
+            group by a.org_id, a.status
+        </text>
+    </query>
+    <query name="ocr_error_count">
+        <text>
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            from summary_ocr a join summary_coordinator_jobfinish b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
+            left outer join summary_ocr o on o.doc_id=a.doc_id and o.status="success" 
+            where a.status="error" and o.doc_id is null and a.doc_id is not null 
+            group by a.org_id, a.status, a.error_message
+        </text>
+    </query>
+    <query name="persist_success_count">
+        <text>
+            select a.org_id, count(distinct a.doc_id) as doc_count, a.status
             from summary_persist_mapper a 
             join summary_coordinator_jobfinish b 
             on a.hadoopjob_id = b.hadoop_job_id 
-            where b.status = "success"
+            where b.status = "success" and a.status = "success"
+            group by a.org_id, a.status
+        </text>
+    </query>
+    <query name="persist_error_count">
+        <text>
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            from summary_persist_mapper a join summary_coordinator_jobfinish b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
+            left outer join summary_persist_mapper o on o.doc_id=a.doc_id and o.status="success" 
+            where a.status="error" and o.doc_id is null and a.doc_id is not null 
             group by a.org_id, a.status, a.error_message
         </text>
     </query>
@@ -54,25 +81,81 @@
     </query>
     <query name="docs_queue">
         <text>
-            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count, count(distinct(o.doc_id)) as sent_to_persist_byOcr_count
             from summary_coordinator_jobrequest jr
             left outer join summary_coordinator_jobfinish jf
             on jr.job_id=jf.job_id and jr.work_id=jf.work_id 
             left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
             left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            left outer join summary_ocr o on o.job_id=jr.from_job_id and o.status='success'
             where jf.job_id is null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
             group by jr.org_id, jr.activity
         </text>
     </query>
+    <query name="docs_in_failedjobs">
+        <text>
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count
+            from summary_coordinator_jobrequest jr
+            join summary_coordinator_jobfinish jf
+            on jr.job_id=jf.job_id and jr.work_id=jf.work_id and jf.status="error" 
+            left outer join summary_coordinator_jobfinish jfs on jfs.status="success" and jfs.orig_job_id=jr.orig_job_id and jfs.orig_job_id is not null
+            left outer join summary_docreceiver_seqfile dr on dr.seqfile_file=jr.seqfile
+            left outer join summary_parser p on p.job_id=jr.from_job_id and p.status='success'
+            where jfs.orig_job_id is null and jf.job_id is not null and (jr.activity='parser' or jr.activity='ocr' or jr.activity='persist')
+            group by jr.org_id, jr.activity
+        </text>
+    </query>
+    <query name="docs_in_drq_count">
+        <text>
+            select dr.org_id, dr.seqfile_file, count(distinct(dr.doc_id)) as doc_count, max(dr.time) as updated_time
+            from summary_docreceiver_seqfile dr
+            left outer join summary_docreceiver_seqfile_post post on dr.seqfile_directory=post.seqfile_path and post.redis_queue_name is not null
+            where post.seqfile_path is null and dr.seqfile_directory is not null and dr.status="success" group by dr.org_id, dr.seqfile_file
+        </text>
+    </query>
+    <query name="docs_abandoned_coordinator_count">
+        <text>
+            select dr.org_id, dr.seqfile_file, count(distinct(dr.doc_id)) as doc_count, max(post.time) as posted_time
+            from summary_docreceiver_seqfile_post post join summary_docreceiver_seqfile dr on dr.seqfile_directory=post.seqfile_path
+            left outer join summary_coordinator_workrequest wr on post.seqfile_path=wr.source_dir
+            where wr.source_dir is null and post.seqfile_path is not null and post.status="success" and post.redis_queue_name is not null group by dr.org_id, dr.seqfile_file
+        </text>
+    </query>
+    <query name="docs_in_drq">
+        <text>
+            select dr.doc_id, dr.org_id, dr.seqfile_file
+            from summary_docreceiver_seqfile dr
+            left outer join summary_docreceiver_seqfile_post post on dr.seqfile_directory=post.seqfile_path and post.redis_queue_name is not null
+            where post.seqfile_path is null and dr.seqfile_directory is not null and dr.status="success" and {userParams} order by dr.org_id, dr.seqfile_file
+        </text>
+    </query>
+    <query name="docs_not_sentTo_coordinator_byorgAndSeqfile">
+        <text>
+            select dr.doc_id, dr.org_id, dr.seqfile_file
+            from summary_docreceiver_seqfile dr
+            left outer join summary_docreceiver_seqfile_post post on dr.seqfile_directory=post.seqfile_path and post.redis_queue_name is not null
+            where post.seqfile_path is null and dr.seqfile_directory is not null and dr.status="success" and dr.org_id=? and dr.seqfile_file in (?) order by dr.seqfile_file
+        </text>
+    </query>
 	
 	<group name="completeness">
-		<run-query name="archivedToS3_count"/>
+	    <run-query name="archivedToS3_count"/>
 		<run-query name="upload_count"/> 
-		<run-query name="parse_count"/>
-		<run-query name="ocr_count"/>
-		<run-query name="persist_count"/>
+		<run-query name="parse_success_count"/>
+		<run-query name="parse_error_count"/>
+		<run-query name="ocr_success_count"/>
+		<run-query name="ocr_error_count"/> 
+		<run-query name="persist_success_count"/>
+		<run-query name="persist_error_count"/>
 		<run-query name="verified_count"/>
-		<run-query name="docs_queue"/>
+		<run-query name="docs_queue"/> 
+		<run-query name="docs_in_failedjobs"/>
+		<run-query name="docs_in_drq_count"/>
+		<run-query name="docs_abandoned_coordinator_count"/>
+	</group>
+	
+	<group name="docsToRecover">
+	   <run-query name="docs_not_sentTo_coordinator"/>
 	</group>
 	
 	<group name="upload">
@@ -82,5 +165,17 @@
 	<group name="documentsPending">
        <run-query name="docs_queue"/>
     </group>
-	
+    
+    <group name="documentsFailed">
+       <run-query name="docs_in_failedjobs"/>
+    </group>
+    
+    <group name="drQueueDocsCount">
+       <run-query name="docs_notSentTo_coordinator_count"/>
+    </group>
+    
+    <group name="documentsAbandoned">
+       <run-query name="docs_sentTo_coordinator_butNoWorkReq_count"/>
+    </group>
+    
 </queries>

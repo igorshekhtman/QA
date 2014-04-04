@@ -23,7 +23,11 @@ public class ReportingServiceConfiguration extends Configuration
 	@NotNull
     @JsonProperty
     private ApplicationConfiguration applicationConfiguration;
-    
+	
+	@NotNull
+    @JsonProperty
+    private ApiConfiguration apiConfiguration;
+
 	public HiveConfiguration getHiveConfiguration() {
 		return hiveConfiguration;
 	}
@@ -55,5 +59,13 @@ public class ReportingServiceConfiguration extends Configuration
 	public void setApplicationConfiguration(
 			ApplicationConfiguration applicationConfiguration) {
 		this.applicationConfiguration = applicationConfiguration;
+	}
+    
+	public ApiConfiguration getApiConfiguration() {
+		return apiConfiguration;
+	}
+
+	public void setApiConfiguration(ApiConfiguration apiConfiguration) {
+		this.apiConfiguration = apiConfiguration;
 	}
 }

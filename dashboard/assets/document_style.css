@@ -1,0 +1,33 @@
+body {
+	font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+	font-size: 62.5%;
+}
+
+
+.patient {
+	border: 1px solid black;
+	padding: 3px;
+	margin: 3px;
+}
+.section {
+	margin-bottom: 20px;
+}
+
+.maintitle {
+	font-size: 20px;
+}
+.subtitle {
+	font-size: 16px;
+	margin-left:6px;
+}
+
+.field {
+	font-size:12px;
+	margin-left: 10px;
+}
+
+.document {
+	margin: 15px;
+	padding: 5px;
+	border: 1px solid black;
+}

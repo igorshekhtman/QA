@@ -323,6 +323,10 @@ public class Queries {
                 }
                 return this.param;
             }
+            
+            public void setParam(List<Queries.Group.RunQuery.Param> params) {
+                this.param = params;
+            }
 
             /**
              * Gets the value of the name property.
@@ -376,7 +380,7 @@ public class Queries {
                 @XmlValue
                 protected String value;
                 @XmlAttribute(name = "index")
-                protected Byte index;
+                protected Integer index;
                 @XmlAttribute(name = "val")
                 protected String val;
 
@@ -412,7 +416,7 @@ public class Queries {
                  *     {@link Byte }
                  *     
                  */
-                public Byte getIndex() {
+                public Integer getIndex() {
                     return index;
                 }
 
@@ -424,7 +428,7 @@ public class Queries {
                  *     {@link Byte }
                  *     
                  */
-                public void setIndex(Byte value) {
+                public void setIndex(Integer value) {
                     this.index = value;
                 }
 

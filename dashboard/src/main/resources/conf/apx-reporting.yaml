@@ -1,10 +1,22 @@
-hiveAddress: jdbc:hive2://10.196.47.205:10000
-updateInterval: 90
-outputDir: /usr/lib/apx-reporting/html/assets/reports/json/
+applicationConfiguration:
+  outputDir: /usr/lib/apx-reporting/html/assets/reports/json/
+  
+hiveConfiguration:
+  url: jdbc:hive2://10.196.47.205:10000
+  
+graphiteConfiguration:
+  url: http://dashboard.apixio.com/render
+  
+nagiosConfiguration:
+  url: http://ec2-54-215-109-178.us-west-1.compute.amazonaws.com/nagios/statusJsonMod.php
+  username: nagiosadmin
+  password: 8p1clu19
+
+apiConfiguration:
+  url: https://localprodapi.apixio.com/API
+  
 # HTTP-specific options.
 http:
-
-
   # The port on which the HTTP server listens for service requests.
   connectorType: nonblocking+ssl
   port: 8443

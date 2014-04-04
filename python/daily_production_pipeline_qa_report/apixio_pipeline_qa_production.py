@@ -22,7 +22,7 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Query Number to Run
-QNTORUN=1
+QNTORUN=23
 
 # Run one or all queries
 PROCESS_ALL_QUERIES=bool(1)
@@ -143,9 +143,9 @@ for C in range(0, DAYSBACK):
 			CURDAY=30
 		else: 
 			if ( CURMONTH == 2 ):
-				curDay=28
+				CURDAY=28
 			else:
-				curDay=31
+				CURDAY=31
 			
 #============ adjust day and month of the report =================================================================
 
@@ -157,7 +157,10 @@ print ("MONTH: %s") % MONTH
 print ("YEAR: %s") % YEAR
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 print ("CUR_TIME = %s") % CUR_TIME
-# time.sleep(10)
+
+
+#print ("waiting for 60 sec")
+#time.sleep(60)
 
 #===================== ORGID - ORGNAME MAP ========================================================================
 # ORGID="10000247"
@@ -272,7 +275,132 @@ cur = conn.cursor()
 
 print ("Assigning queue name to hive ...")
 cur.execute("""SET mapred.job.queue.name=hive""")
+# ===================================================================================================================================
+# =============================== CARE OPTIMIZER related queries ====================================================================
+# ===================================================================================================================================
+REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
+COMPONENT_STATUS="PASSED"
 
+
+QN=21
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
+	QUERY_DESC="""Error(s) summary"""
+	print ("Running CARE OPTIMIZER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
+
+	cur.execute("""SELECT error_message, min(time) as first_occurence, \
+		max(time) as last_occurence, count(*) as count \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY error_message \
+		ORDER BY count DESC""" %("summary_careopt_errors", DAY, MONTH))
+
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td width='75%'>Message:</td><td width='10%'>1st Occur:</td><td width='10%'>Last Occur:</td><td width='5%'>Count:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
+			<td>"+FORMATEDTIME1+"</td> \
+			<td>"+FORMATEDTIME2+"</td> \
+			<td>"+str(i[3])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+
+QN=22
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
+	QUERY_DESC="""Load summary"""
+	print ("Running CARE OPTIMIZER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
+
+	cur.execute("""SELECT count(*) num_loads,  \
+		avg(cassandra_load_millis) / 1000 as avg_load_time_seconds, \
+		max(cassandra_load_millis) / 1000 as max_load_time_seconds, \
+		avg(patient_bytes) / 1048576 as avg_patient_mb, \
+		max(patient_bytes) / 1048576 as max_patient_mb, \
+		avg((patient_bytes / cassandra_load_millis) * 1000) / 1048576 avg_mb_per_second, \
+		min(patient_cache_size) as min_patient_cache, \
+		max(patient_cache_size) as max_patient_cache \
+		FROM %s \
+		WHERE day=%s and month=%s""" %("summary_careopt_load", DAY, MONTH))
+
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td># Loads:</td><td>Av Load:</td><td>Max Load:</td><td>Av Patient:</td><td>Max Patient</td>"
+	REPORT = REPORT+"<td>Av Mb/Sec:</td><td>Min Pat Cache:</td><td>Max Pat Cache:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		#FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		#FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
+			<td>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+str(i[3])+"</td> \
+			<td>"+str(i[4])+"</td> \
+			<td>"+str(i[5])+"</td> \
+			<td>"+str(i[6])+"</td> \
+			<td>"+str(i[7])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+QN=23
+if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
+	QUERY_DESC="""Search summary"""
+	print ("Running CARE OPTIMIZER query #%s - retrieve %s ...") % (QN, QUERY_DESC)
+
+	cur.execute("""SELECT split(username, "_")[1] as org, \
+		count(distinct split(username, "_")[0]) as end_users, \
+		count(distinct patient_sql_id) as num_patients, \
+		min(patient_access_millis) as min_time, \
+		max(patient_access_millis) as max_time, \
+		avg(patient_access_millis) as avg_time, \
+		min(time) as first_access, \
+		max(time) as last_access \
+		FROM %s  \
+		WHERE day=%s and month=%s \
+		GROUP BY split(username, "_")[1] \
+		ORDER BY num_patients DESC""" %("summary_careopt_search", DAY, MONTH))
+
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Org:</td><td>End users:</td><td># Pat:</td><td>Min time:</td><td>Max time:</td>"
+	REPORT = REPORT+"<td>Av time:</td><td>1st acc:</td><td>Lst acc:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		FORMATEDTIME1 = DT.datetime.strptime(str(i[6])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIME2 = DT.datetime.strptime(str(i[7])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
+			<td>"+str(i[1])+"</td> \
+			<td>"+str(i[2])+"</td> \
+			<td>"+str(i[3])+"</td> \
+			<td>"+str(i[4])+"</td> \
+			<td>"+str(i[5])+"</td> \
+			<td>"+FORMATEDTIME1+"</td> \
+			<td>"+FORMATEDTIME2+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+
+
+
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+else:
+	REPORT = REPORT+FAILED
+REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
 # =============================== DOC-RECEIVER related queries ======================================================================
@@ -1142,9 +1270,11 @@ if not DEBUG_MODE:
 	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
 	# ------------- Create new folder if one does not exist already -------------------------------
 	if not os.path.exists(BACKUPREPORTFOLDER):
-    		os.makedirs(BACKUPREPORTFOLDER)	
+		os.makedirs(BACKUPREPORTFOLDER)
+		os.chmod(BACKUPREPORTFOLDER, 0777)	
 	if not os.path.exists(REPORTFOLDER):
-    		os.makedirs(REPORTFOLDER)
+		os.makedirs(REPORTFOLDER)
+		os.chmod(REPORTFOLDER, 0777)
 	# ---------------------------------------------------------------------------------------------
 	REPORTFILENAME=str(DAY)+".html"
 	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"

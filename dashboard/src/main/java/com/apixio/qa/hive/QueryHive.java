@@ -23,6 +23,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.apixio.qa.hive.query.QueryHiveUtilities;
+
 public class QueryHive
 {
     private static String driverName = "org.apache.hive.jdbc.HiveDriver";
