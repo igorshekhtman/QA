@@ -1,0 +1,11 @@
+Document	Encounter Start Date	@encounter[sourceEncounter]/encounterStartDate
+Document	Encounter Original ID	@encounter[sourceEncounter]/originalId/id
+Document	Encounter Display Name	@encounter[sourceEncounter]/code/displayName
+Document	Document Original ID	originalId/id
+Document	Parsing Date	@parsingDetails[parsingDetailsId]/parsingDateTime
+Document	Author Name	@clinicalActor[primaryClinicalActorId]/actorGivenName/metadata/displayName
+Document	Author Id	@clinicalActor[primaryClinicalActorId]/originalId/id
+Document	Author Specialty @clinicalActor[primaryClinicalActorId]/metadata/specialties
+Patient	Patient Original Id	primaryExternalID/id
+Patient	Patient DOB	primaryDemographics/dateOfBirth
+    

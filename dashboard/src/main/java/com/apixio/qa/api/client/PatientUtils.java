@@ -135,17 +135,35 @@ public class PatientUtils {
 		Map<String, String> encounterDetails = new HashMap<String,String>();
 		for (Document document : patient.getDocuments()) {
 			if (document.getInternalUUID().toString().equals(documentUuid)) {
-				for (Entry<String, String> pathSet : paths.entrySet()) {
-					String[] pathParts = pathSet.getValue().split("/", -1);
-					String pathValue = getJsonStringForPath(patient, getJsonObjectFromPatientObjectPart(document), pathParts);
-					encounterDetails.put(pathSet.getKey(), pathValue);
-				}
+				encounterDetails = getDocumentDetails(patient,document,paths);
 			}		
 		}
 		
 		return encounterDetails;
 	}
-
+	
+	public static Map<String,String> getDocumentDetails(Patient patient, Document document, Map<String,String> paths) throws JSONException {
+		Map<String, String> encounterDetails = new HashMap<String,String>();
+		for (Entry<String, String> pathSet : paths.entrySet()) {
+			String[] pathParts = pathSet.getValue().split("/", -1);
+			String pathValue = getJsonStringForPath(patient, getJsonObjectFromPatientObjectPart(document), pathParts);
+			encounterDetails.put(pathSet.getKey(), pathValue);
+		}
+		
+		return encounterDetails;
+	}
+	
+	public static Map<String,String> getPatientDetails(Patient patient, Map<String,String> paths) throws JSONException {
+		Map<String, String> encounterDetails = new HashMap<String,String>();
+		for (Entry<String, String> pathSet : paths.entrySet()) {
+			String[] pathParts = pathSet.getValue().split("/", -1);
+			String pathValue = getJsonStringForPath(patient, getJsonObjectFromPatientObjectPart(patient), pathParts);
+			encounterDetails.put(pathSet.getKey(), pathValue);
+		}
+		
+		return encounterDetails;
+	}
+	
 	private static String getJsonStringForPath(Patient patient, JSONObject object, String[] pathParts) throws JSONException {
 		if (pathParts.length == 1) {
 			return object.getString(pathParts[0]);
@@ -212,7 +230,16 @@ public class PatientUtils {
 					complexPaths.put("Encounter Start Date", "@encounter[sourceEncounter]/encounterStartDate");
 					complexPaths.put("Encounter Original ID", "@encounter[sourceEncounter]/originalId/id");
 					complexPaths.put("Encounter Display Name", "@encounter[sourceEncounter]/code/displayName");
+					complexPaths.put("Document Original ID", "originalId/id");
 					Map<String,String> complexDetails = PatientUtils.getDocumentDetails(patient, documentUuid, complexPaths);
+
+
+					if (complexDetails.size() == 0) {
+						Patient patientDocument = apiClient.getPatientDocumentByUUID(requestToken, requestUserId, patientUuid, documentUuid);
+						for (Document document : patientDocument.getDocuments()) {
+							complexDetails = PatientUtils.getDocumentDetails(patient, document, complexPaths);
+						}
+					}
 					//documentEncounterDetails += patientUuid + "\t" + documentUuid + "\t" + StringUtils.join(complexDetails.values(),"\t") + "\n";
 					documentEncounterDetails.put(patientUuid + "|" + documentUuid, complexDetails);
 				}
@@ -221,8 +248,8 @@ public class PatientUtils {
 		return documentEncounterDetails;
 	}
 
-	public static JSONObject getDocumentPathDetails(String patient_documents, String paths, String url, String requestToken, String requestUserId) throws Exception {
-		JSONObject documentEncounterDetails = new JSONObject();
+	public static JSONObject getPatientPathDetails(String patient_documents, String document_paths, String patient_paths, String url, String requestToken, String requestUserId) throws Exception {
+		JSONObject patientDetails = new JSONObject();
 		Map<String, Set<String>> patientDocumentMap = new HashMap<String, Set<String>>();
 		String[] patientDocumentList = patient_documents.split(";", -1);
 		for (int i = 0; i < patientDocumentList.length; i++) {
@@ -243,24 +270,35 @@ public class PatientUtils {
 			}
 		}
 
-		Map<String, String> complexPaths = new HashMap<String, String>();
-		String[] pathPairs = paths.split(";", -1);
+		Map<String, String> documentComplexPaths = new HashMap<String, String>();
+		String[] pathPairs = document_paths.split(";", -1);
 		for (int i = 0; i < pathPairs.length; i++) {
 			String[] pathSet = pathPairs[i].split("\\|", -1);
-			complexPaths.put(pathSet[0], pathSet[1]);
+			if (pathSet.length == 2)
+				documentComplexPaths.put(pathSet[0], pathSet[1]);
+		}
+
+		Map<String, String> patientComplexPaths = new HashMap<String, String>();
+		String[] patientPathPairs = patient_paths.split(";", -1);
+		for (int i = 0; i < patientPathPairs.length; i++) {
+			String[] pathSet = patientPathPairs[i].split("\\|", -1);
+			if (pathSet.length == 2)
+				patientComplexPaths.put(pathSet[0], pathSet[1]);
 		}
 		
     	ApiClient apiClient = new ApiClient(url);
 		for (String patientUuid : patientDocumentMap.keySet()) {
 			Patient patient = apiClient.getPatientByUUID(requestToken, requestUserId, patientUuid);		
 			if (patient != null) {
+				if (patientComplexPaths.size() > 0)
+					patientDetails.put(patientUuid, PatientUtils.getPatientDetails(patient, patientComplexPaths));
 				for (String documentUuid : patientDocumentMap.get(patientUuid)) {
-					Map<String,String> complexDetails = PatientUtils.getDocumentDetails(patient, documentUuid, complexPaths);
+					Map<String,String> documentComplexDetails = PatientUtils.getDocumentDetails(patient, documentUuid, documentComplexPaths);
 					//documentEncounterDetails += patientUuid + "\t" + documentUuid + "\t" + StringUtils.join(complexDetails.values(),"\t") + "\n";
-					documentEncounterDetails.put(patientUuid + "|" + documentUuid, complexDetails);
+					patientDetails.put(patientUuid + "|" + documentUuid, documentComplexDetails);
 				}
 			}
 		}
-		return documentEncounterDetails;
+		return patientDetails;
 	}
 }

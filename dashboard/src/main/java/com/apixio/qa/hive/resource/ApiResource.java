@@ -113,7 +113,7 @@ public class ApiResource {
     @Path("/document/details/paths")
     @Timed
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String getDocumentPathDetails(@FormParam("username") String username, @FormParam("password") String password, @FormParam("patient_documents") String patient_documents, @FormParam("paths") String paths)
+    public String getDocumentPathDetails(@FormParam("username") String username, @FormParam("password") String password, @FormParam("patient_documents") String patient_documents, @FormParam("document_paths") String document_paths, @FormParam("patient_paths") String patient_paths)
     {
     	long start = System.currentTimeMillis();
     	System.out.println("Starting request for document encounter details: " + start);
@@ -136,7 +136,7 @@ public class ApiResource {
     	
     	if (!StringUtils.isBlank(requestToken) && !StringUtils.isBlank(requestUserId)) {
     		try {
-				documentEncounterDetails = PatientUtils.getDocumentPathDetails(patient_documents, paths, url, requestToken, requestUserId);
+				documentEncounterDetails = PatientUtils.getPatientPathDetails(patient_documents, document_paths, patient_paths, url, requestToken, requestUserId);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
