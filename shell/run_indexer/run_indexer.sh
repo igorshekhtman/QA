@@ -1,7 +1,4 @@
 #! /bin/sh
-
-# pipeline Automation script
-
 export TZ=America/Los_Angeles
 timestamp=$(date +'%s')
 datestamp=$(date +'%m/%d/%y %r')
@@ -94,14 +91,14 @@ echo "9. STRESS TEST - 1 PATIENT 2000 EACH TXT RTF DOC DOCMENTS 6000 TOTAL"
 echo "10. STRESS TEST - 20,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "11. STRESS TEST - 50 PATIENTS 200 TXT 200 PDF DOCUMENTS EACH 20,000 TOTAL"
 echo "12. HCC DEMO 2 PATIENTS 3 DOCUMENTS"
-echo "13. (not ready) "
-echo "14. (not ready) "
-echo "15. (not ready) "
-echo "16. (not ready) "
-echo "17. (not ready) "
-echo "18. (not ready) "
-echo "19. (not ready) "
-echo "20. (not ready) "
+echo "13. HCC TRAINING 1 PATIENT 32 DOCUMENTS "
+echo "14. STRESS TEST - 500 PATIENTS 30 PDF TXT RTF JPG DOC DOCUMENTS 15,000 TOTAL"
+echo "15. STRESS TEST - 500 PATIENTS 30 PDF TXT RTF JPG DOC DOCUMENTS 15,000 TOTAL"
+echo "16. NEGATIVE TEST - BAD CCR, CCD, PDF, JPG, RTF, TXT, DOC DOCUMENTS 3 OF EACH"
+echo "17. STRESS TEST (LARGE) - 10,000 PATIENTS 1 TXT DOCUMENT EACH"
+echo "18. STRESS TEST (MEDIUM) - 5,000 PATIENTS 1 TXT DOCUMENT EACH"
+echo "19. STRESS TEST (SMALL) - 1,000 PATIENTS 1 TXT DOCUMENT EACH"
+echo "20. CARE OPTIMIZER TEST - ONE LARGE PATIENT WITH 5000 TXT DOCUMENTS"
 echo "==========================================================================="
 read -p "Select test number to run: " test
 
@@ -120,6 +117,16 @@ case $test in
 	    cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312050842107850 /mnt/indexer$i/SOURCE/	;;
 	11) cp -avr /mnt/testdata/50Patients200Txt200PdfEach/catalog/201312060250197522 /mnt/indexer$i/SOURCE/ ;;
 	12) cp -avr /mnt/testdata/HCC_Demo/catalog /mnt/indexer$i/SOURCE/ ;;
+	13) cp -avr /mnt/testdata/HCC_Training/catalog /mnt/indexer$i/SOURCE/ ;;
+	14) cp -avr /mnt/testdata/500Patients15000DocumentsTotal/catalog/201312170839136460 /mnt/indexer$i/SOURCE/ ;;
+	15) cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312180923217633 /mnt/indexer$i/SOURCE/ 
+           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191043091606 /mnt/indexer$i/SOURCE/		
+           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191051107481 /mnt/indexer$i/SOURCE/ ;;
+	16) cp -avr /mnt/testdata/NegativeTestData-1/catalog /mnt/indexer$i/SOURCE/ ;;
+	17) cp -avr /mnt/testdata/10000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
+	18) cp -avr /mnt/testdata/5000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
+	19) cp -avr /mnt/testdata/1000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
+	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog /mnt/indexer$i/SOURCE/ ;;
 	*) 	echo "==========================================================================="
 		echo "Error: Invalid test number selection, exiting script" 
 		echo "==========================================================================="
@@ -139,10 +146,12 @@ echo "Please update username, password and key for Indexer$i CommSys.ini file"
 if [ "$environment" == "s" ]; then
 	echo "  "
 	echo "Use the following key value for STAGING environment:"
+	echo "  "
 	echo "V01_8p1x1o1825sanmateocalifornia9440"
 else
 	echo "  "
 	echo "Use the following key value for PRODUCTION environment:"
+	echo "  "
 	echo "V01_dWbZtN56Hnwez6jR5Tfjx25bdfj8GVJt"
 fi
 echo "  "
