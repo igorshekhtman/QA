@@ -463,7 +463,7 @@ get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
 get_json_object(line, '$.seqfile.file.document.batchid') as batch_id,
 cast(get_json_object(line, '$.seqfile.file.document.bytes') as int) as file_size,
 get_json_object(line, '$.seqfile.file.document.status') as status,
-get_json_object(line, '$.seqfile.file.add.directory') as seqfile_directory,
+regexp_extract(get_json_object(line, '$.seqfile.file.add.directory'), '^.*?(\/user.*?)$',1) as seqfile_directory,
 regexp_replace(get_json_object(line, '$.seqfile.file.add.filename'), concat(get_json_object(line, '$.seqfile.file.add.directory'), '/'), '') as seqfile_file,
 cast(get_json_object(line, '$.seqfile.file.add.millis') as int) as seqfile_time,
 get_json_object(line, '$.message') as error_message,
@@ -496,7 +496,7 @@ and ($dateRange);
 insert overwrite table summary_docreceiver_seqfile_post_staging partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.submit.post.path') as seqfile_path,
+regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
 cast(get_json_object(line, '$.submit.post.numfiles') as int) as num_seq_files,
 cast(get_json_object(line, '$.submit.post.bytes') as int) as seqfile_size,
 cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
@@ -514,10 +514,10 @@ and ($dateRange);
 insert overwrite table summary_coordinator_workrequest_staging partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.work.sourcedir') as source_dir,
-regexp_replace(get_json_object(line, '$.work.filesmoved'), concat(get_json_object(line, '$.work.sourcedir'),'/'), '') as seqfile,
-get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.context.batchID') as batch_id,
+regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) as source_dir,
+regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
+get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.workID') as work_id,
 month,
 day,
