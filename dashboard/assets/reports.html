@@ -11,10 +11,21 @@
 				type: "GET",
 				url: "reports.txt",
 				dataType: "text",
-				success: function(data) {processData(data);}
+				success: function(data) { 
+				    processData(data);
+
+                    $('.controlMonth').change(function() {
+					console.log($(this).val());
+                        processData(data, $(this).val());         
+                    });
+				}
 			 });
+
 		});
-		function processData(allText) {
+
+		function processData(allText, month) {
+		    var month = month || null;
+
 			var record_num = 2;  // or however many elements there are in each row
 			var allTextLines = allText.split(/\r\n|\n/);
 			var output = [];
@@ -26,36 +37,42 @@
 				} else {
 				}
 			}
+			if(month) {
+				    output = output.filter(function(e) {
+                        if(e.indexOf(month) > -1) {
+                            return e;
+                        }
+				    });
+                }
+			
 			$('#controlSelect').html(output.join(''));
 			$('#controlSelect option:last-child').attr('selected', 'selected');
 			loadReport();
 		}
+
 		function loadReport() {
 			var selected_report = $("#controlSelect").val();
 			$("#report").attr("src", selected_report);
 		}
-		function selectMonth() {
-			var selected_month = $("#controlMonth").val(); 
-			$("#report").attr("src", selected_month);
-		}
+
 	</script>
 </head>
 <body>
 <div class="title">Daily Reports</div>
 <div class="control">
 	<p>Please select a report:</p>
-	<input id="controlMonth" type="radio" name="month" value="January" onselect='javascript:selectMonth()'> Jan
-	<input id="controlMonth" type="radio" name="month" value="February" onselect='javascript:selectMonth()'> Feb
-	<input id="controlMonth" type="radio" name="month" value="March" onselect='javascript:selectMonth()'> Mar
-	<input id="controlMonth" type="radio" name="month" value="April" onselect='javascript:selectMonth()'> Apr
-	<input id="controlMonth" type="radio" name="month" value="May" onselect='javascript:selectMonth()'> May
-	<input id="controlMonth" type="radio" name="month" value="June" onselect='javascript:selectMonth()'> Jun
-	<input id="controlMonth" type="radio" name="month" value="July" onselect='javascript:selectMonth()'> Jul
-	<input id="controlMonth" type="radio" name="month" value="August" onselect='javascript:selectMonth()'> Aug
-	<input id="controlMonth" type="radio" name="month" value="September" onselect='javascript:selectMonth()'> Sep
-	<input id="controlMonth" type="radio" name="month" value="October" onselect='javascript:selectMonth()'> Oct
-	<input id="controlMonth" type="radio" name="month" value="November" onselect='javascript:selectMonth()'> Nov
-	<input id="controlMonth" type="radio" name="month" value="December" onselect='javascript:selectMonth()'> Dec
+	<input class="controlMonth" type="radio" name="month" value="January"> Jan
+	<input class="controlMonth" type="radio" name="month" value="February"> Feb
+	<input class="controlMonth" type="radio" name="month" value="March"> Mar
+	<input class="controlMonth" type="radio" name="month" value="April"> Apr
+	<input class="controlMonth" type="radio" name="month" value="May"> May
+	<input class="controlMonth" type="radio" name="month" value="June"> Jun
+	<input class="controlMonth" type="radio" name="month" value="July"> Jul
+	<input class="controlMonth" type="radio" name="month" value="August"> Aug
+	<input class="controlMonth" type="radio" name="month" value="September"> Sep
+	<input class="controlMonth" type="radio" name="month" value="October"> Oct
+	<input class="controlMonth" type="radio" name="month" value="November"> Nov
+	<input class="controlMonth" type="radio" name="month" value="December"> Dec
 	<br>
 	<select id="controlSelect" onchange='javascript:loadReport()'></select>
 </div>

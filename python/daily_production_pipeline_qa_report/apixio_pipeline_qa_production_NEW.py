@@ -50,7 +50,8 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=1
+DAYSBACK=7
+# DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
@@ -128,7 +129,7 @@ ORGMAP = { \
 }
 #===================================================================================
 
-def checkPassedArguments():
+def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
@@ -165,11 +166,9 @@ def checkPassedArguments():
 	print ("Version 1.0.1\n")
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")
-	
-checkPassedArguments()
-		
+			
 
-def obtainReportDayandMonth():
+def identifyReportDayandMonth():
 #======== obtain day and month for previous from current day and month ===========================================
 	global DAYSBACK, DATERANGE, CURDAY, CURMONTH, DAY, MONTH, YEAR, CURYEAR
 	print ("Day and month values before %s day(s) back adjustment ...") % (DAYSBACK)
@@ -200,8 +199,6 @@ def obtainReportDayandMonth():
 	print ("DAY: %s, MONTH: %s, YEAR: %s\n") % (DAY, MONTH, YEAR)
 	#time.sleep(15)
 	
-obtainReportDayandMonth()
-
 
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
@@ -210,7 +207,7 @@ def test(debug_type, debug_msg):
 
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
-	print ("Begin writing report header...\n")
+	print ("Begin writing report header ...\n")
 	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
@@ -222,21 +219,19 @@ def writeReportHeader ():
 	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
-	#REPORT = REPORT + """OrgID: <b>%s</b><br>\n""" % (ORGID)
-	#REPORT = REPORT + """BatchID: <b>%s</b><br>\n""" % (BATCHID)
-	#REPORT = REPORT + """User name: <b>%s</b><br><br>\n""" % (USERNAME)
-	print ("End writing report header...\n")
+	print ("End writing report header ...\n")
 	
-writeReportHeader()	
 
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='10.196.47.205', port=10000, authMechanism="PLAIN", user='hive', password='', database='default')
+	conn = pyhs2.connect(host='10.196.47.205', \
+		port=10000, authMechanism="PLAIN", \
+		user='hive', password='', \
+		database='default')
 	cur = conn.cursor()
 	print ("Connection to Hive established ...\n")
 
-connectToHive()
 
 def setHiveParameters():
 	print ("Assigning Hive paramaters ...\n")
@@ -247,14 +242,58 @@ def setHiveParameters():
 	cur.execute("""set mapred.job.queue.name=default""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Completed assigning Hive paramaters ...\n")
-	
-setHiveParameters()
 
+
+def obtainFailedJobs():
+	global REPORT, cur, conn
+	global DAY, MONTH
+	print ("Executing failed jobs query ...\n")
+	cur.execute("""SELECT activity, hadoop_job_id, batch_id, org_id, time \
+		FROM %s \
+		WHERE \
+		day=%s and month=%s and \
+		status = 'error' \
+		ORDER BY org_id ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
+
+	REPORT = REPORT + SUBHDR % "FAILED JOBS"
+	COMPONENT_STATUS="PASSED"
+	REPORT = REPORT+"<table border='1' width='800'>"
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Hadoop job:</td><td>Batch ID:</td><td>Org ID:</td><td>Org Name:</td><td>Failure Time:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		FORMATEDTIME = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		REPORT = REPORT+"<tr> \
+			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
+		if str(i[3]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[3])+"</td>"
+		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
+		COMPONENT_STATUS="FAILED"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>There were no failed jobs</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	if (COMPONENT_STATUS == "PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
+	print ("Completed failed jobs query ... \n")
+	
 
 def writeReportDetails():
 	global SUBHDR, COMPONENT_STATUS, REPORT
 	
-	REPORT = REPORT + SUBHDR % "DOC-RECEIVER"
+
+	obtainFailedJobs()
+
+	
+	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
 
 	if (COMPONENT_STATUS=="PASSED"):
@@ -263,7 +302,7 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-	REPORT = REPORT+SUBHDR % "COORDINATOR"
+	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
 
 	if (COMPONENT_STATUS=="PASSED"):
@@ -272,7 +311,7 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-	REPORT = REPORT+SUBHDR % "PARSER"
+	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
 
 	if (COMPONENT_STATUS=="PASSED"):
@@ -281,7 +320,7 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-	REPORT = REPORT+SUBHDR % "OCR"
+	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
 
 	if (COMPONENT_STATUS=="PASSED"):
@@ -290,72 +329,90 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-	REPORT = REPORT+SUBHDR % "PERSIST"
-	COMPONENT_STATUS="PASSED"
+	
 
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-	else:
-		REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"
-
+def closeHiveConnection():
+	global cur, conn
 	cur.close()
 	conn.close()
+	
+	
+
+def writeReportFooter():
+	print ("Write report footer ...\n")
+	global REPORT
+	REPORT = REPORT+"<table>"
+	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT = REPORT+"</table>"
+	print ("Finished writing report ...\n")
+
+
+
+def archiveReport():
+	global DEBUG_MODE
+	if not DEBUG_MODE:
+		print ("Archiving report ...\n")
+		BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		# ------------- Create new folder if one does not exist already -------------------------------
+		if not os.path.exists(BACKUPREPORTFOLDER):
+			os.makedirs(BACKUPREPORTFOLDER)
+			os.chmod(BACKUPREPORTFOLDER, 0777)	
+		if not os.path.exists(REPORTFOLDER):
+			os.makedirs(REPORTFOLDER)
+			os.chmod(REPORTFOLDER, 0777)
+		# ---------------------------------------------------------------------------------------------
+		REPORTFILENAME=str(DAY)+".html"
+		REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTFILENAME="reports.txt"
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+		os.chdir(BACKUPREPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTXTFILEFOLDER)
+		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+		REPORTFILETXT.write(REPORTXTSTRING)
+		REPORTFILETXT.close()
+		os.chdir("/mnt/automation")
+		print ("Finished archiving report ... \n")
+
+
+def emailReport():
+	global RECEIVERS, SENDER, REPORT
+	print ("Emailing report ...\n")
+	s=smtplib.SMTP()
+	s.connect("smtp.gmail.com",587)
+	s.starttls()
+	s.login("donotreply@apixio.com", "apx.mail47")	        
+	s.sendmail(SENDER, RECEIVERS, REPORT)	
+	print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
+	
+#================ START OF MAIN BODY =================================================================	
+	
+checkEnvironmentandReceivers()	
+
+identifyReportDayandMonth()
+
+writeReportHeader()	
+
+connectToHive()
+
+setHiveParameters()
 
 writeReportDetails()
 
-def writeReportFooter():
-	global REPORT
-	REPORT = REPORT+"<table><tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
-	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
+closeHiveConnection()
 
 writeReportFooter()
 
-# ============================= ARCHIVE REPORT TO A FILE ============================================================================
+archiveReport()
 
-# /usr/lib/apx-reporting/html/assets/reports/production/pipeline/2014/3
+emailReport()
 
-
-if not DEBUG_MODE:
-	BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-	# ------------- Create new folder if one does not exist already -------------------------------
-	if not os.path.exists(BACKUPREPORTFOLDER):
-		os.makedirs(BACKUPREPORTFOLDER)
-		os.chmod(BACKUPREPORTFOLDER, 0777)	
-	if not os.path.exists(REPORTFOLDER):
-		os.makedirs(REPORTFOLDER)
-		os.chmod(REPORTFOLDER, 0777)
-	# ---------------------------------------------------------------------------------------------
-	REPORTFILENAME=str(DAY)+".html"
-	REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
-	REPORTXTFILENAME="reports.txt"
-	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-	# print (REPORTFOLDER)
-	# print (REPORTFILENAME)
-	# print (REPORTXTSTRING)
-	# print (REPORTXTFILENAME)
-	# print (REPORTXTFILEFOLDER)
-	os.chdir(BACKUPREPORTFOLDER)
-	REPORTFILE = open(REPORTFILENAME, 'w')
-	REPORTFILE.write(REPORT)
-	REPORTFILE.close()
-	os.chdir(REPORTFOLDER)
-	REPORTFILE = open(REPORTFILENAME, 'w')
-	REPORTFILE.write(REPORT)
-	REPORTFILE.close()
-	os.chdir(REPORTXTFILEFOLDER)
-	REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-	REPORTFILETXT.write(REPORTXTSTRING)
-	REPORTFILETXT.close()
-	os.chdir("/mnt/automation")
-
-# ===================================================================================================================================
-
-
-s=smtplib.SMTP()
-s.connect("smtp.gmail.com",587)
-s.starttls()
-s.login("donotreply@apixio.com", "apx.mail47")	        
-s.sendmail(SENDER, RECEIVERS, REPORT)	
-print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
+#================ END OF MAIN BODY ===================================================================
