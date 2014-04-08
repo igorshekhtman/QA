@@ -2,7 +2,7 @@
 https://reports.apixio.com/html/index.htm
 
 =============================================================================================================
-Blocking IP Address for Stagin DR Environmental Components:
+Blocking IP Address for Stagin DR Environmental Components test:
 =============================================================================================================
 
 I added these three critical services that must also be tested. Pretty much everything can be tested by just blocking access to the right IP. I was able to trivially achieve this on linux with the following command:
