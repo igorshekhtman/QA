@@ -256,6 +256,24 @@ day
 from production_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
 and ($dateRange);
 
+insert overwrite table summary_afsdownload partition (month, day, org_id)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.docuuid') as doc_id,
+get_json_object(line, '$.status') as status,
+cast(get_json_object(line, '$.download.millis') as int) as download_time,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+get_json_object(line, '$.error.message') as error_message,
+month,
+day,
+get_json_object(line, '$.input.orgId') as org_id
+FROM production_logs_afsDownload_epoch
+WHERE get_json_object(line, '$.level') != "INFO"
+and ($dateRange);
+
 insert overwrite table summary_parser partition (month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -609,6 +627,24 @@ get_json_object(line, '$.coordinator.stats') as stats_json,
 month, 
 day
 from staging_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
+and ($dateRange);
+
+insert overwrite table summary_afsdownload_staging partition (month, day, org_id)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.docuuid') as doc_id,
+get_json_object(line, '$.status') as status,
+cast(get_json_object(line, '$.download.millis') as int) as download_time,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+get_json_object(line, '$.error.message') as error_message,
+month,
+day,
+get_json_object(line, '$.input.orgId') as org_id
+FROM staging_logs_afsDownload_epoch
+WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
 insert overwrite table summary_parser_staging partition (month, day, org_id)
