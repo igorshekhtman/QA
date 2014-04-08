@@ -126,7 +126,7 @@ case $test in
 	17) cp -avr /mnt/testdata/10000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
 	18) cp -avr /mnt/testdata/5000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
 	19) cp -avr /mnt/testdata/1000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
-	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog /mnt/indexer$i/SOURCE/ ;;
+	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog/201404070121338174 /mnt/indexer$i/SOURCE/ ;;
 	*) 	echo "==========================================================================="
 		echo "Error: Invalid test number selection, exiting script" 
 		echo "==========================================================================="

@@ -304,6 +304,7 @@ def writeReportDetails(description, code):
 	global REPORT, ENVIRONMENT, RETURNCODE
 	global SUBHDR, PASSED, FAILED, TEST_PN
 	REPORT = REPORT+SUBHDR % description
+	REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
 	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
 	if (RETURNCODE[ :3] == code):
 		REPORT = REPORT+PASSED
