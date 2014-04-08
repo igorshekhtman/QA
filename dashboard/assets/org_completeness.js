@@ -154,7 +154,7 @@ function scrollToOrg() {
 		scrollPos = "#orgDetails";
 	
 	$('html, body').animate({
-		scrollTop: $(scrollPos).offset().top
+		scrollTop: ($(scrollPos).offset().top - 100)
 	}, 1000);
 }
 
@@ -163,6 +163,7 @@ function resetOptionsOfOrgs() {
 	
 	orgDropdownEle.empty();
 	orgDropdownEle.append( new Option('Select Org', '', true, true) );
+	scrollToOrg();
 }
 
 function addOptionToOrgs(text, val) {
