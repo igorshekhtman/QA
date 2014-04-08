@@ -154,11 +154,8 @@ function scrollToOrg() {
 		scrollPos = "#orgDetails";
 	
 	$('html, body').animate({
-		
 		scrollTop: $(scrollPos).offset().top
-		
 	}, 1000);
-	//$.scrollTo('#tbl_'+_selected);
 }
 
 function resetOptionsOfOrgs() {

@@ -1,6 +1,5 @@
 package com.apixio.qa.hive.query;
 
-import java.awt.print.Paper;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -34,22 +31,22 @@ public class QueryHandler
         this.hiveAddress = hiveAddress;
     }
 
-    public List<JSONObject> runQuery(RunQuery queryToRun) throws SQLException, JSONException
+    public List<JSONObject> runQuery(String environment, RunQuery queryToRun) throws SQLException, JSONException
     {
         Query query = QueryConfig.getQuery(queryToRun.getName());
         
-        String queryText = query.getText();
+        String queryText = query.getText(environment);
         
         return queryHive(queryToRun.getParam(), queryText);
     }
     
-    public List<JSONObject> runQuery(String queryName, MultivaluedMap<String,String> queryParams) throws SQLException, JSONException
+    public List<JSONObject> runQuery(String environment, String queryName, MultivaluedMap<String,String> queryParams) throws SQLException, JSONException
     {
         Query query = QueryConfig.getQuery(queryName);
         
         if (query != null)
         {
-            String queryText = query.getText();
+            String queryText = query.getText(environment);
             
             String modifiedQuery = QueryHiveUtilities.addUserParamsToWhereClause(queryText, queryParams);
             
@@ -72,7 +69,7 @@ public class QueryHandler
             {
                 try
                 {
-                    System.out.println(qh.runQuery(rQ).toString());
+                    System.out.println(qh.runQuery("production", rQ).toString());
                 }
                 catch (SQLException e)
                 {

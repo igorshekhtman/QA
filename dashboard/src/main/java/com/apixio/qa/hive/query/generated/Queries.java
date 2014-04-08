@@ -10,6 +10,8 @@ package com.apixio.qa.hive.query.generated;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -502,7 +504,13 @@ public class Queries {
          *     {@link String }
          *     
          */
-        public String getText() {
+        public String getText(String environment) {
+            if (environment.equalsIgnoreCase("production"))
+                environment = "";
+            else
+                environment = "_staging";
+            
+            text = text.replaceAll(Pattern.quote("{env}"), environment);
             return text;
         }
 
