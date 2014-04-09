@@ -19,6 +19,25 @@ remove:
 sudo iptables -D INPUT -s 74.125.239.101 -j DROP
 
 outgoing is -d not -s (Lance)
+This is how to cut off access to the API server from supload:
+
+iptables -A OUTPUT -d 10.196.82.47 -j DROP
+
+
+This means:
+-A       add a rule for sending packets
+-d 10.196.82.47   about sending packets to this IP
+-j DROP   drop packets
+
+To remove the rule use -D instead of -A
+
+I got the address by running this inside Amazon:
+ping supapi.apixio.com
+
+But you have the IPs for everything else. Always use the inside IP address.
+
+You can remove all of the rules with:
+iptables -F
 
 
 
