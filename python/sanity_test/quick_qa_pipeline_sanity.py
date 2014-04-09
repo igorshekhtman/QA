@@ -307,7 +307,8 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.appendToSequenceFile') as seqfile_trace, \
         get_json_object(line, '$.output.trace.submitToCoordinator') as sent_to_coordinator_trace, \
         get_json_object(line, '$.output.link.orgIdByDocUUID') as doc_link, \
-        get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link \
+        get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link, \
+        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'not found') as apo_status \
 		FROM %s \
 		WHERE get_json_object(line, '$.output.documentEntry.batchId') = "%s" and \
 		day=%s and month=%s\
@@ -318,12 +319,13 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.persistJob'), \
         get_json_object(line, '$.output.trace.appendToSequenceFile'), \
         get_json_object(line, '$.output.trace.submitToCoordinator'), \
-        get_json_object(line, '$.output.link.orgIdByDocUUID'),
-        get_json_object(line, '$.output.link.orgIdByPatientUUID')""" %(QAFROMSEQFILELOGFILE, BATCH, DAY, MONTH))
+        get_json_object(line, '$.output.link.orgIdByDocUUID'), \
+        get_json_object(line, '$.output.link.orgIdByPatientUUID'), \
+        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none')""" %(QAFROMSEQFILELOGFILE, BATCH, DAY, MONTH))
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
     
-    REPORT = REPORT+"<tr><th>document count</th><th>archived</th><th>has docEntry</th><th>parser trace</th><th>ocr trace</th><th>persist trace</th><th>seqfile trace</th><th>sent trace</th><th>docUUID linked</th><th>patUUID linked</th></tr>"
+    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apoUUID</th></tr>"
     ROW = 0
     sum = 0
     for resultRow in cur.fetch():
@@ -334,7 +336,7 @@ if QUICK_QA:
         REPORT = REPORT + "<tr>"
         for col in resultRow:
             if (str(col) == ORGID):
-                REPORT = REPORT + "<td align='center'>true</td>"
+                REPORT = REPORT + "<td align='center'>found</td>"
             else:
                 REPORT = REPORT + "<td align='center'>" + str(col) + "</td>"
         REPORT = REPORT + "</tr>"

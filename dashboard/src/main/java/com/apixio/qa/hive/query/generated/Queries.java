@@ -510,8 +510,8 @@ public class Queries {
             else
                 environment = "_staging";
             
-            text = text.replaceAll(Pattern.quote("{env}"), environment);
-            return text;
+            String envText = text.replaceAll(Pattern.quote("{env}"), environment);
+            return envText;
         }
 
         /**
