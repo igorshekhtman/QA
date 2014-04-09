@@ -545,14 +545,14 @@ for component in IPMAP.keys():
 	storeToken()
 	obtainStaticPatientInfo("Negative", "Test")
 	clearAllBlockedIP()
-	blockComponentIP("component")
+	blockComponentIP(component)
 	for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 		createTxtDocument(i)
 		createCatalogFile()
 		uploadDocument()
 		storeUUID()
 	closeBatch()
-	unblockComponentIP("component")
+	unblockComponentIP(component)
 	if ENVIRONMENT == "Staging":
 		transmitManifest()
 
