@@ -11,7 +11,13 @@ sudo iptables -A INPUT -s 74.125.239.101 -j DROP
 and then remove the rule with:
 sudo iptables -D INPUT -s 74.125.239.101 -j DROP
 
-Just replace the IP address here with the one you want to block. -A "adds" the rule and -D "deletes" it.
+Just replace the IP address here with the one you want to block. -A "adds" the rule and -D "deletes" it:
+
+add: 
+sudo iptables -A INPUT -s 74.125.239.101 -j DROP
+remove:
+sudo iptables -D INPUT -s 74.125.239.101 -j DROP
+
 
 
 Hive is 184.169.209.24 outside/10.196.47.205 inside
