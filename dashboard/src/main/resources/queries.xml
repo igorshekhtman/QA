@@ -112,7 +112,7 @@
             from summary_docreceiver_seqfile{env} dr
             left outer join summary_docreceiver_seqfile_post{env} post on dr.seqfile_directory=post.seqfile_path and post.redis_queue_name is not null
             left outer join summary_afsdownload d on d.doc_id=dr.doc_id and d.status="success" 
-            join summary_coordinator_jobfinish b on d.hadoopjob_id = b.hadoop_job_id and b.status="success"
+            left outer join summary_coordinator_jobfinish b on d.hadoopjob_id = b.hadoop_job_id and b.status="success"
             where post.seqfile_path is null and dr.seqfile_directory is not null and d.doc_id is null and dr.status="success" group by dr.org_id, dr.seqfile_file order by updated_time desc
         </text>
     </query>
@@ -151,7 +151,7 @@
 	
 	<group name="completeness">
  	    <run-query name="archivedToS3_count"/>
-		<run-query name="upload_count"/> 
+		<!-- <run-query name="upload_count"/> 
 		<run-query name="parse_success_count"/>
 		<run-query name="parse_error_count"/>
 		<run-query name="ocr_success_count"/>
@@ -162,7 +162,7 @@
 		<run-query name="docs_queue"/> 
 		<run-query name="docs_in_failedjobs"/>
 		<run-query name="docs_in_drq_count"/>
-		<run-query name="docs_abandoned_coordinator_count"/>
+		<run-query name="docs_abandoned_coordinator_count"/> -->
 	</group>
 	
 	<group name="summary_tables_updates">
