@@ -18,6 +18,8 @@ sudo iptables -A INPUT -s 74.125.239.101 -j DROP
 remove:
 sudo iptables -D INPUT -s 74.125.239.101 -j DROP
 
+outgoing is -d not -s (Lance)
+
 
 
 Hive is 184.169.209.24 outside/10.196.47.205 inside
