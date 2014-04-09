@@ -539,7 +539,7 @@ for component in IPMAP.keys():
 
 	NUMBER_OF_DOCS_TO_UPLOAD = 100
 	EXPECTED_CODE = "200"
-	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking % component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
+	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking %s component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
 
 	getUserData()
 	storeToken()
