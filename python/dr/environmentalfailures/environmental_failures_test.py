@@ -31,11 +31,13 @@ QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 REPORT = ""
 RETURNCODE = ""
+DOCUMENTCOUNTER = 0
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
+YEAR=strftime("%Y", gmtime())
 
 UPLOAD_URL=""
 STOP_URL=""
@@ -144,31 +146,36 @@ def storeToken():
 	obj=json.loads(buf.getvalue())
 	TOKEN=obj["token"]
 			
-def createTxtDocument():
+def createTxtDocument(doc_number):
 	global TXT_FILE, TXT_FILE_NAME
-	TXT_FILE = "Sample text used for %s %s" % (PIPELINE_MODULE, TEST_TYPE)
-	TXT_FILE_NAME = "sample_text_file.txt"
+	print ("Creating document ...\n")
+	TXT_FILE = "Sample text used for %s %s.\n\nDocument number: %s" % (PIPELINE_MODULE, TEST_TYPE, doc_number)
+	TXT_FILE_NAME = "sample_text_file%s.txt" % doc_number
+	print ("Done creating document ...\n")
 			
-def obtainStaticPatientInfo():
+def obtainStaticPatientInfo(fname, lname):
 	global PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME
 	global PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME
+	print ("Start obtaining static patient info ...\n")
 	PATIENT_ID=uuid.uuid1()
 	PATIENT_ID_AA="RANDOM_UUID"
-	PATIENT_FIRST_NAME=("FIRST_%s" % (uuid.uuid1()))
+	PATIENT_FIRST_NAME=("%s_%s" % (fname, uuid.uuid1()))
 	print ("PATIENT FIRST NAME:  %s\n") % (PATIENT_FIRST_NAME)
 	PATIENT_MIDDLE_NAME="MiddleName"
-	PATIENT_LAST_NAME=("LAST_%s" % (uuid.uuid1()))
+	PATIENT_LAST_NAME=("%s_%s" % (lname, uuid.uuid1()))
 	print ("PATIENT LAST NAME:  %s\n") % (PATIENT_LAST_NAME)
 	PATIENT_DOB="19670810"
 	PATIENT_GENDER="M"
 	ORGANIZATION="ORGANIZATION_VALUE"
 	PRACTICE_NAME="PRACTICE_NAME_VALUE"		
+	print ("Finished obtaining static patient info ...\n")
 			
 			
 def createCatalogFile():
 	global CATALOG_FILE, FILE, FILES, TXT_FILE, TXT_FILE_NAME
 	global DOCUMENT_ID, SOURCE_SYSTEM, ORGANIZATION, FILE_FORMAT
 	global obj
+	print ("Start creating catalog file ...\n")
 	#FILES = os.listdir(DIR)
 	#FILE = FILES[0]	
 	ORGANIZATION=obj["organization"]
@@ -179,45 +186,30 @@ def createCatalogFile():
 	ROLES=obj["roles"]
 	TRACE_COLFAM=obj["trace_colFam"]
 	DOCUMENT_ID=uuid.uuid1()
-	#PATIENT_ID=uuid.uuid1()
-	#PATIENT_ID_AA="RANDOM_UUID"
-	#PATIENT_FIRST_NAME=("FIRST_%s" % (uuid.uuid1()))
-	#print ("PATIENT FIRST NAME:  %s\n") % (PATIENT_FIRST_NAME)
-	#PATIENT_MIDDLE_NAME="MiddleName"
-	#PATIENT_LAST_NAME=("LAST_%s" % (uuid.uuid1()))
-	#print ("PATIENT LAST NAME:  %s\n") % (PATIENT_LAST_NAME)
-	#PATIENT_DOB="19670810"
-	#PATIENT_GENDER="M"
-	#ORGANIZATION="ORGANIZATION_VALUE"
-	#PRACTICE_NAME="PRACTICE_NAME_VALUE"
-	#FILE_LOCATION=("%s" % (FILE))
-	#FILE_FORMAT_TEMP=FILE.split(".")
-	#FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
 	FILE_LOCATION="c:/FileLocation"
 	FILE_FORMAT="TXT"
 	DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
-	CREATION_DATE="1967-05-11T10:00:47-07:00"
-	MODIFIED_DATE="1967-05-11T10:00:47-07:00"
+	CREATION_DATE="%s-%s-%sT10:00:47-07:00" % (YEAR, MONTH, DAY)
+	MODIFIED_DATE="%s-%s-%sT10:00:47-07:00" % (YEAR, MONTH, DAY)
 	#DESCRIPTION=("%s" % (FILE))
 	DESCRIPTION=TXT_FILE_NAME
 	METATAGS="METATAGS_VALUE"
 	SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE"
 	TOKEN_URL="%s/auth/token/" % (HOST)
 	CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
+	print ("Ended creating catalog file ...\n")
 
 	
 		
 def uploadDocument():
 	global MANIFEST_FILE, ENVIRONMENT, TOKEN, RETURNCODE, UUID
-	global CATALOG_FILE, FILE, FILES, TXT_FILE
+	global CATALOG_FILE, FILE, FILES, TXT_FILE, DOCUMENTCOUNTER
 	global obju, bufu, obj
-	
-	DOCUMENTCOUNTER=0
 	
 	print ("Start uploading to DR ...\n")
 	
 	DOCUMENTCOUNTER=DOCUMENTCOUNTER+1
-	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
+	UPLOAD_URL="%s/receiver/batch/%s/document/upload?operation=simple-pipeline" % (HOST, DRBATCH)
 	bufu = io.BytesIO()
 	response = cStringIO.StringIO()
 	c = pycurl.Curl()
@@ -303,17 +295,18 @@ def writeReportHeader():
 	""" % (PIPELINE_MODULE, TEST_TYPE, ENVIRONMENT, CUR_TIME, PIPELINE_MODULE, TEST_TYPE, CUR_TIME, PIPELINE_MODULE, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 	
 
-def writeReportDetails(description, code):
+def writeReportDetails(description, code, number):
 	global REPORT, ENVIRONMENT, RETURNCODE
 	global SUBHDR, PASSED, FAILED, TEST_PN
 	REPORT = REPORT+SUBHDR % description
 	REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
 	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
-	if (RETURNCODE[ :3] == code):
-		REPORT = REPORT+PASSED
-	else:
-		REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"	
+	REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS UPLOADED: <b>"+str(number)+"</b></td></tr></table>"
+	#if (RETURNCODE[ :3] == code):
+	#	REPORT = REPORT+PASSED
+	#else:
+	#	REPORT = REPORT+FAILED
+	#REPORT = REPORT+"<br><br>"	
 		
 	
 def writeReportFooter():
@@ -321,6 +314,8 @@ def writeReportFooter():
 	REPORT=REPORT+"<table><tr><td><br>End of %s - %s QA report<br><br></td></tr>" % (PIPELINE_MODULE, TEST_TYPE)
 	REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 	print ("End writing report ...\n")
+	print ("PATIENT FIRST NAME:  %s\n") % (PATIENT_FIRST_NAME)
+	print ("PATIENT LAST NAME:  %s\n") % (PATIENT_LAST_NAME)
 	
 def emailReport():
 	global SENDER, RECEIVERS, REPORT, BATCH, RETURNCODE
@@ -362,7 +357,95 @@ def startDrService():
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()
 	print ("Doc-Receiver Service Started ...\n")
+	
+def connectToHive():
+	global cur, conn
+	print ("Connecing to Hive ...\n")
+	conn = pyhs2.connect(host='10.196.47.205', \
+		port=10000, authMechanism="PLAIN", \
+		user='hive', password='', \
+		database='default')
+	cur = conn.cursor()
+	print ("Connection to Hive established ...\n")
 
+
+def setHiveParameters():
+	global cur, conn
+	print ("Assigning Hive paramaters ...\n")
+	# cur.execute("""SET mapred.job.queue.name=hive""")
+	cur.execute("""set hive.exec.dynamic.partition=true""")
+	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
+	cur.execute("""set mapred.reduce.tasks=16""")
+	cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
+	print ("Completed assigning Hive paramaters ...\n")
+
+def closeHiveConnection():
+	global cur, conn
+	print ("Closing Hive connection ... \n")
+	cur.close()
+	conn.close()	
+	print ("Connection to Hive is now closed ... \n")
+
+	
+def runHiveQueries ():
+	global REPORT, cur, conn, DAY, MONTH, BATCH
+	print ("Running 4 %s Hive queries ... \n") % (PIPELINE_MODULE)	
+	if PIPELINE_MODULE == "DR":
+		hive_table = ENVIRONMENT.lower()+"_logs_docreceiver_24"
+		print ("Starting query 1 ...\n")
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+			get_json_object(line, '$.upload.document.status') as status \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.upload.document.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT + "DOCUMENTS UPLOADED: <b>" + str(i[0]) + "</b><br>"
+			
+		print ("Starting query 2 ...\n")
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
+			get_json_object(line, '$.archive.afs.status') as status \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = "EVENT" and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.archive.afs.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT + "DOCUMENTS ARCHIVED TO S3: <b>" + str(i[0]) + "</b><br>"			
+				
+		print ("Starting query 3 ...\n")
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
+			get_json_object(line, '$.seqfile.file.document.status') as status \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = "EVENT" and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT + "DOCUMENTS ADDED TO SEQUENCE FILE: <b>" + str(i[0]) + "</b><br>"
+			
+		print ("Starting query 4 ...\n")
+		cur.execute("""SELECT get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
+			get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
+			get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
+			FROM %s \
+			WHERE get_json_object(line, '$.level') = "EVENT" and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.submit.post.status') = "success" and \
+			get_json_object(line, '$.submit.post.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT + "SEQUENCE FILES SENT TO REDIS: <b>" + str(i[0]) + "</b><br>"
+	print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+	#if (RETURNCODE[ :3] == code):
+	REPORT = REPORT+PASSED
+	#else:
+	#	REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"				
 	
 #============== Start of the main body =======================================================================================	
 
@@ -370,21 +453,31 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 ===========================================================================
-
-TEST_DESCRIPTION = "Positive Test - valid credentials, valid document, valid catalog file"
+NUMBER_OF_DOCS_TO_UPLOAD = 10
 EXPECTED_CODE = "200"
+TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
+
 getUserData()
 storeToken()
-obtainStaticPatientInfo()
-for i in range(0, 3):
-	createTxtDocument()
+obtainStaticPatientInfo("Positive", "Test")
+for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
+	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
 if ENVIRONMENT == "Staging":
 	transmitManifest()
-writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)
+
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
+connectToHive()
+setHiveParameters()
+# wait for PAUSE_LIMIT seconds
+PAUSE_LIMIT=10
+print ("Pausing for %s seconds for upload to DR to complete ...") % (PAUSE_LIMIT)
+time.sleep(PAUSE_LIMIT)
+runHiveQueries()
+closeHiveConnection()
 
 #==========================================================================================
 
