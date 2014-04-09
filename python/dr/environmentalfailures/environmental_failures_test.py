@@ -501,22 +501,22 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 ===========================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 3
+NUMBER_OF_DOCS_TO_UPLOAD = 10
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
 getUserData()
 storeToken()
 obtainStaticPatientInfo("Positive", "Test")
-clearAllBlockedIP()
-blockComponentIP("API")
+#clearAllBlockedIP()
+#blockComponentIP("Hive")
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
-unblockComponentIP("API")
+#unblockComponentIP("Hive")
 if ENVIRONMENT == "Staging":
 	transmitManifest()
 
@@ -529,7 +529,43 @@ print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIM
 time.sleep(PAUSE_LIMIT)
 runHiveQueries()
 closeHiveConnection()
+#======= CASE #2 ===========================================================================
 
+# while ips are in the list of ips
+for component in IPMAP.keys():
+
+	print (component)
+	#time.sleep(15)
+
+	NUMBER_OF_DOCS_TO_UPLOAD = 100
+	EXPECTED_CODE = "200"
+	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking % component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
+
+	getUserData()
+	storeToken()
+	obtainStaticPatientInfo("Negative", "Test")
+	clearAllBlockedIP()
+	blockComponentIP("component")
+	for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
+		createTxtDocument(i)
+		createCatalogFile()
+		uploadDocument()
+		storeUUID()
+	closeBatch()
+	unblockComponentIP("component")
+	if ENVIRONMENT == "Staging":
+		transmitManifest()
+
+	writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
+	connectToHive()
+	setHiveParameters()
+	# wait for PAUSE_LIMIT seconds
+	PAUSE_LIMIT=10
+	print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
+	time.sleep(PAUSE_LIMIT)
+	runHiveQueries()
+	closeHiveConnection()
+	# end for loop
 #==========================================================================================
 
 # test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
