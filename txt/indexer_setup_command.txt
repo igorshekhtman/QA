@@ -39,6 +39,32 @@ But you have the IPs for everything else. Always use the inside IP address.
 You can remove all of the rules with:
 iptables -F
 
+---------------------------------------------- Lance ---------------------------------------------------------------
+ok, got them:
+
+ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -L
+
+lists the iptables rule list
+ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+
+ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+
+ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -F
+
+removes all of the iptables rules. do this before every test.
+
+ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d 10.198.43.98 -j DROP
+
+ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L
+
+
+-L shows the list of rules
+-A       add a rule for sending packets
+-D       remove the rule from list
+-F	 removes all of the iptables rules
+-d 10.196.82.47   about sending packets to this IP
+-j DROP   drop packets
+
 
 
 Hive is 184.169.209.24 outside/10.196.47.205 inside
@@ -47,10 +73,13 @@ Redis is also 54.219.88.28 outside/ 10.222.103.158 inside
 Graphite is 54.215.1.135 outside/10.160.150.32 inside
 Mysql is 54.215.110.164 outside/10.174.121.164 inside
 Key service is 184.169.153.214 outside and inside
+
 Cassandra "seeds" are: 10.222.101.109 10.222.139.147 10.174.77.69
+
 Cassandra other IPs are: 10.174.49.58
     disable all - should fail
     disable any one or two - should work
+
 Redis is 10.222.103.158 inside, no outside
 
 API is 54.215.88.47 outside/ 10.198.43.98 inside
