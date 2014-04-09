@@ -1,5 +1,6 @@
 import pyhs2
 import os
+import subprocess
 import time
 import datetime
 import sys
@@ -163,8 +164,10 @@ def storeToken():
 			
 def createTxtDocument(doc_number):
 	global TXT_FILE, TXT_FILE_NAME
+	TXT_FILE = ""
 	print ("Creating document ...\n")
-	TXT_FILE = "Sample text used for %s %s.\n\nDocument number: %s" % (PIPELINE_MODULE, TEST_TYPE, doc_number)
+	for i in range(0, 1000):
+		TXT_FILE = TXT_FILE + "Sample text used for %s %s\n\nDocument number: %s\n\nLine number: %s\n\n" % (PIPELINE_MODULE, TEST_TYPE, doc_number, i)
 	TXT_FILE_NAME = "sample_text_file%s.txt" % doc_number
 	print ("Done creating document ...\n")
 			
@@ -460,13 +463,37 @@ def runHiveQueries ():
 	REPORT = REPORT+PASSED
 	#else:
 	#	REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"				
+	REPORT = REPORT+"<br><br>"	
+
+def clearAllBlockedIP():
+	# -A (add), -D (remove), -F (remove all), -L (list or show all)
+	# remove all from list
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	# show list
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	time.sleep(2)
 
 def blockComponentIP(component):
-	print ("Block %s component - IP: %s\n") % (component, IPMAP[str(component)])
+	IP = IPMAP[str(component)]
+	print ("Block %s component - IP: %s\n") % (component, IP)
+	# -A (add), -D (remove), -F (remove all), -L (list or show all)
+	# add to list
+	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
+	os.system(add_string)
+	# show list
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	time.sleep(2)	
 
 def unblockComponentIP(component):
-	print ("Unblock %s component - IP: %s\n") % (component, IPMAP[str(component)])
+	IP = IPMAP[str(component)]
+	print ("Unblock %s component - IP: %s\n") % (component, IP)
+	# -A (add), -D (remove), -F (remove all), -L (list or show all)
+	# remove from list
+	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
+	os.system(remove_string)
+	# show list
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	time.sleep(2)
 	
 #============== Start of the main body =======================================================================================	
 
@@ -474,21 +501,22 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 ===========================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 1
+NUMBER_OF_DOCS_TO_UPLOAD = 3
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
 getUserData()
 storeToken()
 obtainStaticPatientInfo("Positive", "Test")
-blockComponentIP("Hive")
+clearAllBlockedIP()
+blockComponentIP("API")
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
-unblockComponentIP("Hive")
+unblockComponentIP("API")
 if ENVIRONMENT == "Staging":
 	transmitManifest()
 
