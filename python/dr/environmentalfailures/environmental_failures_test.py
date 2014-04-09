@@ -62,8 +62,23 @@ RECEIVERS="ishekhtman@apixio.com"
 RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 # RECEIVERS="eng@apixio.com"
 #
-#================================ DONE ASSIGNING GLOBAL VARIABLES =======================================================================================
+#================================ ENVIRONMENTAL COMPONENTS IP ADDRESS MAP =========================================================================
 #
+IPMAP = { \
+	"Hive":"10.196.47.205", \
+	"Fluent":"10.222.103.158", \
+	"Redis":"10.222.103.158", \
+	"Graphite":"10.160.150.32", \
+	"Mysql":"10.174.121.164", \
+	"Keyservice":"184.169.153.214", \
+	"Cassandra1":"10.222.101.109", \
+	"Cassandra2":"10.222.139.147", \
+	"Cassandra3":"10.174.77.69", \
+	"Cassandra4":"10.174.49.58", \
+	"API":"10.198.43.98", \
+	"HDFS":"10.196.84.183", \
+}
+#===========================================================================================================================================================
 
 def checkEnvironment():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
@@ -301,7 +316,7 @@ def writeReportDetails(description, code, number):
 	REPORT = REPORT+SUBHDR % description
 	REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
 	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
-	REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS UPLOADED: <b>"+str(number)+"</b></td></tr></table>"
+	REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS PUSHED TO DR: <b>"+str(number)+"</b></td></tr></table>"
 	#if (RETURNCODE[ :3] == code):
 	#	REPORT = REPORT+PASSED
 	#else:
@@ -403,7 +418,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT + "DOCUMENTS UPLOADED: <b>" + str(i[0]) + "</b><br>"
+			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS UPLOADED: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"
 			
 		print ("Starting query 2 ...\n")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
@@ -415,7 +430,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.archive.afs.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT + "DOCUMENTS ARCHIVED TO S3: <b>" + str(i[0]) + "</b><br>"			
+			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS ARCHIVED TO S3: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"			
 				
 		print ("Starting query 3 ...\n")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
@@ -427,7 +442,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT + "DOCUMENTS ADDED TO SEQUENCE FILE: <b>" + str(i[0]) + "</b><br>"
+			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS ADDED TO SEQUENCE FILE: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"
 			
 		print ("Starting query 4 ...\n")
 		cur.execute("""SELECT get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
@@ -439,13 +454,19 @@ def runHiveQueries ():
 			get_json_object(line, '$.submit.post.status') = "success" and \
 			get_json_object(line, '$.submit.post.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT + "SEQUENCE FILES SENT TO REDIS: <b>" + str(i[0]) + "</b><br>"
+			REPORT = REPORT+"<table><tr><td>NUMBER OF SEQUENCE FILES SENT TO REDIS: <b>"+str(i[0])+"</b> INDIVIDUAL: <b>"+str(i[1])+"</b> REDIS QUEUE: <b>"+str(i[2])+"</b></td></tr></table>"
 	print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
 	#if (RETURNCODE[ :3] == code):
 	REPORT = REPORT+PASSED
 	#else:
 	#	REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"				
+
+def blockComponentIP(component):
+	print ("Block %s component - IP: %s\n") % (component, IPMAP[str(component)])
+
+def unblockComponentIP(component):
+	print ("Unblock %s component - IP: %s\n") % (component, IPMAP[str(component)])
 	
 #============== Start of the main body =======================================================================================	
 
@@ -453,19 +474,21 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 ===========================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 10
+NUMBER_OF_DOCS_TO_UPLOAD = 1
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
 getUserData()
 storeToken()
 obtainStaticPatientInfo("Positive", "Test")
+blockComponentIP("Hive")
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
+unblockComponentIP("Hive")
 if ENVIRONMENT == "Staging":
 	transmitManifest()
 
@@ -474,7 +497,7 @@ connectToHive()
 setHiveParameters()
 # wait for PAUSE_LIMIT seconds
 PAUSE_LIMIT=10
-print ("Pausing for %s seconds for upload to DR to complete ...") % (PAUSE_LIMIT)
+print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
 runHiveQueries()
 closeHiveConnection()
