@@ -18,7 +18,7 @@ create table docrecovery_manifest (doc_id string, seqfile_file string, time stri
 partitioned by (org_id string, queue_type string, month string, day string);
 
 insert overwrite table docrecovery_manifest partition (org_id, queue_type, month, day)
-select distinct(p.doc_id), p.seqfilename, p.org_id, "verification_queue", p.month, p.day
+select distinct(p.doc_id), p.seqfilename, p.time, p.org_id, "verification_queue", p.month, p.day
 from summary_persist_mapper p
 join summary_coordinator_jobfinish j on j.hadoop_job_id=p.hadoopjob_id and j.status="success"
 left outer join summary_qafromseqfile v on v.doc_id=p.doc_id
@@ -45,7 +45,7 @@ create table docrecovery_manifest_staging (doc_id string, seqfile_file string, t
 partitioned by (org_id string, queue_type string, month string, day string);
 
 insert overwrite table docrecovery_manifest_staging partition (org_id, queue_type, month, day)
-select distinct(p.doc_id), p.seqfilename, p.org_id, "verification_queue", p.month, p.day
+select distinct(p.doc_id), p.seqfilename, p.time, p.org_id, "verification_queue", p.month, p.day
 from summary_persist_mapper_staging p
 join summary_coordinator_jobfinish_staging j on j.hadoop_job_id=p.hadoopjob_id and j.status="success"
 left outer join summary_qafromseqfile_staging v on v.doc_id=p.doc_id
