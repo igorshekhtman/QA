@@ -21,8 +21,10 @@ insert overwrite table docrecovery_manifest partition (org_id, queue_type, month
 select distinct(p.doc_id), p.seqfilename, p.time, p.org_id, "verification_queue", p.month, p.day
 from summary_persist_mapper p
 join summary_coordinator_jobfinish j on j.hadoop_job_id=p.hadoopjob_id and j.status="success"
-left outer join summary_qafromseqfile v on v.doc_id=p.doc_id
-where (v.doc_id is null or v.patient_key is null);
+left outer join 
+(select doc_id from summary_qafromseqfile where patient_key is not null and doc_id is not null) v 
+on v.doc_id=p.doc_id
+where v.doc_id is null;
 
 insert overwrite table docrecovery_manifest partition (org_id, queue_type, month, day)
 select distinct(doc.doc_id), doc.seqfile_file, doc.time, doc.org_id, "docreceiver_queue", doc.month, doc.day
@@ -48,7 +50,9 @@ insert overwrite table docrecovery_manifest_staging partition (org_id, queue_typ
 select distinct(p.doc_id), p.seqfilename, p.time, p.org_id, "verification_queue", p.month, p.day
 from summary_persist_mapper_staging p
 join summary_coordinator_jobfinish_staging j on j.hadoop_job_id=p.hadoopjob_id and j.status="success"
-left outer join summary_qafromseqfile_staging v on v.doc_id=p.doc_id
+left outer join 
+(select doc_id from summary_qafromseqfile_staging where patient_key is not null and doc_id is not null) v
+on v.doc_id=p.doc_id
 where (v.doc_id is null or v.patient_key is null);
 
 insert overwrite table docrecovery_manifest_staging partition (org_id, queue_type, month, day)
