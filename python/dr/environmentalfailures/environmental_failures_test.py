@@ -65,6 +65,18 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #
 #================================ ENVIRONMENTAL COMPONENTS IP ADDRESS MAP =========================================================================
 #
+# Here are some ideas on expected behavior for these components (Anthony):
+#   Graphite: nothing changes (an acceptable failure)
+#   Fluent: continues working until internal buffer full, then stops working until fluent back online - sends errors to client (what code?)
+#   Key Service: Stops accepting incoming data until key service back online - sends errors to client (what code?)
+#   Disk Space (logs, temp): Stops accepting incoming data until disk space issue resolved - sends errors to client (what code?)
+#   Redis: Maintains reference to sequence file, keeps trying to post until Redis back online.
+#   HDFS: Maintains reference to sequence files, keeps trying to post until HDFS back online. When internal buffer is full (how big?) stops accepting incoming data.
+#   Cassandra: Causes loss of Trace data. Not sure if this is a failure condition. Likely indicates wider problems. Should probably keep trying to post until Cassandra is back online and when internal buffer is full stop accepting incoming data
+#   Num Open Files: How does this even happen? This is a major failure. Stop accepting incoming data. 
+#   S3: Stop accepting incoming data from client until S3 starts working.
+#   Apixio API: Only used for authentication. If you can't authenticate, you can't upload.
+#
 IPMAP = { \
 	"Hive":"10.196.47.205", \
 	"Fluent":"10.222.103.158", \
@@ -501,7 +513,7 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 ===========================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 10
+NUMBER_OF_DOCS_TO_UPLOAD = 1
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
@@ -537,7 +549,7 @@ for component in IPMAP.keys():
 	print (component)
 	#time.sleep(15)
 
-	NUMBER_OF_DOCS_TO_UPLOAD = 100
+	NUMBER_OF_DOCS_TO_UPLOAD = 1
 	EXPECTED_CODE = "200"
 	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking %s component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
 
