@@ -66,17 +66,29 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #================================ ENVIRONMENTAL COMPONENTS IP ADDRESS MAP =========================================================================
 #
 # Here are some ideas on expected behavior for these components (Anthony):
-#   Graphite: nothing changes (an acceptable failure)
-#   Fluent: continues working until internal buffer full, then stops working until fluent back online - sends errors to client (what code?)
-#   Key Service: Stops accepting incoming data until key service back online - sends errors to client (what code?)
-#   Disk Space (logs, temp): Stops accepting incoming data until disk space issue resolved - sends errors to client (what code?)
-#   Redis: Maintains reference to sequence file, keeps trying to post until Redis back online.
-#   HDFS: Maintains reference to sequence files, keeps trying to post until HDFS back online. When internal buffer is full (how big?) stops accepting incoming data.
-#   Cassandra: Causes loss of Trace data. Not sure if this is a failure condition. Likely indicates wider problems. Should probably keep trying to post until Cassandra is back online and when internal buffer is full stop accepting incoming data
-#   Num Open Files: How does this even happen? This is a major failure. Stop accepting incoming data. 
-#   S3: Stop accepting incoming data from client until S3 starts working.
-#   Apixio API: Only used for authentication. If you can't authenticate, you can't upload.
+#   Graphite:					Nothing changes (an acceptable failure)
+#   Fluent:						Continues working until internal buffer full, then stops working until fluent back online - sends errors to client (what code?)
+#   Key Service:				Stops accepting incoming data until key service back online - sends errors to client (what code?)
+#   Disk Space (logs, temp):	Stops accepting incoming data until disk space issue resolved - sends errors to client (what code?)
+#   Redis: 						Maintains reference to sequence file, keeps trying to post until Redis back online.
+#   HDFS: 						Maintains reference to sequence files, keeps trying to post until HDFS back online. When internal buffer is full (how big?) stops accepting incoming data.
+#   Cassandra: 					Causes loss of Trace data. Not sure if this is a failure condition. Likely indicates wider problems. Should probably keep trying to post until Cassandra is back online and when internal buffer is full stop accepting incoming data
+#   Num Open Files: 			How does this even happen? This is a major failure. Stop accepting incoming data. 
+#   S3: 						Stop accepting incoming data from client until S3 starts working.
+#   Apixio API: 				Only used for authentication. If you can't authenticate, you can't upload.
+#   
+#   S3 is https://s3.amazonaws.com
+#	but this is not one address
+#	it will give you a different IP each time, or when you ask from a different place
+#	Lance will come up with a way to block S3 and unblock it - per Lance 04-10-2014
 #
+#   "HDFS":"10.196.84.183", \ - critical component DR fails if not available
+#	"Cassandra1":"10.222.101.109", \ - critical component DR fails if not available
+#	"Cassandra2":"10.222.139.147", \ - critical component DR fails if not available
+#	"Cassandra3":"10.174.77.69", \ - critical component DR fails if not available
+#	"Cassandra4":"10.174.49.58", \ - critical component DR fails if not available
+
+
 IPMAP = { \
 	"Hive":"10.196.47.205", \
 	"Fluent":"10.222.103.158", \
@@ -84,12 +96,7 @@ IPMAP = { \
 	"Graphite":"10.160.150.32", \
 	"Mysql":"10.174.121.164", \
 	"Keyservice":"184.169.153.214", \
-	"Cassandra1":"10.222.101.109", \
-	"Cassandra2":"10.222.139.147", \
-	"Cassandra3":"10.174.77.69", \
-	"Cassandra4":"10.174.49.58", \
-	"API":"10.198.43.98", \
-	"HDFS":"10.196.84.183", \
+	"API":"10.198.43.98" \
 }
 #===========================================================================================================================================================
 
@@ -536,7 +543,7 @@ writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 connectToHive()
 setHiveParameters()
 # wait for PAUSE_LIMIT seconds
-PAUSE_LIMIT=10
+PAUSE_LIMIT=0
 print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
 runHiveQueries()
@@ -572,7 +579,7 @@ for component in IPMAP.keys():
 	connectToHive()
 	setHiveParameters()
 	# wait for PAUSE_LIMIT seconds
-	PAUSE_LIMIT=10
+	PAUSE_LIMIT=0
 	print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 	time.sleep(PAUSE_LIMIT)
 	runHiveQueries()

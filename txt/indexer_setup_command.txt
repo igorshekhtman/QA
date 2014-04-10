@@ -67,22 +67,25 @@ ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L
 
 
 
-Hive is 184.169.209.24 outside/10.196.47.205 inside
-Fluent is 54.219.88.28 outside/ 10.222.103.158 inside
-Redis is also 54.219.88.28 outside/ 10.222.103.158 inside
-Graphite is 54.215.1.135 outside/10.160.150.32 inside
-Mysql is 54.215.110.164 outside/10.174.121.164 inside
-Key service is 184.169.153.214 outside and inside
+Hive        is 184.169.209.24 outside    /10.196.47.205 inside
+Fluent      is 54.219.88.28 outside      /10.222.103.158 inside
+Redis       is also 54.219.88.28 outside /10.222.103.158 inside
+Graphite    is 54.215.1.135 outside      /10.160.150.32 inside
+Mysql       is 54.215.110.164 outside    /10.174.121.164 inside
+Key service is 184.169.153.214 outside   /184.169.153.214 inside
+Redis       is , no outside              /10.222.103.158 inside
+API         is 54.215.88.47 outside      /10.198.43.98 inside
+S3          is  
 
-Cassandra "seeds" are: 10.222.101.109 10.222.139.147 10.174.77.69
+
+Cassandra "seeds" are: 	10.222.101.109 
+			10.222.139.147 
+			10.174.77.69
 
 Cassandra other IPs are: 10.174.49.58
     disable all - should fail
     disable any one or two - should work
 
-Redis is 10.222.103.158 inside, no outside
-
-API is 54.215.88.47 outside/ 10.198.43.98 inside
 
 HDFS uses all of these IPs:
 HDFS primary namenode is 10.196.84.183 inside, no outside
