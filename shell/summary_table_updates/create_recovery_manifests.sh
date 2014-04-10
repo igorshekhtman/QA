@@ -1,3 +1,11 @@
+#! /bin/sh
+
+echo "Creating data for recovery..."
+echo " "
+
+
+/usr/bin/hive --service beeline -u jdbc:hive2://10.196.47.205:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> create_recovery_data.log   << EOF
+
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
@@ -44,3 +52,7 @@ left outer join summary_docreceiver_seqfile_post_staging post on doc.seqfile_dir
 left outer join (select d.doc_id from summary_afsdownload_staging d join summary_coordinator_jobfinish_staging b on d.hadoopjob_id = b.hadoop_job_id and b.status="success"
 where d.status="success") r on r.doc_id=doc.doc_id
 where post.seqfile_path is null and doc.seqfile_directory is not null and doc.status="success" and r.doc_id is null;
+
+EOF
+
+chmod 777 create_recovery_data.log
