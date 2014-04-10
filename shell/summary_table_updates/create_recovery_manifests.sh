@@ -53,7 +53,7 @@ join summary_coordinator_jobfinish_staging j on j.hadoop_job_id=p.hadoopjob_id a
 left outer join 
 (select doc_id from summary_qafromseqfile_staging where patient_key is not null and doc_id is not null) v
 on v.doc_id=p.doc_id
-where (v.doc_id is null or v.patient_key is null);
+where v.doc_id is null;
 
 insert overwrite table docrecovery_manifest_staging partition (org_id, queue_type, month, day)
 select distinct(doc.doc_id), doc.seqfile_file, doc.time, doc.org_id, "docreceiver_queue", doc.month, doc.day
