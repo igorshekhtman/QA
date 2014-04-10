@@ -32,6 +32,12 @@ left outer join (select d.doc_id from summary_afsdownload d join summary_coordin
 where d.status="success") r on r.doc_id=doc.doc_id
 where post.seqfile_path is null and doc.seqfile_directory is not null and doc.status="success" and r.doc_id is null;
 
+insert overwrite table docrecovery_manifest partition (org_id, queue_type, month, day)
+select distinct(doc.doc_id), doc.seqfile_file, post.time, doc.org_id, "coordinator_queue", post.month, post.day
+from summary_docreceiver_seqfile_post post join summary_docreceiver_seqfile doc on doc.seqfile_directory=post.seqfile_path
+left outer join summary_coordinator_workrequest wr on post.seqfile_path=wr.source_dir
+where wr.source_dir is null and post.seqfile_path is not null and post.status="success" and post.redis_queue_name is not null;
+
 
 drop table docrecovery_manifest_staging;
 
@@ -52,6 +58,12 @@ left outer join summary_docreceiver_seqfile_post_staging post on doc.seqfile_dir
 left outer join (select d.doc_id from summary_afsdownload_staging d join summary_coordinator_jobfinish_staging b on d.hadoopjob_id = b.hadoop_job_id and b.status="success"
 where d.status="success") r on r.doc_id=doc.doc_id
 where post.seqfile_path is null and doc.seqfile_directory is not null and doc.status="success" and r.doc_id is null;
+
+insert overwrite table docrecovery_manifest_staging partition (org_id, queue_type, month, day)
+select distinct(doc.doc_id), doc.seqfile_file, post.time, doc.org_id, "coordinator_queue", post.month, post.day
+from summary_docreceiver_seqfile_post_staging post join summary_docreceiver_seqfile_staging doc on doc.seqfile_directory=post.seqfile_path
+left outer join summary_coordinator_workrequest_staging wr on post.seqfile_path=wr.source_dir
+where wr.source_dir is null and post.seqfile_path is not null and post.status="success" and post.redis_queue_name is not null;
 
 EOF
 
