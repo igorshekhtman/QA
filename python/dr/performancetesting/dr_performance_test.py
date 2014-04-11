@@ -432,7 +432,9 @@ def runHiveQueries ():
 		hive_table = ENVIRONMENT.lower()+"_logs_docreceiver_24"
 		print ("Starting query 1 ...\n")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
-			get_json_object(line, '$.upload.document.status') as status \
+			get_json_object(line, '$.upload.document.status') as status, \
+			sum (get_json_object(line, '$.upload.document.bytes')) as bytes, \
+			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as time \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
@@ -440,7 +442,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS UPLOADED: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"
+			REPORT = REPORT+"<table><tr><td>NUMBER OF FILE: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b> SIZE: <b>"+str(i[1])+"</b> TIME: <b>"+str(i[1])+"</b></td></tr></table>"
 			
 		print ("Starting query 2 ...\n")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
@@ -520,7 +522,7 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 Overall Performance Test =======================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 1
+NUMBER_OF_DOCS_TO_UPLOAD = 100
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
@@ -546,14 +548,8 @@ setHiveParameters()
 PAUSE_LIMIT=0
 print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
-#runHiveQueries()
+runHiveQueries()
 closeHiveConnection()
-
-#======= CASE #2 Upload Performance Test =======================================================
-
-#======= CASE #3 Archive to S3 Performance Test ================================================
-
-#======= CASE #4 Sequence file creation Performance Test =======================================
 
 #===============================================================================================
 
