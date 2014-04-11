@@ -1,5 +1,23 @@
-
 https://reports.apixio.com/html/index.htm
+
+=============================================================================================================
+Doc-Receiver Performance test:
+=============================================================================================================
+upload.document.bytes:3913 (encrypted zipped document+cataqlog)
+
+upload.document.save.millis:
+
+upload.document.package.millis:
+
+upload.document.upstream.millis:
+
+upload.document.encrypt.millis:
+
+upload.document.file.millis:81890 (size of decrypted document)
+
+
+
+
 
 =============================================================================================================
 Blocking IP Address for Stagin DR Environmental Components test:

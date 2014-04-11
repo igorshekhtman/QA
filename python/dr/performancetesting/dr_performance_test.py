@@ -24,7 +24,7 @@ os.system('clear')
 #
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
-TEST_TYPE="EnvironmentalFailures"
+TEST_TYPE="PerformanceTesting"
 PASSED = "<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED = "<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR = "<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
@@ -120,9 +120,9 @@ def checkEnvironment():
 		ORGID="251"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		#HOST="https://supload.apixio.com:8443"
+		HOST="https://supload.apixio.com:8443"
 		# alternative staging DR upload url
-		HOST="https://supload2.apixio.com:8443"
+		#HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
@@ -519,7 +519,7 @@ def unblockComponentIP(component):
 checkEnvironment()
 writeReportHeader()
 
-#======= CASE #1 ===========================================================================
+#======= CASE #1 Overall Performance Test =======================================================
 NUMBER_OF_DOCS_TO_UPLOAD = 1
 EXPECTED_CODE = "200"
 TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
@@ -546,46 +546,16 @@ setHiveParameters()
 PAUSE_LIMIT=0
 print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
-runHiveQueries()
+#runHiveQueries()
 closeHiveConnection()
-#======= CASE #2 ===========================================================================
 
-# while ips are in the list of ips
-for component in IPMAP.keys():
+#======= CASE #2 Upload Performance Test =======================================================
 
-	print (component)
-	#time.sleep(15)
+#======= CASE #3 Archive to S3 Performance Test ================================================
 
-	NUMBER_OF_DOCS_TO_UPLOAD = 1
-	EXPECTED_CODE = "200"
-	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking %s component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
+#======= CASE #4 Sequence file creation Performance Test =======================================
 
-	getUserData()
-	storeToken()
-	obtainStaticPatientInfo("Negative", "Test")
-	clearAllBlockedIP()
-	blockComponentIP(component)
-	for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
-		createTxtDocument(i)
-		createCatalogFile()
-		uploadDocument()
-		storeUUID()
-	closeBatch()
-	unblockComponentIP(component)
-	if ENVIRONMENT == "Staging":
-		transmitManifest()
-
-	writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-	connectToHive()
-	setHiveParameters()
-	# wait for PAUSE_LIMIT seconds
-	PAUSE_LIMIT=0
-	print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
-	time.sleep(PAUSE_LIMIT)
-	runHiveQueries()
-	closeHiveConnection()
-	# end for loop
-#==========================================================================================
+#===============================================================================================
 
 # test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
 writeReportFooter()
