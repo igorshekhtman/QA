@@ -63,30 +63,61 @@ RECEIVERS="ishekhtman@apixio.com"
 RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 # RECEIVERS="eng@apixio.com"
 #
-#================================ ENVIRONMENTAL COMPONENTS IP ADDRESS MAP =========================================================================
+#================================ DOC-RECEIVER PERFORMANCE TESTING COMPONENTS =========================================================================
 #
-# Here are some ideas on expected behavior for these components (Anthony):
-#   Graphite:					Nothing changes (an acceptable failure)
-#   Fluent:						Continues working until internal buffer full, then stops working until fluent back online - sends errors to client (what code?)
-#   Key Service:				Stops accepting incoming data until key service back online - sends errors to client (what code?)
-#   Disk Space (logs, temp):	Stops accepting incoming data until disk space issue resolved - sends errors to client (what code?)
-#   Redis: 						Maintains reference to sequence file, keeps trying to post until Redis back online.
-#   HDFS: 						Maintains reference to sequence files, keeps trying to post until HDFS back online. When internal buffer is full (how big?) stops accepting incoming data.
-#   Cassandra: 					Causes loss of Trace data. Not sure if this is a failure condition. Likely indicates wider problems. Should probably keep trying to post until Cassandra is back online and when internal buffer is full stop accepting incoming data
-#   Num Open Files: 			How does this even happen? This is a major failure. Stop accepting incoming data. 
-#   S3: 						Stop accepting incoming data from client until S3 starts working.
-#   Apixio API: 				Only used for authentication. If you can't authenticate, you can't upload.
-#   
-#   S3 is https://s3.amazonaws.com
-#	but this is not one address
-#	it will give you a different IP each time, or when you ask from a different place
-#	Lance will come up with a way to block S3 and unblock it - per Lance 04-10-2014
+#====================================== UPLOAD =======================================================================
 #
-#   "HDFS":"10.196.84.183", \ - critical component DR fails if not available
-#	"Cassandra1":"10.222.101.109", \ - critical component DR fails if not available
-#	"Cassandra2":"10.222.139.147", \ - critical component DR fails if not available
-#	"Cassandra3":"10.174.77.69", \ - critical component DR fails if not available
-#	"Cassandra4":"10.174.49.58", \ - critical component DR fails if not available
+# get_json_object(line, '$.upload.document.batchid')
+#
+# get_json_object(line, '$.upload.document.bytes'):3913 (size of encrypted zipped document+cataqlog)
+# get_json_object(line, '$.upload.document.save.millis'):0
+# get_json_object(line, '$.upload.document.package.millis'):1
+# get_json_object(line, '$.upload.document.upstream.millis'):32
+# get_json_object(line, '$.upload.document.encrypt.millis'):2
+# 
+# get_json_object(line, '$.upload.document.file.bytes'):81890 (size of decrypted document)
+# get_json_object(line, '$.upload.document.file.millis'):0
+#
+# get_json_object(line, '$.upload.document.serialize.bytes'):83131
+# get_json_object(line, '$.upload.document.serialize.millis'):0
+# 
+# get_json_object(line, '$.upload.document.hash.millis'):5
+# 
+# get_json_object(line, '$.upload.document.catalog.bytes'):998 (size of catalog file)
+# get_json_object(line, '$.upload.document.catalog.millis'):0
+# 
+# get_json_object(line, '$.upload.document.http.millis'):3
+# 
+# get_json_object(line, '$.upload.document.archive.millis'):122
+# 
+# get_json_object(line, '$.upload.document.seqfile.millis'):122
+# 
+# ====================================== ARCHIVE =====================================================================
+#
+# get_json_object(line, '$.archive.afs.batchid')
+# 
+# get_json_object(line, '$.archive.afs.bytes'): 3913
+# get_json_object(line, '$.archive.afs.millis'): 122
+# 
+# ====================================== SEQ. FILE ===================================================================
+# 
+# get_json_object(line, '$.seqfile.file.document.batchid')
+# 
+# 
+# get_json_object(line, '$.seqfile.file.document.bytes'):3913
+# get_json_object(line, '$.seqfile.file.document.??????')
+# 
+# get_json_object(line, '$.seqfile.file.add.bytes'):4248
+# get_json_object(line, '$.seqfile.file.add.millis'):1
+# 
+# ====================================== SUBMIT =======================================================================
+# 
+# get_json_object(line, '$.submit.post.batchid')
+# 
+# get_json_object(line, '$.submit.post.bytes'):4248
+# get_json_object(line, '$.submit.post.millis'):62
+# 
+# =====================================================================================================================
 
 
 IPMAP = { \
@@ -338,7 +369,7 @@ def writeReportDetails(description, code, number):
 	REPORT = REPORT+SUBHDR % description
 	REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
 	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
-	REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS PUSHED TO DR: <b>"+str(number)+"</b></td></tr></table>"
+	#REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS PUSHED TO DR: <b>"+str(number)+"</b></td></tr></table>"
 	#if (RETURNCODE[ :3] == code):
 	#	REPORT = REPORT+PASSED
 	#else:
@@ -427,14 +458,31 @@ def closeHiveConnection():
 	
 def runHiveQueries ():
 	global REPORT, cur, conn, DAY, MONTH, BATCH
-	print ("Running 4 %s Hive queries ... \n") % (PIPELINE_MODULE)	
+	global udb, udsm, udpm, udum, udem, udfb, udfm, udsb, udsm, udhm, udcb, udcm, udhm, udam, udsm1
+	global aab, aam
+	global sfdb, sfab, sfam
+	global spb, spm
+	print ("Running %s Hive queries ... \n") % (PIPELINE_MODULE)	
 	if PIPELINE_MODULE == "DR":
 		hive_table = ENVIRONMENT.lower()+"_logs_docreceiver_24"
 		print ("Starting query 1 ...\n")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 			get_json_object(line, '$.upload.document.status') as status, \
-			sum (get_json_object(line, '$.upload.document.bytes')) as bytes, \
-			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as time \
+			sum (get_json_object(line, '$.upload.document.bytes')) as udb, \
+			sum (get_json_object(line, '$.upload.document.save.millis')) as udsm, \
+			sum (get_json_object(line, '$.upload.document.package.millis')) as udpm, \
+			sum (get_json_object(line, '$.upload.document.upstream.millis')) as udum, \
+			sum (get_json_object(line, '$.upload.document.encrypt.millis')) as udem, \
+			sum (get_json_object(line, '$.upload.document.file.bytes')) as udfb, \
+			sum (get_json_object(line, '$.upload.document.file.millis')) as udfm, \
+			sum (get_json_object(line, '$.upload.document.serialize.bytes')) as udsb, \
+			sum (get_json_object(line, '$.upload.document.serialize.millis')) as udsm, \
+			sum (get_json_object(line, '$.upload.document.hash.millis')) as udhm, \
+			sum (get_json_object(line, '$.upload.document.catalog.bytes')) as udcb, \
+			sum (get_json_object(line, '$.upload.document.catalog.millis')) as udcm, \
+			sum (get_json_object(line, '$.upload.document.http.millis')) as udhm, \
+			sum (get_json_object(line, '$.upload.document.archive.millis')) as udam, \
+			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as udsm1 \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
@@ -442,49 +490,53 @@ def runHiveQueries ():
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT+"<table><tr><td>NUMBER OF FILE: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b> SIZE: <b>"+str(i[1])+"</b> TIME: <b>"+str(i[1])+"</b></td></tr></table>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='1'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td><b>"+str(i[0])+"</b></td><td>STATUS: </td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td>upload document bytes: </td><td><b>"+str(i[2])+"</b></td><td>upload document save millis: </td><td><b>"+str(i[3])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document package millis: </td><td><b>"+str(i[4])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document upstream millis: </td><td><b>"+str(i[5])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document encrypt millis: </td><td><b>"+str(i[6])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td>upload document file bytes: </td><td><b>"+str(i[7])+"</b></td><td>upload document file millis: </td><td><b>"+str(i[8])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td>upload document serialize bytes: </td><td><b>"+str(i[9])+"</b></td><td>upload document serialize millis: </td><td><b>"+str(i[10])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document hash millis: </td><td><b>"+str(i[11])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td>upload document catalog bytes: </td><td><b>"+str(i[12])+"</b></td><td>upload document catalog millis: </td><td><b>"+str(i[13])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document http millis: </td><td><b>"+str(i[14])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document archive millis: </td><td><b>"+str(i[15])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document seqfile millis: </td><td><b>"+str(i[16])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
 			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+
 		print ("Starting query 2 ...\n")
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
-			get_json_object(line, '$.archive.afs.status') as status \
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived, \
+			get_json_object(line, '$.archive.afs.status') as status, \
+			sum (get_json_object(line, '$.archive.afs.bytes')) as aab, \
+			sum (get_json_object(line, '$.archive.afs.millis')) as aam \
 			FROM %s \
 			WHERE \
-			get_json_object(line, '$.level') = "EVENT" and \
+			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.archive.afs.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS ARCHIVED TO S3: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"			
-				
-		print ("Starting query 3 ...\n")
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
-			get_json_object(line, '$.seqfile.file.document.status') as status \
-			FROM %s \
-			WHERE \
-			get_json_object(line, '$.level') = "EVENT" and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
-		for i in cur.fetch():
-			REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS ADDED TO SEQUENCE FILE: <b>"+str(i[0])+"</b> STATUS: <b>"+str(i[1])+"</b></td></tr></table>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='1'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td><b>"+str(i[0])+"</b></td><td>STATUS: </td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td>archive afs bytes: </td><td><b>"+str(i[2])+"</b></td><td>archive afs millis: </td><td><b>"+str(i[3])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
 			
-		print ("Starting query 4 ...\n")
-		cur.execute("""SELECT get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
-			get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
-			get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
-			FROM %s \
-			WHERE get_json_object(line, '$.level') = "EVENT" and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.submit.post.status') = "success" and \
-			get_json_object(line, '$.submit.post.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
-		for i in cur.fetch():
-			REPORT = REPORT+"<table><tr><td>NUMBER OF SEQUENCE FILES SENT TO REDIS: <b>"+str(i[0])+"</b> INDIVIDUAL: <b>"+str(i[1])+"</b> REDIS QUEUE: <b>"+str(i[2])+"</b></td></tr></table>"
-	print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
-	#if (RETURNCODE[ :3] == code):
-	REPORT = REPORT+PASSED
-	#else:
-	#	REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"	
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+	
+	
 
 def clearAllBlockedIP():
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
@@ -521,33 +573,31 @@ def unblockComponentIP(component):
 checkEnvironment()
 writeReportHeader()
 
-#======= CASE #1 Overall Performance Test =======================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 100
+#======= CASE #1 Upload Performance Test =======================================================
+NUMBER_OF_DOCS_TO_UPLOAD = 10
 EXPECTED_CODE = "200"
-TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
+TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
 getUserData()
 storeToken()
 obtainStaticPatientInfo("Positive", "Test")
-#clearAllBlockedIP()
-#blockComponentIP("Hive")
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
-#unblockComponentIP("Hive")
 if ENVIRONMENT == "Staging":
 	transmitManifest()
 
-writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
+#writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 connectToHive()
 setHiveParameters()
 # wait for PAUSE_LIMIT seconds
-PAUSE_LIMIT=0
+PAUSE_LIMIT=20
 print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
+writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 runHiveQueries()
 closeHiveConnection()
 
