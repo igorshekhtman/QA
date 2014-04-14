@@ -366,9 +366,9 @@ def writeReportHeader():
 def writeReportDetails(description, code, number):
 	global REPORT, ENVIRONMENT, RETURNCODE
 	global SUBHDR, PASSED, FAILED, TEST_PN
-	REPORT = REPORT+SUBHDR % description
-	REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
-	REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
+	#REPORT = REPORT+SUBHDR % description
+	#REPORT = REPORT+"<table><tr><td>EXPECTED CODE: <b>"+code+"</b></td></tr></table>"
+	#REPORT = REPORT+"<table><tr><td>RETURNED CODE: <b>"+RETURNCODE+"</b></td></tr></table>"
 	#REPORT = REPORT+"<table><tr><td>NUMBER OF DOCUMENTS PUSHED TO DR: <b>"+str(number)+"</b></td></tr></table>"
 	#if (RETURNCODE[ :3] == code):
 	#	REPORT = REPORT+PASSED
@@ -466,6 +466,7 @@ def runHiveQueries ():
 	if PIPELINE_MODULE == "DR":
 		hive_table = ENVIRONMENT.lower()+"_logs_docreceiver_24"
 		print ("Starting query 1 ...\n")
+		REPORT = REPORT+SUBHDR % ("Upload Performance Test")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 			get_json_object(line, '$.upload.document.status') as status, \
 			sum (get_json_object(line, '$.upload.document.bytes')) as udb, \
@@ -490,19 +491,35 @@ def runHiveQueries ():
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='1'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td><b>"+str(i[0])+"</b></td><td>STATUS: </td><td><b>"+str(i[1])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td>upload document bytes: </td><td><b>"+str(i[2])+"</b></td><td>upload document save millis: </td><td><b>"+str(i[3])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document package millis: </td><td><b>"+str(i[4])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document upstream millis: </td><td><b>"+str(i[5])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document encrypt millis: </td><td><b>"+str(i[6])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td>upload document file bytes: </td><td><b>"+str(i[7])+"</b></td><td>upload document file millis: </td><td><b>"+str(i[8])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td>upload document serialize bytes: </td><td><b>"+str(i[9])+"</b></td><td>upload document serialize millis: </td><td><b>"+str(i[10])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document hash millis: </td><td><b>"+str(i[11])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td>upload document catalog bytes: </td><td><b>"+str(i[12])+"</b></td><td>upload document catalog millis: </td><td><b>"+str(i[13])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document http millis: </td><td><b>"+str(i[14])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document archive millis: </td><td><b>"+str(i[15])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td> </td><td><b>" "</b></td><td>upload document seqfile millis: </td><td><b>"+str(i[16])+"</b></td></tr>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td>STATUS: </td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>KB/SEC:</b></td></tr>"
+			if (i[3]/1000 > 0):
+				REPORT = REPORT+"<tr><td>upload document bytes: </td><td><b>"+str(i[2])+"</b></td><td>upload document save millis: </td><td><b>"+str(i[3])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td></tr>"
+			if (i[4]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document package millis: </td><td><b>"+str(i[4])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[4]/1000)))+"</b></td></tr>"
+			if (i[5]/1000 > 0):	
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document upstream millis: </td><td><b>"+str(i[5])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[5]/1000)))+"</b></td></tr>"
+			if (i[6]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document encrypt millis: </td><td><b>"+str(i[6])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[6]/1000)))+"</b></td></tr>"
+			if (i[8]/1000 > 0):
+				REPORT = REPORT+"<tr><td>upload document file bytes: </td><td><b>"+str(i[7])+"</b></td><td>upload document file millis: </td><td><b>"+str(i[8])+"</b></td><td><b>"+str(int((i[7]/1024)/(i[8]/1000)))+"</b></td></tr>"
+			if (i[10]/1000 > 0):
+				REPORT = REPORT+"<tr><td>upload document serialize bytes: </td><td><b>"+str(i[9])+"</b></td><td>upload document serialize millis: </td><td><b>"+str(i[10])+"</b></td><td><b>"+str(int((i[9]/1024)/(i[10]/1000)))+"</b></td></tr>"
+			if (i[11]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document hash millis: </td><td><b>"+str(i[11])+"</b></td><td><b>"+str(int((i[9]/1024)/(i[11]/1000)))+"</b></td></tr>"
+			if (i[13]/1000 > 0):
+				REPORT = REPORT+"<tr><td>upload document catalog bytes: </td><td><b>"+str(i[12])+"</b></td><td>upload document catalog millis: </td><td><b>"+str(i[13])+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td></tr>"
+			if (i[14]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document http millis: </td><td><b>"+str(i[14])+"</b></td><td><b>"+str(int((i[12]/1024)/(i[14]/1000)))+"</b></td></tr>"
+			if (i[15]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document archive millis: </td><td><b>"+str(i[15])+"</b></td><td><b>"+str(int((i[12]/1024)/(i[15]/1000)))+"</b></td></tr>"
+			if (i[16]/1000 > 0):
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document seqfile millis: </td><td><b>"+str(i[16])+"</b></td><td><b>"+str(int((i[12]/1024)/(i[16]/1000)))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
@@ -513,6 +530,7 @@ def runHiveQueries ():
 		REPORT = REPORT+"<br><br>"
 
 		print ("Starting query 2 ...\n")
+		REPORT = REPORT+SUBHDR % ("Archive to S3 Performance Test")
 		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived, \
 			get_json_object(line, '$.archive.afs.status') as status, \
 			sum (get_json_object(line, '$.archive.afs.bytes')) as aab, \
@@ -524,9 +542,15 @@ def runHiveQueries ():
 			get_json_object(line, '$.archive.afs.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
-			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='1'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td><b>"+str(i[0])+"</b></td><td>STATUS: </td><td><b>"+str(i[1])+"</b></td></tr>"
-			REPORT = REPORT+"<tr><td>archive afs bytes: </td><td><b>"+str(i[2])+"</b></td><td>archive afs millis: </td><td><b>"+str(i[3])+"</b></td></tr>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td>STATUS: </td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>KB/SEC:</b></td></tr>"			
+			if (i[3]/1000 > 0):
+				REPORT = REPORT+"<tr><td>archive afs bytes: </td><td><b>"+str(i[2])+"</b></td><td>archive afs millis: </td><td><b>"+str(i[3])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
@@ -535,6 +559,72 @@ def runHiveQueries ():
 		#else:
 		#	REPORT = REPORT+FAILED
 		REPORT = REPORT+"<br><br>"
+		
+		print ("Starting query 3 ...\n")
+		REPORT = REPORT+SUBHDR % ("Sequence File Generation Performance Test")
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seqfile, \
+			get_json_object(line, '$.seqfile.file.document.status') as status, \
+			sum (get_json_object(line, '$.seqfile.file.document.bytes')) as sfdb, \
+			sum (get_json_object(line, '$.seqfile.file.add.bytes')) as sfab, \
+			sum (get_json_object(line, '$.seqfile.file.add.millis')) as sfam \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td>STATUS: </td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>KB/SEC:</b></td></tr>"
+			REPORT = REPORT+"<tr><td>seqfile file document bytes: </td><td><b>"+str(i[2])+"</b></td><td> </td><td><b> </b></td><td></td></tr>"
+			if (i[4]/1000 > 0):
+				REPORT = REPORT+"<tr><td>seqfile file add bytes: </td><td><b>"+str(i[3])+"</b></td><td>seqfile file add millis: </td><td><b>"+str(i[4])+"</b></td><td><b>"+str(int((i[3]/1024)/(i[4]/1000)))+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+		
+		print ("Starting query 4 ...\n")
+		REPORT = REPORT+SUBHDR % ("Submit to REDIS Performance Test")
+		cur.execute("""SELECT get_json_object(line, '$.submit.post.apxfiles.count') as documents_submit_post, \
+			get_json_object(line, '$.submit.post.status') as status, \
+			sum (get_json_object(line, '$.submit.post.bytes')) as spb, \
+			sum (get_json_object(line, '$.submit.post.millis')) as spm \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.submit.post.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.submit.post.status'), \
+			get_json_object(line, '$.submit.post.apxfiles.count')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td>NUMBER OF FILES: </td><td>STATUS: </td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>KB/SEC:</b></td></tr>"
+			if (i[3]/1000 > 0):
+				REPORT = REPORT+"<tr><td>submit post bytes: </td><td><b>"+str(i[2])+"</b></td><td>submit post millis: </td><td><b>"+str(i[3])+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+		
 	
 	
 
@@ -573,10 +663,10 @@ def unblockComponentIP(component):
 checkEnvironment()
 writeReportHeader()
 
-#======= CASE #1 Upload Performance Test =======================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 10
+#======= CASE #1 Upload Performance Test =====================================================================================
+NUMBER_OF_DOCS_TO_UPLOAD = 100
 EXPECTED_CODE = "200"
-TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
+#TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
 getUserData()
 storeToken()
@@ -597,7 +687,7 @@ setHiveParameters()
 PAUSE_LIMIT=20
 print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
 time.sleep(PAUSE_LIMIT)
-writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
+#writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 runHiveQueries()
 closeHiveConnection()
 
