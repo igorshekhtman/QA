@@ -56,7 +56,8 @@ get_json_object(line, '$.submit.post.millis'):62
 
 =====================================================================================================================
 
-
+https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF
+[2:33:33 PM] Lance N (Apixio): stddev(cast(json_object(...) as INTEGER))
 
 =============================================================================================================
 Blocking IP Address for Stagin DR Environmental Components test:
