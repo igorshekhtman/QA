@@ -492,7 +492,7 @@ def runHiveQueries ():
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>MEAN APO SIZE:</td><td>MEAN DOC SIZE:</td><td>MEAN DOC+CAT SIZE:</td><td>MEAN CATALOG SIZE:</td><td>STATUS:</td></tr>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>MEAN APX SIZE:</td><td>MEAN DOC SIZE:</td><td>MEAN DOC+CAT SIZE:</td><td>MEAN CATALOG SIZE:</td><td>STATUS:</td></tr>"
 			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[7]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[9]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[12]/i[0]))+" (bytes)</b></td><td><b>"+str(i[1])+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
