@@ -492,8 +492,8 @@ def runHiveQueries ():
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES:</td><td>AV. ZIPPED FILE SIZE:</td><td>AV. UNZIPPED FILE SIZE:</td><td>AV. CATALOG FILE SIZE:</td><td>STATUS:</td></tr>"
-			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[7]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[12]/i[0]))+" (bytes)</b></td><td><b>"+str(i[1])+"</b></td></tr>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>MEAN APO SIZE:</td><td>MEAN DOC SIZE:</td><td>MEAN DOC+CAT SIZE:</td><td>MEAN CATALOG SIZE:</td><td>STATUS:</td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[7]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[9]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[12]/i[0]))+" (bytes)</b></td><td><b>"+str(i[1])+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
@@ -543,7 +543,7 @@ def runHiveQueries ():
 			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
 			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
@@ -575,7 +575,7 @@ def runHiveQueries ():
 			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
 			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
@@ -608,7 +608,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.submit.post.apxfiles.count')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td>NUMBER OF FILES:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
 			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(int(i[2])/int(i[0])))+" (bytes)</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
