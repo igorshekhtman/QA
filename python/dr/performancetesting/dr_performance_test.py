@@ -477,13 +477,24 @@ def runHiveQueries ():
 			sum (get_json_object(line, '$.upload.document.file.bytes')) as udfb, \
 			sum (get_json_object(line, '$.upload.document.file.millis')) as udfm, \
 			sum (get_json_object(line, '$.upload.document.serialize.bytes')) as udsb, \
-			sum (get_json_object(line, '$.upload.document.serialize.millis')) as udsm, \
+			sum (get_json_object(line, '$.upload.document.serialize.millis')) as udsm1, \
 			sum (get_json_object(line, '$.upload.document.hash.millis')) as udhm, \
 			sum (get_json_object(line, '$.upload.document.catalog.bytes')) as udcb, \
 			sum (get_json_object(line, '$.upload.document.catalog.millis')) as udcm, \
-			sum (get_json_object(line, '$.upload.document.http.millis')) as udhm, \
+			sum (get_json_object(line, '$.upload.document.http.millis')) as udhm1, \
 			sum (get_json_object(line, '$.upload.document.archive.millis')) as udam, \
-			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as udsm1 \
+			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as udsm2, \
+			stddev (cast(get_json_object(line, '$.upload.document.save.millis') as int)) as dudsm, \
+			stddev (cast(get_json_object(line, '$.upload.document.package.millis') as int)) as dudpm, \
+			stddev (cast(get_json_object(line, '$.upload.document.upstream.millis') as int)) as dudum, \
+			stddev (cast(get_json_object(line, '$.upload.document.encrypt.millis') as int)) as dudem, \
+			stddev (cast(get_json_object(line, '$.upload.document.file.millis') as int)) as dudfm, \
+			stddev (cast(get_json_object(line, '$.upload.document.serialize.millis') as int)) as dudsm1, \
+			stddev (cast(get_json_object(line, '$.upload.document.hash.millis') as int)) as dudhm, \
+			stddev (cast(get_json_object(line, '$.upload.document.catalog.millis') as int)) as dudcm, \
+			stddev (cast(get_json_object(line, '$.upload.document.http.millis') as int)) as dudhm1, \
+			stddev (cast(get_json_object(line, '$.upload.document.archive.millis') as int)) as dudam, \
+			stddev (cast(get_json_object(line, '$.upload.document.seqfile.millis') as int)) as dudsm2 \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
