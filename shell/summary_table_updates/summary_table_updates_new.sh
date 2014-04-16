@@ -784,6 +784,7 @@ insert overwrite table summary_careopt_load_staging partition (month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patient.id') as patient_sql_id,
+get_json_object(line, '$.patient.orgId') as org_id,
 get_json_object(line, '$.patient.uuid') as patient_uuid,
 cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandra_load_millis,
 cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
@@ -801,6 +802,7 @@ insert overwrite table summary_careopt_search_staging partition (month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
+get_json_object(line, '$.patientaccess.patient.org.id') as org_id,
 get_json_object(line, '$.patientaccess.user.id') as user_id,
 get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
