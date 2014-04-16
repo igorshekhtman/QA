@@ -484,6 +484,7 @@ def runHiveQueries ():
 			sum (get_json_object(line, '$.upload.document.http.millis')) as udhm1, \
 			sum (get_json_object(line, '$.upload.document.archive.millis')) as udam, \
 			sum (get_json_object(line, '$.upload.document.seqfile.millis')) as udsm2, \
+			
 			stddev (cast(get_json_object(line, '$.upload.document.save.millis') as int)) as dudsm, \
 			stddev (cast(get_json_object(line, '$.upload.document.package.millis') as int)) as dudpm, \
 			stddev (cast(get_json_object(line, '$.upload.document.upstream.millis') as int)) as dudum, \
@@ -508,29 +509,29 @@ def runHiveQueries ():
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
-			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
 			if (i[14]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><b>"+str(int(i[9]))+"</b><td>upload document http millis: </td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><b>"+str(int(i[9]))+"</b><td>upload document http millis: </td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int(i[25]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[11]/1000 > 0):
-				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document SHA-1 hash millis: </td><td><b>"+str(int(i[11]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[11]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[11]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document SHA-1 hash millis:</td><td><b>"+str(int(i[11]))+"</b></td><td><b>"+str(int(i[23]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[11]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[11]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[4]/1000 > 0):
-				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document package millis: </td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[4]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document package millis:</td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int(i[18]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[4]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[10]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document bytes:</td><td><b>"+str(int(i[2]))+"</b></td><td>upload document serialize millis: </td><td><b>"+str(int(i[10]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[10]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[10]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document bytes:</td><td><b>"+str(int(i[2]))+"</b></td><td>upload document serialize millis: </td><td><b>"+str(int(i[10]))+"</b></td><td><b>"+str(int(i[22]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[10]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[10]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[6]/1000 > 0):
-				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document encrypt millis: </td><td><b>"+str(int(i[6]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[6]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[6]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document encrypt millis:</td><td><b>"+str(int(i[6]))+"</b></td><td><b>"+str(int(i[20]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[6]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[6]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			if (i[3]/1000 > 0):
-				REPORT = REPORT+"<tr><td></td><td></td><td>upload document save tmp millis: </td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td></td><td></td><td>upload document save tmp millis:</td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int(i[17]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			if (i[15]/1000 > 0):
-				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document archive to S3 millis: </td><td><b>"+str(int(i[15]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[15]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[15]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document archive to S3 millis:</td><td><b>"+str(int(i[15]))+"</b></td><td><b>"+str(int(i[26]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[15]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[15]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			if (i[16]/1000 > 0):
-				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document add to seqfile millis: </td><td><b>"+str(int(i[16]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[16]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[16]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document add to seqfile millis:</td><td><b>"+str(int(i[16]))+"</b></td><td><b>"+str(int(i[27]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[16]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[16]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			#if (i[5]/1000 > 0):	
 			#	REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document upstream millis: </td><td><b>"+str(int(i[5]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[5]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[5]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			#if (i[8]/1000 > 0):
 			#	REPORT = REPORT+"<tr><td>upload document file bytes: </td><td><b>"+str(int(i[7]))+"</b></td><td>upload document file millis: </td><td><b>"+str(int(i[8]))+"</b></td><td><b>"+str(int((i[7]/1024)/(i[8]/1000)))+"</b></td><td><b>"+str(int((i[7]/(i[8]/1000))/(i[7]/i[0])))+"</b></td></tr>"
 			if (i[13]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document catalog bytes:</td><td><b>"+str(int(i[12]))+"</b></td><td>upload document catalog millis:</td><td><b>"+str(int(i[13]))+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td><td><b>"+str(int((i[12]/(i[13]/1000))/(i[12]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document catalog bytes:</td><td><b>"+str(int(i[12]))+"</b></td><td>upload document catalog millis:</td><td><b>"+str(int(i[13]))+"</b></td><td><b>"+str(int(i[24]))+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td><td><b>"+str(int((i[12]/(i[13]/1000))/(i[12]/i[0])))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
@@ -678,7 +679,7 @@ checkEnvironment()
 writeReportHeader()
 
 #======= CASE #1 Upload Performance Test =====================================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 100
+NUMBER_OF_DOCS_TO_UPLOAD = 1000
 EXPECTED_CODE = "200"
 #TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
 
