@@ -22,6 +22,9 @@ os.system('clear')
 #
 #================================== INITIALIZING AND ASSIGN GLOBAL VARIABLES ============================================================================
 #
+# Send report emails and archive report html file
+DEBUG_MODE=bool(0)
+
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
 TEST_TYPE="PerformanceTesting"
@@ -39,6 +42,7 @@ BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 YEAR=strftime("%Y", gmtime())
+MONTH_FMN=strftime("%B", gmtime())
 
 UPLOAD_URL=""
 STOP_URL=""
@@ -511,7 +515,7 @@ def runHiveQueries ():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
 			if (i[14]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><b>"+str(int(i[9]))+"</b><td>upload document http millis: </td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int(i[25]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><td><b>"+str(int(i[9]))+"</b></td><td>upload document http millis:</td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int(i[25]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[11]/1000 > 0):
 				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document SHA-1 hash millis:</td><td><b>"+str(int(i[11]))+"</b></td><td><b>"+str(int(i[23]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[11]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[11]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[4]/1000 > 0):
@@ -672,6 +676,54 @@ def unblockComponentIP(component):
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	time.sleep(2)
+
+# ============================= ARCHIVE REPORT TO A FILE ============================================================================
+
+# /usr/lib/apx-reporting/html/assets/reports/production/pipeline/2014/3
+
+
+def archiveReport():
+	global ENVIRONMENT, REPORT, PIPELINE_MODULE, MONTH_FMN
+	print ("Archiving report ...\n")
+	BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
+	# ------------- Create new folder if one does not exist already -------------------------------
+	if not os.path.exists(BACKUPREPORTFOLDER):
+		os.makedirs(BACKUPREPORTFOLDER)
+		os.chmod(BACKUPREPORTFOLDER, 0777)	
+	if not os.path.exists(REPORTFOLDER):
+		os.makedirs(REPORTFOLDER)
+		os.chmod(REPORTFOLDER, 0777)
+	# ---------------------------------------------------------------------------------------------
+	REPORTFILENAME=str(DAY)+".html"
+	REPORTXTSTRING="DR Performance Report ("+ENVIRONMENT.lower()+") - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+	REPORTXTFILENAME=PIPELINE_MODULE.lower()+"_reports.txt"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+	# print (REPORTFOLDER)
+	# print (REPORTFILENAME)
+	# print (REPORTXTSTRING)
+	# print (REPORTXTFILENAME)
+	# print (REPORTXTFILEFOLDER)
+	os.chdir(BACKUPREPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
+	os.chdir(REPORTFOLDER)
+	REPORTFILE = open(REPORTFILENAME, 'w')
+	REPORTFILE.write(REPORT)
+	REPORTFILE.close()
+	os.chdir(REPORTXTFILEFOLDER)
+	REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+	REPORTFILETXT.write(REPORTXTSTRING)
+	REPORTFILETXT.close()
+	os.chdir("/mnt/automation/dr/performancetesting")
+	print ("Completed archiving report %s in folder %s ...\n") % (REPORTFILENAME, REPORTFOLDER)
+
+# ===================================================================================================================================
+
+
+
+
 	
 #============== Start of the main body =======================================================================================	
 
@@ -711,3 +763,5 @@ closeHiveConnection()
 # test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
 writeReportFooter()
 emailReport()
+if not DEBUG_MODE:
+	archiveReport()
