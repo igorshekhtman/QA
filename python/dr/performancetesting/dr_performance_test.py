@@ -612,6 +612,37 @@ def runHiveQueries ():
 		REPORT = REPORT+"<br><br>"
 		
 		print ("Starting query 4 ...\n")
+		REPORT = REPORT+SUBHDR % ("Sequence File Close - push to HDFS Performance Test")
+		cur.execute("""SELECT get_json_object(line, '$.seqfile.directory.close.numfiles') as documents_closed, \
+			get_json_object(line, '$.seqfile.directory.close.status') as status, \
+			get_json_object(line, '$.seqfile.directory.close.millis') as sdcm \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.seqfile.directory.close.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			#REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+"N/A"+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
+			REPORT = REPORT+"<tr><td>seqfile file close bytes: </td><td><b>"+"N/A"+"</b></td><td>seqfile file close millis: </td><td><b>"+str(int(i[2]))+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td></tr>"
+			#REPORT = REPORT+"<tr><td>seqfile file add bytes: </td><td><b>"+str(int(i[3]))+"</b></td><td>seqfile file add millis: </td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int(i[5]))+"</b></td><td><b>"+str(int((i[3]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[3]/(i[4]/1000))/(i[3]/i[0])))+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+				
+		
+		print ("Starting query 5 ...\n")
 		REPORT = REPORT+SUBHDR % ("Submit to REDIS Performance Test")
 		cur.execute("""SELECT get_json_object(line, '$.submit.post.apxfiles.count') as documents_submit_post, \
 			get_json_object(line, '$.submit.post.status') as status, \
