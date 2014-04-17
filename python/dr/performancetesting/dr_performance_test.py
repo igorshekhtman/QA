@@ -612,6 +612,68 @@ def runHiveQueries ():
 		REPORT = REPORT+"<br><br>"
 		
 		print ("Starting query 4 ...\n")
+		REPORT = REPORT+SUBHDR % ("Sequence File Start Performance Test")
+		cur.execute("""SELECT get_json_object(line, '$.seqfile.directory.start.status') as status, \
+			get_json_object(line, '$.seqfile.directory.start.millis') as sdsm \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.seqfile.directory.start.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			#REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+"N/A"+"</b></td><td><b>"+str(i[0])+"</b></td><td><b>"+"N/A"+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
+			REPORT = REPORT+"<tr><td>seqfile file directory start bytes: </td><td><b>"+"N/A"+"</b></td><td>seqfile file directory start millis: </td><td><b>"+str(int(i[1]))+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td></tr>"
+			#REPORT = REPORT+"<tr><td>seqfile file add bytes: </td><td><b>"+str(int(i[3]))+"</b></td><td>seqfile file add millis: </td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int(i[5]))+"</b></td><td><b>"+str(int((i[3]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[3]/(i[4]/1000))/(i[3]/i[0])))+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+				
+		print ("Starting query 5 ...\n")
+		REPORT = REPORT+SUBHDR % ("Sequence File Directory Add Performance Test")
+		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.directory.document.docid')) as documents_added, \
+			get_json_object(line, '$.seqfile.directory.add.status') as status, \
+			sum (get_json_object(line, '$.seqfile.directory.add.bytes')) as sdab, \
+			sum (get_json_object(line, '$.seqfile.directory.add.millis')) as sdam, \
+			stddev (cast(get_json_object(line, '$.seqfile.directory.add.millis') as int)) as dsdam \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			day=%s and month=%s and \
+			get_json_object(line, '$.seqfile.directory.add.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.seqfile.directory.add.status')""" %(hive_table, DAY, MONTH, BATCH))
+		for i in cur.fetch():
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			REPORT = REPORT+"<br>"
+			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
+			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
+			if (i[3]/1000 > 0):
+				REPORT = REPORT+"<tr><td>seqfile file directory add bytes: </td><td><b>"+str(int(i[2]))+"</b></td><td>seqfile file directory add millis: </td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+			REPORT = REPORT+"</table>"
+			
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+		
+		
+		print ("Starting query 6 ...\n")
 		REPORT = REPORT+SUBHDR % ("Sequence File Close - push to HDFS Performance Test")
 		cur.execute("""SELECT get_json_object(line, '$.seqfile.directory.close.numfiles') as documents_closed, \
 			get_json_object(line, '$.seqfile.directory.close.status') as status, \
@@ -642,7 +704,7 @@ def runHiveQueries ():
 		REPORT = REPORT+"<br><br>"
 				
 		
-		print ("Starting query 5 ...\n")
+		print ("Starting query 7 ...\n")
 		REPORT = REPORT+SUBHDR % ("Submit to REDIS Performance Test")
 		cur.execute("""SELECT get_json_object(line, '$.submit.post.apxfiles.count') as documents_submit_post, \
 			get_json_object(line, '$.submit.post.status') as status, \
