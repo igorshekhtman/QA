@@ -679,25 +679,26 @@ def runHiveQueries ():
 		REPORT = REPORT+SUBHDR % ("Sequence File Close - push to HDFS Performance Test")
 		cur.execute("""SELECT get_json_object(line, '$.seqfile.file.close.apxfiles.count') as documents_closed, \
 			get_json_object(line, '$.seqfile.file.close.status') as status, \
-			get_json_object(line, '$.seqfile.file.close.bytes') as sfcb, \
-			get_json_object(line, '$.seqfile.file.close.millis') as sfcm, \
+			sum (get_json_object(line, '$.seqfile.file.close.bytes')) as sfcb, \
+			sum (get_json_object(line, '$.seqfile.file.close.millis')) as sfcm, \
 			stddev (cast(get_json_object(line, '$.seqfile.file.close.millis') as int)) as dsdam \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.seqfile.file.close.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.seqfile.file.close.status')""" %(hive_table, DAY, MONTH, BATCH))
+			GROUP BY get_json_object(line, '$.seqfile.file.close.apxfiles.count'), \
+			get_json_object(line, '$.seqfile.file.close.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
-			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(int(i[0]))+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/int(i[0])))+" (bytes)</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
 			if (i[3]/1000 > 0):
-				REPORT = REPORT+"<tr><td>seqfile file close bytes: </td><td><b>"+str(int(i[2]))+"</b></td><td>seqfile file close millis: </td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>seqfile file close bytes: </td><td><b>"+str(int(i[2]))+"</b></td><td>seqfile file close millis: </td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/int(i[0]))))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
@@ -741,8 +742,19 @@ def runHiveQueries ():
 		#	REPORT = REPORT+FAILED
 		REPORT = REPORT+"<br><br>"
 		
-	
-	
+		print ("Summary performance report ...\n")
+		REPORT = REPORT+SUBHDR % ("Summary Doc-Reciever Performance Test Results")
+		REPORT = REPORT+"<table border='0' cellspacing='0' cellpadding='2'>"
+		REPORT = REPORT+"<tr><td>OVERALL KB/SEC:</td><td><b>N/A</b></td></tr>"
+		REPORT = REPORT+"<tr><td>OVRALL DOCS/SEC:</td><td><b>N/A</b></td></tr>"
+		REPORT = REPORT+"</table>"
+		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
+		#if (RETURNCODE[ :3] == code):
+		REPORT = REPORT+PASSED
+		#else:
+		#	REPORT = REPORT+FAILED
+		REPORT = REPORT+"<br><br>"
+		
 
 def clearAllBlockedIP():
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
