@@ -1,5 +1,20 @@
 https://reports.apixio.com/html/index.htm
 
+=================================================
+NEW DAILY PRODUCTION REPORT
+=================================================
+It has been decided that for new Production Reports design will be as follows: 
+
+1.) Top of the report: Job Failures (Org#, Org name, Type, Count)
+
+2.) Middle of the report: Errors (Org#, Org name, Type, Count, Message), sort by Org name, Error message
+
+3.) Bottom of the report: Org-count Summary (Daily):
+- # Uploaded / org
+- # Parsed / org
+- # OCRd / org
+- # Persisted / org
+
 ===========================
 ADD SEQ FILE CLOSE - LANCE:
 ===========================
