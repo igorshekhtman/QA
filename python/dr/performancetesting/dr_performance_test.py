@@ -515,13 +515,15 @@ def runHiveQueries ():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
 			if (i[14]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><td><b>"+str(int(i[9]))+"</b></td><td>upload document http millis:</td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int(i[25]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document bytes:</td><td><b>"+str(int(i[9]))+"</b></td><td>upload document http millis:</td><td><b>"+str(int(i[14]))+"</b></td><td><b>"+str(int(i[25]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[14]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[14]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+			if (i[13]/1000 > 0):
+				REPORT = REPORT+"<tr><td>upload document catalog bytes:</td><td><b>"+str(int(i[12]))+"</b></td><td>upload document catalog millis:</td><td><b>"+str(int(i[13]))+"</b></td><td><b>"+str(int(i[24]))+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td><td><b>"+str(int((i[12]/(i[13]/1000))/(i[12]/i[0])))+"</b></td></tr>"
 			if (i[11]/1000 > 0):
 				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document SHA-1 hash millis:</td><td><b>"+str(int(i[11]))+"</b></td><td><b>"+str(int(i[23]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[11]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[11]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[4]/1000 > 0):
 				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document package millis:</td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int(i[18]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[4]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[10]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document bytes:</td><td><b>"+str(int(i[2]))+"</b></td><td>upload document serialize millis: </td><td><b>"+str(int(i[10]))+"</b></td><td><b>"+str(int(i[22]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[10]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[10]/1000))/(i[9]/i[0])))+"</b></td></tr>"
+				REPORT = REPORT+"<tr><td>upload document serialize APO bytes:</td><td><b>"+str(int(i[2]))+"</b></td><td>upload document serialize millis: </td><td><b>"+str(int(i[10]))+"</b></td><td><b>"+str(int(i[22]))+"</b></td><td><b>"+str(int((i[9]/1024)/(i[10]/1000)))+"</b></td><td><b>"+str(int((i[9]/(i[10]/1000))/(i[9]/i[0])))+"</b></td></tr>"
 			if (i[6]/1000 > 0):
 				REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document encrypt millis:</td><td><b>"+str(int(i[6]))+"</b></td><td><b>"+str(int(i[20]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[6]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[6]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			if (i[3]/1000 > 0):
@@ -534,8 +536,8 @@ def runHiveQueries ():
 			#	REPORT = REPORT+"<tr><td> </td><td><b></b></td><td>upload document upstream millis: </td><td><b>"+str(int(i[5]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[5]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[5]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			#if (i[8]/1000 > 0):
 			#	REPORT = REPORT+"<tr><td>upload document file bytes: </td><td><b>"+str(int(i[7]))+"</b></td><td>upload document file millis: </td><td><b>"+str(int(i[8]))+"</b></td><td><b>"+str(int((i[7]/1024)/(i[8]/1000)))+"</b></td><td><b>"+str(int((i[7]/(i[8]/1000))/(i[7]/i[0])))+"</b></td></tr>"
-			if (i[13]/1000 > 0):
-				REPORT = REPORT+"<tr><td>upload document catalog bytes:</td><td><b>"+str(int(i[12]))+"</b></td><td>upload document catalog millis:</td><td><b>"+str(int(i[13]))+"</b></td><td><b>"+str(int(i[24]))+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td><td><b>"+str(int((i[12]/(i[13]/1000))/(i[12]/i[0])))+"</b></td></tr>"
+			#if (i[13]/1000 > 0):
+			#	REPORT = REPORT+"<tr><td>upload document catalog bytes:</td><td><b>"+str(int(i[12]))+"</b></td><td>upload document catalog millis:</td><td><b>"+str(int(i[13]))+"</b></td><td><b>"+str(int(i[24]))+"</b></td><td><b>"+str(int((i[12]/1024)/(i[13]/1000)))+"</b></td><td><b>"+str(int((i[12]/(i[13]/1000))/(i[12]/i[0])))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
@@ -675,25 +677,27 @@ def runHiveQueries ():
 		
 		print ("Starting query 6 ...\n")
 		REPORT = REPORT+SUBHDR % ("Sequence File Close - push to HDFS Performance Test")
-		cur.execute("""SELECT get_json_object(line, '$.seqfile.directory.close.numfiles') as documents_closed, \
-			get_json_object(line, '$.seqfile.directory.close.status') as status, \
-			get_json_object(line, '$.seqfile.directory.close.millis') as sdcm \
+		cur.execute("""SELECT get_json_object(line, '$.seqfile.file.close.apxfiles.count') as documents_closed, \
+			get_json_object(line, '$.seqfile.file.close.status') as status, \
+			get_json_object(line, '$.seqfile.file.close.bytes') as sfcb, \
+			get_json_object(line, '$.seqfile.file.close.millis') as sfcm, \
+			stddev (cast(get_json_object(line, '$.seqfile.file.close.millis') as int)) as dsdam \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
-			get_json_object(line, '$.seqfile.directory.close.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
+			get_json_object(line, '$.seqfile.file.close.batchid') = '%s' \
+			GROUP BY get_json_object(line, '$.seqfile.file.close.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
-			#REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
-			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+"N/A"+" (bytes)</b></td></tr>"
+			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(i[1])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			REPORT = REPORT+"<br>"
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td></td><td><b>BYTES:</b></td><td></td><td><b>MILLIS:</b></td><td><b>STD DEVTN:</b></td><td><b>KB/SEC:</b></td><td><b>DOCS/SEC:</b></td></tr>"
-			REPORT = REPORT+"<tr><td>seqfile file close bytes: </td><td><b>"+"N/A"+"</b></td><td>seqfile file close millis: </td><td><b>"+str(int(i[2]))+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td><td><b>"+"N/A"+"</b></td></tr>"
-			#REPORT = REPORT+"<tr><td>seqfile file add bytes: </td><td><b>"+str(int(i[3]))+"</b></td><td>seqfile file add millis: </td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int(i[5]))+"</b></td><td><b>"+str(int((i[3]/1024)/(i[4]/1000)))+"</b></td><td><b>"+str(int((i[3]/(i[4]/1000))/(i[3]/i[0])))+"</b></td></tr>"
+			if (i[3]/1000 > 0):
+				REPORT = REPORT+"<tr><td>seqfile file close bytes: </td><td><b>"+str(int(i[2]))+"</b></td><td>seqfile file close millis: </td><td><b>"+str(int(i[3]))+"</b></td><td><b>"+str(int(i[4]))+"</b></td><td><b>"+str(int((i[2]/1024)/(i[3]/1000)))+"</b></td><td><b>"+str(int((i[2]/(i[3]/1000))/(i[2]/i[0])))+"</b></td></tr>"
 			REPORT = REPORT+"</table>"
 			
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
