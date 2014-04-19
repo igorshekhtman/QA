@@ -25,10 +25,10 @@ os.system('clear')
 QNTORUN=1
 
 # Run one or all queries
-PROCESS_ALL_QUERIES=bool(0)
+PROCESS_ALL_QUERIES=bool(1)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(1)
+DEBUG_MODE=bool(0)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -423,7 +423,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 	
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	cur.execute("""SELECT count(DISTINCT %s) as count, status, org_id, \
+	cur.execute("""SELECT count(DISTINCT %s) as count, status, org_id \
 		FROM %s \
 		WHERE \
 		%s is not null and \
