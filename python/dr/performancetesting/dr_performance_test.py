@@ -23,7 +23,7 @@ os.system('clear')
 #================================== INITIALIZING AND ASSIGN GLOBAL VARIABLES ============================================================================
 #
 # Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
@@ -65,6 +65,12 @@ FILES=""
 SENDER="donotreply@apixio.com"
 RECEIVERS="ishekhtman@apixio.com"
 RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
+OVERALL_KB_SEC=0
+UDB=0
+UDM=0
+OVERALL_DOCS_SEC=0
+UDC=0
+
 # RECEIVERS="eng@apixio.com"
 #
 #================================ DOC-RECEIVER PERFORMANCE TESTING COMPONENTS =========================================================================
@@ -462,10 +468,7 @@ def closeHiveConnection():
 	
 def runHiveQueries ():
 	global REPORT, cur, conn, DAY, MONTH, BATCH
-	global udb, udsm, udpm, udum, udem, udfb, udfm, udsb, udsm, udhm, udcb, udcm, udhm, udam, udsm1
-	global aab, aam
-	global sfdb, sfab, sfam
-	global spb, spm
+	global OVERALL_KB_SEC, UDB, UDM, OVERALL_DOCS_SEC, UDC, DOCUMENTCOUNTER
 	print ("Running %s Hive queries ... \n") % (PIPELINE_MODULE)	
 	if PIPELINE_MODULE == "DR":
 		hive_table = ENVIRONMENT.lower()+"_logs_docreceiver_24"
@@ -499,7 +502,9 @@ def runHiveQueries ():
 			stddev (cast(get_json_object(line, '$.upload.document.catalog.millis') as int)) as dudcm, \
 			stddev (cast(get_json_object(line, '$.upload.document.http.millis') as int)) as dudhm1, \
 			stddev (cast(get_json_object(line, '$.upload.document.archive.millis') as int)) as dudam, \
-			stddev (cast(get_json_object(line, '$.upload.document.seqfile.millis') as int)) as dudsm2 \
+			stddev (cast(get_json_object(line, '$.upload.document.seqfile.millis') as int)) as dudsm2, \
+			sum (get_json_object(line, '$.upload.document.millis')), \
+			sum (get_json_object(line, '$.upload.document.count')) \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
@@ -507,6 +512,9 @@ def runHiveQueries ():
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
 		for i in cur.fetch():
+			UDB = i[2]
+			UDM = i[28]
+			UDC = i[29]
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>AV APO SIZE:</td><td>AV DOC SIZE:</td><td>AV DOC+CAT SIZE:</td><td>AV CATALOG SIZE:</td><td>STATUS:</td></tr>"
 			REPORT = REPORT+"<tr><td><b>"+str(i[0])+"</b></td><td><b>"+str(int(i[2]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[7]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[9]/i[0]))+" (bytes)</b></td><td><b>"+str(int(i[12]/i[0]))+" (bytes)</b></td><td><b>"+str(i[1])+"</b></td></tr>"
@@ -743,10 +751,14 @@ def runHiveQueries ():
 		REPORT = REPORT+"<br><br>"
 		
 		print ("Summary performance report ...\n")
+		UDK = (UDB / 1024)
+		UDS = (UDM / 1000)
+		OVERALL_KB_SEC=(UDK / UDS)
+		OVERALL_DOCS_SEC=(UDC / UDS)
 		REPORT = REPORT+SUBHDR % ("Summary Doc-Reciever Performance Test Results")
 		REPORT = REPORT+"<table border='0' cellspacing='0' cellpadding='2'>"
-		REPORT = REPORT+"<tr><td>OVERALL KB/SEC:</td><td><b>N/A</b></td></tr>"
-		REPORT = REPORT+"<tr><td>OVRALL DOCS/SEC:</td><td><b>N/A</b></td></tr>"
+		REPORT = REPORT+"<tr><td>OVERALL KB/SEC:</td><td><b>"+str(OVERALL_KB_SEC)+"</b></td></tr>"
+		REPORT = REPORT+"<tr><td>OVRALL DOCS/SEC:</td><td><b>"+str(OVERALL_DOCS_SEC)+"</b></td></tr>"
 		REPORT = REPORT+"</table>"
 		#print ("Finished running %s Hive queries ... \n") % (PIPELINE_MODULE)
 		#if (RETURNCODE[ :3] == code):
