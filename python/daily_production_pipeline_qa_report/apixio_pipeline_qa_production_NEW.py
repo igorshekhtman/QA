@@ -28,7 +28,7 @@ QNTORUN=1
 PROCESS_ALL_QUERIES=bool(1)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(1)
+DEBUG_MODE=bool(0)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -155,7 +155,7 @@ def checkEnvironmentandReceivers():
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
-		HTML_RECEIVERS="""To: Igor <%s>\n""" % str(sys.argv[2])
+		HTML_RECEIVERS="""To: Eng <%s>\n""" % str(sys.argv[2])
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
@@ -246,7 +246,7 @@ def setHiveParameters():
 
 def obtainFailedJobs():
 	global REPORT, cur, conn
-	global DAY, MONTH
+	global DAY, MONTH, COMPONENT_STATUS
 	print ("Executing failed jobs query ...\n")
 	cur.execute("""SELECT activity, hadoop_job_id, batch_id, org_id, time \
 		FROM %s \
@@ -335,6 +335,7 @@ def careOptimizerDetails():
 			<td>"+FORMATEDTIME1+"</td> \
 			<td>"+FORMATEDTIME2+"</td> \
 			<td>"+str(i[3])+"</td></tr>"
+		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -435,7 +436,8 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td>"+activity+" "+summary_table_name+"</td><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+ORGMAP[str(i[2])]+"</td></tr>"
-		#COMPONENT_STATUS="FAILED"
+		if str(i[1]) == "error":
+			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
@@ -463,8 +465,11 @@ def jobSummary():
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+ORGMAP[str(i[3])]+"</td></tr>"
-		#COMPONENT_STATUS="FAILED"
+		if str(i[1]) == "error":
+			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+"</td></tr>"
+			COMPONENT_STATUS="FAILED"
+		else:
+			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+ORGMAP[str(i[3])]+"</td></tr>"			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
@@ -590,7 +595,7 @@ def archiveReport():
 
 
 def emailReport():
-	global RECEIVERS, SENDER, REPORT
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS
 	print ("Emailing report ...\n")
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
