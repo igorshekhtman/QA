@@ -308,11 +308,12 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.submitToCoordinator') as sent_to_coordinator_trace, \
         get_json_object(line, '$.output.link.orgIdByDocUUID') as doc_link, \
         get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link, \
-        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'not found') as apo_status \
-		FROM %s \
-		WHERE get_json_object(line, '$.output.documentEntry.batchId') = "%s" and \
-		day=%s and month=%s\
-		GROUP BY get_json_object(line, '$.output.uploadedToS3'), \
+        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none') as apo_status \
+        FROM %s \                
+        WHERE get_json_object(line, '$.jobname') like "%s%%" \
+        and get_json_object(line, '$.output') is not null \
+        and day=%s and month=%s \
+        GROUP BY get_json_object(line, '$.output.uploadedToS3'), \
         get_json_object(line, '$.output.documentEntry.orgId'), \
         get_json_object(line, '$.output.trace.parserJob'), \
         get_json_object(line, '$.output.trace.ocrJob'), \
