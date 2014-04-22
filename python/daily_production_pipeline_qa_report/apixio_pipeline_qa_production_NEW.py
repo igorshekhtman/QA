@@ -28,7 +28,7 @@ QNTORUN=1
 PROCESS_ALL_QUERIES=bool(1)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
