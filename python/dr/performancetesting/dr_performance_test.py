@@ -23,7 +23,7 @@ os.system('clear')
 #================================== INITIALIZING AND ASSIGN GLOBAL VARIABLES ============================================================================
 #
 # Send report emails and archive report html file
-DEBUG_MODE=bool(1)
+DEBUG_MODE=bool(0)
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
