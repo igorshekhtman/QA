@@ -133,7 +133,7 @@ def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
-	global RECEIVERS, HTML_RECEIVERS
+	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
@@ -155,9 +155,11 @@ def checkEnvironmentandReceivers():
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
-		HTML_RECEIVERS="""To: Eng <%s>\n""" % str(sys.argv[2])
+		RECEIVERS2=str(sys.argv[3])
+		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
+		RECEIVERS2="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 
 				
@@ -595,14 +597,15 @@ def archiveReport():
 
 
 def emailReport():
-	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
 	print ("Emailing report ...\n")
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
 	s.login("donotreply@apixio.com", "apx.mail47")	        
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
-	print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
+	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 	
 #================ START OF MAIN BODY =================================================================	
 	
