@@ -110,7 +110,7 @@ ORGMAP = { \
 	"10000272":"org0002", \
 	"10000275":"org0005", \
 	"10000278":"Hill Physicians", \
-	"10000279":"org0138", \
+	"10000279":"Production Test Org", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
@@ -125,6 +125,7 @@ ORGMAP = { \
 	"HILL":"Hill Physicians", \
 	"MMG":"MMG", \
 	"ONLOK":"ONLOK", \
+	"__HIVE_DEFAULT_PARTITION__":"__HIVE_DEFAULT_PARTITION__", \
 	"None":"Missing Orgname", \
 }
 #===================================================================================
@@ -298,6 +299,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		GROUP BY org_id, \
 		if(error_message like '/mnt%%','No space left on device', error_message) \
 		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+			
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -306,15 +308,19 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='6'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
+		REPORT = REPORT+"<tr><td colspan='6'><i>There were no "+activity+" "+summary_table_name+" specific errors</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 
 	
-
+def removeHtmlTags(data):
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
+	
+	
 def careOptimizerDetails():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	QUERY_DESC="""Error(s) summary"""
-	print ("Running CARE OPTIMIZER query - retrieve %s ...") % (QUERY_DESC)
+	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
 	cur.execute("""SELECT error_message, min(time) as first_occurence, \
 		max(time) as last_occurence, count(*) as count \
@@ -326,17 +332,17 @@ def careOptimizerDetails():
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td width='75%'>Message:</td><td width='10%'>1st Occur:</td><td width='10%'>Last Occur:</td><td width='5%'>Count:</td></tr>"
+	REPORT = REPORT+"<tr><td width='5%'>Count:</td><td width='75%'>Message:</td><td width='10%'>1st Occur:</td><td width='10%'>Last Occur:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
+		REPORT = REPORT+"<tr><td>"+str(i[3])+"</td> \
+			<td>"+removeHtmlTags(str(i[0]))+"</td> \
 			<td>"+FORMATEDTIME1+"</td> \
-			<td>"+FORMATEDTIME2+"</td> \
-			<td>"+str(i[3])+"</td></tr>"
+			<td>"+FORMATEDTIME2+"</td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
@@ -344,9 +350,10 @@ def careOptimizerDetails():
 	
 
 	QUERY_DESC="""Load summary"""
-	print ("Running CARE OPTIMIZER query - retrieve %s ...") % (QUERY_DESC)
+	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(*) num_loads,  \
+		org_id, \
 		avg(cassandra_load_millis) / 1000 as avg_load_time_seconds, \
 		max(cassandra_load_millis) / 1000 as max_load_time_seconds, \
 		avg(patient_bytes) / 1048576 as avg_patient_mb, \
@@ -355,12 +362,14 @@ def careOptimizerDetails():
 		min(patient_cache_size) as min_patient_cache, \
 		max(patient_cache_size) as max_patient_cache \
 		FROM %s \
-		WHERE day=%s and month=%s""" %("summary_careopt_load", DAY, MONTH))
+		WHERE day=%s and month=%s \
+		GROUP BY org_id""" %("summary_careopt_load", DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td># Loads:</td><td>Av Load:</td><td>Max Load:</td><td>Av Patient:</td><td>Max Patient</td>"
+	REPORT = REPORT+"<tr><td># Loads:</td><td>Org ID:</td><td>Av Load:</td>"
+	REPORT = REPORT+"<td>Max Load:</td><td>Av Patient:</td><td>Max Patient</td>"
 	REPORT = REPORT+"<td>Av Mb/Sec:</td><td>Min Pat Cache:</td><td>Max Pat Cache:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
@@ -370,21 +379,22 @@ def careOptimizerDetails():
 		#FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
 			<td>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+str(i[3])+"</td> \
-			<td>"+str(i[4])+"</td> \
-			<td>"+str(i[5])+"</td> \
-			<td>"+str(i[6])+"</td> \
-			<td>"+str(i[7])+"</td></tr>"
+			<td>"+str(round(i[2],1))+"</td> \
+			<td>"+str(round(i[3],1))+"</td> \
+			<td>"+str(round(i[4],1))+"</td> \
+			<td>"+str(round(i[5],1))+"</td> \
+			<td>"+str(round(i[6],1))+"</td> \
+			<td>"+str(i[7])+"</td> \
+			<td>"+str(i[8])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 
 	QUERY_DESC="""Search summary"""
-	print ("Running CARE OPTIMIZER query - retrieve %s ...") % (QUERY_DESC)
+	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
-	cur.execute("""SELECT split(username, "_")[1] as org, \
+	cur.execute("""SELECT org_id as org, \
 		count(distinct split(username, "_")[0]) as end_users, \
 		count(distinct patient_sql_id) as num_patients, \
 		min(patient_access_millis) as min_time, \
@@ -394,13 +404,13 @@ def careOptimizerDetails():
 		max(time) as last_access \
 		FROM %s  \
 		WHERE day=%s and month=%s \
-		GROUP BY split(username, "_")[1] \
-		ORDER BY num_patients DESC""" %("summary_careopt_search", DAY, MONTH))
+		GROUP BY org_id, split(username, "_")[1] \
+		ORDER BY max_time DESC""" %("summary_careopt_search", DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Org:</td><td>End users:</td><td># Pat:</td><td>Min time:</td><td>Max time:</td>"
+	REPORT = REPORT+"<tr><td>Org ID:</td><td>End users:</td><td># Pat:</td><td>Min time:</td><td>Max time:</td>"
 	REPORT = REPORT+"<td>Av time:</td><td>1st acc:</td><td>Lst acc:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
@@ -413,7 +423,7 @@ def careOptimizerDetails():
 			<td>"+str(i[2])+"</td> \
 			<td>"+str(i[3])+"</td> \
 			<td>"+str(i[4])+"</td> \
-			<td>"+str(i[5])+"</td> \
+			<td>"+str(round(i[5],1))+"</td> \
 			<td>"+FORMATEDTIME1+"</td> \
 			<td>"+FORMATEDTIME2+"</td></tr>"
 	if (ROW == 0):
@@ -425,7 +435,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 	global DAY, MONTH, COMPONENT_STATUS
 	
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
-	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
+	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(DISTINCT %s) as count, status, org_id \
 		FROM %s \
 		WHERE \
@@ -433,11 +443,14 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		day=%s and month=%s \
 		GROUP BY org_id, status \
 		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Count:</td><td>Status:</td><td>Org ID:</td><td>Org Name:</td></tr>"	
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+activity+" "+summary_table_name+"</td><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+ORGMAP[str(i[2])]+"</td></tr>"
+		REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td><td width='10%'>"+str(i[1])+"</td><td width='10%'>"+str(i[2])+"</td><td width='20%'>"+ORGMAP[str(i[2])]+"</td></tr>"
 		if str(i[1]) == "error":
 			COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -449,7 +462,7 @@ def jobSummary():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	print ("Jobs summary query ...\n")
-	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
+	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(job_id) as total, \
 		status, \
 		activity, \
@@ -463,6 +476,9 @@ def jobSummary():
 		activity, \
 		org_id \
 		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Org ID:</td><td>Org Name:</td></tr>"		
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -513,7 +529,7 @@ def writeReportDetails():
 	
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
-	uploadSummary("DR","summary_docreceiver_upload", "doc_id")
+	uploadSummary("Doc-Receiver","summary_docreceiver_upload", "doc_id")
 	uploadSummary("OCR","summary_ocr", "doc_id")
 	uploadSummary("Persist Mapper","summary_persist_mapper", "doc_id")
 	if (COMPONENT_STATUS=="PASSED"):
