@@ -12,6 +12,10 @@ fi
 
 . /usr/lib/apx-coordinator/bin/setcp
 
+echo "
+Submitting APO Migration for org $1 on $2:
+"
+
 if [ "$2" = "staging" ]
 then
 
@@ -22,7 +26,9 @@ java com.apixio.coordinator.SubmitWorkCmd -o $1 -p 8 -i /user/apxqueue/apoMigrat
 elif [ "$2" = "production" ]
 then
 
-echo "needs hostnames"
+echo "[FAILURE] needs new cassandra hostnames!"
+#java -cp apixio-datasource-1.1.3.jar com.apixio.dao.cmdline.CreateColumnFamilies -a ONENEWHOSTNAME -c cf$1 -g $1 -t trace$1 -o createdCF.out
+
 #java com.apixio.coordinator.SubmitWorkCmd -o $1 -p 8 -i /user/apxqueue/apoMigrationInput -g apoMigration -l cf$1_partKeys -b $1_apoMigration orgId=$1 newHosts=?
 
 fi
