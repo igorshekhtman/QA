@@ -411,7 +411,9 @@ def careOptimizerDetails():
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
 	REPORT = REPORT+"<tr><td>Org ID:</td><td>End users:</td><td># Pat:</td><td>Min time:</td><td>Max time:</td>"
-	REPORT = REPORT+"<td>Av time:</td><td>1st acc:</td><td>Lst acc:</td></tr>"
+	REPORT = REPORT+"<td>Av time:</td>"
+	#REPORT = REPORT+"<td>Med time:</td><td>Mean time:</td><td>Perc. 95%:</td>"
+	REPORT = REPORT+"<td>1st acc:</td><td>Lst acc:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
