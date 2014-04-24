@@ -304,11 +304,11 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td>"+activity+" "+summary_table_name+"</td><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+ORGMAP[str(i[1])]+"</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='4'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+"</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='6'><i>There were no "+activity+" "+summary_table_name+" specific errors</i></td></tr>"
+		REPORT = REPORT+"<tr><td colspan='4'>There were no "+activity+" "+summary_table_name+" specific errors</td></tr>"
 	REPORT = REPORT+"</table><br>" 
 	
 def removeHtmlTags(data):
@@ -316,9 +316,15 @@ def removeHtmlTags(data):
     return p.sub('', data)
 	
 	
-def careOptimizerDetails():
+def careOptimizerErrors():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
+	major_error_list = [ \
+		'Unexpected error while preparing query', \
+		'Patient not found' \
+		]
+		
+	
 	QUERY_DESC="""Error(s) summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
@@ -339,16 +345,20 @@ def careOptimizerDetails():
 		print i
 		FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[3])+"</td> \
-			<td>"+removeHtmlTags(str(i[0]))+"</td> \
-			<td>"+FORMATEDTIME1+"</td> \
-			<td>"+FORMATEDTIME2+"</td></tr>"
+		if any((str(i[0])[:15]) in s for s in major_error_list):
+			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+removeHtmlTags(str(i[0]))+"</td><td bgcolor='#FFFF00'>"+FORMATEDTIME1+"</td><td bgcolor='#FFFF00'>"+FORMATEDTIME2+"</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td>"+str(i[3])+"</td><td>"+removeHtmlTags(str(i[0]))+"</td><td>"+FORMATEDTIME1+"</td><td>"+FORMATEDTIME2+"</td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
-	
 
+
+def careOptimizerLoad():
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	
 	QUERY_DESC="""Load summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
@@ -356,6 +366,9 @@ def careOptimizerDetails():
 		org_id, \
 		avg(cassandra_load_millis) / 1000 as avg_load_time_seconds, \
 		max(cassandra_load_millis) / 1000 as max_load_time_seconds, \
+		percentile_approx(cassandra_load_millis / 1000, 0.05) as perc_5,
+		percentile_approx(cassandra_load_millis / 1000, 0.5) as perc_50, 
+		percentile_approx(cassandra_load_millis / 1000, 0.95) as perc_95,
 		avg(patient_bytes) / 1048576 as avg_patient_mb, \
 		max(patient_bytes) / 1048576 as max_patient_mb, \
 		avg((patient_bytes / cassandra_load_millis) * 1000) / 1048576 avg_mb_per_second, \
@@ -363,13 +376,15 @@ def careOptimizerDetails():
 		max(patient_cache_size) as max_patient_cache \
 		FROM %s \
 		WHERE day=%s and month=%s \
-		GROUP BY org_id""" %("summary_careopt_load", DAY, MONTH))
+		GROUP BY org_id \
+		ORDER BY max_load_time_seconds DESC""" %("summary_careopt_load", DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td># Loads:</td><td>Org ID:</td><td>Av Load:</td>"
-	REPORT = REPORT+"<td>Max Load:</td><td>Av Patient:</td><td>Max Patient</td>"
+	REPORT = REPORT+"<tr><td># Loads:</td><td>Org ID:</td><td>Av Load sec:</td><td>Max Load sec:</td>"
+	REPORT = REPORT+"<td>5% sec:</td><td>50% sec:</td><td>95% sec:</td>"
+	REPORT = REPORT+"<td>Av Patient:</td><td>Max Patient</td>"
 	REPORT = REPORT+"<td>Av Mb/Sec:</td><td>Min Pat Cache:</td><td>Max Pat Cache:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
@@ -384,12 +399,19 @@ def careOptimizerDetails():
 			<td>"+str(round(i[4],1))+"</td> \
 			<td>"+str(round(i[5],1))+"</td> \
 			<td>"+str(round(i[6],1))+"</td> \
-			<td>"+str(i[7])+"</td> \
-			<td>"+str(i[8])+"</td></tr>"
+			<td>"+str(round(i[7],1))+"</td> \
+			<td>"+str(round(i[8],1))+"</td> \
+			<td>"+str(round(i[9],1))+"</td> \
+			<td>"+str(i[10])+"</td> \
+			<td>"+str(i[11])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+	
+def careOptimizerSearch():
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS	
 
 	QUERY_DESC="""Search summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
@@ -400,6 +422,9 @@ def careOptimizerDetails():
 		min(patient_access_millis) as min_time, \
 		max(patient_access_millis) as max_time, \
 		avg(patient_access_millis) as avg_time, \
+		percentile_approx(patient_access_millis, 0.05) as perc_5,
+		percentile_approx(patient_access_millis, 0.5) as perc_50, 
+		percentile_approx(patient_access_millis, 0.95) as perc_95,  
 		min(time) as first_access, \
 		max(time) as last_access \
 		FROM %s  \
@@ -410,22 +435,25 @@ def careOptimizerDetails():
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Org ID:</td><td>End users:</td><td># Pat:</td><td>Min time:</td><td>Max time:</td>"
-	REPORT = REPORT+"<td>Av time:</td>"
-	#REPORT = REPORT+"<td>Med time:</td><td>Mean time:</td><td>Perc. 95%:</td>"
+	REPORT = REPORT+"<tr><td>Org ID:</td><td># Users:</td><td># Pat:</td><td>Min mil:</td><td>Max mil:</td>"
+	REPORT = REPORT+"<td>Av mil:</td>"
+	REPORT = REPORT+"<td>5% mil:</td><td>50% mil:</td><td>95% mil:</td>"
 	REPORT = REPORT+"<td>1st acc:</td><td>Lst acc:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		FORMATEDTIME1 = DT.datetime.strptime(str(i[6])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		FORMATEDTIME2 = DT.datetime.strptime(str(i[7])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIME1 = DT.datetime.strptime(str(i[9])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIME2 = DT.datetime.strptime(str(i[10])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
 			<td>"+str(i[1])+"</td> \
 			<td>"+str(i[2])+"</td> \
 			<td>"+str(i[3])+"</td> \
 			<td>"+str(i[4])+"</td> \
 			<td>"+str(round(i[5],1))+"</td> \
+			<td>"+str(round(i[6],1))+"</td> \
+			<td>"+str(round(i[7],1))+"</td> \
+			<td>"+str(round(i[8],1))+"</td> \
 			<td>"+FORMATEDTIME1+"</td> \
 			<td>"+FORMATEDTIME2+"</td></tr>"
 	if (ROW == 0):
@@ -447,14 +475,17 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Activity:</td><td>Count:</td><td>Status:</td><td>Org ID:</td><td>Org Name:</td></tr>"	
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Org ID:</td><td>Org Name:</td></tr>"	
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td><td width='10%'>"+str(i[1])+"</td><td width='10%'>"+str(i[2])+"</td><td width='20%'>"+ORGMAP[str(i[2])]+"</td></tr>"
 		if str(i[1]) == "error":
+			REPORT = REPORT+"<tr><td width='50%' bgcolor='#FFFF00'>"+activity+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[0])+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[1])+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[2])+"</td><td width='20%' bgcolor='#FFFF00'>"+ORGMAP[str(i[2])]+"</td></tr>"
 			COMPONENT_STATUS="FAILED"
+		else:
+			REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td><td width='10%'>"+str(i[1])+"</td><td width='10%'>"+str(i[2])+"</td><td width='20%'>"+ORGMAP[str(i[2])]+"</td></tr>"
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
@@ -555,7 +586,9 @@ def writeReportDetails():
 	
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
-	careOptimizerDetails()
+	careOptimizerErrors()
+	careOptimizerLoad()
+	careOptimizerSearch()
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
