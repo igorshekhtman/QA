@@ -440,7 +440,7 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
-get_json_object(line, '$.patientaccess.patient.org.id') as org_id,
+get_json_object(line, '$.patientaccess.org.id') as org_id,
 month,
 day
 from 
@@ -809,7 +809,7 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
-get_json_object(line, '$.patientaccess.patient.org.id') as org_id,
+get_json_object(line, '$.patientaccess.org.id') as org_id,
 month,
 day
 from 

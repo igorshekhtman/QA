@@ -1,5 +1,6 @@
 https://reports.apixio.com/html/index.htm
 
+
 =================================================
 NEW DAILY PRODUCTION REPORT
 =================================================
@@ -15,6 +16,9 @@ It has been decided that for new Production Reports design will be as follows:
 - # OCRd / org
 - # Persisted / org
 
+
+
+
 ===========================
 ADD SEQ FILE CLOSE - LANCE:
 ===========================
@@ -22,6 +26,24 @@ ADD SEQ FILE CLOSE - LANCE:
 {"time":"1394816565007","level":"EVENT","source":"production.docreceiver","hostname":"ip-10-199-9-13","datestamp":"2014-03-14T17:02:45.007Z","jvm":{"threads":{"count":"83"},"thread":"45","processors":{"count":"4"},"memory":{"total":{"bytes":"3137339392","count":"1"},"free":{"bytes":"220775728","count":"1"},"max":{"bytes":"3469213696","count":"1"}}},"loggerName":"com.apixio.docreceiver.service.SequenceFileServiceDirectory","seqfile":{"directory":{"close":{"batchid":"10000262_backload","orgid":"10000262","count":"1","status":"success","numfiles":"1","pathname":"hdfs://10.199.6.149:8020/user/apxqueue/receiver/10000262_backload/dir_1394232944749","millis":"9"}}}}
 
 Missing - .seqfile.file.close.batch
+
+===============================
+LANCE - 04/22/2014
+===============================
+'Sequence File Directory Add' is not useful, it's just a wrapper around 'Sequence File Generation'.
+
+The overall bytes and counts are:
+upload.document.bytes and
+upload.document.millis
+The counter is upload.document.count
+
+Kb/sec is (upload.document.bytes / upload.document.millis)/1000
+docs/sec is (upload.document.count / upload.document.millis)/1000
+
+Also, the sequencefile sections can just be one table of:
+"start file" row
+"add file" rows
+"close file" row
 
 
 =====================================================================================================================
