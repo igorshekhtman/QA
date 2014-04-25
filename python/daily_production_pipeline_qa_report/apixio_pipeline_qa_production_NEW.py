@@ -260,7 +260,7 @@ def obtainFailedJobs():
 
 
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Activity:</td><td>Hadoop job:</td><td>Batch ID:</td><td>Org ID:</td><td>Org Name:</td><td>Failure Time:</td></tr>"
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Hadoop job:</td><td>Batch ID:</td><td>Organization:</td><td>Failure Time:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -269,12 +269,11 @@ def obtainFailedJobs():
 		REPORT = REPORT+"<tr> \
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
 		if str(i[3]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td>"
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td>"
 		else:
-			REPORT = REPORT + "<td>"+str(i[3])+"</td>"
+			REPORT = REPORT + "<td>"+str(i[3])+" ("+str(i[3])+")</td>"
 		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -304,7 +303,12 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+"</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td>"
+		REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT + "<td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
+		else:
+			REPORT = REPORT + "<td bgcolor='#FFFF00'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
 		REPORT = REPORT+"<tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -379,10 +383,9 @@ def careOptimizerLoad():
 		GROUP BY org_id \
 		ORDER BY max_load_time_seconds DESC""" %("summary_careopt_load", DAY, MONTH))
 
-
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td># Loads:</td><td>Org ID:</td><td>Av Load sec:</td><td>Max Load sec:</td>"
+	REPORT = REPORT+"<tr><td># Loads:</td><td>Organization:</td><td>Av Load sec:</td><td>Max Load sec:</td>"
 	REPORT = REPORT+"<td>5% sec:</td><td>50% sec:</td><td>95% sec:</td>"
 	REPORT = REPORT+"<td>Av Patient:</td><td>Max Patient</td>"
 	REPORT = REPORT+"<td>Av Mb/Sec:</td><td>Min Pat Cache:</td><td>Max Pat Cache:</td></tr>"
@@ -390,20 +393,21 @@ def careOptimizerLoad():
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		#FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		#FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
-			<td>"+str(i[1])+"</td> \
-			<td>"+str(round(i[2],1))+"</td> \
-			<td>"+str(round(i[3],1))+"</td> \
-			<td>"+str(round(i[4],1))+"</td> \
-			<td>"+str(round(i[5],1))+"</td> \
-			<td>"+str(round(i[6],1))+"</td> \
-			<td>"+str(round(i[7],1))+"</td> \
-			<td>"+str(round(i[8],1))+"</td> \
-			<td>"+str(round(i[9],1))+"</td> \
-			<td>"+str(i[10])+"</td> \
-			<td>"+str(i[11])+"</td></tr>"
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[1])+" ("+str(i[1])+")</td>"
+		REPORT = REPORT+"<td>"+str(round(i[2],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[3],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[4],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[5],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[6],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[7],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[8],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[9],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(i[10])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[11])+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -435,7 +439,7 @@ def careOptimizerSearch():
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Org ID:</td><td># Users:</td><td># Pat:</td><td>Min mil:</td><td>Max mil:</td>"
+	REPORT = REPORT+"<tr><td>Organization:</td><td># Users:</td><td># Pat:</td><td>Min mil:</td><td>Max mil:</td>"
 	REPORT = REPORT+"<td>Av mil:</td>"
 	REPORT = REPORT+"<td>5% mil:</td><td>50% mil:</td><td>95% mil:</td>"
 	REPORT = REPORT+"<td>1st acc:</td><td>Lst acc:</td></tr>"
@@ -445,17 +449,21 @@ def careOptimizerSearch():
 		print i
 		FORMATEDTIME1 = DT.datetime.strptime(str(i[9])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		FORMATEDTIME2 = DT.datetime.strptime(str(i[10])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td> \
-			<td>"+str(i[1])+"</td> \
-			<td>"+str(i[2])+"</td> \
-			<td>"+str(i[3])+"</td> \
-			<td>"+str(i[4])+"</td> \
-			<td>"+str(round(i[5],1))+"</td> \
-			<td>"+str(round(i[6],1))+"</td> \
-			<td>"+str(round(i[7],1))+"</td> \
-			<td>"+str(round(i[8],1))+"</td> \
-			<td>"+FORMATEDTIME1+"</td> \
-			<td>"+FORMATEDTIME2+"</td></tr>"
+		if str(i[0]) in ORGMAP:
+			REPORT = REPORT + "<tr><td>"+ORGMAP[str(i[0])]+" ("+str(i[0])+")</td>"
+		else:
+			REPORT = REPORT + "<tr><td>"+str(i[0])+" ("+str(i[0])+")</td>"
+		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[3])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[4])+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[5],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[6],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[7],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(i[8],1))+"</td>"
+		REPORT = REPORT+"<td>"+FORMATEDTIME1+"</td>"
+		REPORT = REPORT+"<td>"+FORMATEDTIME2+"</td></tr>"
+			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -475,16 +483,26 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Org ID:</td><td>Org Name:</td></tr>"	
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Organization:</td></tr>"	
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		if str(i[1]) == "error":
-			REPORT = REPORT+"<tr><td width='50%' bgcolor='#FFFF00'>"+activity+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[0])+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[1])+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[2])+"</td><td width='20%' bgcolor='#FFFF00'>"+ORGMAP[str(i[2])]+"</td></tr>"
+			REPORT = REPORT+"<tr><td width='50%' bgcolor='#FFFF00'>"+activity+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[0])+"</td>"
+			REPORT = REPORT+"<td width='10%' bgcolor='#FFFF00'>"+str(i[1])+"</td>"
+			if str(i[2]) in ORGMAP:
+				REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+			else:
+				REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
 			COMPONENT_STATUS="FAILED"
 		else:
-			REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td><td width='10%'>"+str(i[1])+"</td><td width='10%'>"+str(i[2])+"</td><td width='20%'>"+ORGMAP[str(i[2])]+"</td></tr>"
+			REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td>"
+			REPORT = REPORT+"<td width='10%'>"+str(i[1])+"</td>"
+			if str(i[2]) in ORGMAP:
+				REPORT = REPORT+"<td width='20%'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+			else:
+				REPORT = REPORT+"<td width='20%'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
 
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
@@ -511,16 +529,26 @@ def jobSummary():
 		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Org ID:</td><td>Org Name:</td></tr>"		
+	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"		
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		if str(i[1]) == "error":
-			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+"</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
+			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
+			if str(i[3]) in ORGMAP: 
+				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
+			else:
+				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
 			COMPONENT_STATUS="FAILED"
 		else:
-			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+ORGMAP[str(i[3])]+"</td></tr>"			
+			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td>"
+			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+			if str(i[3]) in ORGMAP: 
+				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
+			else:
+				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"		
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
