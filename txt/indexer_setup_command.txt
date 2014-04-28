@@ -1,6 +1,8 @@
 https://reports.apixio.com/html/index.htm
 
 
+C:\Users\Igor\Documents\Apixio\HADOOP\INDEXER_SERVER_MACHINE\key\new_staging.ppk
+
 =================================================
 NEW DAILY PRODUCTION REPORT
 =================================================
