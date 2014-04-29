@@ -33,6 +33,7 @@ COMPONENT_STATUS="PASSED"
 REPORT = ""
 RETURNCODE = ""
 DOCUMENTCOUNTER = 0
+OPTION = ""
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -487,6 +488,7 @@ def runHiveQueries ():
 def clearAllBlockedIP():
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
+	print ("Clear All %s component - IP: %s\n") % (component, IP)
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
@@ -514,79 +516,39 @@ def unblockComponentIP(component):
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	time.sleep(2)
 	
+def listStatusComponentIP(component):
+	# -A (add), -D (remove), -F (remove all), -L (list or show all)
+	# show list
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	time.sleep(2)	
+	
+
+def mainMenu():
+	global ENVIRONMENT, OPTION
+	os.system('clear')
+	print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
+	print "===================================================================\n"
+	print "Environment: %s\n\n" % (ENVIRONMENT) 
+	print "1. Graphite (10.160.150.32) status: %s\n"
+	print "2. Fluent (10.222.103.158) status: %s\n"
+	print "3. S3 status: %s\n"
+	print "4. HDFS (10.196.84.183) status: %s\n"
+	print "5. API (10.198.43.98) status: %s\n"
+	print "6. Redis (10.222.103.158): status: %s\n"
+	print "7. Cassandra (10.222.101.109, 10.222.139.147, 10.174.77.69, 10.174.49.58) status: %s\n"
+	print "8. Key service (184.169.153.214) status: %s\n"
+	print "9. Doc-Receiver service status: started / stopped \n"
+	print "===================================================================\n"
+	print "Select component number to toggle between blocked and unblocked status\n"
+	print "Select Q to Quit\n"
+	
+	
 #============== Start of the main body =======================================================================================	
 
 checkEnvironment()
-writeReportHeader()
 
-#======= CASE #1 ===========================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 1
-EXPECTED_CODE = "200"
-TEST_DESCRIPTION = "Positive Test - Upload %s text documents and verify %s logs" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
+mainMenu()
 
-getUserData()
-storeToken()
-obtainStaticPatientInfo("Positive", "Test")
-#clearAllBlockedIP()
-#blockComponentIP("Hive")
-for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
-	createTxtDocument(i)
-	createCatalogFile()
-	uploadDocument()
-	storeUUID()
-closeBatch()
-#unblockComponentIP("Hive")
-if ENVIRONMENT == "Staging":
-	transmitManifest()
 
-writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-connectToHive()
-setHiveParameters()
-# wait for PAUSE_LIMIT seconds
-PAUSE_LIMIT=0
-print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
-time.sleep(PAUSE_LIMIT)
-runHiveQueries()
-closeHiveConnection()
-#======= CASE #2 ===========================================================================
+#=============================================================================================================================
 
-# while ips are in the list of ips
-for component in IPMAP.keys():
-
-	print (component)
-	#time.sleep(15)
-
-	NUMBER_OF_DOCS_TO_UPLOAD = 1
-	EXPECTED_CODE = "200"
-	TEST_DESCRIPTION = "Negative Test - Upload %s text documents and verify %s logs while blocking %s component" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE, component)
-
-	getUserData()
-	storeToken()
-	obtainStaticPatientInfo("Negative", "Test")
-	clearAllBlockedIP()
-	blockComponentIP(component)
-	for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
-		createTxtDocument(i)
-		createCatalogFile()
-		uploadDocument()
-		storeUUID()
-	closeBatch()
-	unblockComponentIP(component)
-	if ENVIRONMENT == "Staging":
-		transmitManifest()
-
-	writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-	connectToHive()
-	setHiveParameters()
-	# wait for PAUSE_LIMIT seconds
-	PAUSE_LIMIT=0
-	print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
-	time.sleep(PAUSE_LIMIT)
-	runHiveQueries()
-	closeHiveConnection()
-	# end for loop
-#==========================================================================================
-
-# test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
-writeReportFooter()
-emailReport()
