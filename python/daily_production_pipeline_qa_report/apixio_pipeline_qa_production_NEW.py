@@ -242,7 +242,8 @@ def setHiveParameters():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	cur.execute("""set mapred.job.queue.name=default""")
+	# cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Completed assigning Hive paramaters ...\n")
 
