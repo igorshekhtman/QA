@@ -33,7 +33,7 @@ COMPONENT_STATUS="PASSED"
 REPORT = ""
 RETURNCODE = ""
 DOCUMENTCOUNTER = 0
-OPTION = ""
+
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -97,7 +97,14 @@ IPMAP = { \
 	"Graphite":"10.160.150.32", \
 	"Mysql":"10.174.121.164", \
 	"Keyservice":"184.169.153.214", \
-	"API":"10.198.43.98" \
+	"API":"10.198.43.98", \
+	"HDFS":"10.196.84.183", \
+	"Cassandra0":"10.222.101.109", \
+	"Cassandra1":"10.222.139.147", \
+	"Cassandra2":"10.174.77.69", \
+	"Cassandra3":"10.174.49.58", \
+	"S3":"10.10.10.10", \
+	"Docreceiver":"10.199.16.28" \
 }
 #===========================================================================================================================================================
 
@@ -485,14 +492,65 @@ def runHiveQueries ():
 	#	REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
 
+class _Getch:
+# Gets a single character from standard input.  Does not echo to the screen.
+    def __init__(self):
+        try:
+            self.impl = _GetchWindows()
+        except ImportError:
+            self.impl = _GetchUnix()
+
+    def __call__(self): return self.impl()
+
+
+class _GetchUnix:
+    def __init__(self):
+        import tty, sys
+
+    def __call__(self):
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+
+class _GetchWindows:
+    def __init__(self):
+        import msvcrt
+
+    def __call__(self):
+        import msvcrt
+        return msvcrt.getch()
+
+
+getch = _Getch()
+	
+	
+	
 def clearAllBlockedIP():
+	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	print ("Clear All %s component - IP: %s\n") % (component, IP)
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	GRS = "UNBLOCKED"
+	FLS = "UNBLOCKED"
+	S3S = "UNBLOCKED"
+	HDS = "UNBLOCKED"
+	APS = "UNBLOCKED"
+	RES = "UNBLOCKED"
+	CAS = "UNBLOCKED"
+	KES = "UNBLOCKED"
+	MYS = "UNBLOCKED"
+	DRS = "UNBLOCKED"
+	# os.system('clear')
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
+	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	#time.sleep(2)
 
 def blockComponentIP(component):
 	IP = IPMAP[str(component)]
@@ -503,7 +561,7 @@ def blockComponentIP(component):
 	os.system(add_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)	
+	#time.sleep(2)	
 
 def unblockComponentIP(component):
 	IP = IPMAP[str(component)]
@@ -514,41 +572,93 @@ def unblockComponentIP(component):
 	os.system(remove_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
+	#time.sleep(2)
 	
 def listStatusComponentIP(component):
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)	
+	#time.sleep(2)	
 	
 
 def mainMenu():
-	global ENVIRONMENT, OPTION
+	global ENVIRONMENT
+	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	os.system('clear')
 	print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
-	print "===================================================================\n"
-	print "Environment: %s\n\n" % (ENVIRONMENT) 
-	print "1. Graphite (10.160.150.32) status: %s\n"
-	print "2. Fluent (10.222.103.158) status: %s\n"
-	print "3. S3 status: %s\n"
-	print "4. HDFS (10.196.84.183) status: %s\n"
-	print "5. API (10.198.43.98) status: %s\n"
-	print "6. Redis (10.222.103.158): status: %s\n"
-	print "7. Cassandra (10.222.101.109, 10.222.139.147, 10.174.77.69, 10.174.49.58) status: %s\n"
-	print "8. Key service (184.169.153.214) status: %s\n"
-	print "9. Doc-Receiver service status: started / stopped \n"
-	print "===================================================================\n"
-	print "Select component number to toggle between blocked and unblocked status\n"
-	print "Select Q to Quit\n"
+	print "==========================================================================================="
+	print "Environment: %s" % (ENVIRONMENT)
+	print "===========================================================================================\n"
+	print "0. Graphite (10.160.150.32) status: %s\n" % (GRS)
+	print "1. Fluent (10.222.103.158) status: %s\n" % (FLS)
+	print "2. S3 (10.10.10.10) status: %s\n" % (S3S)
+	print "3. HDFS (10.196.84.183) status: %s\n" % (HDS)
+	print "4. API (10.198.43.98) status: %s\n" % (APS)
+	print "5. Redis (10.222.103.158): status: %s\n" % (RES)
+	print "6. Cassandra (10.222.101.109, 10.222.139.147, 10.174.77.69, 10.174.49.58) status: %s\n"  % (CAS)
+	print "7. Key service (184.169.153.214) status: %s\n" % (KES)
+	print "8. MySql (10.174.121.164) status: %s\n" % (MYS)
+	print "9. Doc-Receiver (10.199.16.28) status: %s\n" % (DRS)
+	print "===========================================================================================\n"
+	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	print "===========================================================================================\n"
+
+def checkForStatus(component, component_status):
+	if component == "Cassandra":
+		if component_status == "UNBLOCKED":
+			for i in range(0, 4): 
+				blockComponentIP(component+str(i))
+			component_status = "BLOCKED"
+		else:
+			for i in range(0, 4):
+				unblockComponentIP(component+str(i))
+			component_status = "UNBLOCKED"
+	else:
+		if component_status == "UNBLOCKED":
+			blockComponentIP(component)
+			component_status = "BLOCKED"
+		else:
+			unblockComponentIP(component)
+			component_status = "UNBLOCKED"
+	return component_status
 	
 	
 #============== Start of the main body =======================================================================================	
 
 checkEnvironment()
-
-mainMenu()
-
+clearAllBlockedIP()
+while True:
+	mainMenu()
+	print("Select '0-9' component, 'C' to Clear-all or 'Q' to Quit: ")
+	n = getch()
+	if n.upper() == 'Q':
+		clearAllBlockedIP()
+		break
+	elif n.upper() == 'C':
+		clearAllBlockedIP()
+	elif n == '0':
+		GRS = checkForStatus("Graphite", GRS)
+	elif n == '1':
+		FLS = checkForStatus("Fluent", FLS)
+	elif n == '2':
+		S3S = checkForStatus("S3", S3S)
+	elif n == '3':
+		HDS = checkForStatus("HDFS", HDS)
+	elif n == '4':
+		APS = checkForStatus("API", APS)
+	elif n == '5':
+		RES = checkForStatus("Redis", RES)
+	elif n == '6':
+		CAS = checkForStatus("Cassandra", CAS)
+	elif n == '7':
+		KES = checkForStatus("Keyservice", KES)
+	elif n == '8':
+		MYS = checkForStatus("Mysql", MYS)
+	elif n == '9':
+		DRS = checkForStatus("Docreceiver", DRS)	
+	else:
+		mainMenu()
+	mainMenu()	
 
 #=============================================================================================================================
 
