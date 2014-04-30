@@ -629,32 +629,32 @@ checkEnvironment()
 clearAllBlockedIP()
 while True:
 	mainMenu()
-	print("Select '0-9' component, 'C' to Clear-all or 'Q' to Quit: ")
+	print("Select '0-9' component, 'C' to Clear-all, 'B' to Block-all or 'Q' to Quit: ")
 	n = getch()
 	if n.upper() == 'Q':
 		clearAllBlockedIP()
 		break
-	elif n.upper() == 'C':
+	if n.upper() == 'C':
 		clearAllBlockedIP()
-	elif n == '0':
+	if n == '0' or n.upper() == 'B':
 		GRS = checkForStatus("Graphite", GRS)
-	elif n == '1':
+	if n == '1' or n.upper() == 'B':
 		FLS = checkForStatus("Fluent", FLS)
-	elif n == '2':
+	if n == '2' or n.upper() == 'B':
 		S3S = checkForStatus("S3", S3S)
-	elif n == '3':
+	if n == '3' or n.upper() == 'B':
 		HDS = checkForStatus("HDFS", HDS)
-	elif n == '4':
+	if n == '4' or n.upper() == 'B':
 		APS = checkForStatus("API", APS)
-	elif n == '5':
+	if n == '5' or n.upper() == 'B':
 		RES = checkForStatus("Redis", RES)
-	elif n == '6':
+	if n == '6' or n.upper() == 'B':
 		CAS = checkForStatus("Cassandra", CAS)
-	elif n == '7':
+	if n == '7' or n.upper() == 'B':
 		KES = checkForStatus("Keyservice", KES)
-	elif n == '8':
+	if n == '8' or n.upper() == 'B':
 		MYS = checkForStatus("Mysql", MYS)
-	elif n == '9':
+	if n == '9' or n.upper() == 'B':
 		DRS = checkForStatus("Docreceiver", DRS)	
 	else:
 		mainMenu()
