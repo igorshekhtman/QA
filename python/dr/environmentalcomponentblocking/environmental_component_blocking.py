@@ -589,16 +589,16 @@ def mainMenu():
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
-	print "0. Graphite (10.160.150.32) status: %s\n" % (GRS)
-	print "1. Fluent (10.222.103.158) status: %s\n" % (FLS)
-	print "2. S3 (10.10.10.10) status: %s\n" % (S3S)
-	print "3. HDFS (10.196.84.183) status: %s\n" % (HDS)
-	print "4. API (10.198.43.98) status: %s\n" % (APS)
-	print "5. Redis (10.222.103.158): status: %s\n" % (RES)
-	print "6. Cassandra (10.222.101.109, 10.222.139.147, 10.174.77.69, 10.174.49.58) status: %s\n"  % (CAS)
-	print "7. Key service (184.169.153.214) status: %s\n" % (KES)
-	print "8. MySql (10.174.121.164) status: %s\n" % (MYS)
-	print "9. Doc-Receiver (10.199.16.28) status: %s\n" % (DRS)
+	print "0. Graphite (%s) status: %s\n" % (IPMAP["Graphite"], GRS)
+	print "1. Fluent (%s) status: %s\n" % (IPMAP["Fluent"], FLS)
+	print "2. S3 (%s) status: %s\n" % (IPMAP["S3"], S3S)
+	print "3. HDFS (%s) status: %s\n" % (IPMAP["HDFS"], HDS)
+	print "4. API (%s) status: %s\n" % (IPMAP["API"], APS)
+	print "5. Redis (%s): status: %s\n" % (IPMAP["Redis"], RES)
+	print "6. Cassandra (%s, %s, %s, %s) status: %s\n"  % (IPMAP["Cassandra0"], IPMAP["Cassandra1"], IPMAP["Cassandra2"], IPMAP["Cassandra3"], CAS)
+	print "7. Key service (%s) status: %s\n" % (IPMAP["Keyservice"], KES)
+	print "8. MySql (%s) status: %s\n" % (IPMAP["Mysql"], MYS)
+	print "9. Doc-Receiver (%s) status: %s\n" % (IPMAP["Docreceiver"], DRS)
 	print "===========================================================================================\n"
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	print "===========================================================================================\n"
