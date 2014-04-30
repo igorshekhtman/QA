@@ -94,7 +94,7 @@ coalesce(get_json_object(line, '$.archive.afs.batchid'),get_json_object(line, '$
 coalesce(cast(get_json_object(line, '$.archive.afs.bytes') as int),cast(get_json_object(line, '$.archive.aps.bytes') as int)) as file_size,
 coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) as status,
 coalesce(cast(get_json_object(line, '$.archive.afs.millis') as int),cast(get_json_object(line, '$.archive.aps.millis') as int)) as archive_time,
-if( get_json_object(line, '$.archive.afs.status') != "success", get_json_object(line, '$.message'), null) as error_message,
+if( coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) != "success", get_json_object(line, '$.message'), null) as error_message,
 month,
 day,
 coalesce(get_json_object(line, '$.archive.afs.orgid'),get_json_object(line, '$.archive.aps.orgid')) as org_id
