@@ -532,7 +532,7 @@ getch = _Getch()
 	
 	
 	
-def clearAllBlockedIP():
+def unblockAllBlockedIP():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
@@ -626,16 +626,16 @@ def checkForStatus(component, component_status):
 #============== Start of the main body =======================================================================================	
 
 checkEnvironment()
-clearAllBlockedIP()
+unblockAllBlockedIP()
 while True:
 	mainMenu()
-	print("Select '0-9' component, 'C' to Clear-all, 'B' to Block-all or 'Q' to Quit: ")
+	print("Select '0-9' component, 'U' to Unblock-all, 'B' to Block-all or 'Q' to Quit: ")
 	n = getch()
 	if n.upper() == 'Q':
 		clearAllBlockedIP()
 		break
-	if n.upper() == 'C':
-		clearAllBlockedIP()
+	if n.upper() == 'U':
+		unblockAllBlockedIP()
 	if n == '0' or n.upper() == 'B':
 		GRS = checkForStatus("Graphite", GRS)
 	if n == '1' or n.upper() == 'B':
