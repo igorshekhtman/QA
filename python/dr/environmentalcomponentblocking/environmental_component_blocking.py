@@ -530,7 +530,44 @@ class _GetchWindows:
 
 getch = _Getch()
 	
-	
+def blockAllIPs():
+	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
+	# -A (add), -D (remove), -F (remove all), -L (list or show all)
+	# remove all from list
+	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	if GRS == "UNBLOCKED":
+		blockComponentIP("Graphite")
+		GRS = "BLOCKED"
+	if FLS == "UNBLOCKED":
+		blockComponentIP("Fluent")
+		FLS = "BLOCKED"
+	if S3S == "UNBLOCKED":
+		blockComponentIP("S3")
+		S3S = "BLOCKED"
+	if HDS == "UNBLOCKED":
+		blockComponentIP("HDFS")
+		HDS = "BLOCKED"
+	if APS == "UNBLOCKED":
+		blockComponentIP("API")
+		APS = "BLOCKED"
+	if RES == "UNBLOCKED":	
+		blockComponentIP("Redis")
+		RES = "BLOCKED"
+	if CAS == "UNBLOCKED":
+		blockComponentIP("Cassandra0")
+		blockComponentIP("Cassandra1")
+		blockComponentIP("Cassandra2")
+		blockComponentIP("Cassandra3")
+		CAS = "BLOCKED"
+	if KES == "UNBLOCKED":	
+		blockComponentIP("Keyservice")
+		KES = "BLOCKED"
+	if MYS == "UNBLOCKED":	
+		blockComponentIP("Mysql")
+		MYS = "BLOCKED"
+	if DRS == "UNBLOCKED":		
+		blockComponentIP("Docreceiver")
+		DRS = "BLOCKED"	
 	
 def unblockAllBlockedIP():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
@@ -632,29 +669,31 @@ while True:
 	print("Select '0-9' component, 'U' to Unblock-all, 'B' to Block-all or 'Q' to Quit: ")
 	n = getch()
 	if n.upper() == 'Q':
-		clearAllBlockedIP()
+		unblockAllBlockedIP()
 		break
 	if n.upper() == 'U':
 		unblockAllBlockedIP()
-	if n == '0' or n.upper() == 'B':
+	if n.upper() == 'B':
+		blockAllIPs()
+	if n == '0':
 		GRS = checkForStatus("Graphite", GRS)
-	if n == '1' or n.upper() == 'B':
+	if n == '1':
 		FLS = checkForStatus("Fluent", FLS)
-	if n == '2' or n.upper() == 'B':
+	if n == '2':
 		S3S = checkForStatus("S3", S3S)
-	if n == '3' or n.upper() == 'B':
+	if n == '3':
 		HDS = checkForStatus("HDFS", HDS)
-	if n == '4' or n.upper() == 'B':
+	if n == '4':
 		APS = checkForStatus("API", APS)
-	if n == '5' or n.upper() == 'B':
+	if n == '5':
 		RES = checkForStatus("Redis", RES)
-	if n == '6' or n.upper() == 'B':
+	if n == '6':
 		CAS = checkForStatus("Cassandra", CAS)
-	if n == '7' or n.upper() == 'B':
+	if n == '7':
 		KES = checkForStatus("Keyservice", KES)
-	if n == '8' or n.upper() == 'B':
+	if n == '8':
 		MYS = checkForStatus("Mysql", MYS)
-	if n == '9' or n.upper() == 'B':
+	if n == '9':
 		DRS = checkForStatus("Docreceiver", DRS)	
 	else:
 		mainMenu()
