@@ -1,3 +1,8 @@
+ps -ef | grep tomcat
+kill -9 `pid`
+service tomcat start
+
+
 https://reports.apixio.com/html/index.htm
 
 
