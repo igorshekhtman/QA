@@ -9,6 +9,11 @@
 #   org <orgId>
 #   all
 #
+#   ignore job <jobId>
+#   ignore activity <activity>
+#   ignore type <type>
+#   ignore org <orgId>
+#
 #   list (default)
 #
 #  Note:
@@ -24,6 +29,11 @@ then
     type <type>
     org <orgId>
     all
+
+    ignore job <jobId>
+    ignore activity <activity>
+    ignore type <type>
+    ignore org <orgId>
 
     list (default)
     "
