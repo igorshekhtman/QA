@@ -2,6 +2,7 @@ import pyhs2
 import os
 import time
 import datetime
+import calendar
 import sys
 import subprocess
 from time import gmtime, strftime, localtime
@@ -198,9 +199,10 @@ def identifyReportDayandMonth():
 
 	DAY = CURDAY
 	MONTH = CURMONTH
+	MONTH_FMN=calendar.month_name[MONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
-	print ("DAY: %s, MONTH: %s, YEAR: %s\n") % (DAY, MONTH, YEAR)
-	#time.sleep(15)
+	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
+	time.sleep(45)
 	
 
 def test(debug_type, debug_msg):
