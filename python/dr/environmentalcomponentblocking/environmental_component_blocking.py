@@ -17,6 +17,7 @@ import smtplib
 import string
 import uuid
 import cStringIO
+import socket
 os.system('clear')
 
 #
@@ -89,6 +90,13 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #	"Cassandra3":"10.174.77.69", \ - critical component DR fails if not available
 #	"Cassandra4":"10.174.49.58", \ - critical component DR fails if not available
 
+def obtainIP(domain):
+	ip_list = []
+	ais = socket.getaddrinfo(domain,0,0,0,0)
+	for result in ais:
+		ip_list.append(result[-1][0])
+	ip_list = list(set(ip_list))
+	return (ip_list)
 
 IPMAP = { \
 	"Hive":"10.196.47.205", \
@@ -103,7 +111,7 @@ IPMAP = { \
 	"Cassandra1":"10.222.139.147", \
 	"Cassandra2":"10.174.77.69", \
 	"Cassandra3":"10.174.49.58", \
-	"S3":"10.10.10.10", \
+	"S3":str(obtainIP("s3.amazon.com"))[2:-2], \
 	"Docreceiver":"10.199.16.28" \
 }
 #===========================================================================================================================================================
@@ -616,7 +624,7 @@ def listStatusComponentIP(component):
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
-	
+
 
 def mainMenu():
 	global ENVIRONMENT
@@ -629,6 +637,7 @@ def mainMenu():
 	print "0. Graphite (%s) status: %s\n" % (IPMAP["Graphite"], GRS)
 	print "1. Fluent (%s) status: %s\n" % (IPMAP["Fluent"], FLS)
 	print "2. S3 (%s) status: %s\n" % (IPMAP["S3"], S3S)
+	#print "2. S3 (%s) status: %s\n" % (obtainIP("s3.amazon.com"), S3S)
 	print "3. HDFS (%s) status: %s\n" % (IPMAP["HDFS"], HDS)
 	print "4. API (%s) status: %s\n" % (IPMAP["API"], APS)
 	print "5. Redis (%s): status: %s\n" % (IPMAP["Redis"], RES)
@@ -639,6 +648,7 @@ def mainMenu():
 	print "===========================================================================================\n"
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	print "===========================================================================================\n"
+	
 
 def checkForStatus(component, component_status):
 	if component == "Cassandra":
