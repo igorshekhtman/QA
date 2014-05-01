@@ -47,6 +47,21 @@ then
 elif [ "$1" = "all" ]
 then
     java com.apixio.coordinator.cmdline.ResubmitJob --submit --all
+elif [ "$1" = "ignore" ]
+then
+    if [ "$2" = "job" ]
+    then
+        java com.apixio.coordinator.cmdline.ResubmitJob --ignore --job "$3"
+    elif [ "$2" = "activity" ]
+    then
+        java com.apixio.coordinator.cmdline.ResubmitJob --ignore --activity $3
+    elif [ "$2" = "type" ]
+    then
+        java com.apixio.coordinator.cmdline.ResubmitJob --ignore --type $3
+    elif [ "$2" = "org" ]
+    then
+        java com.apixio.coordinator.cmdline.ResubmitJob --ignore --org "$3"
+    fi
 fi
 
 java com.apixio.coordinator.cmdline.ResubmitJob --list
