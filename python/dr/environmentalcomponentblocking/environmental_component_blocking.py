@@ -630,7 +630,7 @@ def mainMenu():
 	global ENVIRONMENT
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	os.system('clear')
-	print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
+	#print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
@@ -645,9 +645,9 @@ def mainMenu():
 	print "7. Key service (%s) status: %s\n" % (IPMAP["Keyservice"], KES)
 	print "8. MySql (%s) status: %s\n" % (IPMAP["Mysql"], MYS)
 	print "9. Doc-Receiver (%s) status: %s\n" % (IPMAP["Docreceiver"], DRS)
-	print "===========================================================================================\n"
+	print "==========================================================================================="
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	print "===========================================================================================\n"
+	print "==========================================================================================="
 	
 
 def checkForStatus(component, component_status):
