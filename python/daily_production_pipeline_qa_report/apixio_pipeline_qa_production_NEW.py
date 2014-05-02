@@ -202,7 +202,7 @@ def identifyReportDayandMonth():
 	MONTH_FMN=calendar.month_name[MONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
-	time.sleep(45)
+	#time.sleep(45)
 	
 
 def test(debug_type, debug_msg):
@@ -244,8 +244,8 @@ def setHiveParameters():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	# cur.execute("""set mapred.job.queue.name=default""")
-	cur.execute("""set mapred.job.queue.name=hive""")
+	cur.execute("""set mapred.job.queue.name=default""")
+	# cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Completed assigning Hive paramaters ...\n")
 
@@ -515,6 +515,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 def jobSummary():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
+	totalnumberofjobs = 0
 	print ("Jobs summary query ...\n")
 	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(job_id) as total, \
@@ -537,6 +538,7 @@ def jobSummary():
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
+		totalnumberofjobs = totalnumberofjobs + i[0]
 		if str(i[1]) == "error":
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
@@ -551,9 +553,10 @@ def jobSummary():
 			if str(i[3]) in ORGMAP: 
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
-				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"		
+				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+	REPORT = REPORT+"<tr><td><b>"+str(totalnumberofjobs)+"</b></td><td colspan='3'>Total number of Jobs procesed</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='5'><i>There were no Jobs</i></td></tr>"
+		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
 	
 
