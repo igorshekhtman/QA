@@ -554,7 +554,7 @@ def jobSummary():
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
-	REPORT = REPORT+"<tr><td><b>"+str(totalnumberofjobs)+"</b></td><td colspan='3'>Total number of Jobs procesed</td></tr>"
+	REPORT = REPORT+"<tr><td><b>"+str(totalnumberofjobs)+"</b></td><td colspan='3'>Total number of Jobs processed</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
