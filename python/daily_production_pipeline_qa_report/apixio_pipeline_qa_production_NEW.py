@@ -515,7 +515,9 @@ def uploadSummary(activity, summary_table_name, unique_id):
 def jobSummary():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
-	totalnumberofjobs = 0
+	jobs = 0
+	failedjobs = 0
+	succeededjobs = 0
 	print ("Jobs summary query ...\n")
 	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(job_id) as total, \
@@ -538,8 +540,9 @@ def jobSummary():
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		totalnumberofjobs = totalnumberofjobs + i[0]
+		jobs = jobs + i[0]
 		if str(i[1]) == "error":
+			failedjobs = failedjobs + 1
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
 			if str(i[3]) in ORGMAP: 
@@ -554,7 +557,9 @@ def jobSummary():
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
-	REPORT = REPORT+"<tr><td><b>"+str(totalnumberofjobs)+"</b></td><td colspan='3'>Total number of Jobs processed</td></tr>"
+	REPORT = REPORT+"<tr><td colspan='4' bgcolor='#4E4E4E' align='left'><font size='3' color='white'> \
+		"+str(jobs)+" - Total number of Jobs processed, out of which "+str(failedjobs)+" Failed and "+str(jobs-failedjobs)+" Succeeded \
+		</font></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
