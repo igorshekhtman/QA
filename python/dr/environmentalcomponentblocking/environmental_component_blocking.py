@@ -1,4 +1,4 @@
-import pyhs2
+#import pyhs2
 import os
 import subprocess
 import time
@@ -6,7 +6,7 @@ import datetime
 import sys
 import subprocess
 from time import gmtime, strftime
-import pycurl
+#import pycurl
 import io
 import urllib
 import urllib2

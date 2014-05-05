@@ -1,4 +1,4 @@
-import pyhs2
+#import pyhs2
 import os
 import subprocess
 import time
@@ -6,7 +6,7 @@ import datetime
 import sys
 import subprocess
 from time import gmtime, strftime
-import pycurl
+#import pycurl
 import io
 import urllib
 import urllib2
@@ -624,21 +624,52 @@ def listStatusComponentIP(component):
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
+	
+def obtainNumberOfFiles(path):
+	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
+	#this prints them all then counts the number of lines
+	#'wc' program does counting
+	#number = 0
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = subprocess("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l")
+	#subprocess.check_output = check_output
+	#number = subprocess.check_output('ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l')
+	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
+	#command ('14549', the wc -l output
+	#path, dirs, files = os.walk(path).next()
+	#number = len(files)
+	#os.system("exit")
+	return (number)
 
 
 def mainMenu():
+	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
+	#this prints them all then counts the number of lines
+	#'wc' program does counting
 	global ENVIRONMENT
 	os.system('clear')
-	#print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
+	# os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28")
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
 	print "Doc-Receiver Work Folder List\n"
-	print "0. /mnt/logs/apx-receiver/ folder count: \n"
-	print "1. /var/run/apx-receiver.pid/ folder count: \n"
-	print "2. /tmp/apxqueue/buffer/ folder count: \n"
-	print "3. /user/apxqueue/receiver/batchname/ folder count: \n"
-	print "4. stag2-coordinator.highpriority/ folder count: \n"
+	#print "0. \n"
+	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#print "1. \n"
+	#print "2. \n"
+	#print "3. \n"
+	#print "4. \n"
+	
+	
+	# path, dirs, files = os.walk("/mnt/logs/apx-receiver").next()
+	# path, dirs, files = os.walk("/mnt/automation/dr/environmentalcomponentblocking").next()
+	print "1. /mnt/log/apx-receiver number of files: %s\n" % obtainNumberOfFiles("/mnt/log/apx-receiver")
+	#print "2. /var/run/apx-receiver.pid folder count: %s\n" % obtainNumberOfFiles("/var/run/apx-receiver.pid")
+	print "2. /tmp/apxqueue/buffer number of files: %s\n" % obtainNumberOfFiles("/tmp/apxqueue/buffer")
+	print "3. /user/apxqueue/receiver/batchname folder count: %s\n" % obtainNumberOfFiles("/user/apxqueue/receiver/batchname")
+	print "4. /stag2-coordinator.highpriority folder count: %s\n" % obtainNumberOfFiles("/stag2-coordinator.highpriority")
 	print "==========================================================================================="
 
 	
