@@ -31,8 +31,8 @@ if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	HOST="https://dr.apixio.com:8443"
 	ENVIRONMENT="Production"
 else:
-	USERNAME="apxdemot0182"
-	ORGID="190"
+	USERNAME="apxdemot0245"
+	ORGID="261"
 	PASSWORD="Hadoop.4522"
 	HOST="https://supload.apixio.com:8443"
 	ENVIRONMENT="Staging"
@@ -297,23 +297,24 @@ REPORT = REPORT+SUBHDR % "QA from Sequence File"
 
 if QUICK_QA:
     QUERY_DESC=""
-    print ("Running QA query #16 - retrieve %s ...") % (QUERY_DESC)
-    cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as docUUID_count, \
-		get_json_object(line, '$.output.uploadedToS3') as saved_to_s3, \
-        get_json_object(line, '$.output.documentEntry.orgId') as confirm_docentry, \
-        get_json_object(line, '$.output.trace.parserJob') as parser_trace, \
-        get_json_object(line, '$.output.trace.ocrJob') as ocr_trace, \
-        get_json_object(line, '$.output.trace.persistJob') as persist_trace, \
-        get_json_object(line, '$.output.trace.appendToSequenceFile') as seqfile_trace, \
-        get_json_object(line, '$.output.trace.submitToCoordinator') as sent_to_coordinator_trace, \
-        get_json_object(line, '$.output.link.orgIdByDocUUID') as doc_link, \
-        get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link, \
-        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none') as apo_status \
-        FROM %s \                
-        WHERE get_json_object(line, '$.jobname') like "%s%%" \
-        and get_json_object(line, '$.output') is not null \
-        and day=%s and month=%s \
-        GROUP BY get_json_object(line, '$.output.uploadedToS3'), \
+    print ("Running QA query - retrieve %s ...") % (QUERY_DESC)
+    cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as col_0, \
+		get_json_object(line, '$.output.uploadedToS3') as col_1, \
+        get_json_object(line, '$.output.documentEntry.orgId') as col_2, \
+        get_json_object(line, '$.output.trace.parserJob') as col_3, \
+        get_json_object(line, '$.output.trace.ocrJob') as col_4, \
+        get_json_object(line, '$.output.trace.persistJob') as col_5, \
+        get_json_object(line, '$.output.trace.appendToSequenceFile') as col_6, \
+        get_json_object(line, '$.output.trace.submitToCoordinator') as col_7, \
+        get_json_object(line, '$.output.link.orgIdByDocUUID') as col_8, \
+        get_json_object(line, '$.output.link.orgIdByPatientUUID') as col_9, \
+        if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none') as col_10, \
+        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none') as col_11 \
+		FROM %s \
+		WHERE get_json_object(line, '$.jobname') like "%s%%" \
+		and get_json_object(line, '$.output') is not null \
+		and day=%s and month=%s \
+		GROUP BY get_json_object(line, '$.output.uploadedToS3'), \
         get_json_object(line, '$.output.documentEntry.orgId'), \
         get_json_object(line, '$.output.trace.parserJob'), \
         get_json_object(line, '$.output.trace.ocrJob'), \
@@ -322,6 +323,7 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.submitToCoordinator'), \
         get_json_object(line, '$.output.link.orgIdByDocUUID'), \
         get_json_object(line, '$.output.link.orgIdByPatientUUID'), \
+        if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none'), \
         if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none')""" %(QAFROMSEQFILELOGFILE, BATCH, DAY, MONTH))
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
@@ -329,9 +331,11 @@ if QUICK_QA:
     REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apoUUID</th></tr>"
     ROW = 0
     sum = 0
+    result = []
     for resultRow in cur.fetch():
         ROW = ROW + 1
         print resultRow
+        result.append(resultRow)
         if (ROW <= 2):
             sum += int(resultRow[0])
         REPORT = REPORT + "<tr>"
@@ -347,12 +351,118 @@ if QUICK_QA:
         COMPONENT_STATUS="FAILED"
     REPORT = REPORT+"</table><br>"
 
+    reportResults = {"Total Documents":0,
+        "Verified Documents":0,
+        "Failed Archive":0,
+        "No Parser Trace":0,
+        "No OCR Trace":0,
+        "No Persist Trace":0,
+        "No Document Entry":0,
+        "No Sequence File Trace":0,
+        "No Sent to Coordinator Trace":0,
+        "No Document UUID Link":0,
+        "No Patient UUID Link":0,
+        "Failed Persist Reducer":0}
 
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
+    for line in result:
+        count = line[0]
+        reportResults["Total Documents"] += count
+        if line[1] != "true":
+            reportResults["Failed Archive"] += count
+        if line[2] != ORGID:
+            reportResults["No Document Entry"] += count
+        if line[3] != "sentToOCR" and line[3] != "sentToPersist":
+            reportResults["No Parser Trace"] += count
+        if line[3] == "sentToOCR" and line[4] != "sentToPersist":
+            reportResults["No OCR Trace"] += count
+        if line[5] != "persisted":
+            reportResults["No Persist Trace"] += count
+        if line[6] != "success":
+            reportResults["No Sequence File Trace"] += count
+        if line[7] != "success":
+            reportResults["No Sent to Coordinator Trace"] += count
+        if line[8] != ORGID:
+            reportResults["No Document UUID Link"] += count
+        if line[9] != ORGID:
+            reportResults["No Patient UUID Link"] += count
+        if line[10] == "found":
+            reportResults["Verified Documents"] += count
+        if line[11] != "found":
+            reportResults["Failed Persist Reducer"] += count
+
+    startCountTable = "<table border='0' cellpadding='1' cellspacing='0'>"
+    startCountTable = startCountTable + "<tr><th>  </th><th>Count</th></tr>"
+    endCountTable = "</table>"
+    countTableRow = "<tr><td align='right'>%s: </td><td align='center'>%s</td></tr>"
+    for key,count in reportResults.items():
+        print key + ": " + str(count)
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Data Verification"
+    REPORT = REPORT+startCountTable
+    mapperVerifiedCount = reportResults["Verified Documents"]
+    reducerFailedCount = reportResults["Failed Persist Reducer"]
+    REPORT = REPORT+countTableRow % ("Verified APOs Persisted", str(mapperVerifiedCount))
+    REPORT = REPORT+countTableRow % ("Failed Persist Reducer", str(reducerFailedCount))
+    REPORT = REPORT+countTableRow % ("Total Documents", str(reportResults["Total Documents"]))
+    REPORT = REPORT+endCountTable
+    if (mapperVerifiedCount == DOCUMENTS_TRANSMITTED and reducerFailedCount == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Link Table Verification"
+    REPORT = REPORT+startCountTable
+    failedDocLinkCount = reportResults["No Document UUID Link"]
+    failedPatLinkCount = reportResults["No Patient UUID Link"]
+    REPORT = REPORT+countTableRow % ("No Document UUID Link", str(failedDocLinkCount))
+    REPORT = REPORT+countTableRow % ("No Patient UUID Link", str(failedPatLinkCount))
+    REPORT = REPORT+endCountTable
+    if (failedDocLinkCount == 0 and failedPatLinkCount == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Trace Verification"
+    REPORT = REPORT+startCountTable
+    failedDocEntry = reportResults["No Document Entry"]
+    failedTrace = 0
+    REPORT = REPORT+countTableRow % ("No Document Entry", str(failedDocEntry))
+
+    temp = reportResults["No Sequence File Trace"]
+    REPORT = REPORT+countTableRow % ("No Sequence File Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["No Sent to Coordinator Trace"]
+    REPORT = REPORT+countTableRow % ("No Sent to Coordinator Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["No Parser Trace"]
+    REPORT = REPORT+countTableRow % ("No Parser Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["No OCR Trace"]
+    REPORT = REPORT+countTableRow % ("No OCR Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["No Persist Trace"]
+    REPORT = REPORT+countTableRow % ("No Persist Trace", str(temp))
+    failedTrace += temp
+
+    REPORT = REPORT+endCountTable
+    if (failedDocEntry == 0 and failedTrace == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
 REPORT = REPORT+"<br><br>"
 
 
