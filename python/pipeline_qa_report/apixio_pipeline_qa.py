@@ -24,6 +24,7 @@ print ("Version 1.1.0")
 #=== ORGID - ORGNAME MAP ========================================================================
 #================================================================================================
 ORGMAP = { \
+	"190":"Test Org", \
 	"10000230":"Sutter Health", \
 	"10000232":"MMG", \
 	"10000235":"GWU", \
@@ -126,8 +127,8 @@ USERNAME="N/A"
 UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+PASSED="<table align='left' width='800' cellspacing='0' cellpadding='2'><tr><td bgcolor='#00A303' align='center' ><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED="<table align='left' width='800' cellspacing='0' cellpadding='2'><tr><td bgcolor='#DF1000' align='center' ><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SENDER="donotreply@apixio.com"
 TEST_TYPE="N/A"
 REPORT_TYPE="Engineering QA"
@@ -235,8 +236,11 @@ def prntVarValues():
 
 	
 def constructLogFileName(component):
-	logfilename = ""
-	logfilename=ENVIRONMENT.lower()+"_logs_"+component+"_"+LOGTYPE
+	global ENVIRONMENT, LOGTYPE
+	if component == "indexer":
+		logfilename="indexer_manifest_epoch"
+	else:
+		logfilename=ENVIRONMENT.lower()+"_logs_"+component+"_"+LOGTYPE
 	return(logfilename)
 	
 		
@@ -314,70 +318,111 @@ def wrtRepHdr():
 
 	REPORT = REPORT + """<h1>Apixio %s Pipeline QA Report</h1>\n""" % (ENVIRONMENT)
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
-	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+	REPORT = REPORT + """Report date-range: <b>from %s/%s/%s to %s/%s/%s</b><br>\n""" % (STMON, STDAY, YEAR, ENMON, ENDAY, YEAR)
+	if str(ORGID) in ORGMAP:
+		REPORT = REPORT + """Organization: <b>%s (%s)</b><br>\n""" % (ORGMAP[str(ORGID)], ORGID)
+	else:
+		REPORT = REPORT + """Organization: <b>%s (%s)</b><br>\n""" % (ORGID, ORGID)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
 	print ("End writing report header ...\n")	
 
+def buildQuery(component, subcomp):
+	global ORGID, STMON, STDAY, ENMON, ENDAY
+	
+# if(error_message like '/mnt%%','No space left on device', error_message) as message \	
 
-def runQueries(component, logfile):
+	query="""SELECT """
+	if component == "indexer":
+		query=query+"""count(filetype), """
+		query=query+"""filetype, """
+		query=query+"""batchid """
+	elif component == "docreceiver":
+		query=query+"""count(DISTINCT get_json_object(line, '$."""+subcomp+""".docid')) as doc_count, """
+		query=query+"""get_json_object(line, '$."""+subcomp+""".status') as status, """
+		query=query+"""get_json_object(line, '$.message') as error_message """
+	
+	query=query+"""FROM """+constructLogFileName(component)+""" """
+	
+	query=query+"""WHERE """
+	if component == "indexer":
+		query=query+"""orgid="""+ORGID+""" and """
+		query=query+"""((substr(datestamp,0,2)>="""+STMON+""" and substr(datestamp,4,2)>="""+STDAY+""") and """
+		query=query+"""(substr(datestamp,0,2)<="""+ENMON+""" and substr(datestamp,4,2)<="""+ENDAY+""")) """
+		
+		
+	elif component == "docreceiver":
+		query=query+"""get_json_object(line, '$.level') = 'EVENT' and """
+		query=query+"""get_json_object(line, '$."""+subcomp+""".docid') is not null and """
+		query=query+"""get_json_object(line, '$."""+subcomp+""".orgid')="""+ORGID+""" and """
+		query=query+"""((month>="""+STMON+""" and day>="""+STDAY+""") and """
+		query=query+"""(month<="""+ENMON+""" and day<="""+ENDAY+""")) """
+	
+	query=query+"""GROUP BY """
+	
+	if component == "indexer":
+		query=query+"""filetype, """
+		query=query+"""batchid """
+	elif component == "docreceiver":
+		query=query+"""get_json_object(line, '$."""+subcomp+""".status'), """
+		query=query+"""get_json_object(line, '$."""+subcomp+""".orgid'), """
+		query=query+"""get_json_object(line, '$.message') """
+	
+	query=query+"""ORDER BY """
+	if component == "indexer":
+		query=query+"""filetype """
+	elif component == "docreceiver":
+		query=query+"""error_message """
+		
+	query=query+"""ASC """	
+	return(query)
+	
+
+def runQueries(component, subcomp):
 	global REPORT, SUBHDR
-	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;"+component.upper()+"</b></font></td></tr></table>"
+	if str(ORGID) in ORGMAP:
+		SUBHDR="<table align='left' width='800' cellpadding='2'><tr><td bgcolor='#4E4E4E'><font size='3' color='white'>\
+			<b>&nbsp;&nbsp;"+component.upper()+"  "+ORGMAP[str(ORGID)]+" ("+ORGID+")</b></font></td></tr></table>"
+	else:
+		SUBHDR="<table align='left' width='800' cellpadding='2'><tr><td bgcolor='#4E4E4E'><font size='3' color='white'>\
+			<b>&nbsp;&nbsp;"+component.upper()+"  "+ORGID+" ("+ORGID+")</b></font></td></tr></table>"
+	
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
 	
 	REPORT = REPORT + SUBHDR
 	COMPONENT_STATUS="PASSED"
-	QUERY_DESC="Number of documents uploaded"
+	QUERY_DESC="Number of documents - %s" % (subcomp)
 	
-	
-	print ("LOGFILE: %s") % logfile
-	print ("ORGID: %s") % ORGID
-	print ("STMON: %s") % STMON
-	print ("STDAY: %s") % STDAY
-	print ("ENMON: %s") % ENMON
-	print ("ENDAY: %s") % ENDAY
+	#print ("ORGID: %s") % ORGID
+	#print ("STMON: %s") % STMON
+	#print ("STDAY: %s") % STDAY
+	#print ("ENMON: %s") % ENMON
+	#print ("ENDAY: %s") % ENDAY
 	#time.sleep(15)
 	
 	print ("Running %s - retrieve %s ...") % (component, QUERY_DESC)
 	
+	print (buildQuery(component, subcomp))
 	
-	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
-		get_json_object(line, '$.upload.document.status') as status, \
-		get_json_object(line, '$.upload.document.orgid') as orgid, \
-		get_json_object(line, '$.message') as message \
-		FROM %s \
-		WHERE \
-		get_json_object(line, '$.level') = 'EVENT' and \
-		get_json_object(line, '$.upload.document.docid') is not null and \
-		get_json_object(line, '$.upload.document.orgid')='%s' and \
-		((month>=%s and day>=%s) and \
-		(month<=%s and day<=%s)) \
-		GROUP BY \
-		get_json_object(line, '$.upload.document.status'), \
-		get_json_object(line, '$.upload.document.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(logfile, ORGID, STMON, STDAY, ENMON, ENDAY))
+	cur.execute(buildQuery(component, subcomp))
+	
 	
 
-	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Doc Count:</td><td>Status:</td><td>Organization:</td><td>Message:</td></tr>"	
+	REPORT = REPORT+"<table border='1' width='800' cellspacing='0' cellpadding='2'>"
+	REPORT = REPORT+"<tr><td width='10%'>Doc Count:</td><td width='10%'>Status:</td><td width='80%'>Error Message:</td></tr>"	
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		#REPORT = REPORT+"<tr><td>"+activity+" "+summary_table_name+"</td>"
-		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td>"
-		REPORT = REPORT+"<tr><td>"+str(i[1])+"</td>"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[2])+" ("+str(i[2])+")</td>"
-		REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"	
+		REPORT = REPORT+"<tr>"
+		REPORT = REPORT+"<td>"+str(i[0])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		REPORT = REPORT+"</tr>"	
 	
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='4'>There were no logs</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='3'><i>There were no "+component+" logs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
-		
-		
 		
 	
 
@@ -391,11 +436,14 @@ def runQueries(component, logfile):
 def wrtRepDtls():
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
 	#runQueries("indexer")
-	runQueries("doc-receiver", constructLogFileName("docreceiver"))
-	#runQueries("coordinator", constructLogFileName("coordinator"))
-	#runQueries("parser", constructLogFileName("parserjob"))
-	#runQueries("ocr", constructLogFileName("ocrjob"))
-	#runQueries("persist", constructLogFileName("persistjob"))
+	runQueries("docreceiver", "upload.document")
+	runQueries("docreceiver", "archive.afs")
+	runQueries("docreceiver", "seqfile.file")
+	runQueries("docreceiver", "submit.post")
+	#runQueries("coordinator")
+	#runQueries("parser")
+	#runQueries("ocr")
+	#runQueries("persist")
 
 
 def closeHiveConnct():
@@ -406,9 +454,9 @@ def closeHiveConnct():
 def wrtRepFootr():
 	print ("Write report footer ...\n")
 	global REPORT
-	REPORT = REPORT+"<table>"
+	REPORT = REPORT+"<table cellpadding='2'>"
 	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
-	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT = REPORT+"<tr><td><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
 	print ("Finished writing report ...\n")	
 	
