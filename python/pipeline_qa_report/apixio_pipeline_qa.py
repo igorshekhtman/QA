@@ -84,6 +84,7 @@ ORGID = "190"
 ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
+COMPONENT = "docreceiver"
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 STMON = strftime("%m", gmtime())
 STDAY = strftime("%d", gmtime())
@@ -127,7 +128,6 @@ ARCHTOS3 = 0
 ADDTOSF = 0
 PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 SENDER="donotreply@apixio.com"
 TEST_TYPE="N/A"
 REPORT_TYPE="Engineering QA"
@@ -150,6 +150,7 @@ def checkEnvntnRepRcvrs():
 	# sys.argv[6] = STDAY = "04" (default current day)
 	# sys.argv[7] = ENMON = "05" (default current month)
 	# sys.argv[8] = ENDAY = "06" (default current day)
+	# sys.argv[8] = COMPONENT = "docreceiver" (default docreceiver)
 
 	print ("Start aquiring environment varibales ...\n")
 	
@@ -199,10 +200,24 @@ def checkEnvntnRepRcvrs():
 			ENDAY = str(sys.argv[8])
 		else:
 			ENDAY = STDAY
+			
+	if len(sys.argv) >= 10:
+		if (str(sys.argv[9])[0:2].upper() == "IN"):
+			COMPONENT = "indexer"
+		elif (str(sys.argv[9])[0:2].upper() == "DO"):
+			COMPONENT = "docreceiver"
+		elif (str(sys.argv[9])[0:2].upper() == "CO"):
+			COMPONENT = "coordinator"
+		elif (str(sys.argv[9])[0:2].upper() == "PA"):
+			COMPONENT = "parser"
+		elif (str(sys.argv[9])[0:2].upper() == "OC"):
+			COMPONENT = "ocr"
+		elif (str(sys.argv[9])[0:2].upper() == "PE"):
+			COMPONENT = "persist"
 
 		
 def prntVarValues():		
-	print ("===========================================================================================================\n")
+	print ("=========================================================================\n")
 	print ("TEST_TYPE = %s") % TEST_TYPE
 	print ("REPORT_TYPE = %s") % REPORT_TYPE
 	print ("ORGID = %s") % ORGID
@@ -214,9 +229,16 @@ def prntVarValues():
 	print ("STARTINGDAY = %s") % STDAY
 	print ("ENDINGMONTH = %s") % ENMON
 	print ("ENDINGDAY = %s") % ENDAY
-	print ("===========================================================================================================\n")
-	time.sleep(15)
+	print ("PIPELINE COMPONENT = %s") % COMPONENT
+	print ("=========================================================================\n")
+	#time.sleep(15)
 
+	
+def constructLogFileName(component):
+	logfilename = ""
+	logfilename=ENVIRONMENT.lower()+"_logs_"+component+"_"+LOGTYPE
+	return(logfilename)
+	
 		
 def flowControl():	
 	# !!! currently not being used !!!!!!!!!!
@@ -275,20 +297,20 @@ def setHiveParms():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	# cur.execute("""set mapred.job.queue.name=default""")
-	cur.execute("""set mapred.job.queue.name=hive""")
+	cur.execute("""set mapred.job.queue.name=default""")
+	#cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Completed assigning Hive paramaters ...\n")	
 	
 	
 def wrtRepHdr():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
-	print ("Begin writing report header ...\n")
+	print ("Start writing report header ...\n")
 	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+	REPORT = REPORT + """Subject: %s Pipeline QA Report - OrgID %s Time %s\n\n""" % (ENVIRONMENT, ORGID, CUR_TIME)
 
 	REPORT = REPORT + """<h1>Apixio %s Pipeline QA Report</h1>\n""" % (ENVIRONMENT)
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
@@ -298,12 +320,26 @@ def wrtRepHdr():
 	print ("End writing report header ...\n")	
 
 
-def runQueries(component):
+def runQueries(component, logfile):
+	global REPORT, SUBHDR
+	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;"+component.upper()+"</b></font></td></tr></table>"
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
-	REPORT = REPORT+SUBHDR+component.Upper()
+	
+	REPORT = REPORT + SUBHDR
 	COMPONENT_STATUS="PASSED"
 	QUERY_DESC="Number of documents uploaded"
+	
+	
+	print ("LOGFILE: %s") % logfile
+	print ("ORGID: %s") % ORGID
+	print ("STMON: %s") % STMON
+	print ("STDAY: %s") % STDAY
+	print ("ENMON: %s") % ENMON
+	print ("ENDAY: %s") % ENDAY
+	#time.sleep(15)
+	
 	print ("Running %s - retrieve %s ...") % (component, QUERY_DESC)
+	
 	
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status, \
@@ -319,7 +355,30 @@ def runQueries(component):
 		GROUP BY \
 		get_json_object(line, '$.upload.document.status'), \
 		get_json_object(line, '$.upload.document.orgid'), \
-		get_json_object(line, '$.message') ORDER BY message ASC""" %(DOCRECEIVERLOGFILE, ORGID, STARTINGMONTH, STARTINGDAY, ENDINGMONTH, ENDINGDAY))
+		get_json_object(line, '$.message') ORDER BY message ASC""" %(logfile, ORGID, STMON, STDAY, ENMON, ENDAY))
+	
+
+	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
+	REPORT = REPORT+"<tr><td>Doc Count:</td><td>Status:</td><td>Organization:</td><td>Message:</td></tr>"	
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		#REPORT = REPORT+"<tr><td>"+activity+" "+summary_table_name+"</td>"
+		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td>"
+		REPORT = REPORT+"<tr><td>"+str(i[1])+"</td>"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td>"
+		else:
+			REPORT = REPORT + "<td>"+str(i[2])+" ("+str(i[2])+")</td>"
+		REPORT = REPORT+"<td>"+str(i[3])+"</td></tr>"	
+	
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td colspan='4'>There were no logs</td></tr>"
+	REPORT = REPORT+"</table><br>" 	
+		
+		
+		
 	
 
 	if (COMPONENT_STATUS=="PASSED"):
@@ -327,17 +386,16 @@ def runQueries(component):
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-			
+	
 
 def wrtRepDtls():
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
-	runQueries("indexer")
-	runQueries("doc-receiver")
-	runQueries("coordinator")
-	runQueries("parser")
-	runQueries("ocr")
-	runQueries("persist-mapper")
-	runQueries("persist-reducer")
+	#runQueries("indexer")
+	runQueries("doc-receiver", constructLogFileName("docreceiver"))
+	#runQueries("coordinator", constructLogFileName("coordinator"))
+	#runQueries("parser", constructLogFileName("parserjob"))
+	#runQueries("ocr", constructLogFileName("ocrjob"))
+	#runQueries("persist", constructLogFileName("persistjob"))
 
 
 def closeHiveConnct():
@@ -397,7 +455,7 @@ def emailRep():
 	s.login("donotreply@apixio.com", "apx.mail47")	        
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
 	#s.sendmail(SENDER, RECEIVERS2, REPORT)
-	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
+	print "Report completed, successfully sent email to %s ..." % (RECEIVERS)	
 
 # ====================================================================================================================================
 # ======================================== MAIN BODY =================================================================================
@@ -411,21 +469,21 @@ prntVarValues()
 
 #identifyRepDaynMnth()
 
-#wrtRepHdr()	
+wrtRepHdr()	
 
-#connectToHive()
+connectToHive()
 
-#setHiveParms()
+setHiveParms()
 
-#wrtRepDtls()
+wrtRepDtls()
 
-#closeHiveConnct()
+closeHiveConnct()
 
-#wrtRepFootr()
+wrtRepFootr()
 
 #archiveRep()
 
-#emailRep()
+emailRep()
 
 
 # ======================================== END =======================================================================================
