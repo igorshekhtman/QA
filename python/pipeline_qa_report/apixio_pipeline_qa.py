@@ -73,9 +73,13 @@ ORGMAP = { \
 	"__HIVE_DEFAULT_PARTITION__":"__HIVE_DEFAULT_PARTITION__", \
 	"None":"Missing Orgname", \
 }
-#===================================================================================
-#===================================================================================
-#===================================================================================
+
+#========================================================================================================
+#=== COMPONENT - COMPLIST ARRAY =========================================================================
+#========================================================================================================
+COMPLIST = ["indexer", "docreceiver", "coordinator", "parser", "ocr", "persist"]
+#========================================================================================================
+
 
 #============ INITIALIZE DEFAULT VALUES - GLOBAL VALIABLES =========================
 print ("Start initializing global variables ...\n")
@@ -85,7 +89,9 @@ ORGID = "190"
 ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
+# set to all to QA all components
 COMPONENT = "docreceiver"
+#COMPONENT = "all"
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
@@ -301,7 +307,6 @@ def connectToHive():
 
 def setHiveParms():
 	print ("Assigning Hive paramaters ...\n")
-	# cur.execute("""SET mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
@@ -369,7 +374,7 @@ def buildQuery(component, subcomp):
 		SELECT \
 		count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as doc_count, \
 		get_json_object(line, '$.archive.afs.status') as status, \
-			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile', get_json_object(line, '$.message')) as message \
+			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message')) as message \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.archive.afs.orgid') = '%s' and \
@@ -378,7 +383,7 @@ def buildQuery(component, subcomp):
 			month<=%s and day<=%s \
 			GROUP BY \
 			get_json_object(line, '$.archive.afs.status'), \
-			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile', get_json_object(line, '$.message'))""" % \
+			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message'))""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 
 	if component == "docreceiver" and subcomp == "seqfile":
@@ -398,8 +403,27 @@ def buildQuery(component, subcomp):
 			get_json_object(line, '$.message')""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 	
-	#if component == "docreceiver" and subcomp == "submit":
-		#query="""SELECT """	
+	if component == "docreceiver" and subcomp == "submit":
+		query="""\
+			SELECT \
+			get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
+			get_json_object(line, '$.submit.post.status') as status, \
+			get_json_object(line, '$.message') as message, \
+			get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
+			get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') = "EVENT" and \
+			get_json_object(line, '$.submit.post.orgid') = '%s' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.submit.post.status'), \
+			get_json_object(line, '$.submit.post.numfiles'), \
+			get_json_object(line, '$.message'), \
+			get_json_object(line, '$.submit.post.apxfiles.count'), \
+			get_json_object(line, '$.submit.post.queue.name')""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)	
 	
 	return(query)
 	
@@ -450,20 +474,34 @@ def runQueries(component, subcomp):
 
 def wrtRepDtls():
 	global COMPONENT
-	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
+	# possible component values: indexer, docreceiver, coordinator, parser, ocr, persist, all
 	#runQueries(COMPONENT)
+
 	
 	if COMPONENT == "docreceiver":
 		runQueries(COMPONENT, "upload")
 		runQueries(COMPONENT, "archive")
-		#runQueries(COMPONENT, "seqfile")
+		runQueries(COMPONENT, "seqfile")
+		runQueries(COMPONENT, "submit")
+	elif COMPONENT == "persist":
+		runQueries(COMPONENT, "mapper")
+		runQueries(COMPONENT, "reducer")
+	elif COMPONENT.upper() == "ALL":
+		for COMP in COMPLIST:
+			if COMP == "docreceiver":
+				runQueries(COMPONENT, "upload")
+				runQueries(COMPONENT, "archive")
+				runQueries(COMPONENT, "seqfile")
+				runQueries(COMPONENT, "submit")
+			elif COMP == "persist":
+				runQueries(COMPONENT, "mapper")
+				runQueries(COMPONENT, "reducer")
+			else:
+				runQueries(COMPONENT, "")		
+	else:
+		runQueries(COMPONENT, "")
 		
-		#runQueries(COMPONENT, "submit")
-		
-	#runQueries(COMPONENT)
-	#runQueries(COMPONENT)
-	#runQueries(COMPONENT)
-	#runQueries(COMPONENT)
+
 
 
 def closeHiveConnct():
