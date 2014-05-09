@@ -87,10 +87,7 @@ LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 COMPONENT = "docreceiver"
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
-STMON = strftime("%m", gmtime())
-STDAY = strftime("%d", gmtime())
-ENMON = strftime("%m", gmtime())
-ENDAY = strftime("%d", gmtime())
+DATERANGE = ""
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -256,6 +253,11 @@ def flowControl():
 
 
 def identifyRepDaynMnth():
+	global STMON, STDAY, ENMON, ENDAY
+	global DATERANGE, DAYSBACK, CURDAY, CURMONTH
+
+	ENMON = strftime("%m", gmtime())
+	ENDAY = strftime("%d", gmtime())
 	for C in range(0, DAYSBACK):
 		if DATERANGE == "":
 			DATERANGE="(MONTH=CURMONTH and DAY=CURDAY)"
@@ -279,6 +281,8 @@ def identifyRepDaynMnth():
 
 	DAY=CURDAY
 	MONTH=CURMONTH
+	STMON = CURMONTH
+	STDAY = CURDAY
 
 
 def test(debug_type, debug_msg):
@@ -332,49 +336,71 @@ def buildQuery(component, subcomp):
 	
 # if(error_message like '/mnt%%','No space left on device', error_message) as message \	
 
-	query="""SELECT """
+	logfile =(constructLogFileName(component))
 	if component == "indexer":
-		query=query+"""count(filetype), """
-		query=query+"""filetype, """
-		query=query+"""batchid """
-	elif component == "docreceiver":
-		query=query+"""count(DISTINCT get_json_object(line, '$."""+subcomp+""".docid')) as doc_count, """
-		query=query+"""get_json_object(line, '$."""+subcomp+""".status') as status, """
-		query=query+"""get_json_object(line, '$.message') as error_message """
-	
-	query=query+"""FROM """+constructLogFileName(component)+""" """
-	
-	query=query+"""WHERE """
-	if component == "indexer":
-		query=query+"""orgid="""+ORGID+""" and """
-		query=query+"""((substr(datestamp,0,2)>="""+STMON+""" and substr(datestamp,4,2)>="""+STDAY+""") and """
-		query=query+"""(substr(datestamp,0,2)<="""+ENMON+""" and substr(datestamp,4,2)<="""+ENDAY+""")) """
+		query="""\
+			SELECT filetype, count(filetype) as qty_each \
+			FROM %s \
+			WHERE orgid=%s and \
+			((substr(datestamp,0,2)>=%s and substr(datestamp,4,2)>=%s) and \
+			(substr(datestamp,0,2)<=%s and substr(datestamp,4,2)<=%s)) \
+			GROUP BY filetype""" % (constructLogFileName(component), ORGID, STMON, STDAY, ENMON, ENDAY)
 		
+	if component == "docreceiver" and subcomp == "upload":
+		query="""\
+			SELECT\
+			count(DISTINCT get_json_object(line, '$.upload.document.docid')) as doc_count,\
+			get_json_object(line, '$.upload.document.status') as status,\
+			get_json_object(line, '$.message') as message\
+			FROM %s\
+			WHERE\
+			get_json_object(line, '$.upload.document.orgid') = '%s' and\
+			get_json_object(line, '$.level') = 'EVENT' and\
+			month>=%s and day>=%s and\
+			month<=%s and day<=%s\
+			GROUP BY\
+			get_json_object(line, '$.upload.document.status'),\
+			get_json_object(line, '$.message')""" %\
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+				
 		
-	elif component == "docreceiver":
-		query=query+"""get_json_object(line, '$.level') = 'EVENT' and """
-		query=query+"""get_json_object(line, '$."""+subcomp+""".docid') is not null and """
-		query=query+"""get_json_object(line, '$."""+subcomp+""".orgid')="""+ORGID+""" and """
-		query=query+"""((month>="""+STMON+""" and day>="""+STDAY+""") and """
-		query=query+"""(month<="""+ENMON+""" and day<="""+ENDAY+""")) """
+	if component == "docreceiver" and subcomp == "archive":
+		query="""\
+		SELECT \
+		count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as doc_count, \
+		get_json_object(line, '$.archive.afs.status') as status, \
+			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile', get_json_object(line, '$.message')) as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.archive.afs.orgid') = '%s' and \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.archive.afs.status'), \
+			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile', get_json_object(line, '$.message'))""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+
+	if component == "docreceiver" and subcomp == "seqfile":
+		query="""\
+		SELECT \
+		count(DISTINCT get_json_object(line, '$.seqfile.file.docid')) as doc_count, \
+		get_json_object(line, '$.seqfile.file.status') as status, \
+			get_json_object(line, '$.message') as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.seqfile.file.orgid') = '%s' and \
+			get_json_object(line, '$.level') = 'EVENT' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.seqfile.file.status'), \
+			get_json_object(line, '$.message')""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 	
-	query=query+"""GROUP BY """
+	#if component == "docreceiver" and subcomp == "submit":
+		#query="""SELECT """	
 	
-	if component == "indexer":
-		query=query+"""filetype, """
-		query=query+"""batchid """
-	elif component == "docreceiver":
-		query=query+"""get_json_object(line, '$."""+subcomp+""".status'), """
-		query=query+"""get_json_object(line, '$."""+subcomp+""".orgid'), """
-		query=query+"""get_json_object(line, '$.message') """
-	
-	query=query+"""ORDER BY """
-	if component == "indexer":
-		query=query+"""filetype """
-	elif component == "docreceiver":
-		query=query+"""error_message """
-		
-	query=query+"""ASC """	
 	return(query)
 	
 
@@ -382,34 +408,23 @@ def runQueries(component, subcomp):
 	global REPORT, SUBHDR
 	if str(ORGID) in ORGMAP:
 		SUBHDR="<table align='left' width='800' cellpadding='2'><tr><td bgcolor='#4E4E4E'><font size='3' color='white'>\
-			<b>&nbsp;&nbsp;"+component.upper()+"  "+ORGMAP[str(ORGID)]+" ("+ORGID+")</b></font></td></tr></table>"
+			<b>&nbsp;&nbsp;"+component.upper()+" ("+subcomp+") "+ORGMAP[str(ORGID)]+" ("+ORGID+")</b></font></td></tr></table>"
 	else:
 		SUBHDR="<table align='left' width='800' cellpadding='2'><tr><td bgcolor='#4E4E4E'><font size='3' color='white'>\
-			<b>&nbsp;&nbsp;"+component.upper()+"  "+ORGID+" ("+ORGID+")</b></font></td></tr></table>"
+			<b>&nbsp;&nbsp;"+component.upper()+" ("+subcomp+") "+ORGID+" ("+ORGID+")</b></font></td></tr></table>"
 	
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
 	
 	REPORT = REPORT + SUBHDR
 	COMPONENT_STATUS="PASSED"
-	QUERY_DESC="Number of documents - %s" % (subcomp)
 	
-	#print ("ORGID: %s") % ORGID
-	#print ("STMON: %s") % STMON
-	#print ("STDAY: %s") % STDAY
-	#print ("ENMON: %s") % ENMON
-	#print ("ENDAY: %s") % ENDAY
-	#time.sleep(15)
-	
-	print ("Running %s - retrieve %s ...") % (component, QUERY_DESC)
-	
+	#QUERY_DESC="Number of documents - %s" % (component)
+	print ("Running %s - %s query ...\n") % (component, subcomp)
 	print (buildQuery(component, subcomp))
-	
 	cur.execute(buildQuery(component, subcomp))
-	
-	
-
+		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0' cellpadding='2'>"
-	REPORT = REPORT+"<tr><td width='10%'>Doc Count:</td><td width='10%'>Status:</td><td width='80%'>Error Message:</td></tr>"	
+	REPORT = REPORT+"<tr><td width='10%'>Doc Count:</td><td width='10%'>Status:</td><td width='80%'>Message:</td></tr>"	
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -421,7 +436,7 @@ def runQueries(component, subcomp):
 		REPORT = REPORT+"</tr>"	
 	
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='3'><i>There were no "+component+" logs</i></td></tr>"
+		REPORT = REPORT+"<tr><td colspan='3'><i>There were no "+component+" "+subcomp+" logs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
 		
 	
@@ -434,16 +449,21 @@ def runQueries(component, subcomp):
 	
 
 def wrtRepDtls():
+	global COMPONENT
 	# possible component values: indexer, doc-receiver, coordinator, parser, ocr, persist-mapper, persist-reducer
-	#runQueries("indexer")
-	runQueries("docreceiver", "upload.document")
-	runQueries("docreceiver", "archive.afs")
-	runQueries("docreceiver", "seqfile.file")
-	runQueries("docreceiver", "submit.post")
-	#runQueries("coordinator")
-	#runQueries("parser")
-	#runQueries("ocr")
-	#runQueries("persist")
+	#runQueries(COMPONENT)
+	
+	if COMPONENT == "docreceiver":
+		runQueries(COMPONENT, "upload")
+		runQueries(COMPONENT, "archive")
+		#runQueries(COMPONENT, "seqfile")
+		
+		#runQueries(COMPONENT, "submit")
+		
+	#runQueries(COMPONENT)
+	#runQueries(COMPONENT)
+	#runQueries(COMPONENT)
+	#runQueries(COMPONENT)
 
 
 def closeHiveConnct():
@@ -510,6 +530,8 @@ def emailRep():
 # ====================================================================================================================================
 
 #initDefGlobVars()
+
+identifyRepDaynMnth()
 
 checkEnvntnRepRcvrs()	
 
