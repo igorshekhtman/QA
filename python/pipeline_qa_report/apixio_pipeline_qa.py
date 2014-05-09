@@ -77,7 +77,7 @@ ORGMAP = { \
 #========================================================================================================
 #=== COMPONENT - COMPLIST ARRAY =========================================================================
 #========================================================================================================
-COMPLIST = ["indexer", "docreceiver", "coordinator", "parser", "ocr", "persist"]
+COMPLIST = ["indexer", "docreceiver", "coordinator", "parserjob", "ocr", "persist"]
 #========================================================================================================
 
 
@@ -90,7 +90,9 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-COMPONENT = "docreceiver"
+#COMPONENT = "docreceiver"
+#COMPONENT = "coordinator"
+COMPONENT = "parserjob"
 #COMPONENT = "all"
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
@@ -289,6 +291,9 @@ def identifyRepDaynMnth():
 	MONTH=CURMONTH
 	STMON = CURMONTH
 	STDAY = CURDAY
+	# override for testing purposes
+	STMON = ENMON
+	STDAY = ENDAY
 
 
 def test(debug_type, debug_msg):
@@ -310,8 +315,8 @@ def setHiveParms():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	cur.execute("""set mapred.job.queue.name=default""")
-	#cur.execute("""set mapred.job.queue.name=hive""")
+	#cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Completed assigning Hive paramaters ...\n")	
 	
@@ -371,9 +376,9 @@ def buildQuery(component, subcomp):
 		
 	if component == "docreceiver" and subcomp == "archive":
 		query="""\
-		SELECT \
-		count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as doc_count, \
-		get_json_object(line, '$.archive.afs.status') as status, \
+			SELECT \
+			count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as doc_count, \
+			get_json_object(line, '$.archive.afs.status') as status, \
 			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message')) as message \
 			FROM %s \
 			WHERE \
@@ -384,22 +389,22 @@ def buildQuery(component, subcomp):
 			GROUP BY \
 			get_json_object(line, '$.archive.afs.status'), \
 			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message'))""" % \
-			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)					
 
 	if component == "docreceiver" and subcomp == "seqfile":
 		query="""\
-		SELECT \
-		count(DISTINCT get_json_object(line, '$.seqfile.file.docid')) as doc_count, \
-		get_json_object(line, '$.seqfile.file.status') as status, \
+			SELECT \
+			count(DISTINCT get_json_object(line, '$.seqfile.file.docid')) as doc_count, \
+			get_json_object(line, '$.seqfile.file.document.status') as status, \
 			get_json_object(line, '$.message') as message \
 			FROM %s \
 			WHERE \
-			get_json_object(line, '$.seqfile.file.orgid') = '%s' and \
+			get_json_object(line, '$.seqfile.file.document.orgid') = '%s' and \
 			get_json_object(line, '$.level') = 'EVENT' and \
 			month>=%s and day>=%s and \
 			month<=%s and day<=%s \
 			GROUP BY \
-			get_json_object(line, '$.seqfile.file.status'), \
+			get_json_object(line, '$.seqfile.file.document.status'), \
 			get_json_object(line, '$.message')""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 	
@@ -423,7 +428,43 @@ def buildQuery(component, subcomp):
 			get_json_object(line, '$.message'), \
 			get_json_object(line, '$.submit.post.apxfiles.count'), \
 			get_json_object(line, '$.submit.post.queue.name')""" % \
-			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)	
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+
+	if component == "coordinator":
+		query="""\
+			SELECT \
+			count(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
+			get_json_object(line, '$.job.activity') as activity, \
+			get_json_object(line, '$.job.status') as status \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.job.context.orgid') = '%s' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s and \
+			get_json_object(line, '$.job.status') is not null and \
+			get_json_object(line, '$.job.status') <> 'start' \
+			GROUP BY \
+			get_json_object(line, '$.job.status'), \
+			get_json_object(line, '$.job.activity')""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+	
+	if component == "parserjob":
+		query="""\
+			SELECT \
+			count(DISTINCT get_json_object(line, '$.documentuuid')) as  count, \
+			get_json_object(line, '$.status') as status, \
+			get_json_object(line, '$.error.message') as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.orgId') = '%s' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.status'), \
+			get_json_object(line, '$.error.message')""" %\
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+		
+		
 	
 	return(query)
 	
@@ -483,7 +524,7 @@ def wrtRepDtls():
 		runQueries(COMPONENT, "archive")
 		runQueries(COMPONENT, "seqfile")
 		runQueries(COMPONENT, "submit")
-	elif COMPONENT == "persist":
+	elif COMPONENT == "persistjob":
 		runQueries(COMPONENT, "mapper")
 		runQueries(COMPONENT, "reducer")
 	elif COMPONENT.upper() == "ALL":
@@ -493,7 +534,7 @@ def wrtRepDtls():
 				runQueries(COMPONENT, "archive")
 				runQueries(COMPONENT, "seqfile")
 				runQueries(COMPONENT, "submit")
-			elif COMP == "persist":
+			elif COMP == "persistjob":
 				runQueries(COMPONENT, "mapper")
 				runQueries(COMPONENT, "reducer")
 			else:
@@ -567,15 +608,12 @@ def emailRep():
 # ======================================== MAIN BODY =================================================================================
 # ====================================================================================================================================
 
-#initDefGlobVars()
 
 identifyRepDaynMnth()
 
 checkEnvntnRepRcvrs()	
 
 prntVarValues()
-
-#identifyRepDaynMnth()
 
 wrtRepHdr()	
 
