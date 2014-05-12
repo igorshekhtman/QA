@@ -114,6 +114,33 @@ IPMAP = { \
 	"S3":str(obtainIP("s3.amazon.com"))[2:-2], \
 	"Docreceiver":"10.199.16.28" \
 }
+
+# TCP port 80 - HTTP Server
+# TCP port 443 - HTTPS Server
+# TCP port 25 - Mail Server
+# TCP port 22 - OpenSSH (remote) secure shell server
+# TCP port 110 - POP3 (Post Office Protocol v3) server
+# TCP port 143 - Internet Massage Access Protocol (IMAP) - management of email messages
+# TCP / UDP port 53 - Domain Name System (DNS)
+
+
+PORTMAP = { \
+	"Hive":"8020", \
+	"Fluent":"24224", \
+	"Redis":"6379", \
+	"Graphite":"2003", \
+	"Mysql":"8020", \
+	"Keyservice":"8020", \
+	"API":"443", \
+	"HDFS":"8020", \
+	"Cassandra0":"9042", \
+	"Cassandra1":"9042", \
+	"Cassandra2":"9042", \
+	"Cassandra3":"9042", \
+	"S3":"80", \
+	"Docreceiver":"8020" \
+}
+# S3 - 80 and 443
 #===========================================================================================================================================================
 
 def checkEnvironment():
@@ -599,10 +626,11 @@ def unblockAllBlockedIP():
 
 def blockComponentIP(component):
 	IP = IPMAP[str(component)]
-	print ("Block %s component - IP: %s\n") % (component, IP)
+	PORT = PORTMAP[str(component)]
+	print ("Block %s component - IP: %s:%s\n") % (component, IP, PORT)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
 	os.system(add_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
@@ -610,10 +638,11 @@ def blockComponentIP(component):
 
 def unblockComponentIP(component):
 	IP = IPMAP[str(component)]
-	print ("Unblock %s component - IP: %s\n") % (component, IP)
+	PORT = PORTMAP[str(component)]
+	print ("Unblock %s component - IP: %s:%s\n") % (component, IP, PORT)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
 	os.system(remove_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
@@ -634,17 +663,19 @@ def mainMenu():
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
-	print "0. Graphite (%s) status: %s\n" % (IPMAP["Graphite"], GRS)
-	print "1. Fluent (%s) status: %s\n" % (IPMAP["Fluent"], FLS)
-	print "2. S3 (%s) status: %s\n" % (IPMAP["S3"], S3S)
+	print "0. Graphite (%s:%s) status: %s\n" % (IPMAP["Graphite"], PORTMAP["Graphite"], GRS)
+	print "1. Fluent (%s:%s) status: %s\n" % (IPMAP["Fluent"], PORTMAP["Fluent"], FLS)
+	print "2. S3 (%s:%s) status: %s\n" % (IPMAP["S3"], PORTMAP["S3"], S3S)
 	#print "2. S3 (%s) status: %s\n" % (obtainIP("s3.amazon.com"), S3S)
-	print "3. HDFS (%s) status: %s\n" % (IPMAP["HDFS"], HDS)
-	print "4. API (%s) status: %s\n" % (IPMAP["API"], APS)
-	print "5. Redis (%s): status: %s\n" % (IPMAP["Redis"], RES)
-	print "6. Cassandra (%s, %s, %s, %s) status: %s\n"  % (IPMAP["Cassandra0"], IPMAP["Cassandra1"], IPMAP["Cassandra2"], IPMAP["Cassandra3"], CAS)
-	print "7. Key service (%s) status: %s\n" % (IPMAP["Keyservice"], KES)
-	print "8. MySql (%s) status: %s\n" % (IPMAP["Mysql"], MYS)
-	print "9. Doc-Receiver (%s) status: %s\n" % (IPMAP["Docreceiver"], DRS)
+	print "3. HDFS (%s:%s) status: %s\n" % (IPMAP["HDFS"], PORTMAP["HDFS"], HDS)
+	print "4. API (%s:%s) status: %s\n" % (IPMAP["API"], PORTMAP["API"], APS)
+	print "5. Redis (%s:%s): status: %s\n" % (IPMAP["Redis"], PORTMAP["Redis"], RES)
+	print "6. Cassandra (%s:%s, %s:%s, %s:%s, %s:%s) status: %s\n"  % (IPMAP["Cassandra0"], \
+		PORTMAP["Cassandra0"], IPMAP["Cassandra1"], PORTMAP["Cassandra1"], IPMAP["Cassandra2"], \
+		PORTMAP["Cassandra2"], IPMAP["Cassandra3"], PORTMAP["Cassandra3"], CAS)
+	print "7. Key service (%s:%s) status: %s\n" % (IPMAP["Keyservice"], PORTMAP["Keyservice"], KES)
+	print "8. MySql (%s:%s) status: %s\n" % (IPMAP["Mysql"], PORTMAP["Mysql"], MYS)
+	print "9. Doc-Receiver (%s:%s) status: %s\n" % (IPMAP["Docreceiver"], PORTMAP["Docreceiver"], DRS)
 	print "==========================================================================================="
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	print "==========================================================================================="
