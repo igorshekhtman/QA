@@ -29,4 +29,7 @@ then
 echo "[FAILURE] need production cassandra IP!"
 #java -cp apixio-datasource-1.1.3.jar com.apixio.dao.cmdline.ListKeys -c cf$2 -a productionCassandra -n $3 -o cf$2_partKeys -k partialPatientKey
 
+# UHS restart
+#java -cp apixio-datasource-1.1.3.jar com.apixio.dao.cmdline.ListKeys -c cf10000262 -a CASSANDRA_IP -n 1000 -o cf10000262_partKeys_restart -k partialPatientKey -s START_KEY
+
 fi

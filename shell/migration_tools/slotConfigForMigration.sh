@@ -19,7 +19,7 @@ fi
 if [ "$1" = "40" ]
 then
 
-    java com.apixio.coordinator.cmdline.ActivityConfigTool --set-slot-alloc "trace=0,0 ocr=20,10 persist=0,0 parser=0,0 dataCheckAndRecovery=0,0 loadAPO=10,10 migrateAPO=5,0 qaMigrateAPO=5,0"
+    java com.apixio.coordinator.cmdline.ActivityConfigTool --set-slot-alloc "trace=1,0 ocr=20,0 persist=1,0 parser=1,0 dataCheckAndRecovery=1,0 loadAPO=20,0 migrateAPO=20,0 qaMigrateAPO=20,0"
 
 elif [ "$1" = "60" ]
 then

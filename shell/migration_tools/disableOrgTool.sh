@@ -35,19 +35,19 @@ then
     then
         for org in $ALL
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --enable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --enable $org
         done
     elif [ "$2" = "lowPriority" ]
     then
         for org in $LOWPRI
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --enable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --enable $org
         done
     elif [ "$2" = "highPriority" ]
     then
         for org in $HIGHPRI
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --enable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --enable $org
         done
     else
         java com.apixio.coordinator.cmdline.OrgConfigTool --enable "$2"
@@ -58,19 +58,19 @@ then
     then
         for org in $ALL
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --disable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --disable $org
         done
     elif [ "$2" = "lowPriority" ]
     then
         for org in $LOWPRI
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --disable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --disable $org
         done
     elif [ "$2" = "highPriority" ]
     then
         for org in $HIGHPRI
         do
-            java com.apixio.coordinator.cmdline.OrgConfigTool --disable org
+            java com.apixio.coordinator.cmdline.OrgConfigTool --disable $org
         done
     else
         java com.apixio.coordinator.cmdline.OrgConfigTool --disable "$2"
