@@ -90,9 +90,9 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-#COMPONENT = "docreceiver"
+COMPONENT = "docreceiver"
 #COMPONENT = "coordinator"
-COMPONENT = "parserjob"
+#COMPONENT = "parserjob"
 #COMPONENT = "all"
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
@@ -361,7 +361,7 @@ def buildQuery(component, subcomp):
 			SELECT\
 			count(DISTINCT get_json_object(line, '$.upload.document.docid')) as doc_count,\
 			get_json_object(line, '$.upload.document.status') as status,\
-			get_json_object(line, '$.message') as message\
+			get_json_object(line, '$.error.message') as message\
 			FROM %s\
 			WHERE\
 			get_json_object(line, '$.upload.document.orgid') = '%s' and\
@@ -370,7 +370,7 @@ def buildQuery(component, subcomp):
 			month<=%s and day<=%s\
 			GROUP BY\
 			get_json_object(line, '$.upload.document.status'),\
-			get_json_object(line, '$.message')""" %\
+			get_json_object(line, '$.error.message')""" %\
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 				
 		
@@ -379,7 +379,7 @@ def buildQuery(component, subcomp):
 			SELECT \
 			count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as doc_count, \
 			get_json_object(line, '$.archive.afs.status') as status, \
-			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message')) as message \
+			get_json_object(line, '$.error.message') as message \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.archive.afs.orgid') = '%s' and \
@@ -388,15 +388,15 @@ def buildQuery(component, subcomp):
 			month<=%s and day<=%s \
 			GROUP BY \
 			get_json_object(line, '$.archive.afs.status'), \
-			if(get_json_object(line, '$.message') like 'Archiving bufferedFile%%','Archiving bufferedFile /tmp/apxqueue/buffer/', get_json_object(line, '$.message'))""" % \
+			get_json_object(line, '$.error.message')""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)					
-
+			
 	if component == "docreceiver" and subcomp == "seqfile":
 		query="""\
 			SELECT \
-			count(DISTINCT get_json_object(line, '$.seqfile.file.docid')) as doc_count, \
-			get_json_object(line, '$.seqfile.file.document.status') as status, \
-			get_json_object(line, '$.message') as message \
+			count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as doc_count, \
+			get_json_object(line, '$.seqfile.file.add.status') as status, \
+			get_json_object(line, '$.error.message') as message \
 			FROM %s \
 			WHERE \
 			get_json_object(line, '$.seqfile.file.document.orgid') = '%s' and \
@@ -404,8 +404,8 @@ def buildQuery(component, subcomp):
 			month>=%s and day>=%s and \
 			month<=%s and day<=%s \
 			GROUP BY \
-			get_json_object(line, '$.seqfile.file.document.status'), \
-			get_json_object(line, '$.message')""" % \
+			get_json_object(line, '$.seqfile.file.add.status'), \
+			get_json_object(line, '$.error.message')""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 	
 	if component == "docreceiver" and subcomp == "submit":
@@ -413,7 +413,7 @@ def buildQuery(component, subcomp):
 			SELECT \
 			get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
 			get_json_object(line, '$.submit.post.status') as status, \
-			get_json_object(line, '$.message') as message, \
+			get_json_object(line, '$.error.message') as message, \
 			get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
 			get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
 			FROM %s \
@@ -425,7 +425,7 @@ def buildQuery(component, subcomp):
 			GROUP BY \
 			get_json_object(line, '$.submit.post.status'), \
 			get_json_object(line, '$.submit.post.numfiles'), \
-			get_json_object(line, '$.message'), \
+			get_json_object(line, '$.error.message'), \
 			get_json_object(line, '$.submit.post.apxfiles.count'), \
 			get_json_object(line, '$.submit.post.queue.name')""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
