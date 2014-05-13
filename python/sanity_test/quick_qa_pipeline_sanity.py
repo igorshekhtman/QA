@@ -53,6 +53,9 @@ BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 MANIFEST_FILENAME=BATCH+"_manifest.txt"
 
+CLOSE_URL="%s/receiver/batch/%s/status/flush" % (HOST, DRBATCH)
+UPLOAD_URL_2="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
+
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
 
@@ -70,12 +73,12 @@ QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 LOGTYPE="24"
 
-INDEXERLOGFILE="indexer_manifest_epoch"
-DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
-COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
-PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
-OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
-PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
+#INDEXERLOGFILE="indexer_manifest_epoch"
+#DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
+#COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
+#PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
+#OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
+#PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 QAFROMSEQFILELOGFILE=ENVIRONMENT.lower()+"_logs_qafromseqfile_"+LOGTYPE
 
 SENDER="donotreply@apixio.com"
@@ -84,7 +87,12 @@ if (len(sys.argv) > 2):
     RECEIVERS = str(sys.argv[2])
 else:
     RECEIVERS="eng@apixio.com"
-#RECEIVERS="lschneider@apixio.com"
+
+dev = "?category=dev"
+if (len(sys.argv) > 3) and str(sys.argv[3]) == "dev":
+    UPLOAD_URL += dev
+    UPLOAD_URL_2 += dev
+    CLOSE_URL += dev
 
 # ====================================================================================================
 
@@ -101,6 +109,8 @@ print ("BATCH = %s") % BATCH
 print ("MANIFEST_FILENAME = %s") % MANIFEST_FILENAME
 print ("")
 print ("UPLOAD_URL = %s") % UPLOAD_URL
+print ("UPLOAD_URL_2 = %s") % UPLOAD_URL_2
+print ("CLOSE_URL = %s") % CLOSE_URL
 print ("TOKEN_URL = %s") % TOKEN_URL
 print ("USERNAME = %s") % USERNAME
 print ("PASSWORD = %s") % PASSWORD
@@ -131,7 +141,6 @@ obj=json.loads(buf.getvalue())
 TOKEN=obj["token"]
 
 def uploadData():
-	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
 	c = pycurl.Curl()
 	c.setopt(pycurl.URL, UPLOAD_URL)
 	c.setopt(pycurl.HTTPHEADER, ['Accept: application/json', 'Content-Type: application/x-www-form-urlencoded'])
@@ -180,15 +189,13 @@ for FILE in FILES:
     METATAGS="METATAGS_VALUE";
     SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
     TOKEN_URL="%s/auth/token/" % (HOST);
-    UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
     CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 		
     # =============== Uploading Data ==============================================================
-    UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
     bufu = io.BytesIO()
     response = cStringIO.StringIO()
     c = pycurl.Curl()
-    c.setopt(c.URL, UPLOAD_URL)
+    c.setopt(c.URL, UPLOAD_URL_2)
     c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
     c.setopt(c.WRITEFUNCTION, bufu.write)
     c.setopt(c.DEBUGFUNCTION, test)
@@ -208,7 +215,6 @@ print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
 
 print ("Closing Batch ...\n")
 
-CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, DRBATCH);
 bufc = io.BytesIO()
 response = cStringIO.StringIO()
 c = pycurl.Curl()
@@ -328,7 +334,7 @@ if QUICK_QA:
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
     
-    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apoUUID</th></tr>"
+    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apo</th><th>patUUID</th></tr>"
     ROW = 0
     sum = 0
     result = []
@@ -351,44 +357,44 @@ if QUICK_QA:
         COMPONENT_STATUS="FAILED"
     REPORT = REPORT+"</table><br>"
 
-    reportResults = {"Total Documents":0,
-        "Verified Documents":0,
-        "Failed Archive":0,
-        "No Parser Trace":0,
-        "No OCR Trace":0,
-        "No Persist Trace":0,
-        "No Document Entry":0,
-        "No Sequence File Trace":0,
-        "No Sent to Coordinator Trace":0,
-        "No Document UUID Link":0,
-        "No Patient UUID Link":0,
-        "Failed Persist Reducer":0}
+    reportResults = {"total":0,
+        "verified":0,
+        "failedArchive":0,
+        "noParserTrace":0,
+        "noOCRTrace":0,
+        "noPersistTrace":0,
+        "noDocEntry":0,
+        "noSeqfileTrace":0,
+        "noSentTrace":0,
+        "noDocLink":0,
+        "noPatLink":0,
+        "failedReducer":0}
 
     for line in result:
         count = line[0]
-        reportResults["Total Documents"] += count
+        reportResults["total"] += count
         if line[1] != "true":
-            reportResults["Failed Archive"] += count
+            reportResults["failedArchive"] += count
         if line[2] != ORGID:
-            reportResults["No Document Entry"] += count
+            reportResults["noDocEntry"] += count
         if line[3] != "sentToOCR" and line[3] != "sentToPersist":
-            reportResults["No Parser Trace"] += count
+            reportResults["noParserTrace"] += count
         if line[3] == "sentToOCR" and line[4] != "sentToPersist":
-            reportResults["No OCR Trace"] += count
+            reportResults["noOCRTrace"] += count
         if line[5] != "persisted":
-            reportResults["No Persist Trace"] += count
+            reportResults["noPersistTrace"] += count
         if line[6] != "success":
-            reportResults["No Sequence File Trace"] += count
+            reportResults["noSeqfileTrace"] += count
         if line[7] != "success":
-            reportResults["No Sent to Coordinator Trace"] += count
+            reportResults["noSentTrace"] += count
         if line[8] != ORGID:
-            reportResults["No Document UUID Link"] += count
+            reportResults["noDocLink"] += count
         if line[9] != ORGID:
-            reportResults["No Patient UUID Link"] += count
+            reportResults["noPatLink"] += count
         if line[10] == "found":
-            reportResults["Verified Documents"] += count
+            reportResults["verified"] += count
         if line[11] != "found":
-            reportResults["Failed Persist Reducer"] += count
+            reportResults["failedReducer"] += count
 
     startCountTable = "<table border='0' cellpadding='1' cellspacing='0'>"
     startCountTable = startCountTable + "<tr><th>  </th><th>Count</th></tr>"
@@ -400,13 +406,15 @@ if QUICK_QA:
     # ===========================================
     REPORT = REPORT+SUBHDR % "Data Verification"
     REPORT = REPORT+startCountTable
-    mapperVerifiedCount = reportResults["Verified Documents"]
-    reducerFailedCount = reportResults["Failed Persist Reducer"]
+    mapperVerifiedCount = reportResults["verified"]
+    reducerFailedCount = reportResults["failedReducer"]
+    archiveFailedCount = reportResults["failedArchive"]
     REPORT = REPORT+countTableRow % ("Verified APOs Persisted", str(mapperVerifiedCount))
+    REPORT = REPORT+countTableRow % ("Failed Archive to S3", str(archiveFailedCount))
     REPORT = REPORT+countTableRow % ("Failed Persist Reducer", str(reducerFailedCount))
-    REPORT = REPORT+countTableRow % ("Total Documents", str(reportResults["Total Documents"]))
+    REPORT = REPORT+countTableRow % ("Total Documents", str(reportResults["total"]))
     REPORT = REPORT+endCountTable
-    if (mapperVerifiedCount == DOCUMENTS_TRANSMITTED and reducerFailedCount == 0):
+    if (mapperVerifiedCount == DOCUMENTS_TRANSMITTED and reducerFailedCount == 0 and archiveFailedCount == 0):
         REPORT = REPORT+PASSED
     else:
         REPORT = REPORT+FAILED
@@ -416,10 +424,10 @@ if QUICK_QA:
     # ===========================================
     REPORT = REPORT+SUBHDR % "Link Table Verification"
     REPORT = REPORT+startCountTable
-    failedDocLinkCount = reportResults["No Document UUID Link"]
-    failedPatLinkCount = reportResults["No Patient UUID Link"]
-    REPORT = REPORT+countTableRow % ("No Document UUID Link", str(failedDocLinkCount))
-    REPORT = REPORT+countTableRow % ("No Patient UUID Link", str(failedPatLinkCount))
+    failedDocLinkCount = reportResults["noDocLink"]
+    failedPatLinkCount = reportResults["noPatLink"]
+    REPORT = REPORT+countTableRow % ("Missing Document UUID Link", str(failedDocLinkCount))
+    REPORT = REPORT+countTableRow % ("Missing Patient UUID Link", str(failedPatLinkCount))
     REPORT = REPORT+endCountTable
     if (failedDocLinkCount == 0 and failedPatLinkCount == 0):
         REPORT = REPORT+PASSED
@@ -431,28 +439,28 @@ if QUICK_QA:
     # ===========================================
     REPORT = REPORT+SUBHDR % "Trace Verification"
     REPORT = REPORT+startCountTable
-    failedDocEntry = reportResults["No Document Entry"]
+    failedDocEntry = reportResults["noDocEntry"]
     failedTrace = 0
-    REPORT = REPORT+countTableRow % ("No Document Entry", str(failedDocEntry))
+    REPORT = REPORT+countTableRow % ("Missing Document Entry", str(failedDocEntry))
 
-    temp = reportResults["No Sequence File Trace"]
-    REPORT = REPORT+countTableRow % ("No Sequence File Trace", str(temp))
+    temp = reportResults["noSeqfileTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Sequence File Trace", str(temp))
     failedTrace += temp
 
-    temp = reportResults["No Sent to Coordinator Trace"]
-    REPORT = REPORT+countTableRow % ("No Sent to Coordinator Trace", str(temp))
+    temp = reportResults["noSentTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Sent to Coordinator Trace", str(temp))
     failedTrace += temp
 
-    temp = reportResults["No Parser Trace"]
-    REPORT = REPORT+countTableRow % ("No Parser Trace", str(temp))
+    temp = reportResults["noParserTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Parser Trace", str(temp))
     failedTrace += temp
 
-    temp = reportResults["No OCR Trace"]
-    REPORT = REPORT+countTableRow % ("No OCR Trace", str(temp))
+    temp = reportResults["noOCRTrace"]
+    REPORT = REPORT+countTableRow % ("Missing OCR Trace", str(temp))
     failedTrace += temp
 
-    temp = reportResults["No Persist Trace"]
-    REPORT = REPORT+countTableRow % ("No Persist Trace", str(temp))
+    temp = reportResults["noPersistTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Persist Trace", str(temp))
     failedTrace += temp
 
     REPORT = REPORT+endCountTable
