@@ -7,7 +7,19 @@ https://reports.apixio.com/html/index.htm
 
 
 C:\Users\Igor\Documents\Apixio\HADOOP\INDEXER_SERVER_MACHINE\key\new_staging.ppk
+=================================================
+IDENTIFYING S3 IP - LANCE
+Run nslookup and parse the output.
+I don't know anything simpler.
 
+$ nslookup s3.amazon.com
+Server:        127.0.1.1
+Address:    127.0.1.1#53
+
+Non-authoritative answer:
+s3.amazon.com    canonical name = rewrite.amazon.com.
+Name:    rewrite.amazon.com
+Address: 72.21.210.29
 =================================================
 NEW DAILY PRODUCTION REPORT
 =================================================

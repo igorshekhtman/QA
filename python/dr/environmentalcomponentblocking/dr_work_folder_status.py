@@ -103,7 +103,7 @@ IPMAP = { \
 	"Fluent":"10.222.103.158", \
 	"Redis":"10.222.103.158", \
 	"Graphite":"10.160.150.32", \
-	"Mysql":"54.193.138.149", \
+	"Mysql":"10.174.121.164", \
 	"Keyservice":"184.169.153.214", \
 	"API":"10.198.43.98", \
 	"HDFS":"10.196.84.183", \
@@ -114,33 +114,6 @@ IPMAP = { \
 	"S3":str(obtainIP("s3.amazon.com"))[2:-2], \
 	"Docreceiver":"10.199.16.28" \
 }
-
-# TCP port 80 - HTTP Server
-# TCP port 443 - HTTPS Server
-# TCP port 25 - Mail Server
-# TCP port 22 - OpenSSH (remote) secure shell server
-# TCP port 110 - POP3 (Post Office Protocol v3) server
-# TCP port 143 - Internet Massage Access Protocol (IMAP) - management of email messages
-# TCP / UDP port 53 - Domain Name System (DNS)
-
-
-PORTMAP = { \
-	"Hive":"8020", \
-	"Fluent":"24224", \
-	"Redis":"6379", \
-	"Graphite":"2003", \
-	"Mysql":"3306", \
-	"Keyservice":"8020", \
-	"API":"443", \
-	"HDFS":"8020", \
-	"Cassandra0":"9042", \
-	"Cassandra1":"9042", \
-	"Cassandra2":"9042", \
-	"Cassandra3":"9042", \
-	"S3":"80", \
-	"Docreceiver":"8020" \
-}
-# S3 - 80 and 443
 #===========================================================================================================================================================
 
 def checkEnvironment():
@@ -626,11 +599,10 @@ def unblockAllBlockedIP():
 
 def blockComponentIP(component):
 	IP = IPMAP[str(component)]
-	PORT = PORTMAP[str(component)]
-	print ("Block %s component - IP: %s:%s\n") % (component, IP, PORT)
+	print ("Block %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(add_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
@@ -638,11 +610,10 @@ def blockComponentIP(component):
 
 def unblockComponentIP(component):
 	IP = IPMAP[str(component)]
-	PORT = PORTMAP[str(component)]
-	print ("Unblock %s component - IP: %s:%s\n") % (component, IP, PORT)
+	print ("Unblock %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(remove_string)
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
@@ -653,32 +624,54 @@ def listStatusComponentIP(component):
 	# show list
 	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
+	
+def obtainNumberOfFiles(path):
+	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
+	#this prints them all then counts the number of lines
+	#'wc' program does counting
+	#number = 0
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = subprocess("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l")
+	#subprocess.check_output = check_output
+	#number = subprocess.check_output('ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l')
+	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
+	#command ('14549', the wc -l output
+	#path, dirs, files = os.walk(path).next()
+	#number = len(files)
+	#os.system("exit")
+	return (number)
 
 
 def mainMenu():
+	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
+	#this prints them all then counts the number of lines
+	#'wc' program does counting
 	global ENVIRONMENT
-	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	os.system('clear')
-	#print "Main menu for pipeline dependency component blocking and unblocking\n\n\n"
+	# os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28")
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
-	print "0. Graphite (%s:%s) status: %s\n" % (IPMAP["Graphite"], PORTMAP["Graphite"], GRS)
-	print "1. Fluent (%s:%s) status: %s\n" % (IPMAP["Fluent"], PORTMAP["Fluent"], FLS)
-	print "2. S3 (%s:%s) status: %s\n" % (IPMAP["S3"], PORTMAP["S3"], S3S)
-	#print "2. S3 (%s) status: %s\n" % (obtainIP("s3.amazon.com"), S3S)
-	print "3. HDFS (%s:%s) status: %s\n" % (IPMAP["HDFS"], PORTMAP["HDFS"], HDS)
-	print "4. API (%s:%s) status: %s\n" % (IPMAP["API"], PORTMAP["API"], APS)
-	print "5. Redis (%s:%s): status: %s\n" % (IPMAP["Redis"], PORTMAP["Redis"], RES)
-	print "6. Cassandra (%s:%s, %s:%s, %s:%s, %s:%s) status: %s\n"  % (IPMAP["Cassandra0"], \
-		PORTMAP["Cassandra0"], IPMAP["Cassandra1"], PORTMAP["Cassandra1"], IPMAP["Cassandra2"], \
-		PORTMAP["Cassandra2"], IPMAP["Cassandra3"], PORTMAP["Cassandra3"], CAS)
-	print "7. Key service (%s:%s) status: %s\n" % (IPMAP["Keyservice"], PORTMAP["Keyservice"], KES)
-	print "8. MySql (%s:%s) status: %s\n" % (IPMAP["Mysql"], PORTMAP["Mysql"], MYS)
-	print "9. Doc-Receiver (%s:%s) status: %s\n" % (IPMAP["Docreceiver"], PORTMAP["Docreceiver"], DRS)
+	print "Doc-Receiver Work Folder List\n"
+	#print "0. \n"
+	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#print "1. \n"
+	#print "2. \n"
+	#print "3. \n"
+	#print "4. \n"
+	
+	
+	# path, dirs, files = os.walk("/mnt/logs/apx-receiver").next()
+	# path, dirs, files = os.walk("/mnt/automation/dr/environmentalcomponentblocking").next()
+	print "1. /mnt/log/apx-receiver number of files: %s\n" % obtainNumberOfFiles("/mnt/log/apx-receiver")
+	#print "2. /var/run/apx-receiver.pid folder count: %s\n" % obtainNumberOfFiles("/var/run/apx-receiver.pid")
+	print "2. /tmp/apxqueue/buffer number of files: %s\n" % obtainNumberOfFiles("/tmp/apxqueue/buffer")
+	print "3. /user/apxqueue/receiver/batchname folder count: %s\n" % obtainNumberOfFiles("/user/apxqueue/receiver/batchname")
+	print "4. /stag2-coordinator.highpriority folder count: %s\n" % obtainNumberOfFiles("/stag2-coordinator.highpriority")
 	print "==========================================================================================="
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	print "==========================================================================================="
+
 	
 
 def checkForStatus(component, component_status):
@@ -704,41 +697,12 @@ def checkForStatus(component, component_status):
 #============== Start of the main body =======================================================================================	
 
 checkEnvironment()
-unblockAllBlockedIP()
 while True:
 	mainMenu()
-	print("Select '0-9' component, 'U' to Unblock-all, 'B' to Block-all or 'Q' to Quit: ")
+	print("Enter 'Q' to Quit: ")
 	n = getch()
 	if n.upper() == 'Q':
-		unblockAllBlockedIP()
 		break
-	if n.upper() == 'U':
-		unblockAllBlockedIP()
-	if n.upper() == 'B':
-		blockAllIPs()
-	if n == '0':
-		GRS = checkForStatus("Graphite", GRS)
-	if n == '1':
-		FLS = checkForStatus("Fluent", FLS)
-	if n == '2':
-		S3S = checkForStatus("S3", S3S)
-	if n == '3':
-		HDS = checkForStatus("HDFS", HDS)
-	if n == '4':
-		APS = checkForStatus("API", APS)
-	if n == '5':
-		RES = checkForStatus("Redis", RES)
-	if n == '6':
-		CAS = checkForStatus("Cassandra", CAS)
-	if n == '7':
-		KES = checkForStatus("Keyservice", KES)
-	if n == '8':
-		MYS = checkForStatus("Mysql", MYS)
-	if n == '9':
-		DRS = checkForStatus("Docreceiver", DRS)	
-	else:
-		mainMenu()
-	mainMenu()	
 
 #=============================================================================================================================
 

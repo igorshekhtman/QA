@@ -2,6 +2,7 @@ import pyhs2
 import os
 import time
 import datetime
+import calendar
 import sys
 import subprocess
 from time import gmtime, strftime, localtime
@@ -77,8 +78,9 @@ UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
 
+#================================================================================================
 #=== ORGID - ORGNAME MAP ========================================================================
-
+#================================================================================================
 ORGMAP = { \
 	"10000230":"Sutter Health", \
 	"10000232":"MMG", \
@@ -128,6 +130,8 @@ ORGMAP = { \
 	"__HIVE_DEFAULT_PARTITION__":"__HIVE_DEFAULT_PARTITION__", \
 	"None":"Missing Orgname", \
 }
+#===================================================================================
+#===================================================================================
 #===================================================================================
 
 def checkEnvironmentandReceivers():
@@ -198,9 +202,10 @@ def identifyReportDayandMonth():
 
 	DAY = CURDAY
 	MONTH = CURMONTH
+	MONTH_FMN=calendar.month_name[MONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
-	print ("DAY: %s, MONTH: %s, YEAR: %s\n") % (DAY, MONTH, YEAR)
-	#time.sleep(15)
+	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
+	#time.sleep(45)
 	
 
 def test(debug_type, debug_msg):
@@ -324,11 +329,16 @@ def removeHtmlTags(data):
 def careOptimizerErrors():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
+	#============================================================================
+	#================= LIST OF CARE OPTIMIZER ERRORS ============================
+	#============================================================================
 	major_error_list = [ \
 		'Unexpected error while preparing query', \
 		'Patient not found' \
 		]
-		
+	#============================================================================
+	#============================================================================
+	#============================================================================
 	
 	QUERY_DESC="""Error(s) summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
@@ -513,6 +523,9 @@ def uploadSummary(activity, summary_table_name, unique_id):
 def jobSummary():
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
+	jobs = 0
+	failedjobs = 0
+	succeededjobs = 0
 	print ("Jobs summary query ...\n")
 	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(job_id) as total, \
@@ -535,7 +548,9 @@ def jobSummary():
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
+		jobs = jobs + i[0]
 		if str(i[1]) == "error":
+			failedjobs = failedjobs + 1
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
 			if str(i[3]) in ORGMAP: 
@@ -549,9 +564,12 @@ def jobSummary():
 			if str(i[3]) in ORGMAP: 
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
-				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"		
+				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+	REPORT = REPORT+"<tr><td colspan='4' bgcolor='#4E4E4E' align='left'><font size='3' color='white'> \
+		"+str(jobs)+" - Total number of Jobs processed, out of which "+str(failedjobs)+" Failed and "+str(jobs-failedjobs)+" Succeeded \
+		</font></td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='5'><i>There were no Jobs</i></td></tr>"
+		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
 	
 
