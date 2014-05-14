@@ -25,6 +25,7 @@ print ("Version 1.1.1")
 #================================================================================================
 ORGMAP = { \
 	"190":"Test Org", \
+	"287":"Test Org", \
 	"10000230":"Sutter Health", \
 	"10000232":"MMG", \
 	"10000235":"GWU", \
@@ -90,7 +91,8 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-COMPONENT = "docreceiver"
+#COMPONENT = "docreceiver"
+COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
 #COMPONENT = "all"
@@ -352,8 +354,8 @@ def buildQuery(component, subcomp):
 			SELECT filetype, count(filetype) as qty_each \
 			FROM %s \
 			WHERE orgid=%s and \
-			((substr(datestamp,0,2)>=%s and substr(datestamp,4,2)>=%s) and \
-			(substr(datestamp,0,2)<=%s and substr(datestamp,4,2)<=%s)) \
+			((substr(datestamp,6,2)>=%s and substr(datestamp,9,2)>=%s) and \
+			(substr(datestamp,6,2)<=%s and substr(datestamp,9,2)<=%s)) \
 			GROUP BY filetype""" % (constructLogFileName(component), ORGID, STMON, STDAY, ENMON, ENDAY)
 		
 	if component == "docreceiver" and subcomp == "upload":
@@ -491,6 +493,7 @@ def runQueries(component, subcomp):
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0' cellpadding='2'>"
 	REPORT = REPORT+"<tr><td width='10%'>Doc Count:</td><td width='10%'>Status:</td><td width='80%'>Message:</td></tr>"	
 	ROW = 0
+	TOTAL = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
@@ -498,7 +501,9 @@ def runQueries(component, subcomp):
 		REPORT = REPORT+"<td>"+str(i[0])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
-		REPORT = REPORT+"</tr>"	
+		REPORT = REPORT+"</tr>"
+		TOTAL = TOTAL + int(i[0])
+	REPORT = REPORT+"<tr><td colspan='3'><b>"+str(TOTAL)+"</b> - Total number of documents</td></tr>"
 	
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='3'><i>There were no "+component+" "+subcomp+" logs</i></td></tr>"
