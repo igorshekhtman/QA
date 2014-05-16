@@ -88,11 +88,14 @@ if (len(sys.argv) > 2):
 else:
     RECEIVERS="eng@apixio.com"
 
-dev = "?category=dev"
-if (len(sys.argv) > 3) and str(sys.argv[3]) == "dev":
-    UPLOAD_URL += dev
-    UPLOAD_URL_2 += dev
-    CLOSE_URL += dev
+categoryURL = "?category="
+cat = "standard"
+if (len(sys.argv) > 3):
+    cat = str(sys.argv[3])
+    categoryURL += cat
+    UPLOAD_URL += categoryURL
+    UPLOAD_URL_2 += categoryURL
+    CLOSE_URL += categoryURL
 
 # ====================================================================================================
 
@@ -274,10 +277,11 @@ Subject: Pipeline QA Report %s batchID %s - %s
 Date & Time: <b>%s</b><br>
 Test type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
+Category: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, cat, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
