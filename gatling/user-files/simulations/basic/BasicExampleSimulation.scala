@@ -41,7 +41,7 @@ class BasicExampleSimulation extends Simulation {
         .get(login)
         .check(status.is(ok)))
       .pause(thinkTime)
-      .feed(csv("user_information.csv"))
+      .feed(csv("user_credentials.csv"))
       .exec(
         http("Submit login")
           .post(loginSubmit)
@@ -85,16 +85,21 @@ class BasicExampleSimulation extends Simulation {
       .exec( 
       http("Document retrieval text")
         .get("54.193.204.86:8085/document/${document_uuid}/text")
+        //f6bc5be1-fe39-4146-89d5-f3eb724d6591 - bad document
+        //2c10e935-ffe9-441e-a0b6-cf7aaa768063
+        //.get("54.193.204.86:8085/document/2c10e935-ffe9-441e-a0b6-cf7aaa768063/text")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
       .exec( 
       http("Document retrieval metadata")
         .get("54.193.204.86:8085/document/${document_uuid}/metadata")
+        //.get("54.193.204.86:8085/document/2c10e935-ffe9-441e-a0b6-cf7aaa768063/metadata")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
       .exec( 
       http("Document retrieval file")
         .get("54.193.204.86:8085/document/${document_uuid}/file")
+        //.get("54.193.204.86:8085/document/2c10e935-ffe9-441e-a0b6-cf7aaa768063/file")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
         // TODO: Add other data checks here, i.e. Content-Type and response length
@@ -105,11 +110,11 @@ class BasicExampleSimulation extends Simulation {
   // 30 users over 20 min
   // setUp(scn.inject(ramp(30 users) over (1200 seconds)))
   // 60 users over 10 min
-  //setUp(scn.inject(ramp(60 users) over (600 seconds)))
+  setUp(scn.inject(ramp(60 users) over (600 seconds)))
   // 30 users over 12 hours
   //setUp(scn.inject(ramp(30 users) over (43200 seconds)))
   // 3 users over 20 seconds
-  setUp(scn.inject(ramp(3 users) over (20 seconds)))
+  //setUp(scn.inject(ramp(3 users) over (20 seconds)))
   
     .protocols(http.baseURL("http://").disableFollowRedirect) // Note we can't use this because we use multiple services
     .assertions( // TODO: Fix, these are the assertions that came with the sample code
