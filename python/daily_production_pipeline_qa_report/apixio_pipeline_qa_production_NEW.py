@@ -51,7 +51,7 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=1
+DAYSBACK=3
 # DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
@@ -169,7 +169,7 @@ def checkEnvironmentandReceivers():
 
 				
 	# overwite any previous ENVIRONMENT settings
-	ENVIRONMENT = "Production"
+	#ENVIRONMENT = "Production"
 	print ("Version 1.0.1\n")
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")
@@ -253,7 +253,7 @@ def setHiveParameters():
 	print ("Completed assigning Hive paramaters ...\n")
 
 
-def obtainFailedJobs():
+def obtainFailedJobs(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	print ("Executing failed jobs query ...\n")
@@ -262,7 +262,7 @@ def obtainFailedJobs():
 		WHERE \
 		day=%s and month=%s and \
 		status = 'error' \
-		ORDER BY org_id ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
+		ORDER BY org_id ASC""" % (table, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
@@ -326,7 +326,7 @@ def removeHtmlTags(data):
     return p.sub('', data)
 	
 	
-def careOptimizerErrors():
+def careOptimizerErrors(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	#============================================================================
@@ -348,7 +348,7 @@ def careOptimizerErrors():
 		FROM %s \
 		WHERE day=%s and month=%s \
 		GROUP BY error_message \
-		ORDER BY count DESC""" %("summary_careopt_errors", DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -370,7 +370,7 @@ def careOptimizerErrors():
 	REPORT = REPORT+"</table><br>"
 
 
-def careOptimizerLoad():
+def careOptimizerLoad(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	
@@ -392,7 +392,7 @@ def careOptimizerLoad():
 		FROM %s \
 		WHERE day=%s and month=%s \
 		GROUP BY org_id \
-		ORDER BY max_load_time_seconds DESC""" %("summary_careopt_load", DAY, MONTH))
+		ORDER BY max_load_time_seconds DESC""" %(table, DAY, MONTH))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -424,7 +424,7 @@ def careOptimizerLoad():
 	REPORT = REPORT+"</table><br>"
 
 	
-def careOptimizerSearch():
+def careOptimizerSearch(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS	
 
@@ -445,7 +445,7 @@ def careOptimizerSearch():
 		FROM %s  \
 		WHERE day=%s and month=%s \
 		GROUP BY org_id, split(username, "_")[1] \
-		ORDER BY max_time DESC""" %("summary_careopt_search", DAY, MONTH))
+		ORDER BY max_time DESC""" %(table, DAY, MONTH))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -520,7 +520,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 	REPORT = REPORT+"</table><br>" 	
 
 
-def jobSummary():
+def jobSummary(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
 	jobs = 0
@@ -540,7 +540,7 @@ def jobSummary():
 		GROUP BY status, \
 		activity, \
 		org_id \
-		ORDER BY org_id, activity ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
+		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"		
@@ -574,13 +574,16 @@ def jobSummary():
 	
 
 def writeReportDetails():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, ENVIRONMENT
 	
 #============ 1st or Failed Jobs section of the report ======================
 	
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
 	COMPONENT_STATUS="PASSED"
-	obtainFailedJobs()
+	if ENVIRONMENT == "production":
+		obtainFailedJobs("summary_coordinator_jobfinish")
+	else:
+		obtainFailedJobs("summary_coordinator_jobfinish_staging")
 	if (COMPONENT_STATUS == "PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -592,13 +595,24 @@ def writeReportDetails():
 			
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
-	obtainErrors("DR","summary_docreceiver_upload", "doc_id")
-	obtainErrors("DR","summary_docreceiver_archive", "doc_id")
-	obtainErrors("DR","summary_docreceiver_seqfile", "doc_id")
-	obtainErrors("Parser","summary_parser", "doc_id")
-	obtainErrors("OCR","summary_ocr", "doc_id")
-	obtainErrors("Persist Mapper","summary_persist_mapper", "doc_id")
-	obtainErrors("Persist Reducer","summary_persist_reducer", "patient_uuid")
+	if ENVIRONMENT == "production":
+		obtainErrors("DR","summary_docreceiver_upload", "doc_id")
+		obtainErrors("DR","summary_docreceiver_archive", "doc_id")
+		obtainErrors("DR","summary_docreceiver_seqfile", "doc_id")
+		obtainErrors("Parser","summary_parser", "doc_id")
+		obtainErrors("OCR","summary_ocr", "doc_id")
+		obtainErrors("Persist Mapper","summary_persist_mapper", "doc_id")
+		obtainErrors("Persist Reducer","summary_persist_reducer", "patient_uuid")
+	else:
+		obtainErrors("DR","summary_docreceiver_upload_staging", "doc_id")
+		obtainErrors("DR","summary_docreceiver_archive_staging", "doc_id")
+		obtainErrors("DR","summary_docreceiver_seqfile_staging", "doc_id")
+		obtainErrors("Parser","summary_parser_staging", "doc_id")
+		obtainErrors("OCR","summary_ocr_staging", "doc_id")
+		obtainErrors("Persist Mapper","summary_persist_mapper_staging", "doc_id")
+		obtainErrors("Persist Reducer","summary_persist_reducer_staging", "patient_uuid")
+		
+		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -609,9 +623,15 @@ def writeReportDetails():
 	
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
-	uploadSummary("Doc-Receiver","summary_docreceiver_upload", "doc_id")
-	uploadSummary("OCR","summary_ocr", "doc_id")
-	uploadSummary("Persist Mapper","summary_persist_mapper", "doc_id")
+	if ENVIRONMENT == "production":
+		uploadSummary("Doc-Receiver","summary_docreceiver_upload", "doc_id")
+		uploadSummary("OCR","summary_ocr", "doc_id")
+		uploadSummary("Persist Mapper","summary_persist_mapper", "doc_id")
+	else:
+		uploadSummary("Doc-Receiver","summary_docreceiver_upload_staging", "doc_id")
+		uploadSummary("OCR","summary_ocr_staging", "doc_id")
+		uploadSummary("Persist Mapper","summary_persist_mapper_staging", "doc_id")
+		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -622,7 +642,10 @@ def writeReportDetails():
 	
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
-	jobSummary()
+	if ENVIRONMENT == "production":
+		jobSummary("summary_coordinator_jobfinish")
+	else:
+		jobSummary("summary_coordinator_jobfinish_staging")
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -633,9 +656,15 @@ def writeReportDetails():
 	
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
-	careOptimizerErrors()
-	careOptimizerLoad()
-	careOptimizerSearch()
+	if ENVIRONMENT == "production":
+		careOptimizerErrors("summary_careopt_errors")
+		careOptimizerLoad("summary_careopt_load")
+		careOptimizerSearch("summary_careopt_search")
+	else:
+		careOptimizerErrors("summary_careopt_errors_staging")
+		careOptimizerLoad("summary_careopt_load_staging")
+		careOptimizerSearch("summary_careopt_search_staging")
+		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -661,11 +690,11 @@ def writeReportFooter():
 
 
 def archiveReport():
-	global DEBUG_MODE
+	global DEBUG_MODE, ENVIRONMENT
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -675,7 +704,7 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(DAY)+".html"
-		REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTSTRING="Daily "+ENVIRONMENT+" Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="reports.txt"
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		os.chdir(BACKUPREPORTFOLDER)
