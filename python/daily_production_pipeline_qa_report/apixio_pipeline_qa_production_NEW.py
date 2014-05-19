@@ -51,7 +51,7 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=3
+DAYSBACK=1
 # DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
@@ -143,7 +143,7 @@ def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
-		ENVIRONMENT="Staging"
+		ENVIRONMENT="staging"
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 
@@ -152,11 +152,13 @@ def checkEnvironmentandReceivers():
 		ORGID="10000279"
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com:8443"
+		ENVIRONMENT = "production"
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
 		PASSWORD="Hadoop.4522"
 		HOST="https://supload.apixio.com:8443"
+		ENVIRONMENT = "staging"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -704,7 +706,7 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(DAY)+".html"
-		REPORTXTSTRING="Daily "+ENVIRONMENT+" Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="reports.txt"
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		os.chdir(BACKUPREPORTFOLDER)
