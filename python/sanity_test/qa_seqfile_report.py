@@ -20,6 +20,19 @@ import uuid
 os.system('clear')
 
 # /mnt/automation; python2.6 qa_seqfile_report.py $BATCH $MONTH1 $MONTH2 $DAY1 $DAY2 $TYPE $ORG $MAILTO
+reportHead = """From: Apixio QA <QA@apixio.com>
+To: Engineering <%s>
+MIME-Version: 1.0
+Content-type: text/html
+Subject: Pipeline QA Batch Report %s
+
+<h1>Apixio Pipeline QA Report</h1>
+Month(s): <b>%s (-%s)</b><br>
+Day(s): <b>%s (-%s)</b><br>
+Enviromnent: <b>%s</b><br>
+OrgID: <b>%s</b><br>
+BatchID: <b>%s</b><br>
+"""
 
 if len(sys.argv) < 8 :
     print "ERROR: Missing Required Arguments"
@@ -40,19 +53,7 @@ else :
     
     qaFromSeqFile = environment.lower() + "_logs_qafromseqfile_epoch"
 
-    report = """From: Apixio QA <QA@apixio.com>
-    To: Engineering <%s>
-    MIME-Version: 1.0
-    Content-type: text/html
-    Subject: Pipeline QA Batch Report %s
-    
-    <h1>Apixio Pipeline QA Report</h1>
-    Month(s): <b>%s (-%s)</b><br>
-    Day(s): <b>%s (-%s)</b><br>
-    Enviromnent: <b>%s</b><br>
-    OrgID: <b>%s</b><br>
-    BatchID: <b>%s</b><br>
-    """ % (mailto, environment, startMonth, endMonth, startDay, endDay, environment, org, batch)
+    report = reportHead % (mailto, environment, startMonth, endMonth, startDay, endDay, environment, org, batch)
 
     passed = "<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
     failed = "<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
