@@ -430,7 +430,7 @@ def buildQuery(component, subcomp):
 			month>=%s and day>=%s and \
 			month<=%s and day<=%s \
 			ORDER BY \
-			ind_files, message, status ASC;)""" % \
+			ind_files, message, status ASC""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 
 	if component == "coordinator":
