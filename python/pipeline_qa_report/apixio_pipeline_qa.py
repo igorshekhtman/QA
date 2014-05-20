@@ -91,8 +91,8 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-#COMPONENT = "docreceiver"
-COMPONENT = "indexer"
+COMPONENT = "docreceiver"
+#COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
 #COMPONENT = "all"
@@ -351,7 +351,7 @@ def buildQuery(component, subcomp):
 	logfile =(constructLogFileName(component))
 	if component == "indexer":
 		query="""\
-			SELECT filetype, count(filetype) as qty_each \
+			SELECT count(filetype) as qty_each, filetype \
 			FROM %s \
 			WHERE orgid=%s and \
 			((substr(datestamp,6,2)>=%s and substr(datestamp,9,2)>=%s) and \
@@ -500,7 +500,10 @@ def runQueries(component, subcomp):
 		REPORT = REPORT+"<tr>"
 		REPORT = REPORT+"<td>"+str(i[0])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		if component <> "indexer":
+			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		else:
+			REPORT = REPORT+"<td></td>"
 		REPORT = REPORT+"</tr>"
 		TOTAL = TOTAL + int(i[0])
 	REPORT = REPORT+"<tr><td colspan='3'><b>"+str(TOTAL)+"</b> - Total number of documents</td></tr>"

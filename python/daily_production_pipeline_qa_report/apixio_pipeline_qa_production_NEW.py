@@ -422,7 +422,7 @@ def careOptimizerLoad(table):
 		REPORT = REPORT+"<td>"+str(i[10])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[11])+"</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='12'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 	
@@ -478,7 +478,7 @@ def careOptimizerSearch(table):
 		REPORT = REPORT+"<td>"+FORMATEDTIME2+"</td></tr>"
 			
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 def uploadSummary(activity, summary_table_name, unique_id):
