@@ -26,6 +26,7 @@ print ("Version 1.1.1")
 ORGMAP = { \
 	"190":"Test Org", \
 	"287":"Test Org", \
+	"277":"Test Org", \
 	"10000230":"Sutter Health", \
 	"10000232":"MMG", \
 	"10000235":"GWU", \
@@ -92,10 +93,12 @@ LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
 #COMPONENT = "docreceiver"
-COMPONENT = "indexer"
+#COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
-#COMPONENT = "all"
+#COMPONENT = "persistjob"
+COMPONENT = "all"
+
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
@@ -248,6 +251,7 @@ def constructLogFileName(component):
 		logfilename="indexer_manifest_epoch"
 	else:
 		logfilename=ENVIRONMENT.lower()+"_logs_"+component+"_"+LOGTYPE
+	#print (logfilename)
 	return(logfilename)
 	
 		
@@ -351,7 +355,7 @@ def buildQuery(component, subcomp):
 	logfile =(constructLogFileName(component))
 	if component == "indexer":
 		query="""\
-			SELECT filetype, count(filetype) as qty_each \
+			SELECT count(filetype) as qty_each, filetype \
 			FROM %s \
 			WHERE orgid=%s and \
 			((substr(datestamp,6,2)>=%s and substr(datestamp,9,2)>=%s) and \
@@ -465,9 +469,63 @@ def buildQuery(component, subcomp):
 			get_json_object(line, '$.status'), \
 			get_json_object(line, '$.error.message')""" %\
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
-		
-		
+			
+	if component == "ocrjob":
+		query="""\
+			SELECT \
+			count(DISTINCT get_json_object(line, '$.documentuuid')) as  count, \
+			get_json_object(line, '$.status') as status, \
+			get_json_object(line, '$.error.message') as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.orgId') = '%s' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.status'), \
+			get_json_object(line, '$.error.message')""" %\
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)		
 	
+	if component == "persistjob" and subcomp == "mapper":
+		query="""\
+			SELECT \
+			count(DISTINCT get_json_object(line, '$.documentuuid')) as doc_count, \
+			get_json_object(line, '$.status') as status, \
+			get_json_object(line, '$.error.message') as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') != 'INFO' and \
+			get_json_object(line, '$.className') like '%%PersistMapper' and \
+			get_json_object(line, '$.orgId') = '%s' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.status'), \
+			get_json_object(line, '$.error.message')""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
+	
+	if component == "persistjob" and subcomp == "reducer":
+		query="""\
+			SELECT \
+			count(*) as doc_count, \
+			get_json_object(line, '$.status') as status, \
+			get_json_object(line, '$.error.message') as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line, '$.level') != 'INFO' and \
+			get_json_object(line, '$.className') = 'PersistReducer' and \
+			get_json_object(line, '$.jobname') like '%s%%' and \
+			month>=%s and day>=%s and \
+			month<=%s and day<=%s \
+			GROUP BY \
+			get_json_object(line, '$.status'), \
+			get_json_object(line, '$.error.message')""" % \
+			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)			
+				
+			
+	
+	#print (query)
+	print (component)
 	return(query)
 	
 
@@ -500,7 +558,10 @@ def runQueries(component, subcomp):
 		REPORT = REPORT+"<tr>"
 		REPORT = REPORT+"<td>"+str(i[0])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		if component <> "indexer":
+			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		else:
+			REPORT = REPORT+"<td></td>"
 		REPORT = REPORT+"</tr>"
 		TOTAL = TOTAL + int(i[0])
 	REPORT = REPORT+"<tr><td colspan='3'><b>"+str(TOTAL)+"</b> - Total number of documents</td></tr>"
@@ -533,21 +594,19 @@ def wrtRepDtls():
 		runQueries(COMPONENT, "mapper")
 		runQueries(COMPONENT, "reducer")
 	elif COMPONENT.upper() == "ALL":
-		for COMP in COMPLIST:
-			if COMP == "docreceiver":
-				runQueries(COMPONENT, "upload")
-				runQueries(COMPONENT, "archive")
-				runQueries(COMPONENT, "seqfile")
-				runQueries(COMPONENT, "submit")
-			elif COMP == "persistjob":
-				runQueries(COMPONENT, "mapper")
-				runQueries(COMPONENT, "reducer")
-			else:
-				runQueries(COMPONENT, "")		
+		runQueries("indexer", "")
+		runQueries("docreceiver", "upload")
+		runQueries("docreceiver", "archive")
+		runQueries("docreceiver", "seqfile")
+		runQueries("docreceiver", "submit")
+		runQueries("coordinator", "")
+		runQueries("parserjob", "")
+		runQueries("ocrjob", "")
+		runQueries("persistjob", "mapper")
+		runQueries("persistjob", "reducer")	
 	else:
 		runQueries(COMPONENT, "")
 		
-
 
 
 def closeHiveConnct():
