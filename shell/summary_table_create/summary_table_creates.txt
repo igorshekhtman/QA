@@ -1,3 +1,4 @@
+/**********************************Doc Receiver*********************************************************************************/
 create table summary_docreceiver_archive 
 (time string, doc_id string, batch_id string, file_size int, status string, archive_time int, error_message string)
 partitioned by (month STRING, day STRING, org_id STRING)
@@ -14,6 +15,7 @@ create table summary_docreceiver_seqfile_post
 (time string, seqfile_path string, num_seq_files int, seqfile_size int, num_docs int, batch_id string, redis_queue_name string, status string, error_message string)
 partitioned by (month STRING, day STRING, org_id STRING)
 
+/**********************************Coordinator*********************************************************************************/
 create table summary_coordinator_workrequest
 (time string, batch_id string, source_dir string, seqfile string, dest_dir string, work_id string)
 partitioned by (month STRING, day STRING, org_id STRING)
@@ -39,6 +41,7 @@ create table summary_coordinator_stats
 (time string, stats_json string) 
 partitioned by (month STRING, day STRING)
 
+/**********************************Hadoop Jobs*********************************************************************************/
 create table summary_afsdownload
 (time string, doc_id string, status string, download_time int, job_id string, work_id string, 
 hadoopjob_id string, seqfilename string, error_message string)
@@ -72,6 +75,7 @@ create table summary_qapatientuuid
 (time string, job_id string, work_id string, status string, username string, patient_uuids string, patient_key string, patient_info string)
 partitioned by (month STRING, day STRING, org_id STRING)
 
+/**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
 partitioned by (org_id string, month string, day string);
@@ -83,5 +87,9 @@ partitioned by (org_id string, month string, day string);
 create table summary_careopt_errors
 (time string, error_message string, source string)
 partitioned by (month string, day string);
+
+create table summary_careopt_login
+(time string, username string, user_id string, status string, user_agent string, hostname string, processTime int, event string, remote_address string)
+partitioned by (org_id string, month string, day string);
 
 _staging is appended to every table of staging
