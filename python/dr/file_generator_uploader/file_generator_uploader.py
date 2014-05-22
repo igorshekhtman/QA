@@ -36,6 +36,8 @@ UPLOAD_TIME_LIMIT = 1
 DOCUMENTCOUNTER = 0
 EXPECTED_CODE = "200"
 
+#LOGFILE = ""
+
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
 TEST_TYPE="LoadTesting"
@@ -252,7 +254,7 @@ def uploadDocument():
 def storeUUID():
 	global obju, bufu, UUID
 	obju=json.loads(bufu.getvalue())
-	UUID=obju["uuid"]	
+	UUID=obju["uuid"]
 	print ("Document UUID: %s" % (UUID))
 	
 
@@ -669,8 +671,12 @@ def archiveReport():
 
 # ===================================================================================================================================
 
-
-
+#def archiveLogs():
+#	global LOGFILENAME, LOGFILE, LOGFILEFOLDER, BATCHID
+#	print ("Archiving logfile ...\n")
+#	LOGFILENAME = "uploader_log_"+BATCHID".txt"
+#	LOGFILEFOLDER = "/mnt/automation/dr/file_generator_uploader"
+#	print ("Completed archiving logfile ...\n")
 
 #====================================================================================================================================	
 #===================== Start of the main body =======================================================================================
@@ -680,7 +686,8 @@ checkEnvironment()
 #writeReportHeader()
 getUserData()
 storeToken()
-obtainStaticPatientInfo("Positive", "Test")
+#used later as a prefix for First and Last name of the new patient
+obtainStaticPatientInfo("DRStress", "Test")
 
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
@@ -688,8 +695,8 @@ for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	uploadDocument()
 	storeUUID()
 closeBatch()
-#if ENVIRONMENT == "Staging":
-	#transmitManifest()
+if ENVIRONMENT.upper() == "STAGING":
+	transmitManifest()
 
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 #connectToHive()
