@@ -24,6 +24,17 @@ os.system('clear')
 #
 # Send report emails and archive report html file
 DEBUG_MODE=bool(1)
+# specific number of documents to push to Doc-Receiver
+NUMBER_OF_DOCS_TO_UPLOAD = 10
+# size of each uploaded document in Kb
+DOCUMENT_SIZE = 10
+# number of active threads pushing documents to DR
+NUMBER_OF_ACTIVE_THREADS = 5
+# time limit in seconds for how long to keep uploading data
+UPLOAD_TIME_LIMIT = 1
+# count of how many documents were actually pushed to DR
+DOCUMENTCOUNTER = 0
+EXPECTED_CODE = "200"
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
@@ -35,7 +46,6 @@ QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 REPORT = ""
 RETURNCODE = ""
-DOCUMENTCOUNTER = 0
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -69,20 +79,6 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #
 #================================ DOC-RECEIVER LOAD TESTING COMPONENTS =========================================================================
 #
-# 
-# =====================================================================================================================
-
-
-IPMAP = { \
-	"Hive":"10.196.47.205", \
-	"Fluent":"10.222.103.158", \
-	"Redis":"10.222.103.158", \
-	"Graphite":"10.160.150.32", \
-	"Mysql":"10.174.121.164", \
-	"Keyservice":"184.169.153.214", \
-	"API":"10.198.43.98" \
-}
-#===========================================================================================================================================================
 
 def checkEnvironment():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
@@ -100,13 +96,13 @@ def checkEnvironment():
 	else:
 		#USERNAME="apxdemot0182"
 		#ORGID="190"
-		USERNAME="apxdemot0240"
-		ORGID="251"
+		USERNAME="apxdemot0271"
+		ORGID="291"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		HOST="https://supload.apixio.com:8443"
+		# HOST="https://supload.apixio.com:8443"
 		# alternative staging DR upload url
-		#HOST="https://supload2.apixio.com:8443"
+		HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
@@ -624,38 +620,6 @@ def runHiveQueries ():
 		#	REPORT = REPORT+FAILED
 		REPORT = REPORT+"<br><br>"
 		
-	
-	
-
-def clearAllBlockedIP():
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
-
-def blockComponentIP(component):
-	IP = IPMAP[str(component)]
-	print ("Block %s component - IP: %s\n") % (component, IP)
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
-	os.system(add_string)
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)	
-
-def unblockComponentIP(component):
-	IP = IPMAP[str(component)]
-	print ("Unblock %s component - IP: %s\n") % (component, IP)
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
-	os.system(remove_string)
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
 
@@ -704,44 +668,37 @@ def archiveReport():
 
 
 
-	
-#============== Start of the main body =======================================================================================	
+#====================================================================================================================================	
+#===================== Start of the main body =======================================================================================
+#====================================================================================================================================
 
 checkEnvironment()
-writeReportHeader()
-
-#======= CASE #1 Upload Performance Test =====================================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 1000
-EXPECTED_CODE = "200"
-#TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
-
+#writeReportHeader()
 getUserData()
 storeToken()
 obtainStaticPatientInfo("Positive", "Test")
+
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
 	uploadDocument()
 	storeUUID()
 closeBatch()
-if ENVIRONMENT == "Staging":
-	transmitManifest()
+#if ENVIRONMENT == "Staging":
+	#transmitManifest()
 
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-connectToHive()
-setHiveParameters()
+#connectToHive()
+#setHiveParameters()
 # wait for PAUSE_LIMIT seconds
-PAUSE_LIMIT=20
-print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
-time.sleep(PAUSE_LIMIT)
+#PAUSE_LIMIT=20
+#print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
+#time.sleep(PAUSE_LIMIT)
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-runHiveQueries()
-closeHiveConnection()
-
-#===============================================================================================
+#runHiveQueries()
+#closeHiveConnection()
 
 # test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
-writeReportFooter()
-emailReport()
-if not DEBUG_MODE:
-	archiveReport()
+#writeReportFooter()
+#emailReport()
+#archiveReport()
