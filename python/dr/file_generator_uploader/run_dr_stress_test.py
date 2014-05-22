@@ -81,7 +81,7 @@ def upload():
 
 threads = []
 
-for n in range(10):
+for n in range(30):
     thread = threading.Thread(target=upload)
     thread.start()
 

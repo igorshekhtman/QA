@@ -25,7 +25,7 @@ os.system('clear')
 # Send report emails and archive report html file
 DEBUG_MODE=bool(1)
 # specific number of documents to push to Doc-Receiver
-NUMBER_OF_DOCS_TO_UPLOAD = 10
+NUMBER_OF_DOCS_TO_UPLOAD = 100
 # size of each uploaded document in Kb
 DOCUMENT_SIZE = 10
 # number of active threads pushing documents to DR
