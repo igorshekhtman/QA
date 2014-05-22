@@ -83,27 +83,31 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 def checkEnvironment():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
-	# Arg2 - report recepient
+	# Arg2 - username
+	# Arg3 - orgID
+	# Arg4 - # of documents to upload
+	
 	global USERNAME, ORGID, PASSWORD, HOST, BATCHID, TOKEN_URL, UPLOAD_URL
 	global BATCH, DRBATCH, MANIFEST_FILENAME, RECEIVERS, RECEIVERS_HTML
-	global ENVIRONMENT
+	global ENVIRONMENT, NUMBER_OF_DOCS_TO_UPLOAD
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
-		USERNAME="apxdemot0138"
-		ORGID="10000279"
+		USERNAME=str(sys.argv[2])
+		ORGID=str(sys.argv[3])
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT="Production"
 	else:
 		#USERNAME="apxdemot0182"
 		#ORGID="190"
-		USERNAME="apxdemot0271"
-		ORGID="291"
+		USERNAME=str(sys.argv[2])
+		ORGID=str(sys.argv[3])
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
 		# HOST="https://supload.apixio.com:8443"
 		# alternative staging DR upload url
 		HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
+	NUMBER_OF_DOCS_TO_UPLOAD = int(sys.argv[4])	
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
 	BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID

@@ -25,8 +25,8 @@ os.system('clear')
 #
 #================================== INITIALIZING AND ASSIGN GLOBAL VARIABLES ============================================================================
 #
-THREADS = 10
-DOCUMENTS = 10
+THREADS = 1
+DOCUMENTS = 1
 USERNAME = "apxdemot0271"
 ORGID = "291"
 ENVIRONMENT = "Staging"
@@ -63,7 +63,7 @@ print ("Total number of threads: %s\n") % (THREADS)
 try:
 	DOCUMENTS = int(raw_input("Enter number of documents (default "+str(DOCUMENTS)+"): "))
 except ValueError:
-	print ("That was not a number. Assigning default value of 10")
+	print ("That was not a number. Assigning default value of 1")
 print ("Total number of documents: %s\n") % (DOCUMENTS)
 #
 #================================== EXECUTING DOC RECEIVER STRESS TEST ==================================================================================
@@ -73,15 +73,15 @@ print ("Total number of documents: %s\n") % (DOCUMENTS)
 	
 def upload():
 
-	subprocess.call("python2.6 file_generator_uploader.py", shell=True)
+	subprocess.call("python2.6 file_generator_uploader.py "+str(ENVIRONMENT)+" "+str(USERNAME)+" "+str(ORGID)+" "+str(DOCUMENTS)+"", shell=True)
     #data = urllib2.urlopen("http://www.google.com/").read()
-	print "python2.6 file_generator_uploader.py"	
+	print "python2.6 file_generator_uploader.py "+str(ENVIRONMENT)+" "+str(USERNAME)+" "+str(ORGID)+" "+str(DOCUMENTS)+""	
 	
 	
 
 threads = []
 
-for n in range(30):
+for n in range(THREADS):
     thread = threading.Thread(target=upload)
     thread.start()
 
