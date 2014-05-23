@@ -36,6 +36,8 @@ UPLOAD_TIME_LIMIT = 1
 DOCUMENTCOUNTER = 0
 EXPECTED_CODE = "200"
 LOGDATA = ""
+RTDATA = ""
+
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
@@ -139,7 +141,7 @@ def test(debug_type, debug_msg):
 	global LOGDATA, RETURNCODE
 	if debug_msg[ :4] == "HTTP" :
 		RETURNCODE = debug_msg[9: ]
-		LOGDATA = LOGDATA + str(RETURNCODE)
+		#LOGDATA = LOGDATA + str(RETURNCODE)
 		print ("RETURN CODE: %s") % RETURNCODE
 
 		
@@ -676,19 +678,22 @@ def archiveReport():
 
 def archiveLogs():
 	global LOGFILENAME, LOGDATA, LOGFILEFOLDER, BATCHID, THREAD_NUMBER
+	global RTFILENAME, RTDATA, RTFILEFOLDER, UUID
 	print ("Archiving logfile ...\n")
-	#a=datetime.now()
-	#LOGFILENAME = "uploader_log_"+str(BATCHID)+"_"+str(a.microsecond)+".txt"
-	#LOGFILENAME = "uploader_log_"+str(BATCHID)+".txt"
-	#milliseconds=strftime("%f", gmtime())
 	milliseconds = datetime.datetime.now().strftime("%f")
+	RTFILENAME = "failed_log_"+str(BATCHID)+"_"+str(milliseconds)+".txt"
+	RTFILEFOLDER = "/mnt/automation/dr/file_generator_uploader/logs"
 	LOGFILENAME = "uploader_log_"+str(BATCHID)+"_"+str(milliseconds)+".txt"
 	LOGFILEFOLDER = "/mnt/automation/dr/file_generator_uploader/logs"
 	os.chdir(LOGFILEFOLDER)
-	
 	LOGFILE = open(LOGFILENAME, 'w')
 	LOGFILE.write(LOGDATA)
 	LOGFILE.close()
+	if RTDATA != "":
+		os.chdir(RTFILEFOLDER)
+		RTFILE = open(RTFILENAME, 'w')
+		RTFILE.write(RTDATA)
+		RTFILE.close()
 	print ("Completed archiving logfile ...\n")
 
 #====================================================================================================================================	
@@ -709,13 +714,21 @@ for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	# time.sleep(25)
 	# while (int(RETURNCODE[:3]) <> 200) or (int(RETURNCODE[:3]) <> 100):
 	uploadDocument()
+	LOGDATA = LOGDATA + str(RETURNCODE[:3]) + "\n"
 	print (RETURNCODE[:3])
 	# Retry uploading until Success or 200
-	while RETURNCODE[:3] != "200":
+	retry_limit = 50
+	cntr = 0
+	#while (RETURNCODE[:3] != "200") and (cntr < retry_limit):
+	while (RETURNCODE[:3] != "200"):
+		#cntr = cntr + 1
+		#RTDATA = RTDATA + str(UUID) + "\n"
+		#RTDATA = RTDATA + "failure code: "+ str(RETURNCODE[:3]) + "  number of re-tries: " + cntr + "\n"
+		RTDATA = RTDATA + str(RETURNCODE[:3]) + "\n"
 		uploadDocument()
-	
-	#time.sleep(25)
+		
 	storeUUID()
+	
 closeBatch()
 archiveLogs()
 #if ENVIRONMENT.upper() == "STAGING":
