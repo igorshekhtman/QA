@@ -363,9 +363,9 @@ def careOptimizerErrors(table):
 		FORMATEDTIME1 = DT.datetime.strptime(str(i[1])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		FORMATEDTIME2 = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		if any((str(i[0])[:15]) in s for s in major_error_list):
-			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+removeHtmlTags(str(i[0]))+"</td><td bgcolor='#FFFF00'>"+FORMATEDTIME1+"</td><td bgcolor='#FFFF00'>"+FORMATEDTIME2+"</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+removeHtmlTags(str(i[0]))+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td>"+str(i[3])+"</td><td>"+removeHtmlTags(str(i[0]))+"</td><td>"+FORMATEDTIME1+"</td><td>"+FORMATEDTIME2+"</td></tr>"
+			REPORT = REPORT+"<tr><td>"+str(i[3])+"</td><td>"+removeHtmlTags(str(i[0]))+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"

@@ -35,8 +35,7 @@ UPLOAD_TIME_LIMIT = 1
 # count of how many documents were actually pushed to DR
 DOCUMENTCOUNTER = 0
 EXPECTED_CODE = "200"
-
-#LOGFILE = ""
+LOGDATA = ""
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
@@ -47,7 +46,7 @@ SUBHDR = "<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='
 QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 REPORT = ""
-RETURNCODE = ""
+RETURNCODE = "200"
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -91,7 +90,7 @@ def checkEnvironment():
 	
 	global USERNAME, ORGID, PASSWORD, HOST, BATCHID, TOKEN_URL, UPLOAD_URL
 	global BATCH, DRBATCH, MANIFEST_FILENAME, RECEIVERS, RECEIVERS_HTML
-	global ENVIRONMENT, NUMBER_OF_DOCS_TO_UPLOAD
+	global ENVIRONMENT, NUMBER_OF_DOCS_TO_UPLOAD, THREAD_NUMBER, LOGDATA
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 		USERNAME=str(sys.argv[2])
 		ORGID=str(sys.argv[3])
@@ -109,24 +108,26 @@ def checkEnvironment():
 		# alternative staging DR upload url
 		HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
-	NUMBER_OF_DOCS_TO_UPLOAD = int(sys.argv[4])	
+	NUMBER_OF_DOCS_TO_UPLOAD = int(sys.argv[4])
+	#THREAD_NUMBER = int(sys.argv[5])
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
 	BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	MANIFEST_FILENAME=BATCH+"_manifest.txt"
 	
-	if (len(sys.argv) > 2):
-		RECEIVERS=str(sys.argv[2])
-		RECEIVERS_HTML="""To: Igor <%s>\n""" % str(sys.argv[2])
-	else:
-		RECEIVERS="ishekhtman@apixio.com"
-		RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
+	#if (len(sys.argv) > 2):
+	#	RECEIVERS=str(sys.argv[2])
+	#	RECEIVERS_HTML="""To: Igor <%s>\n""" % str(sys.argv[2])
+	#else:
+	#	RECEIVERS="ishekhtman@apixio.com"
+	#	RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 	
 	print ("ENVIRONMENT = %s") % ENVIRONMENT
-	print ("RECEIVERS = %s") % RECEIVERS
-	print ("RECEIVERS_HTML = %s") % RECEIVERS_HTML
-	# time.sleep(15)
+	#print ("RECEIVERS = %s") % RECEIVERS
+	#print ("RECEIVERS_HTML = %s") % RECEIVERS_HTML
+	print ("NUMBER_OF_DOCS_TO_UPLOAD = %s") % NUMBER_OF_DOCS_TO_UPLOAD
+	#time.sleep(15)
 	
 
 
@@ -135,10 +136,11 @@ def checkEnvironment():
 	
 	
 def test(debug_type, debug_msg):
-	global RETURNCODE
+	global LOGDATA, RETURNCODE
 	if debug_msg[ :4] == "HTTP" :
 		RETURNCODE = debug_msg[9: ]
-		print ("RETURN CODE: %s") % RETURNCODE		
+		LOGDATA = LOGDATA + str(RETURNCODE)
+		print ("RETURN CODE: %s") % RETURNCODE
 
 		
 def getUserData():
@@ -247,14 +249,15 @@ def uploadDocument():
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()	
 
-	MANIFEST_FILE=MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
+	MANIFEST_FILE = MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 	print ("End uploading to DR ...\n")	
 	print ("Total number of documents uploaded: %s\n" % (DOCUMENTCOUNTER))
 
 def storeUUID():
-	global obju, bufu, UUID
+	global obju, bufu, UUID, LOGDATA
 	obju=json.loads(bufu.getvalue())
 	UUID=obju["uuid"]
+	LOGDATA = LOGDATA + str(UUID) + "\n"
 	print ("Document UUID: %s" % (UUID))
 	
 
@@ -671,12 +674,22 @@ def archiveReport():
 
 # ===================================================================================================================================
 
-#def archiveLogs():
-#	global LOGFILENAME, LOGFILE, LOGFILEFOLDER, BATCHID
-#	print ("Archiving logfile ...\n")
-#	LOGFILENAME = "uploader_log_"+BATCHID".txt"
-#	LOGFILEFOLDER = "/mnt/automation/dr/file_generator_uploader"
-#	print ("Completed archiving logfile ...\n")
+def archiveLogs():
+	global LOGFILENAME, LOGDATA, LOGFILEFOLDER, BATCHID, THREAD_NUMBER
+	print ("Archiving logfile ...\n")
+	#a=datetime.now()
+	#LOGFILENAME = "uploader_log_"+str(BATCHID)+"_"+str(a.microsecond)+".txt"
+	#LOGFILENAME = "uploader_log_"+str(BATCHID)+".txt"
+	#milliseconds=strftime("%f", gmtime())
+	milliseconds = datetime.datetime.now().strftime("%f")
+	LOGFILENAME = "uploader_log_"+str(BATCHID)+"_"+str(milliseconds)+".txt"
+	LOGFILEFOLDER = "/mnt/automation/dr/file_generator_uploader/logs"
+	os.chdir(LOGFILEFOLDER)
+	
+	LOGFILE = open(LOGFILENAME, 'w')
+	LOGFILE.write(LOGDATA)
+	LOGFILE.close()
+	print ("Completed archiving logfile ...\n")
 
 #====================================================================================================================================	
 #===================== Start of the main body =======================================================================================
@@ -692,11 +705,21 @@ obtainStaticPatientInfo("DRStress", "Test")
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
+	# print (RETURNCODE[:3])
+	# time.sleep(25)
+	# while (int(RETURNCODE[:3]) <> 200) or (int(RETURNCODE[:3]) <> 100):
 	uploadDocument()
+	print (RETURNCODE[:3])
+	# Retry uploading until Success or 200
+	while RETURNCODE[:3] != "200":
+		uploadDocument()
+	
+	#time.sleep(25)
 	storeUUID()
 closeBatch()
-if ENVIRONMENT.upper() == "STAGING":
-	transmitManifest()
+archiveLogs()
+#if ENVIRONMENT.upper() == "STAGING":
+#	transmitManifest()
 
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
 #connectToHive()
