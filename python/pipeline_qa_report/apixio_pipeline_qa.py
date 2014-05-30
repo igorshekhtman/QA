@@ -550,6 +550,8 @@ def runQueries(component, subcomp):
 	ROW = 0
 	TOTAL = 0
 	for i in cur.fetch():
+		if str(i[1]) == "error":
+			COMPONENT_STATUS = "FAILED"
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr>"
