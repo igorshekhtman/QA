@@ -1,3 +1,74 @@
+============== CASSANDRA 2.0 NODES =============================================
+
+prod internal new : 10.173.29.185, 10.174.49.107, 10.174.97.35, 10.173.31.128, 10.174.105.124, 10.174.70.255, 10.174.99.46, 10.174.117.71, 10.175.3.230
+prod extnernal new : 54.193.170.212, 184.169.240.114, 204.236.157.224, 184.169.212.169, 204.236.181.254, 50.18.97.112, 50.18.80.60, 54.215.89.24, 54.241.209.239
+
+
+staging internal 2.0 : 10.199.22.32, 10.199.52.19, 10.196.81.90
+staging external 2.0 : 54.193.157.129, 54.193.138.153, 54.219.9.237, 54.219.223.238, 54.219.113.21, 54.219.45.165
+
+================ HCC ============================================================
+
+https://hccstage.apixio.com/?status=R&reject_reason=1&flag_for_review=on&comment=qrtgeqrtttttqert#finding_coding/1686140
+
+
+
+
+
+
+
+Log blocker / critical tickets in Jira https://apixio.atlassian.net under the project HCC, be sure to add the Jira label "Scripps_Initiative"
+
+Igor, please 
+user: testuser10@apixio.net 
+pw:   user12
+
+Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
+
+
+================  API ============================================================
+
+./gatling.sh -s "basic.BasicExampleSimulation" -sd "test"
+
+
+ec2-54-219-117-239.us-west-1.compute.amazonaws.com
+
+For staging, you can use the sample Tomcat app to create users : 
+
+
+========== OLD ==============
+http://54.193.204.86:8079/
+========== NEW ==============
+http://50.18.147.10:8079/
+root@api.apixio.com
+thePassword
+apxdemot0001@apixio.net
+Hadoop....
+
+New User:
+change from:
+http://localhost:8079/uh/user/verify?l=Vc5578c69-c5cc-46b0-a6ea-30cc685aa2ed
+change to:
+http://54.193.204.86:8079/uh/user/verify?l=Vc5578c69-c5cc-46b0-a6ea-30cc685aa2ed
+
+
+
+https://github.com/excilys/gatling/wiki/First-Steps-with-Gatling
+
+
+val ip = "50.18.147.10"
+  
+val login = ip + ":8079"
+val loginSubmit = login + "/uh/login"
+val token = ip + ":8075/tokens"
+val document = ip + ":8085/document"
+val patient = ip + ":8085/patient"
+"50.18.147.10:8085/document/${document_uuid}/text"
+
+"54.193.204.86:8085/document/${document_uuid}/metadata"
+
+"50.18.147.10:8085/document/${document_uuid}/file"
+===================================================================================
 ps -ef | grep tomcat
 kill -9 `pid`
 service tomcat start
