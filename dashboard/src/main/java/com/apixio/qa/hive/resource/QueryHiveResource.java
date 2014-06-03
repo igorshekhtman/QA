@@ -146,7 +146,7 @@ public class QueryHiveResource
     @GET
     @Path("/json/{environment}/group/{groupName}")
     @Timed
-    public String runGroup(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
+    public String runGroup(@PathParam("environment") String environment, @PathParam("groupName") String groupName, @QueryParam("orgId") String orgId)
     {
         try
         {

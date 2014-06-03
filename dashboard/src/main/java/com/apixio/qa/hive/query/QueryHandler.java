@@ -57,7 +57,7 @@ public class QueryHandler
     
     public static void main(String[] args)
     {
-    	String hiveAddress = "jdbc:hive2://184.169.209.24:10000";
+        String hiveAddress = "jdbc:hive2://184.169.209.24:10000";
         Group groupToRun = QueryConfig.getQueryGroupByName("completeness");
         QueryHandler qh = new QueryHandler(hiveAddress);
         
@@ -94,6 +94,7 @@ public class QueryHandler
 
             try
             {
+                connection.createStatement().execute("set mapred.job.queue.name=hive");
                 PreparedStatement prepStatement = connection.prepareStatement(sql);
 
                 try
