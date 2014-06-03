@@ -76,6 +76,7 @@ DOCUMENTS_TO_OCR=0
 DOCUMENTS_TO_PERSIST=0
 
 MANIFEST_FILE=""
+GLOBAL_STATUS="success"
 
 # =================================================================================================================
 
@@ -458,9 +459,11 @@ if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 
 REPORT = REPORT+"<br><br>"
 
@@ -583,9 +586,11 @@ if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
@@ -627,9 +632,11 @@ if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"	
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
@@ -757,9 +764,11 @@ if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
@@ -827,9 +836,11 @@ if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
 
 # ===================================================================================================================================
@@ -898,9 +909,11 @@ if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
 else:
 	REPORT = REPORT+FAILED
 	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
 
 cur.close()
@@ -920,6 +933,12 @@ s=smtplib.SMTP()
 s.connect("smtp.gmail.com",587)
 s.starttls()
 s.login("donotreply@apixio.com", "apx.mail47")
-# s.sendmail(SENDER, RECEIVERS, CONTENT)	        
-s.sendmail(SENDER, RECEIVERS, REPORT)	
-print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
+# s.sendmail(SENDER, RECEIVERS, CONTENT)
+# send report only if failure occured
+if (GLOBAL_STATUS == "success"):
+	print "Status report was NOT emailed ...\n"
+	print "Sanity Test Passed ...\n"
+else:
+	s.sendmail(SENDER, RECEIVERS, REPORT)	
+	print "Report completed, email to %s ...\n" % (RECEIVERS)
+	print ">>>>>>>>>>> Sanity Test Failed <<<<<<<<<<<\n"

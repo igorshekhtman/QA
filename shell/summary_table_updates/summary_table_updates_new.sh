@@ -81,7 +81,7 @@ echo " "
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
-set mapred.job.queue.name=default;
+set mapred.job.queue.name=hive;
 set hive.exec.max.dynamic.partitions.pernode = 1000;
 
 
@@ -94,7 +94,15 @@ coalesce(get_json_object(line, '$.archive.afs.batchid'),get_json_object(line, '$
 coalesce(cast(get_json_object(line, '$.archive.afs.bytes') as int),cast(get_json_object(line, '$.archive.aps.bytes') as int)) as file_size,
 coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) as status,
 coalesce(cast(get_json_object(line, '$.archive.afs.millis') as int),cast(get_json_object(line, '$.archive.aps.millis') as int)) as archive_time,
+<<<<<<< HEAD
 get_json_object(line, '$.message') as error_message,
+=======
+if( coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null ) as error_message,
+>>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 month,
 day,
 coalesce(get_json_object(line, '$.archive.afs.orgid'),get_json_object(line, '$.archive.aps.orgid')) as org_id
@@ -108,11 +116,15 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
 get_json_object(line, '$.seqfile.file.document.batchid') as batch_id,
 cast(get_json_object(line, '$.seqfile.file.document.bytes') as int) as file_size,
-get_json_object(line, '$.seqfile.file.document.status') as status,
+get_json_object(line, '$.seqfile.file.add.status') as status,
 regexp_extract(get_json_object(line, '$.seqfile.file.add.directory'), '^.*?(\/user.*?)$',1) as seqfile_directory,
 regexp_replace(get_json_object(line, '$.seqfile.file.add.filename'), concat(get_json_object(line, '$.seqfile.file.add.directory'), '/'), '') as seqfile_file,
 cast(get_json_object(line, '$.seqfile.file.add.millis') as int) as seqfile_time,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.seqfile.file.add.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null ) as error_message,
 month,
 day,
 get_json_object(line, '$.seqfile.file.document.orgid') as org_id
@@ -130,7 +142,11 @@ get_json_object(line, '$.upload.document.status') as status,
 cast(get_json_object(line, '$.upload.document.millis') as int) as total_time,
 get_json_object(line, '$.upload.document.hash.sha1') as doc_hash,
 get_json_object(line, '$.upload.document.filetype') as file_type,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.upload.document.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null) as error_message,
 month,
 day,
 get_json_object(line, '$.upload.document.orgid') as org_id
@@ -148,7 +164,11 @@ cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
 get_json_object(line, '$.submit.post.batchid') as batch_id,
 get_json_object(line, '$.submit.post.queue.name') as redis_queue_name,
 get_json_object(line, '$.submit.post.status') as status,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.submit.post.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null) as error_message,
 month,
 day,
 get_json_object(line, '$.submit.post.orgid') as org_id
@@ -413,7 +433,7 @@ get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
-insert overwrite table summary_careopt_load partition (month, day)
+insert overwrite table summary_careopt_load partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patient.id') as patient_sql_id,
@@ -422,6 +442,7 @@ cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandr
 cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
 get_json_object(line, '$.hostname') as hostname,
 cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
+get_json_object(line, '$.patient.orgId') as org_id,
 month,
 day
 from 
@@ -430,7 +451,7 @@ where get_json_object(line, '$.patient.cassandraload.millis') is not null
 and ($dateRange);
 
 
-insert overwrite table summary_careopt_search partition (month, day)
+insert overwrite table summary_careopt_search partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
@@ -439,6 +460,7 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.patientaccess.org.id') as org_id,
 month,
 day
 from 
@@ -458,6 +480,45 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.level') = 'ERROR' 
 and ($dateRange);
 
+insert overwrite table summary_careopt_login partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.login.username') as username,
+get_json_object(line, '$.login.userId') as user_id,
+get_json_object(line, '$.login.status') as status,
+get_json_object(line, '$.login.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.login.millis') as int) as processTime,
+'login' as event,
+get_json_object(line, '$.login.remoteAddr') as remote_address,
+get_json_object(line, '$.login.orgId') as org_id,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.login') is not null 
+and ($dateRange);
+
+insert overwrite table summary_careopt_login partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.logout.username') as username,
+get_json_object(line, '$.logout.userId') as user_id,
+get_json_object(line, '$.logout.status') as status,
+get_json_object(line, '$.logout.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.logout.millis') as int) as processTime,
+'logout' as event,
+get_json_object(line, '$.logout.remoteAddr') as remote_address,
+get_json_object(line, '$.logout.orgId') as org_id,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.logout') is not null 
+and ($dateRange);
+
+###################################Staging#########################################################
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -466,7 +527,11 @@ get_json_object(line, '$.archive.afs.batchid') as batch_id,
 cast(get_json_object(line, '$.archive.afs.bytes') as int) as file_size,
 get_json_object(line, '$.archive.afs.status') as status,
 cast(get_json_object(line, '$.archive.afs.millis') as int) as archive_time,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.archive.afs.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null ) as error_message,
 month,
 day,
 get_json_object(line, '$.archive.afs.orgid') as org_id
@@ -480,11 +545,19 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
 get_json_object(line, '$.seqfile.file.document.batchid') as batch_id,
 cast(get_json_object(line, '$.seqfile.file.document.bytes') as int) as file_size,
+<<<<<<< HEAD
 get_json_object(line, '$.seqfile.file.document.status') as status,
+=======
+get_json_object(line, '$.seqfile.file.add.status') as status,
+>>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 regexp_extract(get_json_object(line, '$.seqfile.file.add.directory'), '^.*?(\/user.*?)$',1) as seqfile_directory,
 regexp_replace(get_json_object(line, '$.seqfile.file.add.filename'), concat(get_json_object(line, '$.seqfile.file.add.directory'), '/'), '') as seqfile_file,
 cast(get_json_object(line, '$.seqfile.file.add.millis') as int) as seqfile_time,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.seqfile.file.add.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null ) as error_message,
 month,
 day,
 get_json_object(line, '$.seqfile.file.document.orgid') as org_id
@@ -502,7 +575,11 @@ get_json_object(line, '$.upload.document.status') as status,
 cast(get_json_object(line, '$.upload.document.millis') as int) as total_time,
 get_json_object(line, '$.upload.document.hash.sha1') as doc_hash,
 get_json_object(line, '$.upload.document.filetype') as file_type,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.upload.document.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null) as error_message,
 month,
 day,
 get_json_object(line, '$.upload.document.orgid') as org_id
@@ -521,7 +598,11 @@ cast(get_json_object(line, '$.submit.post.apxfiles.count') as int) as num_docs,
 get_json_object(line, '$.submit.post.batchid') as batch_id,
 get_json_object(line, '$.submit.post.queue.name') as redis_queue_name,
 get_json_object(line, '$.submit.post.status') as status,
-get_json_object(line, '$.message') as error_message,
+if( get_json_object(line, '$.submit.post.status') != "success",
+if( get_json_object(line, '$.error.message') is not null,
+get_json_object(line, '$.error.message'),
+regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
+null) as error_message,
 month,
 day,
 get_json_object(line, '$.submit.post.orgid') as org_id
@@ -665,7 +746,9 @@ get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM staging_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
@@ -778,7 +861,7 @@ get_json_object(line, '$.orgId') as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
-insert overwrite table summary_careopt_load_staging partition (month, day)
+insert overwrite table summary_careopt_load_staging partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patient.id') as patient_sql_id,
@@ -787,6 +870,7 @@ cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandr
 cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
 get_json_object(line, '$.hostname') as hostname,
 cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
+get_json_object(line, '$.patient.orgId') as org_id,
 month,
 day
 from 
@@ -795,7 +879,7 @@ where get_json_object(line, '$.patient.cassandraload.millis') is not null
 and ($dateRange);
 
 
-insert overwrite table summary_careopt_search_staging partition (month, day)
+insert overwrite table summary_careopt_search_staging partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
@@ -804,6 +888,7 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.patientaccess.org.id') as org_id,
 month,
 day
 from 
@@ -821,6 +906,45 @@ day
 from 
 staging_logs_careopt_epoch 
 where get_json_object(line, '$.level') = 'ERROR' 
+and ($dateRange);
+
+
+insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.login.username') as username,
+get_json_object(line, '$.login.userId') as user_id,
+get_json_object(line, '$.login.status') as status,
+get_json_object(line, '$.login.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.login.millis') as int) as processTime,
+'login' as event,
+get_json_object(line, '$.login.remoteAddr') as remote_address,
+get_json_object(line, '$.login.orgId') as org_id,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.login') is not null 
+and ($dateRange);
+
+insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.logout.username') as username,
+get_json_object(line, '$.logout.userId') as user_id,
+get_json_object(line, '$.logout.status') as status,
+get_json_object(line, '$.logout.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.logout.millis') as int) as processTime,
+'logout' as event,
+get_json_object(line, '$.logout.remoteAddr') as remote_address,
+get_json_object(line, '$.logout.orgId') as org_id,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.logout') is not null 
 and ($dateRange);
 
 EOF

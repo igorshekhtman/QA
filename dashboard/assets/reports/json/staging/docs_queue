@@ -1,0 +1,8 @@
+{"org_id":"190","sent_to_ocr_count":8,"doc_count":0,"sent_to_persist_count":12,"activity":"ocr","sent_to_persist_byocr_count":0}
+{"org_id":"190","sent_to_ocr_count":0,"doc_count":82,"sent_to_persist_count":0,"activity":"parser","sent_to_persist_byocr_count":0}
+{"org_id":"190","sent_to_ocr_count":0,"doc_count":0,"sent_to_persist_count":10030,"activity":"persist","sent_to_persist_byocr_count":0}
+{"org_id":"230","sent_to_ocr_count":0,"doc_count":14,"sent_to_persist_count":0,"activity":"parser","sent_to_persist_byocr_count":0}
+{"org_id":"235","sent_to_ocr_count":2193,"doc_count":0,"sent_to_persist_count":1638,"activity":"persist","sent_to_persist_byocr_count":5513}
+{"org_id":"244","sent_to_ocr_count":0,"doc_count":14416,"sent_to_persist_count":0,"activity":"parser","sent_to_persist_byocr_count":0}
+{"org_id":"244","sent_to_ocr_count":0,"doc_count":0,"sent_to_persist_count":137817,"activity":"persist","sent_to_persist_byocr_count":0}
+{"org_id":"92","sent_to_ocr_count":0,"doc_count":0,"sent_to_persist_count":0,"activity":"persist","sent_to_persist_byocr_count":0}
