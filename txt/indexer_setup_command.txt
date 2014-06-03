@@ -1,3 +1,23 @@
+============================ Apixio Wicki Pages ===========================================================
+
+QA: https://sites.google.com/a/apixio.com/qa/hcc
+
+
+============================ API DATA ORCHESTRATOR =========================================================
+
+root@50.18.147.10
+50.18.147.10
+
+/mnt/log/apx-dataorchestrator/apx-dataorchestrator.log - log file location
+
+/usr/lib/apx-dataorchestrator/conf/
+
+
+
+============================================================================================================
+
+
+
 <<<<<<< HEAD
 
 https://reports.apixio.com/html/index.htm
