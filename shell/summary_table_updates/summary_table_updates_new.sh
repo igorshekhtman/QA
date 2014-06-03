@@ -94,15 +94,11 @@ coalesce(get_json_object(line, '$.archive.afs.batchid'),get_json_object(line, '$
 coalesce(cast(get_json_object(line, '$.archive.afs.bytes') as int),cast(get_json_object(line, '$.archive.aps.bytes') as int)) as file_size,
 coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) as status,
 coalesce(cast(get_json_object(line, '$.archive.afs.millis') as int),cast(get_json_object(line, '$.archive.aps.millis') as int)) as archive_time,
-<<<<<<< HEAD
-get_json_object(line, '$.message') as error_message,
-=======
 if( coalesce(get_json_object(line, '$.archive.afs.status'),get_json_object(line, '$.archive.aps.status')) != "success",
 if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null ) as error_message,
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 month,
 day,
 coalesce(get_json_object(line, '$.archive.afs.orgid'),get_json_object(line, '$.archive.aps.orgid')) as org_id
@@ -545,11 +541,7 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
 get_json_object(line, '$.seqfile.file.document.batchid') as batch_id,
 cast(get_json_object(line, '$.seqfile.file.document.bytes') as int) as file_size,
-<<<<<<< HEAD
-get_json_object(line, '$.seqfile.file.document.status') as status,
-=======
 get_json_object(line, '$.seqfile.file.add.status') as status,
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 regexp_extract(get_json_object(line, '$.seqfile.file.add.directory'), '^.*?(\/user.*?)$',1) as seqfile_directory,
 regexp_replace(get_json_object(line, '$.seqfile.file.add.filename'), concat(get_json_object(line, '$.seqfile.file.add.directory'), '/'), '') as seqfile_file,
 cast(get_json_object(line, '$.seqfile.file.add.millis') as int) as seqfile_time,
