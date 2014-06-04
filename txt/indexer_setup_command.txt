@@ -583,7 +583,7 @@ uploadurl=https://dr.apixio.com:8443/
 setting coordinator slot configuration
 
 Coordinator slot config:
-java com.apixio.coordinator.cmdline.SlotConfigTool --set “activity=1"
+java com.apixio.coordinator.cmdline.SlotConfigTool --set ï¿½activity=1"
 (check the config)
 java com.apixio.coordinator.cmdline.SlotConfigTool --listall
 [1:31:45 PM] Lilith Schneider: from bin after . setcp

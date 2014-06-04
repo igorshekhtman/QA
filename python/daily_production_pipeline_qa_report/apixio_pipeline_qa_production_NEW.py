@@ -51,11 +51,7 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-<<<<<<< HEAD
-DAYSBACK=7
-=======
 DAYSBACK=1
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 # DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
@@ -232,11 +228,7 @@ def writeReportHeader ():
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-<<<<<<< HEAD
-	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
-=======
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	print ("End writing report header ...\n")
 	
 
@@ -263,48 +255,6 @@ def setHiveParameters():
 	print ("Completed assigning Hive paramaters ...\n")
 
 
-<<<<<<< HEAD
-def obtainFailedJobs():
-	global REPORT, cur, conn
-	global DAY, MONTH
-	print ("Executing failed jobs query ...\n")
-	cur.execute("""SELECT activity, hadoop_job_id, batch_id, org_id, time \
-		FROM %s \
-		WHERE \
-		day=%s and month=%s and \
-		status = 'error' \
-		ORDER BY org_id ASC""" % ("summary_coordinator_jobfinish", DAY, MONTH))
-
-	REPORT = REPORT + SUBHDR % "FAILED JOBS"
-	COMPONENT_STATUS="PASSED"
-	REPORT = REPORT+"<table border='1' width='800'>"
-	REPORT = REPORT+"<tr><td>Activity:</td><td>Hadoop job:</td><td>Batch ID:</td><td>Org ID:</td><td>Org Name:</td><td>Failure Time:</td></tr>"
-	ROW = 0
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		FORMATEDTIME = DT.datetime.strptime(str(i[4])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		REPORT = REPORT+"<tr> \
-			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[2])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[3])+"&nbsp;&nbsp;</td>"
-		if str(i[3]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+"</td>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[3])+"</td>"
-		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
-		COMPONENT_STATUS="FAILED"
-	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>There were no failed jobs</i></td></tr>"
-	REPORT = REPORT+"</table><br>"
-	if (COMPONENT_STATUS == "PASSED"):
-		REPORT = REPORT+PASSED
-	else:
-		REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"
-	print ("Completed failed jobs query ... \n")
-=======
 def obtainFailedJobs(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
@@ -623,23 +573,14 @@ def jobSummary(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	
 
 def writeReportDetails():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, ENVIRONMENT
 	
-<<<<<<< HEAD
-
-	obtainFailedJobs()
-
-	
-	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
-=======
 #============ 1st or Failed Jobs section of the report ======================
 	
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
 		obtainFailedJobs("summary_coordinator_jobfinish")
@@ -699,13 +640,9 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-<<<<<<< HEAD
-	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
-=======
 #============ 4th or Job Summary section of the report =====================	
 	
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
 		jobSummary("summary_coordinator_jobfinish")
@@ -717,13 +654,9 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-<<<<<<< HEAD
-	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
-=======
 #============ 5th or Care Optimizer Errors section of the report ==========
 	
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
 		careOptimizerErrors("summary_careopt_errors")
@@ -740,87 +673,12 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-<<<<<<< HEAD
-	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
-	COMPONENT_STATUS="PASSED"
-=======
 #========================= END =============================================	
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 
-<<<<<<< HEAD
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-	else:
-		REPORT = REPORT+FAILED
-	REPORT = REPORT+"<br><br>"
-
-	
-
-=======
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 def closeHiveConnection():
 	global cur, conn
 	cur.close()
 	conn.close()
-<<<<<<< HEAD
-	
-	
-
-def writeReportFooter():
-	print ("Write report footer ...\n")
-	global REPORT
-	REPORT = REPORT+"<table>"
-	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
-	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
-	REPORT = REPORT+"</table>"
-	print ("Finished writing report ...\n")
-
-
-
-def archiveReport():
-	global DEBUG_MODE
-	if not DEBUG_MODE:
-		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)
-		# ------------- Create new folder if one does not exist already -------------------------------
-		if not os.path.exists(BACKUPREPORTFOLDER):
-			os.makedirs(BACKUPREPORTFOLDER)
-			os.chmod(BACKUPREPORTFOLDER, 0777)	
-		if not os.path.exists(REPORTFOLDER):
-			os.makedirs(REPORTFOLDER)
-			os.chmod(REPORTFOLDER, 0777)
-		# ---------------------------------------------------------------------------------------------
-		REPORTFILENAME=str(DAY)+".html"
-		REPORTXTSTRING="Daily Production Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/production/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
-		REPORTXTFILENAME="reports.txt"
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-		os.chdir(BACKUPREPORTFOLDER)
-		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
-		REPORTFILE.close()
-		os.chdir(REPORTFOLDER)
-		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
-		REPORTFILE.close()
-		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
-		os.chdir("/mnt/automation")
-		print ("Finished archiving report ... \n")
-
-
-def emailReport():
-	global RECEIVERS, SENDER, REPORT
-	print ("Emailing report ...\n")
-	s=smtplib.SMTP()
-	s.connect("smtp.gmail.com",587)
-	s.starttls()
-	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, RECEIVERS, REPORT)	
-	print "Report completed, successfully sent email to %s ..." % (RECEIVERS)
-=======
 		
 
 def writeReportFooter():
@@ -877,7 +735,6 @@ def emailReport():
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
 	s.sendmail(SENDER, RECEIVERS2, REPORT)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 	
 #================ START OF MAIN BODY =================================================================	
 	

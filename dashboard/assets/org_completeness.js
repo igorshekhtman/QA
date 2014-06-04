@@ -1,3 +1,7 @@
+function expandOrCollapse(element) {
+	$(element).siblings(".content").slideToggle(500);
+}
+
 function constructChartJson(data) {
    var jsonStr = "";
    var sentToOcr = data.sent_to_ocr;
@@ -231,7 +235,7 @@ function loadData() {
 	    	     <tr><th>Org Name (Org Id)</th><th>Documents in docreceiver's queue</th><th>Pending Parser documents</th><th>Pending Persist documents</th><th>Pending OCR documents</th>\
 	    	     <tr><td>{{org_name}}({{org_id}})</td>\
 	    	     <td>Total:<b>{{total}}</b> (No. of Seq files: <b>{{totalSeqFiles}}</b>)<br/>\
-	    	     <b>Details:</b><br/>{{#pendingGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Since: {{since}}<br/>{{/pendingGroup}}</td>\
+	    	     <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#pendingGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Since: {{since}}<br/>{{/pendingGroup}}</div></td>\
 	    	     <td>{{pending_parsers}}</td>\
 	             <td>{{pending_ocrs}}</td>\
 	             <td>{{pending_persists}}</td></tr>\
@@ -255,10 +259,14 @@ function loadData() {
 	             var errorDiv = "<table class='error'>\
 	                             <tr><th>Org Name (Org Id)</th><th>Archive Error Documents</th><th>Upload Error Documents</th><th>Parser Error Documents</th><th>OCR Error Documents</th><th>Persist Error Documents</th><th>Failed Parser Documents</th><th>Failed OCR Documents</th><th>Failed Persist Documents</th></tr>\
 	                             <tr><td>{{org_name}} ({{org_id}})</td><td>Total:<b>{{archive_errors.total}}</b><br/>{{#archive_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/archive_errors.errorGroup}}</td>\
-	                             <td>Total:<b>{{upload_errors.total}}</b><br/><b>Details:</b><br/>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</td>\
-	                             <td>Total:<b>{{parser_errors.total}}</b><br/><b>Details:</b><br/>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</td>\
-	                             <td>Total:<b>{{ocr_errors.total}}</b><br/><b>Details:</b><br/>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</td>\
-	                             <td>Total:<b>{{persist_errors.total}}</b><br/><b>Details:</b><br/>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</td>\
+	                             <td>Total:<b>{{upload_errors.total}}</b><br/>\
+	                             <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#upload_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/upload_errors.errorGroup}}</div></td>\
+	                             <td>Total:<b>{{parser_errors.total}}</b><br/>\
+	                             <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#parser_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/parser_errors.errorGroup}}</div></td>\
+	                             <td>Total:<b>{{ocr_errors.total}}</b><br/>\
+	                             <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#ocr_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/ocr_errors.errorGroup}}</div></td>\
+	                             <td>Total:<b>{{persist_errors.total}}</b><br/>\
+	                             <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#persist_errors.errorGroup}}<i>{{error_msg}}:</i> <b>{{count}}</b><br/>{{/persist_errors.errorGroup}}</div></td>\
 	                             <td class='notice'>{{failed_parsers}}</td><td class='notice'>{{failed_ocrs}}</td><td class='notice'>{{failed_persists}}</td></tr>\
 	                             </table>";
 	                             
@@ -271,7 +279,8 @@ function loadData() {
 	             
 	             var missingDocsDiv = "<table class='fatal'>\
 	            	                   <tr><th>Org Name (Org Id)</th><th>Documents abandoned</th><th>Documents not seen by parser</th><th>Documents seen by parser but missed by OCR job</th><th>Documents seen by parser but missed by Persist job</th><th>Total documents to be recovered</th></tr>\
-	            	                   <tr><td>{{org_name}} ({{org_id}})</td><td>Total: <b>{{documentsAbandoned.total}}</b>(No. of Seq files: <b>{{documentsAbandoned.totalSeqFiles}}</b>)<br/><b>Details:</b><br/>{{#documentsAbandoned.abGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Posted On: {{since}}<br/>{{/documentsAbandoned.abGroup}}</td>\
+	            	                   <tr><td>{{org_name}} ({{org_id}})</td><td>Total: <b>{{documentsAbandoned.total}}</b>(No. of Seq files: <b>{{documentsAbandoned.totalSeqFiles}}</b>)<br/>\
+	            	                   <a onclick='expandOrCollapse(this)'><b>Details</b></a><br/><div class='content' style='display: none'>{{#documentsAbandoned.abGroup}}<i>{{seqfile}}</i>: <b>{{doc_count}}</b> Posted On: {{since}}<br/>{{/documentsAbandoned.abGroup}}</div></td>\
 	            	                   <td>{{missingParser}}</td><td>{{missingOCR}}</td><td>{{missingPersist}}</td><td class='notice'><b>{{totalDocs}}</b></td></tr>\
 	            	                   ";
 	             
