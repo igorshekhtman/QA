@@ -410,7 +410,7 @@ get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_do
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
-from production_logs_qafromseqfile_epoch where get_json_object(line, '$.output') is not null
+from production_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
 insert overwrite table summary_qapatientuuid partition(month, day, org_id)
@@ -834,7 +834,7 @@ get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_do
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
-from staging_logs_qafromseqfile_epoch where get_json_object(line, '$.output') is not null
+from staging_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
 insert overwrite table summary_qapatientuuid_staging partition(month, day, org_id)
