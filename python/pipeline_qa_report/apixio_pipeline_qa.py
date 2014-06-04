@@ -92,13 +92,13 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-#COMPONENT = "docreceiver"
+COMPONENT = "docreceiver"
 #COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
 #COMPONENT = "ocrjob"
 #COMPONENT = "persistjob"
-COMPONENT = "all"
+#COMPONENT = "all"
 
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
@@ -345,7 +345,8 @@ def wrtRepHdr():
 	else:
 		REPORT = REPORT + """Organization: <b>%s (%s)</b><br>\n""" % (ORGID, ORGID)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Component: <b><font color='green'>%s</font></b><br><br>\n""" % (COMPONENT)
 	print ("End writing report header ...\n")	
 
 def buildQuery(component, subcomp):
