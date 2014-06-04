@@ -43,7 +43,8 @@ for env in envs
 do
 
 environment="_"$env
-if [ "$env" == "production" ] then
+if [ "$env" == "production" ] 
+then
   environment = ""
 fi
 
