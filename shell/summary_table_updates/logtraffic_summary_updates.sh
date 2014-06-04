@@ -64,7 +64,7 @@ sum(if(discarded is not null, discarded, 0)) as discarded,
 count(if(line like "%INFO%", "true", null)) as infos,
 count(if(line like "%EVENT%", "true", null)) as events,
 count(if(line like "%WARN%" or line like '%ERROR%', "true", null)) as errors,
-"traceJob" as app_name, month, day, year
+"${t}" as app_name, month, day, year
 from
 (select month, day, line, year,
 cast(regexp_extract(line, "Discarded (.*) messages due to full event buffer including.*", 1) as int) as discarded
