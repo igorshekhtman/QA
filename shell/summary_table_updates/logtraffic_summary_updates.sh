@@ -73,5 +73,9 @@ ${env}_logs_${t}_epoch
 where $dateRange
 ) sub group by month,day,year;
 
+EOF
+
 done
 done
+
+chmod 777 update_summary.log
