@@ -14,9 +14,6 @@ root@50.18.147.10
 
 
 
-============================================================================================================
-
-
 
 ============== CASSANDRA 2.0 NODES =============================================
 
@@ -30,11 +27,6 @@ staging external 2.0 : 54.193.157.129, 54.193.138.153, 54.219.9.237, 54.219.223.
 ================ HCC ============================================================
 
 https://hccstage.apixio.com/?status=R&reject_reason=1&flag_for_review=on&comment=qrtgeqrtttttqert#finding_coding/1686140
-
-
-
-
-
 
 
 Log blocker / critical tickets in Jira https://apixio.atlassian.net under the project HCC, be sure to add the Jira label "Scripps_Initiative"
