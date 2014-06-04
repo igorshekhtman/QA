@@ -307,20 +307,6 @@ REPORT = REPORT+SUBHDR % "QA from Sequence File"
 
 if QUICK_QA:
     QUERY_DESC=""
-<<<<<<< HEAD
-    print ("Running QA query #16 - retrieve %s ...") % (QUERY_DESC)
-    cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as docUUID_count, \
-		get_json_object(line, '$.output.uploadedToS3') as saved_to_s3, \
-        get_json_object(line, '$.output.documentEntry.orgId') as confirm_docentry, \
-        get_json_object(line, '$.output.trace.parserJob') as parser_trace, \
-        get_json_object(line, '$.output.trace.ocrJob') as ocr_trace, \
-        get_json_object(line, '$.output.trace.persistJob') as persist_trace, \
-        get_json_object(line, '$.output.trace.appendToSequenceFile') as seqfile_trace, \
-        get_json_object(line, '$.output.trace.submitToCoordinator') as sent_to_coordinator_trace, \
-        get_json_object(line, '$.output.link.orgIdByDocUUID') as doc_link, \
-        get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link, \
-        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'not found') as apo_status \
-=======
     print ("Running QA query - retrieve %s ...") % (QUERY_DESC)
     cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as col_0, \
 		get_json_object(line, '$.output.uploadedToS3') as col_1, \
@@ -334,7 +320,6 @@ if QUICK_QA:
         get_json_object(line, '$.output.link.orgIdByPatientUUID') as col_9, \
         if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none') as col_10, \
         if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none') as col_11 \
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
 		FROM %s \
 		WHERE get_json_object(line, '$.jobname') like "%s%%" \
 		and get_json_object(line, '$.output') is not null \
@@ -348,19 +333,12 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.submitToCoordinator'), \
         get_json_object(line, '$.output.link.orgIdByDocUUID'), \
         get_json_object(line, '$.output.link.orgIdByPatientUUID'), \
-<<<<<<< HEAD
-=======
         if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none'), \
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
         if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none')""" %(QAFROMSEQFILELOGFILE, BATCH, DAY, MONTH))
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
     
-<<<<<<< HEAD
-    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apoUUID</th></tr>"
-=======
     REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apo</th><th>patUUID</th></tr>"
->>>>>>> branch 'master' of https://github.com/Apixio/QA.git
     ROW = 0
     sum = 0
     result = []
