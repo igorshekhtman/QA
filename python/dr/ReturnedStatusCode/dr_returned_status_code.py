@@ -98,7 +98,7 @@ def checkEnvironment():
 	print ("ENVIRONMENT = %s") % ENVIRONMENT
 	print ("RECEIVERS = %s") % RECEIVERS
 	print ("REPORT_RECEIVERS = %s") % REPORT_RECEIVERS
-	time.sleep(15)
+	#time.sleep(15)
 	
 
 
