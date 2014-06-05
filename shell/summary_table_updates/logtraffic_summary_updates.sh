@@ -17,7 +17,7 @@ curDay=$(date +%d);
 curMonth=$(date +%m);
 scurDay=$(date +%d);
 scurMonth=$(date +%m);
-scurYear=$(date +%y);
+scurYear=$(date +%Y);
 
 echo "Current day: $curDay"
 echo "Current month: $curMonth"
