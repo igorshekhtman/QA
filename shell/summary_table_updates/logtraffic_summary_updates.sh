@@ -45,7 +45,7 @@ do
 environment="_"$env
 if [ "$env" = "production" ] 
 then
-  environment = ""
+  environment=""
 fi
 
 for t in $appNames
