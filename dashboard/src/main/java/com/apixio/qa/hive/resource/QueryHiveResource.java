@@ -1,8 +1,6 @@
 package com.apixio.qa.hive.resource;
 
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,7 +11,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.io.IOUtils;
@@ -26,11 +23,8 @@ import com.apixio.qa.hive.manager.DocumentCountManager;
 import com.apixio.qa.hive.query.QueryConfig;
 import com.apixio.qa.hive.query.QueryHandler;
 import com.apixio.qa.hive.query.QueryManager;
-import com.apixio.qa.hive.query.generated.Queries;
 import com.apixio.qa.hive.query.generated.Queries.Group;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
-import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery.Param;
-import com.apixio.qa.hive.query.generated.Queries.Query;
 import com.google.common.base.Optional;
 import com.yammer.metrics.annotation.Timed;
 
@@ -40,17 +34,19 @@ public class QueryHiveResource
 {
     private final String hiveAddress;
     private final String outputDir;
+    private final String manifestDir;
     private final AtomicLong counter;
     private DocumentCountManager dcm;
-    private QueryHandler queryManager;
+    private QueryManager queryManager;
 
-    public QueryHiveResource(String hiveAddress, String updateInterval, String outputDir)
+    public QueryHiveResource(String hiveAddress, String updateInterval, String outputDir, String manifestDir)
     {
         this.hiveAddress = hiveAddress;
         this.outputDir = outputDir;
+        this.manifestDir = manifestDir;
         this.counter = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
-        queryManager = new QueryHandler(hiveAddress);
+        queryManager = new QueryManager(hiveAddress, outputDir, manifestDir);
     }
 
     @GET
@@ -123,7 +119,7 @@ public class QueryHiveResource
     {
         try
         {
-    		return 	SummaryQueryUtilities.getCoordinatorStats(hiveAddress, filterStat.or(""), startDate, endDate).toString();
+    		return SummaryQueryUtilities.getCoordinatorStats(hiveAddress, filterStat.or(""), startDate, endDate).toString();
         }
         catch (Exception ex)
         {
@@ -150,7 +146,7 @@ public class QueryHiveResource
     @GET
     @Path("/json/{environment}/group/{groupName}")
     @Timed
-    public String runGroup(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
+    public String runGroup(@PathParam("environment") String environment, @PathParam("groupName") String groupName, @QueryParam("orgId") String orgId)
     {
         try
         {
@@ -163,8 +159,12 @@ public class QueryHiveResource
             {
                 for (RunQuery rQ : rQs)
                 {
-                	String fileName = outputDir + rQ.getName();
-                    List<JSONObject> results = qm.runQuery(rQ);
+                    String fileName = outputDir + rQ.getName();
+                    
+                    if (environment.equalsIgnoreCase("staging"))
+                        fileName = outputDir + environment.toLowerCase() + "/" + rQ.getName();
+                        
+                    List<JSONObject> results = qm.runQuery(environment, rQ);
                     
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
                 }
@@ -186,8 +186,7 @@ public class QueryHiveResource
         {
             if (queryName != null)
             {
-                QueryHandler qh = new QueryHandler(hiveAddress);
-                List<JSONObject> results = qh.runQuery(queryName, uriInfo.getQueryParameters());
+                List<JSONObject> results = queryManager.processQuery(environment, queryName, uriInfo.getQueryParameters());
                 if (results == null)
                     return "Error while trying to execute the query "+queryName+". Please make sure that query exists in queries.xml file";
                 return results.toString();
@@ -208,9 +207,28 @@ public class QueryHiveResource
     {
         try
         {
-            QueryManager qm = new QueryManager(hiveAddress, outputDir);
+            QueryManager qm = new QueryManager(hiveAddress, outputDir, manifestDir);
             
-            return qm.processQueryGroup(groupName).toString();
+            return qm.processQueryGroup(environment, groupName).toString();
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            return ex.toString();
+        }
+    }
+    
+    @GET
+    @Path("/manifest/recovery/{environment}/{queryName}")
+    @Timed
+    public String getManifestForRecovery(@PathParam("environment") String environment, @PathParam("queryName") String queryName, 
+            @Context UriInfo uriInfo)
+    {
+        try
+        {
+            QueryManager qm = new QueryManager(hiveAddress, outputDir, manifestDir);
+            
+            return qm.processManifestQuery(environment, queryName, uriInfo.getQueryParameters());
         }
         catch (Exception ex)
         {

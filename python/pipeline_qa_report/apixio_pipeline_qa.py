@@ -92,12 +92,13 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-#COMPONENT = "docreceiver"
+COMPONENT = "docreceiver"
 #COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
+#COMPONENT = "ocrjob"
 #COMPONENT = "persistjob"
-COMPONENT = "all"
+#COMPONENT = "all"
 
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
@@ -344,7 +345,8 @@ def wrtRepHdr():
 	else:
 		REPORT = REPORT + """Organization: <b>%s (%s)</b><br>\n""" % (ORGID, ORGID)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br><br>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """Component: <b><font color='green'>%s</font></b><br><br>\n""" % (COMPONENT)
 	print ("End writing report header ...\n")	
 
 def buildQuery(component, subcomp):
@@ -428,12 +430,8 @@ def buildQuery(component, subcomp):
 			get_json_object(line, '$.submit.post.orgid') = '%s' and \
 			month>=%s and day>=%s and \
 			month<=%s and day<=%s \
-			GROUP BY \
-			get_json_object(line, '$.submit.post.status'), \
-			get_json_object(line, '$.submit.post.numfiles'), \
-			get_json_object(line, '$.error.message'), \
-			get_json_object(line, '$.submit.post.apxfiles.count'), \
-			get_json_object(line, '$.submit.post.queue.name')""" % \
+			ORDER BY \
+			ind_files, message, status ASC""" % \
 			(logfile, ORGID, STMON, STDAY, ENMON, ENDAY)
 
 	if component == "coordinator":
@@ -553,6 +551,8 @@ def runQueries(component, subcomp):
 	ROW = 0
 	TOTAL = 0
 	for i in cur.fetch():
+		if str(i[1]) == "error":
+			COMPONENT_STATUS = "FAILED"
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr>"
@@ -593,7 +593,7 @@ def wrtRepDtls():
 	elif COMPONENT == "persistjob":
 		runQueries(COMPONENT, "mapper")
 		runQueries(COMPONENT, "reducer")
-	elif COMPONENT.upper() == "ALL":
+	elif COMPONENT == "all":
 		runQueries("indexer", "")
 		runQueries("docreceiver", "upload")
 		runQueries("docreceiver", "archive")

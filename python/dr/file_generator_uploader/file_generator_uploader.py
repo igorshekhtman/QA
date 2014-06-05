@@ -24,6 +24,20 @@ os.system('clear')
 #
 # Send report emails and archive report html file
 DEBUG_MODE=bool(1)
+# specific number of documents to push to Doc-Receiver
+NUMBER_OF_DOCS_TO_UPLOAD = 100
+# size of each uploaded document in Kb
+DOCUMENT_SIZE = 10
+# number of active threads pushing documents to DR
+NUMBER_OF_ACTIVE_THREADS = 5
+# time limit in seconds for how long to keep uploading data
+UPLOAD_TIME_LIMIT = 1
+# count of how many documents were actually pushed to DR
+DOCUMENTCOUNTER = 0
+EXPECTED_CODE = "200"
+LOGDATA = ""
+RTDATA = ""
+
 
 DIR="/mnt/testdata/DR/returnedstatuscode/Documents"
 PIPELINE_MODULE="DR"
@@ -34,8 +48,7 @@ SUBHDR = "<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='
 QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 REPORT = ""
-RETURNCODE = ""
-DOCUMENTCOUNTER = 0
+RETURNCODE = "200"
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -69,62 +82,54 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #
 #================================ DOC-RECEIVER LOAD TESTING COMPONENTS =========================================================================
 #
-# 
-# =====================================================================================================================
-
-
-IPMAP = { \
-	"Hive":"10.196.47.205", \
-	"Fluent":"10.222.103.158", \
-	"Redis":"10.222.103.158", \
-	"Graphite":"10.160.150.32", \
-	"Mysql":"10.174.121.164", \
-	"Keyservice":"184.169.153.214", \
-	"API":"10.198.43.98" \
-}
-#===========================================================================================================================================================
 
 def checkEnvironment():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
-	# Arg2 - report recepient
+	# Arg2 - username
+	# Arg3 - orgID
+	# Arg4 - # of documents to upload
+	
 	global USERNAME, ORGID, PASSWORD, HOST, BATCHID, TOKEN_URL, UPLOAD_URL
 	global BATCH, DRBATCH, MANIFEST_FILENAME, RECEIVERS, RECEIVERS_HTML
-	global ENVIRONMENT
+	global ENVIRONMENT, NUMBER_OF_DOCS_TO_UPLOAD, THREAD_NUMBER, LOGDATA
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
-		USERNAME="apxdemot0138"
-		ORGID="10000279"
+		USERNAME=str(sys.argv[2])
+		ORGID=str(sys.argv[3])
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT="Production"
 	else:
 		#USERNAME="apxdemot0182"
 		#ORGID="190"
-		USERNAME="apxdemot0240"
-		ORGID="251"
+		USERNAME=str(sys.argv[2])
+		ORGID=str(sys.argv[3])
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		HOST="https://supload.apixio.com:8443"
+		# HOST="https://supload.apixio.com:8443"
 		# alternative staging DR upload url
-		#HOST="https://supload2.apixio.com:8443"
+		HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
+	NUMBER_OF_DOCS_TO_UPLOAD = int(sys.argv[4])
+	#THREAD_NUMBER = int(sys.argv[5])
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
 	BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 	MANIFEST_FILENAME=BATCH+"_manifest.txt"
 	
-	if (len(sys.argv) > 2):
-		RECEIVERS=str(sys.argv[2])
-		RECEIVERS_HTML="""To: Igor <%s>\n""" % str(sys.argv[2])
-	else:
-		RECEIVERS="ishekhtman@apixio.com"
-		RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
+	#if (len(sys.argv) > 2):
+	#	RECEIVERS=str(sys.argv[2])
+	#	RECEIVERS_HTML="""To: Igor <%s>\n""" % str(sys.argv[2])
+	#else:
+	#	RECEIVERS="ishekhtman@apixio.com"
+	#	RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 	
 	print ("ENVIRONMENT = %s") % ENVIRONMENT
-	print ("RECEIVERS = %s") % RECEIVERS
-	print ("RECEIVERS_HTML = %s") % RECEIVERS_HTML
-	# time.sleep(15)
+	#print ("RECEIVERS = %s") % RECEIVERS
+	#print ("RECEIVERS_HTML = %s") % RECEIVERS_HTML
+	print ("NUMBER_OF_DOCS_TO_UPLOAD = %s") % NUMBER_OF_DOCS_TO_UPLOAD
+	#time.sleep(15)
 	
 
 
@@ -133,10 +138,11 @@ def checkEnvironment():
 	
 	
 def test(debug_type, debug_msg):
-	global RETURNCODE
+	global LOGDATA, RETURNCODE
 	if debug_msg[ :4] == "HTTP" :
 		RETURNCODE = debug_msg[9: ]
-		print ("RETURN CODE: %s") % RETURNCODE		
+		#LOGDATA = LOGDATA + str(RETURNCODE)
+		print ("RETURN CODE: %s") % RETURNCODE
 
 		
 def getUserData():
@@ -245,14 +251,15 @@ def uploadDocument():
 	c.setopt(c.DEBUGFUNCTION, test)
 	c.perform()	
 
-	MANIFEST_FILE=MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
+	MANIFEST_FILE = MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 	print ("End uploading to DR ...\n")	
 	print ("Total number of documents uploaded: %s\n" % (DOCUMENTCOUNTER))
 
 def storeUUID():
-	global obju, bufu, UUID
+	global obju, bufu, UUID, LOGDATA
 	obju=json.loads(bufu.getvalue())
-	UUID=obju["uuid"]	
+	UUID=obju["uuid"]
+	LOGDATA = LOGDATA + str(UUID) + "\n"
 	print ("Document UUID: %s" % (UUID))
 	
 
@@ -624,38 +631,6 @@ def runHiveQueries ():
 		#	REPORT = REPORT+FAILED
 		REPORT = REPORT+"<br><br>"
 		
-	
-	
-
-def clearAllBlockedIP():
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
-
-def blockComponentIP(component):
-	IP = IPMAP[str(component)]
-	print ("Block %s component - IP: %s\n") % (component, IP)
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
-	os.system(add_string)
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)	
-
-def unblockComponentIP(component):
-	IP = IPMAP[str(component)]
-	print ("Unblock %s component - IP: %s\n") % (component, IP)
-	# -A (add), -D (remove), -F (remove all), -L (list or show all)
-	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
-	os.system(remove_string)
-	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
-	time.sleep(2)
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================
 
@@ -701,47 +676,76 @@ def archiveReport():
 
 # ===================================================================================================================================
 
+def archiveLogs():
+	global LOGFILENAME, LOGDATA, LOGFILEFOLDER, BATCHID, THREAD_NUMBER
+	global RTFILENAME, RTDATA, RTFILEFOLDER, UUID
+	print ("Archiving logfile ...\n")
+	milliseconds = datetime.datetime.now().strftime("%f")
+	RTFILENAME = "failed_log_"+str(BATCHID)+"_"+str(milliseconds)+".txt"
+	RTFILEFOLDER = "/mnt/automation/dr/file_generator_uploader/logs"
+	LOGFILENAME = "uploader_log_"+str(BATCHID)+"_"+str(milliseconds)+".txt"
+	LOGFILEFOLDER = "/mnt/automation/dr/file_generator_uploader/logs"
+	os.chdir(LOGFILEFOLDER)
+	LOGFILE = open(LOGFILENAME, 'w')
+	LOGFILE.write(LOGDATA)
+	LOGFILE.close()
+	if RTDATA != "":
+		os.chdir(RTFILEFOLDER)
+		RTFILE = open(RTFILENAME, 'w')
+		RTFILE.write(RTDATA)
+		RTFILE.close()
+	print ("Completed archiving logfile ...\n")
 
-
-
-	
-#============== Start of the main body =======================================================================================	
+#====================================================================================================================================	
+#===================== Start of the main body =======================================================================================
+#====================================================================================================================================
 
 checkEnvironment()
-writeReportHeader()
-
-#======= CASE #1 Upload Performance Test =====================================================================================
-NUMBER_OF_DOCS_TO_UPLOAD = 1000
-EXPECTED_CODE = "200"
-#TEST_DESCRIPTION = "Upload Performance Test - Upload %s text documents and confirm %s performance" % (NUMBER_OF_DOCS_TO_UPLOAD, PIPELINE_MODULE)
-
+#writeReportHeader()
 getUserData()
 storeToken()
-obtainStaticPatientInfo("Positive", "Test")
+#used later as a prefix for First and Last name of the new patient
+obtainStaticPatientInfo("DRStress", "Test")
+
 for i in range(0, NUMBER_OF_DOCS_TO_UPLOAD):
 	createTxtDocument(i)
 	createCatalogFile()
+	# print (RETURNCODE[:3])
+	# time.sleep(25)
+	# while (int(RETURNCODE[:3]) <> 200) or (int(RETURNCODE[:3]) <> 100):
 	uploadDocument()
+	LOGDATA = LOGDATA + str(RETURNCODE[:3]) + "\n"
+	print (RETURNCODE[:3])
+	# Retry uploading until Success or 200
+	retry_limit = 50
+	cntr = 0
+	#while (RETURNCODE[:3] != "200") and (cntr < retry_limit):
+	while (RETURNCODE[:3] != "200"):
+		#cntr = cntr + 1
+		#RTDATA = RTDATA + str(UUID) + "\n"
+		#RTDATA = RTDATA + "failure code: "+ str(RETURNCODE[:3]) + "  number of re-tries: " + cntr + "\n"
+		RTDATA = RTDATA + str(RETURNCODE[:3]) + "\n"
+		uploadDocument()
+		
 	storeUUID()
+	
 closeBatch()
-if ENVIRONMENT == "Staging":
-	transmitManifest()
+archiveLogs()
+#if ENVIRONMENT.upper() == "STAGING":
+#	transmitManifest()
 
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-connectToHive()
-setHiveParameters()
+#connectToHive()
+#setHiveParameters()
 # wait for PAUSE_LIMIT seconds
-PAUSE_LIMIT=20
-print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
-time.sleep(PAUSE_LIMIT)
+#PAUSE_LIMIT=20
+#print ("Pausing for %s seconds for upload to DR to complete ...\n") % (PAUSE_LIMIT)
+#time.sleep(PAUSE_LIMIT)
 #writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE, NUMBER_OF_DOCS_TO_UPLOAD)
-runHiveQueries()
-closeHiveConnection()
-
-#===============================================================================================
+#runHiveQueries()
+#closeHiveConnection()
 
 # test_item valies: nodocument, nocatalog, nodocnocat, docandcat, emptydocument
-writeReportFooter()
-emailReport()
-if not DEBUG_MODE:
-	archiveReport()
+#writeReportFooter()
+#emailReport()
+#archiveReport()

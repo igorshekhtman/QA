@@ -410,7 +410,7 @@ get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_do
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
-from production_logs_qafromseqfile_epoch where get_json_object(line, '$.output') is not null
+from production_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
 insert overwrite table summary_qapatientuuid partition(month, day, org_id)
@@ -476,6 +476,45 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.level') = 'ERROR' 
 and ($dateRange);
 
+insert overwrite table summary_careopt_login partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.login.username') as username,
+get_json_object(line, '$.login.userId') as user_id,
+get_json_object(line, '$.login.status') as status,
+get_json_object(line, '$.login.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.login.millis') as int) as processTime,
+'login' as event,
+get_json_object(line, '$.login.remoteAddr') as remote_address,
+get_json_object(line, '$.login.orgId') as org_id,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.login') is not null 
+and ($dateRange);
+
+insert overwrite table summary_careopt_login partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.logout.username') as username,
+get_json_object(line, '$.logout.userId') as user_id,
+get_json_object(line, '$.logout.status') as status,
+get_json_object(line, '$.logout.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.logout.millis') as int) as processTime,
+'logout' as event,
+get_json_object(line, '$.logout.remoteAddr') as remote_address,
+get_json_object(line, '$.logout.orgId') as org_id,
+month,
+day
+from 
+production_logs_careopt_epoch 
+where get_json_object(line, '$.logout') is not null 
+and ($dateRange);
+
+###################################Staging#########################################################
 insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -795,7 +834,7 @@ get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_do
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
-from staging_logs_qafromseqfile_epoch where get_json_object(line, '$.output') is not null
+from staging_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
 insert overwrite table summary_qapatientuuid_staging partition(month, day, org_id)
@@ -859,6 +898,45 @@ day
 from 
 staging_logs_careopt_epoch 
 where get_json_object(line, '$.level') = 'ERROR' 
+and ($dateRange);
+
+
+insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.login.username') as username,
+get_json_object(line, '$.login.userId') as user_id,
+get_json_object(line, '$.login.status') as status,
+get_json_object(line, '$.login.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.login.millis') as int) as processTime,
+'login' as event,
+get_json_object(line, '$.login.remoteAddr') as remote_address,
+get_json_object(line, '$.login.orgId') as org_id,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.login') is not null 
+and ($dateRange);
+
+insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.logout.username') as username,
+get_json_object(line, '$.logout.userId') as user_id,
+get_json_object(line, '$.logout.status') as status,
+get_json_object(line, '$.logout.userAgent') as user_agent,
+get_json_object(line, '$.hostname') as hostname,
+cast(get_json_object(line, '$.logout.millis') as int) as processTime,
+'logout' as event,
+get_json_object(line, '$.logout.remoteAddr') as remote_address,
+get_json_object(line, '$.logout.orgId') as org_id,
+month,
+day
+from 
+staging_logs_careopt_epoch 
+where get_json_object(line, '$.logout') is not null 
 and ($dateRange);
 
 EOF

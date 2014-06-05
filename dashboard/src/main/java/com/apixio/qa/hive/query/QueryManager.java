@@ -1,18 +1,19 @@
 package com.apixio.qa.hive.query;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
-import java.util.Scanner;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import javax.ws.rs.core.MultivaluedMap;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.apixio.qa.hive.cache.CacheManager;
+import com.apixio.qa.hive.manager.DocManifestManager;
 import com.apixio.qa.hive.query.generated.Queries.Group;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 
@@ -20,19 +21,24 @@ public class QueryManager
 {
     private QueryHandler queryHandler;
     private String outputDir;
+    private String manifestDir;
     private Properties orgProperties;
 
     public static void main(String[] args) throws Exception
     {
         String hiveAddress = "jdbc:hive2://184.169.209.24:10000";
         String outputDir = "C:/workspace_3/QA/dashboard/assets/reports/json/";
-        QueryManager qm = new QueryManager(hiveAddress, outputDir);
-        qm.processQueryGroup("completeness");
+        QueryManager qm = new QueryManager(hiveAddress, outputDir, null);
+        qm.processQueryGroup("production", "completeness");
     }
 
-    public QueryManager(String hiveAddress, String outputDir)
+    public QueryManager(String hiveAddress, String outputDir, String manifestDir)
     {
         this.outputDir = outputDir;
+        this.manifestDir = manifestDir;
+        if (this.manifestDir == null)
+            this.manifestDir = outputDir;
+        
         queryHandler = new QueryHandler(hiveAddress);
         
         try
@@ -46,7 +52,40 @@ public class QueryManager
         }
     }
     
-    public JSONObject processQueryGroup(String groupName) throws Exception
+    public List<JSONObject> processQuery(String environment, String queryName, MultivaluedMap<String, String> queryParams) throws Exception
+    {
+        List<JSONObject> results = queryHandler.runQuery(environment, queryName, queryParams);
+        
+        if (results != null)
+        {
+            if (queryName.equalsIgnoreCase("docs_in_drq"))
+            {
+                //Generate manifest for these docs
+                DocManifestManager dmm = new DocManifestManager(environment, manifestDir);
+                dmm.createDocManifestForRecovery(results, true);
+            }
+            return results;
+        }
+        return null;
+    }
+    
+    public String processManifestQuery(String environment, String queryName, MultivaluedMap<String, String> queryParams) throws Exception
+    {
+        List<JSONObject> results = queryHandler.runQuery(environment, queryName, queryParams);
+        
+        if (results != null)
+        {
+            if (queryName.equalsIgnoreCase("manifest_recovery"))
+            {
+                //Generate manifest for these docs
+                DocManifestManager dmm = new DocManifestManager(environment, manifestDir);
+                return dmm.createDocManifestForRecovery(results, false);
+            }
+        }
+        return null;
+    }
+    
+    public JSONObject processQueryGroup(String environment, String groupName) throws Exception
     {
         Group groupToRun = QueryConfig.getQueryGroupByName(groupName);
 
@@ -55,16 +94,17 @@ public class QueryManager
         JSONObject processedGroup = null;
         if (groupToRun.getName().equalsIgnoreCase("completeness"))
         {
-            processedGroup = processCompletenessGroup(rQs);
-            System.out.println(processedGroup.toString());
+            processedGroup = processCompletenessGroup(environment, rQs);
+            //System.out.println(processedGroup.toString());
         }
         //TODO else just run the group and return results.. 
         return processedGroup;
     }
     
-    private JSONObject processCompletenessGroup(List<RunQuery> runQueries) throws Exception
+    private JSONObject processCompletenessGroup(String environment, List<RunQuery> runQueries) throws Exception
     {
         JSONObject resultObj = null;
+        CacheManager cache = new CacheManager(environment, outputDir);
         if (runQueries != null)
         {
             resultObj = new JSONObject();
@@ -72,39 +112,56 @@ public class QueryManager
 
             for (RunQuery rQ : runQueries)
             {
-                List<JSONObject> results = null;
-                File jsonFile = new File(outputDir + rQ.getName());
+                //Fetch data from cache...
+                List<JSONObject> results = cache.fetchResults(rQ.getName());
 
-                if (jsonFile.exists())
+                if (results == null)
                 {
-                    Scanner scanner = new Scanner(jsonFile);
-                    results = new ArrayList<JSONObject>();
-                    while (scanner.hasNextLine())
-                    {
-                        results.add(new JSONObject(scanner.nextLine()));
-                    }
-                    scanner.close();
-                }
-                else
-                {
-                    results = queryHandler.runQuery(rQ);
-                    IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(jsonFile));
+                    results = queryHandler.runQuery(environment, rQ);
+                    cache.writeResults(results, rQ.getName());
                 }
 
                 getOrgObject(results, rQ.getName(), orgDetails);
             }
 
-            Iterator it = orgDetails.keys();
+            @SuppressWarnings("unchecked")
+            List<Long> sortedList = getSortedKeys(orgDetails.keys());
+            
             JSONArray orgs = new JSONArray();
-            while (it.hasNext())
+            for (Long orgId : sortedList)
             {
-                String key = it.next().toString();
+                String key = orgId.toString();
                 
                 orgs.put(orgDetails.get(key));
             }
             resultObj.put("orgs", orgs);
         }
         return resultObj;
+    }
+    
+    private List<Long> getSortedKeys(Iterator<String> keyIterator)
+    {
+        if (keyIterator != null && keyIterator.hasNext())
+        {
+            List<Long> orgIds = new ArrayList<Long>();
+            while (keyIterator.hasNext())
+            {
+                String key = keyIterator.next();
+                if (!key.trim().equalsIgnoreCase("null"))
+                    orgIds.add(Long.parseLong(key));
+            }
+            
+            Collections.sort(orgIds, new Comparator<Long>()
+            {
+                public int compare(Long o1, Long o2)
+                {
+                    return o1.compareTo(o2);
+                }
+            });
+            
+            return orgIds;
+        }
+        return null;
     }
     
     private void getOrgObject(List<JSONObject> results, String typeOfResults, JSONObject orgDetails) throws Exception

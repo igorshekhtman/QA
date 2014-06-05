@@ -1,75 +1,75 @@
-{"org_id":"10000232","_c3":"No space left on device","status":"error","doc_count":69}
-{"org_id":"10000250","_c3":"Invalid UUID string: abc","status":"error","doc_count":112}
-{"org_id":"10000259","_c3":"File too large, limit: 52428800","status":"error","doc_count":26490}
+{"org_id":"10000232","status":"error","error_message":"No space left on device","doc_count":69}
+{"org_id":"10000250","status":"error","error_message":"Invalid UUID string: abc","doc_count":112}
+{"org_id":"10000259","status":"error","error_message":"File too large, limit: 52428800","doc_count":26490}
 {"org_id":"10000262","status":"error","doc_count":678}
-{"org_id":"10000262","_c3":"Catalog file is empty","status":"error","doc_count":419984}
-{"org_id":"10000262","_c3":"Error Recovery for block blk_-4262126185721838358_7448939 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":188831}
-{"org_id":"10000262","_c3":"Error Recovery for block blk_-4876650231080121264_7131594 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1}
-{"org_id":"10000263","_c3":"Error Recovery for block blk_-7612207927797011322_7131042 failed  because recovery from primary datanode 10.197.61.199:50010 failed 6 times.  Pipeline was 10.197.61.199:50010. Aborting...","status":"error","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"Catalog file is empty","doc_count":419984}
+{"org_id":"10000262","status":"error","error_message":"Error Recovery for block blk_-4262126185721838358_7448939 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":188831}
+{"org_id":"10000262","status":"error","error_message":"Error Recovery for block blk_-4876650231080121264_7131594 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":1}
+{"org_id":"10000263","status":"error","error_message":"Error Recovery for block blk_-7612207927797011322_7131042 failed  because recovery from primary datanode 10.197.61.199:50010 failed 6 times.  Pipeline was 10.197.61.199:50010. Aborting...","doc_count":1}
 {"org_id":"10000270","status":"success","doc_count":1}
 {"org_id":"10000275","status":"success","doc_count":816}
-{"org_id":"10000278","_c3":"No space left on device","status":"error","doc_count":21657}
-{"org_id":"10000278","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":24895}
+{"org_id":"10000278","status":"error","error_message":"No space left on device","doc_count":21657}
+{"org_id":"10000278","status":"error","error_message":"javax.xml.bind.UnmarshalException","doc_count":24895}
 {"org_id":"10000284","status":"success","doc_count":266729}
 {"org_id":"10000286","doc_count":0}
-{"org_id":"10000232","_c3":"Error Recovery for block blk_-4380119000762146085_7131516 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":97815}
-{"org_id":"10000262","status":"success","doc_count":15796404}
+{"org_id":"10000232","status":"error","error_message":"Error Recovery for block blk_-4380119000762146085_7131516 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":97815}
+{"org_id":"10000262","status":"success","doc_count":15799912}
 {"org_id":"10000263","status":"error","doc_count":1}
 {"org_id":"10000271","status":"success","doc_count":12}
 {"org_id":"10000278","doc_count":0}
-{"org_id":"10000279","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":7}
+{"org_id":"10000279","status":"error","error_message":"javax.xml.bind.UnmarshalException","doc_count":7}
 {"org_id":"10000280","status":"success","doc_count":3}
 {"org_id":"10000285","status":"success","doc_count":366206}
 {"org_id":"99","status":"success","doc_count":30198}
 {"org_id":"10000232","status":"error","doc_count":3}
-{"org_id":"10000232","_c3":"Error Recovery for block blk_716784498371320704_10005128 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","status":"error","doc_count":124452}
+{"org_id":"10000232","status":"error","error_message":"Error Recovery for block blk_716784498371320704_10005128 failed  because recovery from primary datanode 10.223.13.251:50010 failed 6 times.  Pipeline was 10.223.13.251:50010. Aborting...","doc_count":124452}
 {"org_id":"10000250","status":"error","doc_count":10}
-{"org_id":"10000259","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":3832}
+{"org_id":"10000259","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":3832}
 {"org_id":"10000259","status":"success","doc_count":755086}
-{"org_id":"10000262","_c3":"No writer for batchId: 10000262_backload_1394232932332","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"No writer for batchId: 10000262_backload_1394232935398","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"No writer for batchId: 10000262_backload_1394232936130","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"Too many open files","status":"error","doc_count":22928}
-{"org_id":"10000263","_c3":"Error Recovery for block blk_-7017959224168418697_7131594 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1}
-{"org_id":"10000263","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":5469}
-{"org_id":"10000263","status":"success","doc_count":1975764}
+{"org_id":"10000262","status":"error","error_message":"No writer for batchId: 10000262_backload_1394232932332","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"No writer for batchId: 10000262_backload_1394232935398","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"No writer for batchId: 10000262_backload_1394232936130","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"Too many open files","doc_count":22928}
+{"org_id":"10000263","status":"error","error_message":"Error Recovery for block blk_-7017959224168418697_7131594 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":1}
+{"org_id":"10000263","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":5469}
+{"org_id":"10000263","status":"success","doc_count":1978593}
 {"org_id":"10000268","status":"success","doc_count":24}
 {"org_id":"10000272","status":"success","doc_count":5}
 {"org_id":"10000279","doc_count":0}
 {"org_id":"10000281","status":"success","doc_count":4}
 {"org_id":"10000286","status":"success","doc_count":1936298}
 {"org_id":"10000232","status":"success","doc_count":756546}
-{"org_id":"10000250","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":17083}
-{"org_id":"10000250","status":"success","doc_count":190296}
-{"org_id":"10000262","_c3":"Batch not active: 10000262_backload","status":"error","doc_count":38}
-{"org_id":"10000262","_c3":"Bogus: 10000262/10000262_backload/null/null","status":"error","doc_count":86}
-{"org_id":"10000262","_c3":"Call to ip-10-199-6-149.us-west-1.compute.internal/10.199.6.149:8020 failed on local exception: java.io.IOException: Couldn't set up IO streams","status":"error","doc_count":2507}
-{"org_id":"10000262","_c3":"Call to ip-10-199-6-149.us-west-1.compute.internal:8020 failed on local exception: java.io.IOException: Couldn't set up IO streams","status":"error","doc_count":1137}
-{"org_id":"10000262","_c3":"Error Recovery for block blk_-2816470753345917091_7131001 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1414}
-{"org_id":"10000262","_c3":"Inflater has been closed","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"Invalid UUID string: abc","status":"error","doc_count":1049}
-{"org_id":"10000262","_c3":"No space left on device","status":"error","doc_count":1017811}
-{"org_id":"10000262","_c3":"No writer for batchId: 10000262_backload_1393978264765","status":"error","doc_count":1}
-{"org_id":"10000262","_c3":"batchId does not exist: 10000262_backload_1394232937350","status":"error","doc_count":1}
-{"org_id":"10000278","_c3":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","status":"error","doc_count":182}
+{"org_id":"10000250","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":17083}
+{"org_id":"10000250","status":"success","doc_count":197785}
+{"org_id":"10000262","status":"error","error_message":"Batch not active: 10000262_backload","doc_count":38}
+{"org_id":"10000262","status":"error","error_message":"Bogus: 10000262/10000262_backload/null/null","doc_count":86}
+{"org_id":"10000262","status":"error","error_message":"Call to ip-10-199-6-149.us-west-1.compute.internal/10.199.6.149:8020 failed on local exception: java.io.IOException: Couldn't set up IO streams","doc_count":2507}
+{"org_id":"10000262","status":"error","error_message":"Call to ip-10-199-6-149.us-west-1.compute.internal:8020 failed on local exception: java.io.IOException: Couldn't set up IO streams","doc_count":1137}
+{"org_id":"10000262","status":"error","error_message":"Error Recovery for block blk_-2816470753345917091_7131001 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":1414}
+{"org_id":"10000262","status":"error","error_message":"Inflater has been closed","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"Invalid UUID string: abc","doc_count":1049}
+{"org_id":"10000262","status":"error","error_message":"No space left on device","doc_count":1017811}
+{"org_id":"10000262","status":"error","error_message":"No writer for batchId: 10000262_backload_1393978264765","doc_count":1}
+{"org_id":"10000262","status":"error","error_message":"batchId does not exist: 10000262_backload_1394232937350","doc_count":1}
+{"org_id":"10000278","status":"error","error_message":"java.lang.Exception: Error from Apixio Security API. Could not encrypt:Missing key version number","doc_count":182}
 {"org_id":"10000278","status":"success","doc_count":1334590}
 {"org_id":"10000279","status":"error","doc_count":6}
-{"org_id":"10000279","_c3":"Catalog file is empty","status":"error","doc_count":12}
+{"org_id":"10000279","status":"error","error_message":"Catalog file is empty","doc_count":12}
 {"org_id":"10000282","status":"success","doc_count":32}
-{"org_id":"10000285","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":11471}
+{"org_id":"10000285","status":"error","error_message":"javax.xml.bind.UnmarshalException","doc_count":11471}
 {"org_id":"219","status":"success","doc_count":2057}
-{"org_id":"10000232","_c3":"Error Recovery for block blk_6231826223091178986_7406535 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":22832}
-{"org_id":"10000250","_c3":"Error Recovery for block blk_8518192408616584600_9888581 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":10}
-{"org_id":"10000259","_c3":"No space left on device","status":"error","doc_count":5448}
-{"org_id":"10000262","_c3":"Call to ip-10-199-6-149.us-west-1.compute.internal/10.199.6.149:8020 failed on local exception: java.io.IOException: Too many open files","status":"error","doc_count":4514}
-{"org_id":"10000262","_c3":"Error Recovery for block blk_-3517813673744984002_7448880 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":88398}
-{"org_id":"10000262","_c3":"File too large, limit: 52428800","status":"error","doc_count":10754}
+{"org_id":"10000232","status":"error","error_message":"Error Recovery for block blk_6231826223091178986_7406535 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":22832}
+{"org_id":"10000250","status":"error","error_message":"Error Recovery for block blk_8518192408616584600_9888581 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":10}
+{"org_id":"10000259","status":"error","error_message":"No space left on device","doc_count":5448}
+{"org_id":"10000262","status":"error","error_message":"Call to ip-10-199-6-149.us-west-1.compute.internal/10.199.6.149:8020 failed on local exception: java.io.IOException: Too many open files","doc_count":4514}
+{"org_id":"10000262","status":"error","error_message":"Error Recovery for block blk_-3517813673744984002_7448880 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":88398}
+{"org_id":"10000262","status":"error","error_message":"File too large, limit: 52428800","doc_count":10754}
 {"org_id":"10000265","status":"success","doc_count":12}
-{"org_id":"10000278","_c3":"Error Recovery for block blk_6753559658245079208_6978621 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":1}
-{"org_id":"10000279","status":"success","doc_count":426}
+{"org_id":"10000278","status":"error","error_message":"Error Recovery for block blk_6753559658245079208_6978621 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":1}
+{"org_id":"10000279","status":"success","doc_count":446}
 {"org_id":"10000283","status":"success","doc_count":277889}
 {"org_id":"10000285","doc_count":0}
-{"org_id":"10000286","_c3":"Error Recovery for block blk_5361815383046928285_7448916 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","status":"error","doc_count":97716}
-{"org_id":"10000286","_c3":"javax.xml.bind.UnmarshalException","status":"error","doc_count":13540}
+{"org_id":"10000286","status":"error","error_message":"Error Recovery for block blk_5361815383046928285_7448916 failed  because recovery from primary datanode 10.223.14.201:50010 failed 6 times.  Pipeline was 10.223.14.201:50010. Aborting...","doc_count":97716}
+{"org_id":"10000286","status":"error","error_message":"javax.xml.bind.UnmarshalException","doc_count":13540}
 {"org_id":"10000288","status":"success","doc_count":17}
