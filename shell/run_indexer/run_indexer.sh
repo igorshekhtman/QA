@@ -12,7 +12,7 @@ test=
 i=
 environment="s"  
 stagindrurl="uploadurl=https://supload.apixio.com:8443/"  
-productiondrurl="uploadurl=https://dr.apixio.com:8443/"  
+productiondrurl="uploadurl=https://dr.apixio.com/"  
 configfile="commsys.ini"
 #! ==============================================================================
 clear
