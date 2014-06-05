@@ -36,7 +36,7 @@ dateRange="(month=$curMonth and day=$curDay and year=$year)"
 echo "Updating partitioned log traffic summary table with date range: $dateRange"
 echo " "
 
-envs="staging production"
+envs="production staging"
 appNames="persistJob json2trace parserJob coordinator ocrJob docreceiver careopt"
 
 for env in $envs
