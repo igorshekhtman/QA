@@ -904,39 +904,43 @@ and ($dateRange);
 insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.login.username') as username,
-get_json_object(line, '$.login.userId') as user_id,
-get_json_object(line, '$.login.status') as status,
-get_json_object(line, '$.login.userAgent') as user_agent,
-get_json_object(line, '$.hostname') as hostname,
-cast(get_json_object(line, '$.login.millis') as int) as processTime,
-'login' as event,
-get_json_object(line, '$.login.remoteAddr') as remote_address,
-get_json_object(line, '$.login.orgId') as org_id,
-month,
-day
-from 
-staging_logs_careopt_epoch 
-where get_json_object(line, '$.login') is not null 
-and ($dateRange);
+if(get_json_object(line, '$.logout.username') is not null,
+get_json_object(line, '$.logout.username'),
+get_json_object(line, '$.login.username')) as username,
 
-insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
-select
-get_json_object(line, '$.datestamp') as time,
-get_json_object(line, '$.logout.username') as username,
-get_json_object(line, '$.logout.userId') as user_id,
-get_json_object(line, '$.logout.status') as status,
-get_json_object(line, '$.logout.userAgent') as user_agent,
+if(get_json_object(line, '$.logout.userId') is not null, 
+get_json_object(line, '$.logout.userId'),
+get_json_object(line, '$.login.userId')) as user_id,
+
+if(get_json_object(line, '$.logout.status') is not null,
+get_json_object(line, '$.logout.status'),
+get_json_object(line, '$.login.status')) as status,
+
+if(get_json_object(line, '$.logout.userAgent') is not null,
+get_json_object(line, '$.logout.userAgent'),
+get_json_object(line, '$.login.userAgent')) as user_agent,
+
 get_json_object(line, '$.hostname') as hostname,
-cast(get_json_object(line, '$.logout.millis') as int) as processTime,
-'logout' as event,
-get_json_object(line, '$.logout.remoteAddr') as remote_address,
-get_json_object(line, '$.logout.orgId') as org_id,
+
+if(get_json_object(line, '$.logout.millis') is not null,
+cast(get_json_object(line, '$.logout.millis') as int),
+cast(get_json_object(line, '$.login.millis') as int)) as processTime,
+
+if(get_json_object(line, '$.logout') is not null,'logout','login') as event,
+
+if(get_json_object(line, '$.logout.remoteAddr') is not null,
+get_json_object(line, '$.logout.remoteAddr'),
+get_json_object(line, '$.login.remoteAddr')) as remote_address,
+
+if(get_json_object(line, '$.logout.orgId') is not null,
+get_json_object(line, '$.logout.orgId'),
+get_json_object(line, '$.login.orgId')) as org_id,
+line,
 month,
 day
 from 
 staging_logs_careopt_epoch 
-where get_json_object(line, '$.logout') is not null 
+where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null) 
 and ($dateRange);
 
 EOF
