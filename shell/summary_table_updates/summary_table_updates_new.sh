@@ -510,7 +510,6 @@ get_json_object(line, '$.login.remoteAddr')) as remote_address,
 if(get_json_object(line, '$.logout.orgId') is not null,
 get_json_object(line, '$.logout.orgId'),
 get_json_object(line, '$.login.orgId')) as org_id,
-line,
 month,
 day
 from 
@@ -939,7 +938,6 @@ get_json_object(line, '$.login.remoteAddr')) as remote_address,
 if(get_json_object(line, '$.logout.orgId') is not null,
 get_json_object(line, '$.logout.orgId'),
 get_json_object(line, '$.login.orgId')) as org_id,
-line,
 month,
 day
 from 
