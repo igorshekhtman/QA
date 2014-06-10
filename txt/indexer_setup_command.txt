@@ -1,6 +1,7 @@
 logtraffic_summary_updates
 
-[11:54:46 AM] Nethra Krishna - Apixio: it's in here:
+it's in here:
+
 https://github.com/Apixio/QA/blob/master/shell/summary_table_updates/logtraffic_summary_updates.sh
 
 summary_logstraffic and summary_logstraffic_staging

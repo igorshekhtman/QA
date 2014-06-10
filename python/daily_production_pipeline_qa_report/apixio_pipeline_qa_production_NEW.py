@@ -505,12 +505,11 @@ def summaryLogstrafficTotals(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT + "<tr><td>"+str(i[0])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[3])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[4])+"</td>"
-		REPORT = REPORT+"<td>"+str(i[5])+"</td></tr>"
+		if (int(i[4]) > 0):
+			COMPONENT_STATUS="FAILED"
+			REPORT = REPORT + "<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+str(i[4])+"</td><td bgcolor='#FFFF00'>"+str(i[5])+"</td></tr>"
+		else:
+			REPORT = REPORT + "<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+str(i[4])+"</td><td>"+str(i[5])+"</td></tr>"
 			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
