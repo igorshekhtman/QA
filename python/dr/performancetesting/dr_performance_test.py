@@ -149,8 +149,8 @@ def checkEnvironment():
 	global BATCH, DRBATCH, MANIFEST_FILENAME, RECEIVERS, RECEIVERS_HTML
 	global ENVIRONMENT
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
-		USERNAME="apxdemot0138"
-		ORGID="10000279"
+		USERNAME="apxdemot0500"
+		ORGID="10000289"
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT="Production"
