@@ -1,7 +1,9 @@
-ï»¿============== SUPLOAD vs SUPLOAD2 =============================================
+logtraffic_summary_updates
 
-supload: ip-10-199-22-217
-supload2: ip-10-199-16-28
+[11:54:46 AM] Nethra Krishna - Apixio: it's in here:
+https://github.com/Apixio/QA/blob/master/shell/summary_table_updates/logtraffic_summary_updates.sh
+
+summary_logstraffic and summary_logstraffic_staging
 
 ============== CASSANDRA 2.0 NODES =============================================
 
@@ -25,26 +27,7 @@ pw:   user12
 Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 
 
-================  API ====================================================================================================
-
-archive reports:
-1.) append a record to /usr/lib/apx-reporting/html/assets/do_reports.txt
-DO Performance Report (staging) - June 06, 2014	reports/staging/do/basicexamplesimulation-20140606130045/index.html
-2.) copy folder and all subfolders from 
-/mnt/gatling/results to /qa/reports/staging/do
-
-NOW=$(date +"%m-%d-%Y")
-echo -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/basicexamplesimulation-"$(date +"%Y%m%d")"130045/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
-
-cp -avr /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")* /qa/reports/staging/do
-
-echo -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/basicexamplesimulation-"$(date +"%Y%m%d")"130045/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
-
-==========================================================================================================================
-
-
-
-
+================  API ============================================================
 
 ./gatling.sh -s "basic.BasicExampleSimulation" -sd "test"
 
@@ -607,7 +590,7 @@ uploadurl=https://dr.apixio.com:8443/
 setting coordinator slot configuration
 
 Coordinator slot config:
-java com.apixio.coordinator.cmdline.SlotConfigTool --set ï¿½activity=1"
+java com.apixio.coordinator.cmdline.SlotConfigTool --set “activity=1"
 (check the config)
 java com.apixio.coordinator.cmdline.SlotConfigTool --listall
 [1:31:45 PM] Lilith Schneider: from bin after . setcp
