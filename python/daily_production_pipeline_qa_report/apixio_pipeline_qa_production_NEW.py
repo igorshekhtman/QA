@@ -113,6 +113,7 @@ ORGMAP = { \
 	"10000275":"org0005", \
 	"10000278":"Hill Physicians", \
 	"10000279":"Production Test Org", \
+	"10000289":"Production Test Org", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
@@ -481,6 +482,42 @@ def careOptimizerSearch(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+	
+def summaryLogstrafficTotals(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS	
+
+	QUERY_DESC="""Logstraffic summary"""
+	print ("Running LOGSTRAFFIC SUMMARY query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT app_name, \
+		discarded, infos, events, errors, total \
+		FROM %s  \
+		WHERE day=%s and month=%s \
+		ORDER BY total DESC""" %(table, DAY, MONTH))
+
+
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Application:</td><td>Discarded:</td><td>Infos:</td><td>Events:</td><td>Errors:</td>"
+	REPORT = REPORT+"<td>Total:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT + "<tr><td>"+str(i[0])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[3])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[4])+"</td>"
+		REPORT = REPORT+"<td>"+str(i[5])+"</td></tr>"
+			
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+	
+	
 def uploadSummary(activity, summary_table_name, unique_id):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
@@ -673,6 +710,21 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
+#============ 6th or Logs Traffic section of the report =================
+	
+	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
+	COMPONENT_STATUS="PASSED"
+	if ENVIRONMENT == "production":
+		summaryLogstrafficTotals("summary_logstraffic")
+	else:
+		summaryLogstrafficTotals("summary_logstraffic_staging")
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
+	
 #========================= END =============================================	
 
 def closeHiveConnection():
