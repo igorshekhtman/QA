@@ -114,6 +114,7 @@ ORGMAP = { \
 	"10000278":"Hill Physicians", \
 	"10000279":"Production Test Org", \
 	"10000289":"Production Test Org", \
+	"190":"Staging Test Org", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
