@@ -1,3 +1,8 @@
+﻿============== SUPLOAD vs SUPLOAD2 =============================================
+
+supload: ip-10-199-22-217
+supload2: ip-10-199-16-28
+
 ============== CASSANDRA 2.0 NODES =============================================
 
 prod internal new : 10.173.29.185, 10.174.49.107, 10.174.97.35, 10.173.31.128, 10.174.105.124, 10.174.70.255, 10.174.99.46, 10.174.117.71, 10.175.3.230
@@ -20,7 +25,26 @@ pw:   user12
 Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 
 
-================  API ============================================================
+================  API ====================================================================================================
+
+archive reports:
+1.) append a record to /usr/lib/apx-reporting/html/assets/do_reports.txt
+DO Performance Report (staging) - June 06, 2014	reports/staging/do/basicexamplesimulation-20140606130045/index.html
+2.) copy folder and all subfolders from 
+/mnt/gatling/results to /qa/reports/staging/do
+
+NOW=$(date +"%m-%d-%Y")
+echo -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/basicexamplesimulation-"$(date +"%Y%m%d")"130045/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+
+cp -avr /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")* /qa/reports/staging/do
+
+echo -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/basicexamplesimulation-"$(date +"%Y%m%d")"130045/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+
+==========================================================================================================================
+
+
+
+
 
 ./gatling.sh -s "basic.BasicExampleSimulation" -sd "test"
 
