@@ -41,7 +41,7 @@ public class QueryHiveUtilities
                     if (processedList.size() == 1)
                     {
                         //Only one value. So do "equals" query.
-                        addedParams += key + " = '" + processedList.get(0) + "'";
+                        addedParams += key + " = " + processedList.get(0) + "";
                     }
                     else if (processedList.size() > 1)
                     {
@@ -51,7 +51,7 @@ public class QueryHiveUtilities
                         {
                             if (i != 0)
                                 addedParams += ",";
-                            addedParams += "'"+processedList.get(i)+"'";
+                            addedParams += ""+processedList.get(i)+"";
                         }
                         addedParams += ")";
                     }

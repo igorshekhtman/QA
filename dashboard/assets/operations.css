@@ -1,0 +1,16 @@
+.heading {
+margin: 1px;
+color: black;
+font-weight:bold;
+padding: 3px 10px;
+cursor: pointer;
+position: relative;
+background:url(wdgt-bar_tile.png);
+}
+
+.content {
+padding: 5px 10px;
+background-color:#fafafa;
+}
+
+p { padding: 5px 0; }

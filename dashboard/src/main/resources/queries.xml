@@ -2,14 +2,14 @@
 
     <query name="archivedToS3_count">
         <text>
-            select org_id, count(distinct(doc_id)) as doc_count, status, error_message
+            select org_id, count(distinct(doc_id)) as doc_count, status, error_message, max(time) as last_occured_time
             from summary_docreceiver_archive{env}  
             group by org_id, status, error_message
         </text>
     </query>
     <query name="upload_count">
         <text>
-            select org_id, count(distinct(doc_id)) as doc_count, status, if(error_message like '/mnt%','No space left on device',error_message) as error_message
+            select org_id, count(distinct(doc_id)) as doc_count, status, if(error_message like '/mnt%','No space left on device',error_message) as error_message, max(time) as last_occured_time
             from summary_docreceiver_upload{env}   
             group by org_id, status, if(error_message like '/mnt%','No space left on device',error_message)
         </text>
@@ -26,7 +26,7 @@
     </query>
     <query name="parse_error_count">
         <text>
-            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, count(a.doc_id) as error_count, a.status, max(a.time) as last_occured_time 
             from summary_parser{env} a join summary_coordinator_jobfinish{env} b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
             left outer join summary_parser{env} o on o.doc_id=a.doc_id and o.status="success" 
             where a.status="error" and o.doc_id is null and a.doc_id is not null 
@@ -45,7 +45,7 @@
     </query>
     <query name="ocr_error_count">
         <text>
-            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, count(a.doc_id) as error_count, a.status, max(a.time) as last_occured_time 
             from summary_ocr{env} a join summary_coordinator_jobfinish{env} b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
             left outer join summary_ocr{env} o on o.doc_id=a.doc_id and o.status="success" 
             where a.status="error" and o.doc_id is null and a.doc_id is not null 
@@ -64,10 +64,19 @@
     </query>
     <query name="persist_error_count">
         <text>
-            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, a.status 
+            select a.org_id, a.error_message, count(distinct a.doc_id) as doc_count, count(a.doc_id) as error_count, a.status, max(a.time) as last_occured_time 
             from summary_persist_mapper{env} a join summary_coordinator_jobfinish{env} b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
             left outer join summary_persist_mapper{env} o on o.doc_id=a.doc_id and o.status="success" 
             where a.status="error" and o.doc_id is null and a.doc_id is not null 
+            group by a.org_id, a.status, a.error_message
+        </text>
+    </query>
+    <query name="persistReducer_error_count">
+        <text>
+            select a.org_id, a.error_message, count(distinct a.patient_key) as doc_count, count(a.patient_key) as error_count, a.status, max(a.time) as last_occured_time 
+            from summary_persist_reducer{env} a join summary_coordinator_jobfinish{env} b on a.hadoopjob_id = b.hadoop_job_id and b.status = "success" 
+            left outer join summary_persist_reducer{env} o on o.patient_key=a.patient_key and o.status="success" 
+            where a.status="error" and o.patient_key is null and a.patient_key is not null 
             group by a.org_id, a.status, a.error_message
         </text>
     </query>
@@ -148,6 +157,18 @@
         </text>
     </query>
     
+    <query name="recent_errors">
+        <text>
+            select get_json_object(line, '$.orgId') as org_id,
+            get_json_object(line, '$.error.message') as error_message,
+            count(line) as error_count, max(get_json_object(line, '$.datestamp')) as last_occured_time,
+            get_json_object(line, '$.status') as status
+            from {tableName} where get_json_object(line, '$.status')='error' and {userParams}
+            group by get_json_object(line, '$.orgId'), get_json_object(line, '$.error.message'), get_json_object(line, '$.status')
+            order by org_id asc, last_occured_time desc
+        </text>
+    </query>
+    
     <group name="completeness">
         <run-query name="archivedToS3_count"/>
         <run-query name="upload_count"/> 
@@ -157,6 +178,7 @@
         <run-query name="ocr_error_count"/> 
         <run-query name="persist_success_count"/>
         <run-query name="persist_error_count"/>
+        <run-query name="persistReducer_error_count"/>
         <run-query name="verified_count"/>
         <run-query name="docs_queue"/> 
         <run-query name="docs_in_failedjobs"/>
@@ -164,7 +186,16 @@
         <run-query name="docs_abandoned_coordinator_count"/> 
     </group>
     
-    <group name="summary_tables_updates">
+    <group name="recentErrors">
+        <run-query name="archivedToS3_count"/>
+        <run-query name="upload_count"/>
+        <run-query name="parse_error_count"/>
+        <run-query name="ocr_error_count"/>
+        <run-query name="persist_error_count"/>
+        <run-query name="persistReducer_error_count"/>
+    </group>
+    
+    <group name="summaryTablesUpdates">
     
     </group>
     

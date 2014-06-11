@@ -201,6 +201,30 @@ public class QueryHiveResource
     }
     
     @GET
+    @Path("/table/query/{tableName}/{queryName}")
+    @Timed
+    public String runQueryOnTable(@PathParam("tableName") String tableName, @PathParam("queryName") String queryName, @Context UriInfo uriInfo)
+    {
+        try
+        {
+            if (queryName != null)
+            {
+                List<JSONObject> results = queryManager.processQueryByTableName(tableName, queryName, uriInfo.getQueryParameters());
+                if (results == null)
+                    return "Error while trying to execute the query "+queryName+". Please make sure that query exists in queries.xml file";
+                System.out.println(results);
+                return results.toString();
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            return ex.toString();
+        }
+    }
+    
+    @GET
     @Path("/json/{environment}/ui/group/{groupName}")
     @Timed
     public String runGroupUI(@PathParam("environment") String environment, @PathParam("groupName") String groupName)
