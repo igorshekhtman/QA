@@ -155,13 +155,11 @@ def checkEnvironment():
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT="Production"
 	else:
-		#USERNAME="apxdemot0182"
-		#ORGID="190"
-		USERNAME="apxdemot0240"
-		ORGID="251"
+		USERNAME="apxdemot0311"
+		ORGID="315"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		HOST="https://supload.apixio.com:8443"
+		HOST="https://supload2.apixio.com:8443"
 		# alternative staging DR upload url
 		#HOST="https://supload2.apixio.com:8443"
 		ENVIRONMENT="Staging"
