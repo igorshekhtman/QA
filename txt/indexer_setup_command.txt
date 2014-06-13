@@ -1,3 +1,5 @@
+=================================================================================================
+
 10.199.22.217 testdr testdr.apixio.com
 10.199.16.28  stagedr stagedr.apixio.com
 
@@ -34,6 +36,26 @@ Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 
 
 ================  API ============================================================
+
+-------------- Automated API script (gatling.sh) --------------------------
+
+cp -avr /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")* /qa/reports/staging/do
+
+echo -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/basicexamplesimulation-"$(date +"%Y%m%d")"130045/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+
+ls -d /mnt/gatling/results/basicexamplesimulation-20140613*/ | cut -f5 -d'/'
+
+
+ls -d /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")*/ | cut -f5 -d'/' >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+
+
+
+echo -n -e "DO Performance Report (staging) - "$(date +"%B %d, %Y")"\treports/staging/do/" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+temp=$(ls -d /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")*/ | cut -f5 -d'/')
+echo -n "$temp" >> /usr/lib/apx-reporting/html/assets/do_reports.txt 
+echo "/index.html" >> /usr/lib/apx-reporting/html/assets/do_reports.txt
+
+---------------------------------------------------------------------------
 
 ./gatling.sh -s "basic.BasicExampleSimulation" -sd "test"
 

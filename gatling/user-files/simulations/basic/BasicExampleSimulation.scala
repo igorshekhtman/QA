@@ -124,7 +124,9 @@ class BasicExampleSimulation extends Simulation {
   // 3 users over 20 seconds
   // setUp(scn.inject(ramp(3 users) over (20 seconds)))
   // 11 users over 1 hour
-  setUp(scn.inject(ramp(11 users) over (3600 seconds)))
+  // setUp(scn.inject(ramp(11 users) over (3600 seconds)))
+  // 60 users over 1 hour
+  setUp(scn.inject(ramp(60 users) over (3600 seconds)))
   
     .protocols(http.baseURL("http://").disableFollowRedirect) // Note we can't use this because we use multiple services
     .assertions( // TODO: Fix, these are the assertions that came with the sample code
