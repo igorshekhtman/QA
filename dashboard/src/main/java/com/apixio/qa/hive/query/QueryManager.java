@@ -103,6 +103,11 @@ public class QueryManager
             RecentErrorsProcessor recentErrors = new RecentErrorsProcessor();
             processedGroup = recentErrors.processRecentErrors(queryHandler, outputDir, environment, rQs);
         }
+        else if (groupToRun.getName().equalsIgnoreCase("failedJobs"))
+        {
+            FailedJobsProcessor failedJobs = new FailedJobsProcessor();
+            processedGroup = failedJobs.processFailedJobs(queryHandler, outputDir, environment, rQs);
+        }
         //TODO else just run the group and return results.. 
         return processedGroup;
     }

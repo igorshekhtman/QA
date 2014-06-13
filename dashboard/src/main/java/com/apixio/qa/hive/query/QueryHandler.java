@@ -94,7 +94,7 @@ public class QueryHandler
 
             try
             {
-                connection.createStatement().execute("set mapred.job.queue.name=default");
+                connection.createStatement().execute("set mapred.job.queue.name=hive");
                 PreparedStatement prepStatement = connection.prepareStatement(sql);
 
                 try

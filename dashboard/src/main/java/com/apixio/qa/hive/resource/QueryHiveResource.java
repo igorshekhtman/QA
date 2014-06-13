@@ -165,8 +165,9 @@ public class QueryHiveResource
                         fileName = outputDir + environment.toLowerCase() + "/" + rQ.getName();
                         
                     List<JSONObject> results = qm.runQuery(environment, rQ);
-                    
+                    System.out.println("Writing to file:"+fileName);
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
+                    return results.toString();
                 }
             }
             return null;

@@ -103,7 +103,9 @@
     </query>
     <query name="docs_in_failedjobs">
         <text>
-            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count, count(p.sent_to_ocr) as sent_to_ocr_count, count(distinct(o.doc_id)) as ocr_count
+            select jr.org_id, jr.activity, count(distinct(dr.doc_id)) as doc_count, count(p.sent_to_persist) as sent_to_persist_count,
+            count(p.sent_to_ocr) as sent_to_ocr_count,
+            count(distinct(o.doc_id)) as ocr_count
             from summary_coordinator_jobrequest{env} jr
             join summary_coordinator_jobfinish{env} jf
             on jr.job_id=jf.job_id and jr.work_id=jf.work_id and jf.status="error" 
@@ -168,6 +170,36 @@
             order by org_id asc, last_occured_time desc
         </text>
     </query>
+
+    <query name="failed_jobs">
+        <text>
+            select f.org_id as org_id, f.batch_id as batch_id, f.activity as activity,
+            f.hadoop_job_id as hadoop_job_id, f.job_id as job_id, f.status as status, f.total_time as job_runtime,
+            f.time as failed_time
+            from summary_coordinator_jobfinish{env} f
+            left outer join summary_coordinator_jobfinish{env} jfs on jfs.status="success" and jfs.orig_job_id=f.orig_job_id and jfs.orig_job_id is not null
+            where jfs.orig_job_id is null and f.hadoop_job_id is not null and f.status='error' order by org_id asc, failed_time desc
+        </text>
+    </query>
+
+    <query name="recent_failed_jobs">
+        <text>
+            select get_json_object(a.line, '$.job.context.organization') as org_id,
+            get_json_object(a.line, '$.job.context.batchID') as batch_id,
+            get_json_object(a.line, '$.job.activity') as activity,
+            get_json_object(a.line, '$.job.hadoopJobID') as hadoop_job_id,
+            get_json_object(a.line, '$.job.status') as status,
+            get_json_object(a.line, '$.job.millis') as job_runtime,
+            get_json_object(a.line, '$.datestamp') as failed_time
+            from {epochEnv}_logs_coordinator_epoch a
+            left outer join {epochEnv}_logs_coordinator_epoch b on
+            get_json_object(b.line, '$.job.originalJobID') = get_json_object(a.line, '$.job.originalJobID')
+            and get_json_object(b.line, '$.job.status')='success'
+            where get_json_object(b.line, '$.job.originalJobID') is null and get_json_object(a.line, '$.job.hadoopJobID') is not null and
+            get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')='error'
+            and {userParams} order by org_id asc, failed_time desc
+        </text>
+    </query>
     
     <group name="completeness">
         <run-query name="archivedToS3_count"/>
@@ -193,6 +225,10 @@
         <run-query name="ocr_error_count"/>
         <run-query name="persist_error_count"/>
         <run-query name="persistReducer_error_count"/>
+    </group>
+
+    <group name="failedJobs">
+        <run-query name="failed_jobs"/>
     </group>
     
     <group name="summaryTablesUpdates">

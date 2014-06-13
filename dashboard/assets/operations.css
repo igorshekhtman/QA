@@ -14,3 +14,14 @@ background-color:#fafafa;
 }
 
 p { padding: 5px 0; }
+
+li { background: none !important;}
+ul.squareList {list-style-type: square !important;}
+
+.redBox {
+background: none;
+color: #514721;
+padding: .8em;
+margin-bottom: 1em;
+border: 2px solid #FA5858;
+}
