@@ -27,13 +27,13 @@ if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	USERNAME="apxdemot0138"
 	ORGID="10000279"
 	PASSWORD="Hadoop.4522"
-	HOST="https://dr.apixio.com:8443"
+	HOST="https://dr.apixio.com"
 	ENVIRONMENT="Production"
 else:
 	USERNAME="apxdemot0182"
 	ORGID="190"
 	PASSWORD="Hadoop.4522"
-	HOST="https://supload.apixio.com:8443"
+	HOST="https://stagedr.apixio.com:8443"
 	ENVIRONMENT="Staging"
 
 	
