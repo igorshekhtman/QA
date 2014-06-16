@@ -37,6 +37,11 @@ Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 
 ================  API ============================================================
 
+10.191.15.150 - Internal - use from QA could machine
+
+50.18.147.10 - External - use from local machine (in office)
+
+
 -------------- Automated API script (gatling.sh) --------------------------
 
 cp -avr /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")* /qa/reports/staging/do
