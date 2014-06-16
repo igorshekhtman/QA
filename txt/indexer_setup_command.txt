@@ -53,9 +53,12 @@ setUp(scn.inject(nothingFor(4 seconds),
                                   .separatedBy(atOnce(30 users)))
                  .protocols(httpConf)
 
+atOnceUsers(1)
+
 
 let's try 2 to 5 minutes
 60 users over 1 hour
+setUp(scn.inject(nothingFor(4 seconds), (ramp(60 users) over (5 minutes)), constantRate(60 usersPerSec) during (55 minutes)))
 
 -------------- Automated API script (gatling.sh) --------------------------
 
