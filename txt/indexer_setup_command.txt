@@ -42,6 +42,21 @@ Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 50.18.147.10 - External - use from local machine (in office)
 
 
+setUp(scn.inject(nothingFor(4 seconds),
+                 atOnce(10 users),
+                 ramp(10 users) over (5 seconds),
+                 constantRate(20 usersPerSec) during (15 seconds),
+                 rampRate(10 usersPerSec) to(20 usersPerSec) during(10 minutes),
+                 split(1000 users).into(ramp(10 users) over (10 seconds))
+                                  .separatedBy(10 seconds),
+                 split(1000 users).into(ramp(10 users) over (10 seconds))
+                                  .separatedBy(atOnce(30 users)))
+                 .protocols(httpConf)
+
+
+let's try 2 to 5 minutes
+60 users over 1 hour
+
 -------------- Automated API script (gatling.sh) --------------------------
 
 cp -avr /mnt/gatling/results/basicexamplesimulation-$(date +"%Y%m%d")* /qa/reports/staging/do
