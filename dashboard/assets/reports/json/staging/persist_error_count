@@ -1,0 +1,8 @@
+{"org_id":"190","status":"error","error_message":"All host(s) tried for query failed (no host was tried)","doc_count":100}
+{"org_id":"239","status":"error","error_message":"Could not compute patient key.","doc_count":3}
+{"org_id":"244","status":"error","error_message":"No document content found.","doc_count":361}
+{"org_id":"289","status":"error","error_message":"All host(s) tried for query failed (tried: /10.174.77.69 ([/10.174.77.69] Channel has been closed))","doc_count":2}
+{"org_id":"289","status":"error","error_message":"All host(s) tried for query failed (tried: /10.222.101.109 ([/10.222.101.109] Channel has been closed))","doc_count":1}
+{"org_id":"289","status":"error","error_message":"All host(s) tried for query failed (tried: /10.222.101.109 ([/10.222.101.109] Channel has been closed), /10.222.139.147 ([/10.222.139.147] Error writing: Closed channel), /10.196.1.152 ([/10.196.1.152] Error while setting keyspace))","doc_count":1}
+{"org_id":"289","status":"error","error_message":"All host(s) tried for query failed (tried: /10.222.139.147 ([/10.222.139.147] Channel has been closed))","doc_count":2}
+{"org_id":"289","status":"error","error_message":"com.datastax.driver.core.exceptions.InvalidQueryException: no keyspace has been specified","doc_count":1}

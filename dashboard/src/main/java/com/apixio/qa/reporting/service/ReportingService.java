@@ -30,7 +30,8 @@ public class ReportingService extends Service<ReportingServiceConfiguration>
         final String hiveAddress = configuration.getHiveConfiguration().getUrl();
         final String updateInterval = "90";
         final String outputDir = configuration.getApplicationConfiguration().getOutputDir();
-        environment.addResource(new QueryHiveResource(hiveAddress, updateInterval, outputDir));
+        final String manifestDir = configuration.getApplicationConfiguration().getManifestDir();
+        environment.addResource(new QueryHiveResource(hiveAddress, updateInterval, outputDir, manifestDir));
         
         environment.addResource(new GraphiteResource(configuration.getGraphiteConfiguration()));
         

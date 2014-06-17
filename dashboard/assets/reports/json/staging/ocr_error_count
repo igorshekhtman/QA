@@ -1,0 +1,7 @@
+{"org_id":"190","status":"error","error_message":"Cannot run program \"java\" (in directory \".\"): error=13, Permission denied","doc_count":16}
+{"org_id":"190","status":"error","error_message":"Cannot run program \"java\" (in directory \".\"): java.io.IOException: error=13, Permission denied","doc_count":16}
+{"org_id":"190","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":6}
+{"org_id":"244","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":6}
+{"org_id":"261","status":"error","error_message":"Cannot run program \"java\" (in directory \".\"): error=13, Permission denied","doc_count":56}
+{"org_id":"261","status":"error","error_message":"OCR Process Failed to exit normally.The exit value is:1","doc_count":114}
+{"org_id":"302","status":"error","error_message":"Cannot run program \"java\" (in directory \".\"): error=13, Permission denied","doc_count":4}

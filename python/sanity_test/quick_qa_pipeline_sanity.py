@@ -31,8 +31,8 @@ if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	HOST="https://dr.apixio.com:8443"
 	ENVIRONMENT="Production"
 else:
-	USERNAME="apxdemot0182"
-	ORGID="190"
+	USERNAME="apxdemot0245"
+	ORGID="261"
 	PASSWORD="Hadoop.4522"
 	HOST="https://supload.apixio.com:8443"
 	ENVIRONMENT="Staging"
@@ -53,6 +53,9 @@ BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 MANIFEST_FILENAME=BATCH+"_manifest.txt"
 
+CLOSE_URL="%s/receiver/batch/%s/status/flush" % (HOST, DRBATCH)
+UPLOAD_URL_2="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
+
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
 
@@ -70,12 +73,12 @@ QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
 LOGTYPE="24"
 
-INDEXERLOGFILE="indexer_manifest_epoch"
-DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
-COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
-PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
-OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
-PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
+#INDEXERLOGFILE="indexer_manifest_epoch"
+#DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
+#COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
+#PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
+#OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
+#PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 QAFROMSEQFILELOGFILE=ENVIRONMENT.lower()+"_logs_qafromseqfile_"+LOGTYPE
 
 SENDER="donotreply@apixio.com"
@@ -84,7 +87,15 @@ if (len(sys.argv) > 2):
     RECEIVERS = str(sys.argv[2])
 else:
     RECEIVERS="eng@apixio.com"
-#RECEIVERS="lschneider@apixio.com"
+
+categoryURL = "?category="
+cat = "standard"
+if (len(sys.argv) > 3):
+    cat = str(sys.argv[3])
+    categoryURL += cat
+    UPLOAD_URL += categoryURL
+    UPLOAD_URL_2 += categoryURL
+    CLOSE_URL += categoryURL
 
 # ====================================================================================================
 
@@ -101,6 +112,8 @@ print ("BATCH = %s") % BATCH
 print ("MANIFEST_FILENAME = %s") % MANIFEST_FILENAME
 print ("")
 print ("UPLOAD_URL = %s") % UPLOAD_URL
+print ("UPLOAD_URL_2 = %s") % UPLOAD_URL_2
+print ("CLOSE_URL = %s") % CLOSE_URL
 print ("TOKEN_URL = %s") % TOKEN_URL
 print ("USERNAME = %s") % USERNAME
 print ("PASSWORD = %s") % PASSWORD
@@ -131,7 +144,6 @@ obj=json.loads(buf.getvalue())
 TOKEN=obj["token"]
 
 def uploadData():
-	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
 	c = pycurl.Curl()
 	c.setopt(pycurl.URL, UPLOAD_URL)
 	c.setopt(pycurl.HTTPHEADER, ['Accept: application/json', 'Content-Type: application/x-www-form-urlencoded'])
@@ -180,15 +192,13 @@ for FILE in FILES:
     METATAGS="METATAGS_VALUE";
     SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
     TOKEN_URL="%s/auth/token/" % (HOST);
-    UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
     CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 		
     # =============== Uploading Data ==============================================================
-    UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
     bufu = io.BytesIO()
     response = cStringIO.StringIO()
     c = pycurl.Curl()
-    c.setopt(c.URL, UPLOAD_URL)
+    c.setopt(c.URL, UPLOAD_URL_2)
     c.setopt(c.HTTPPOST, [("token", str(TOKEN)),("document", (pycurl.FORM_FILE, DIR+"/"+FILE)),("catalog", (c.FORM_CONTENTS, str(CATALOG_FILE)))])
     c.setopt(c.WRITEFUNCTION, bufu.write)
     c.setopt(c.DEBUGFUNCTION, test)
@@ -208,7 +218,6 @@ print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
 
 print ("Closing Batch ...\n")
 
-CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, DRBATCH);
 bufc = io.BytesIO()
 response = cStringIO.StringIO()
 c = pycurl.Curl()
@@ -268,10 +277,11 @@ Subject: Pipeline QA Report %s batchID %s - %s
 Date & Time: <b>%s</b><br>
 Test type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
+Category: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br><br>
-""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
+""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, cat, ORGID, BATCHID, USERNAME)
 
 
 conn = pyhs2.connect(host='10.196.47.205',
@@ -297,21 +307,23 @@ REPORT = REPORT+SUBHDR % "QA from Sequence File"
 
 if QUICK_QA:
     QUERY_DESC=""
-    print ("Running QA query #16 - retrieve %s ...") % (QUERY_DESC)
-    cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as docUUID_count, \
-		get_json_object(line, '$.output.uploadedToS3') as saved_to_s3, \
-        get_json_object(line, '$.output.documentEntry.orgId') as confirm_docentry, \
-        get_json_object(line, '$.output.trace.parserJob') as parser_trace, \
-        get_json_object(line, '$.output.trace.ocrJob') as ocr_trace, \
-        get_json_object(line, '$.output.trace.persistJob') as persist_trace, \
-        get_json_object(line, '$.output.trace.appendToSequenceFile') as seqfile_trace, \
-        get_json_object(line, '$.output.trace.submitToCoordinator') as sent_to_coordinator_trace, \
-        get_json_object(line, '$.output.link.orgIdByDocUUID') as doc_link, \
-        get_json_object(line, '$.output.link.orgIdByPatientUUID') as pat_link, \
-        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'not found') as apo_status \
+    print ("Running QA query - retrieve %s ...") % (QUERY_DESC)
+    cur.execute("""SELECT count (distinct get_json_object(line, '$.input.uuid')) as col_0, \
+		get_json_object(line, '$.output.uploadedToS3') as col_1, \
+        get_json_object(line, '$.output.documentEntry.orgId') as col_2, \
+        get_json_object(line, '$.output.trace.parserJob') as col_3, \
+        get_json_object(line, '$.output.trace.ocrJob') as col_4, \
+        get_json_object(line, '$.output.trace.persistJob') as col_5, \
+        get_json_object(line, '$.output.trace.appendToSequenceFile') as col_6, \
+        get_json_object(line, '$.output.trace.submitToCoordinator') as col_7, \
+        get_json_object(line, '$.output.link.orgIdByDocUUID') as col_8, \
+        get_json_object(line, '$.output.link.orgIdByPatientUUID') as col_9, \
+        if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none') as col_10, \
+        if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none') as col_11 \
 		FROM %s \
-		WHERE get_json_object(line, '$.output.documentEntry.batchId') = "%s" and \
-		day=%s and month=%s\
+		WHERE get_json_object(line, '$.jobname') like "%s%%" \
+		and get_json_object(line, '$.output') is not null \
+		and day=%s and month=%s \
 		GROUP BY get_json_object(line, '$.output.uploadedToS3'), \
         get_json_object(line, '$.output.documentEntry.orgId'), \
         get_json_object(line, '$.output.trace.parserJob'), \
@@ -321,16 +333,19 @@ if QUICK_QA:
         get_json_object(line, '$.output.trace.submitToCoordinator'), \
         get_json_object(line, '$.output.link.orgIdByDocUUID'), \
         get_json_object(line, '$.output.link.orgIdByPatientUUID'), \
+        if( get_json_object(line, '$.output.apo.patientKey') is not null, 'found', 'none'), \
         if( get_json_object(line, '$.output.apo.uuid') is not null, 'found', 'none')""" %(QAFROMSEQFILELOGFILE, BATCH, DAY, MONTH))
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
     REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
     
-    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apoUUID</th></tr>"
+    REPORT = REPORT+"<tr><th>docCount</th><th>archived</th><th>docEntry</th><th>parserTrace</th><th>ocrTrace</th><th>persistTrace</th><th>seqFileTrace</th><th>sentTrace</th><th>docLink</th><th>patLink</th><th>apo</th><th>patUUID</th></tr>"
     ROW = 0
     sum = 0
+    result = []
     for resultRow in cur.fetch():
         ROW = ROW + 1
         print resultRow
+        result.append(resultRow)
         if (ROW <= 2):
             sum += int(resultRow[0])
         REPORT = REPORT + "<tr>"
@@ -346,12 +361,120 @@ if QUICK_QA:
         COMPONENT_STATUS="FAILED"
     REPORT = REPORT+"</table><br>"
 
+    reportResults = {"total":0,
+        "verified":0,
+        "failedArchive":0,
+        "noParserTrace":0,
+        "noOCRTrace":0,
+        "noPersistTrace":0,
+        "noDocEntry":0,
+        "noSeqfileTrace":0,
+        "noSentTrace":0,
+        "noDocLink":0,
+        "noPatLink":0,
+        "failedReducer":0}
 
-if (COMPONENT_STATUS=="PASSED"):
-	REPORT = REPORT+PASSED
-else:
-	REPORT = REPORT+FAILED
-	COMPONENT_STATUS="PASSED"
+    for line in result:
+        count = line[0]
+        reportResults["total"] += count
+        if line[1] != "true":
+            reportResults["failedArchive"] += count
+        if line[2] != ORGID:
+            reportResults["noDocEntry"] += count
+        if line[3] != "sentToOCR" and line[3] != "sentToPersist":
+            reportResults["noParserTrace"] += count
+        if line[3] == "sentToOCR" and line[4] != "sentToPersist":
+            reportResults["noOCRTrace"] += count
+        if line[5] != "persisted":
+            reportResults["noPersistTrace"] += count
+        if line[6] != "success":
+            reportResults["noSeqfileTrace"] += count
+        if line[7] != "success":
+            reportResults["noSentTrace"] += count
+        if line[8] != ORGID:
+            reportResults["noDocLink"] += count
+        if line[9] != ORGID:
+            reportResults["noPatLink"] += count
+        if line[10] == "found":
+            reportResults["verified"] += count
+        if line[11] != "found":
+            reportResults["failedReducer"] += count
+
+    startCountTable = "<table border='0' cellpadding='1' cellspacing='0'>"
+    startCountTable = startCountTable + "<tr><th>  </th><th>Count</th></tr>"
+    endCountTable = "</table>"
+    countTableRow = "<tr><td align='right'>%s: </td><td align='center'>%s</td></tr>"
+    for key,count in reportResults.items():
+        print key + ": " + str(count)
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Data Verification"
+    REPORT = REPORT+startCountTable
+    mapperVerifiedCount = reportResults["verified"]
+    reducerFailedCount = reportResults["failedReducer"]
+    archiveFailedCount = reportResults["failedArchive"]
+    REPORT = REPORT+countTableRow % ("Verified APOs Persisted", str(mapperVerifiedCount))
+    REPORT = REPORT+countTableRow % ("Failed Archive to S3", str(archiveFailedCount))
+    REPORT = REPORT+countTableRow % ("Failed Persist Reducer", str(reducerFailedCount))
+    REPORT = REPORT+countTableRow % ("Total Documents", str(reportResults["total"]))
+    REPORT = REPORT+endCountTable
+    if (mapperVerifiedCount == DOCUMENTS_TRANSMITTED and reducerFailedCount == 0 and archiveFailedCount == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Link Table Verification"
+    REPORT = REPORT+startCountTable
+    failedDocLinkCount = reportResults["noDocLink"]
+    failedPatLinkCount = reportResults["noPatLink"]
+    REPORT = REPORT+countTableRow % ("Missing Document UUID Link", str(failedDocLinkCount))
+    REPORT = REPORT+countTableRow % ("Missing Patient UUID Link", str(failedPatLinkCount))
+    REPORT = REPORT+endCountTable
+    if (failedDocLinkCount == 0 and failedPatLinkCount == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
+    # ===========================================
+    REPORT = REPORT+SUBHDR % "Trace Verification"
+    REPORT = REPORT+startCountTable
+    failedDocEntry = reportResults["noDocEntry"]
+    failedTrace = 0
+    REPORT = REPORT+countTableRow % ("Missing Document Entry", str(failedDocEntry))
+
+    temp = reportResults["noSeqfileTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Sequence File Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["noSentTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Sent to Coordinator Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["noParserTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Parser Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["noOCRTrace"]
+    REPORT = REPORT+countTableRow % ("Missing OCR Trace", str(temp))
+    failedTrace += temp
+
+    temp = reportResults["noPersistTrace"]
+    REPORT = REPORT+countTableRow % ("Missing Persist Trace", str(temp))
+    failedTrace += temp
+
+    REPORT = REPORT+endCountTable
+    if (failedDocEntry == 0 and failedTrace == 0):
+        REPORT = REPORT+PASSED
+    else:
+        REPORT = REPORT+FAILED
+    REPORT = REPORT+"<br>"
+    # ===========================================
+
 REPORT = REPORT+"<br><br>"
 
 

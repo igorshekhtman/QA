@@ -788,6 +788,7 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	print ("Running COORDINATOR query #%s - retrieve %s ...") % (QN, QUERY_DESC)
 
 	cur.execute("""SELECT hadoop_job_id, \
+		activity, \
 		org_id, \
 		time \
 		FROM %s \
@@ -803,13 +804,14 @@ if (QNTORUN == QN) or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		FORMATEDTIME = DT.datetime.strptime(str(i[2])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
+		FORMATEDTIME = DT.datetime.strptime(str(i[3])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"&nbsp;&nbsp;</td> \
-			<td>"+str(i[1])+"&nbsp;&nbsp;</td>"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+"</td></tr>"
+			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
+			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT + "<td>"+ORGMAP[str(i[2])]+"</td></tr>"
 		else:
-			REPORT = REPORT + "<td>"+str(i[1])+"</td></tr>"
+			REPORT = REPORT + "<td>"+str(i[2])+"</td></tr>"
 		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"
 	REPORT = REPORT+"</table><br>"
 	if ROW > 0:

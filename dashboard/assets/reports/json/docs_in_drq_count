@@ -29,7 +29,6 @@
 {"org_id":"10000250","seqfile_file":"file_1393978265263.apxseq","doc_count":96,"updated_time":"2014-03-06T12:19:04.246Z"}
 {"org_id":"10000250","seqfile_file":"file_1394232932282.apxseq","doc_count":32,"updated_time":"2014-03-09T11:08:45.987Z"}
 {"org_id":"10000250","seqfile_file":"file_1395184922853.apxseq","doc_count":1,"updated_time":"2014-03-31T08:26:01.699Z"}
-{"org_id":"10000250","seqfile_file":"file_1396378240448.apxseq","doc_count":24,"updated_time":"2014-04-01T18:52:13.948Z"}
 {"org_id":"10000259","seqfile_file":"file_1386204879910.apxseq","doc_count":1,"updated_time":"2013-12-05T00:58:04.472Z"}
 {"org_id":"10000259","seqfile_file":"file_1386221529066.apxseq","doc_count":823,"updated_time":"2014-01-15T19:14:04.788Z"}
 {"org_id":"10000259","seqfile_file":"file_1389815554773.apxseq","doc_count":81,"updated_time":"2014-01-16T01:05:56.498Z"}
@@ -165,7 +164,7 @@
 {"org_id":"10000262","seqfile_file":"file_1395184922861.apxseq","doc_count":4186,"updated_time":"2014-03-31T18:45:30.311Z"}
 {"org_id":"10000262","seqfile_file":"file_1395184922862.apxseq","doc_count":125,"updated_time":"2014-03-31T18:47:26.653Z"}
 {"org_id":"10000262","seqfile_file":"file_1395184922863.apxseq","doc_count":1,"updated_time":"2014-03-31T21:32:54.809Z"}
-{"org_id":"10000262","seqfile_file":"file_1396378240458.apxseq","doc_count":4,"updated_time":"2014-04-01T22:42:13.561Z"}
+{"org_id":"10000262","seqfile_file":"file_1396378240468.apxseq","doc_count":505,"updated_time":"2014-04-02T05:08:48.491Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528852.apxseq","doc_count":6365,"updated_time":"2014-01-14T10:22:07.567Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528880.apxseq","doc_count":6328,"updated_time":"2014-01-14T19:33:16.410Z"}
 {"org_id":"10000263","seqfile_file":"file_1386221528886.apxseq","doc_count":6387,"updated_time":"2014-01-14T20:04:00.293Z"}

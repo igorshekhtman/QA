@@ -1,0 +1,56 @@
+<html>
+<head>
+<title>Apixio Hive Dashboard</title>
+<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script src="mustache.js"></script>
+<script src="operations.js"></script>
+<link rel="stylesheet" href="cat.css" type="text/css" />
+<link rel="stylesheet" href="operations.css" type="text/css" />
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+  jQuery(".content").hide();
+  //toggle the component with class msg_body
+  jQuery(".heading").click(function()
+  {
+    jQuery(this).next(".content").slideToggle(500);
+  });
+});
+</script>
+
+</head>
+<body>
+    <div class="header">
+        <h1>Pipeline Operations Dashboard</h1>
+    </div>
+    <div id="operationsDiv" class="operationsDiv">
+        <p class="heading">Coordinator Queue Graph</p>
+        <div class="content"><span id="chartSpan"><script type="text/javascript">loadChart();</script></span></div>
+        <p class="heading">Recent Errors</p>
+        <div class="content">
+            <div id="recentErrorsDiv">
+	            <select id="envDropdownForErrors" onchange="loadRecentErrors();" style="width: 200px;">
+	                <option selected="selected" value="production">Production</option>
+	                <option value="staging">Staging</option>
+	            </select>
+	            <input type="button" value="Refresh" onclick="refreshRecentErrors();"/>
+	            <img style="display: none" id="spinnerImgForErrors" alt="Refreshing..." src="ajax-loader.gif">
+	            <div id="errorsDiv"><script type="text/javascript">loadRecentErrors();</script></div>
+            </div>
+        </div>
+        <p class="heading">Failed Jobs</p>
+        <div class="content">
+            <div id="failedJobsDiv">
+                <select id="envDropdownForFailed" onchange="loadFailedJobs();" style="width: 200px;">
+                    <option selected="selected" value="production">Production</option>
+                    <option value="staging">Staging</option>
+                </select>
+                <input type="button" value="Refresh" onclick="refreshFailedJobs();"/>
+                <img style="display: none" id="spinnerImgForFailed" alt="Refreshing..." src="ajax-loader.gif">
+                <div id="failedJobsSpan"><script type="text/javascript">loadFailedJobs();</script></div>
+            </div>
+        </div>
+    </div>
+</body>
+<html>

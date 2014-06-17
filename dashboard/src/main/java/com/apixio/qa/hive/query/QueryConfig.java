@@ -70,7 +70,7 @@ public class QueryConfig
     {
         return getQueries().getQuery();
     }
-  //TODO may be I should create Maps for this to avoid looping..
+    //TODO may be I should create Maps for this to avoid looping..
     public static Query getQuery(String queryName)
     {
         List<Query> queries = getQueryList();

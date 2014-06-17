@@ -9,9 +9,17 @@ public class ApplicationConfiguration extends Configuration
     @NotEmpty
     @JsonProperty
     private String outputDir;
+    
+    @JsonProperty
+    private String manifestDir;
         
     public String getOutputDir()
     {
         return outputDir;
+    }
+    
+    public String getManifestDir()
+    {
+        return manifestDir;
     }
 }

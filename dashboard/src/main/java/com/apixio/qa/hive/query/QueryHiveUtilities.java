@@ -14,16 +14,22 @@ public class QueryHiveUtilities
 {
     public static String addUserParamsToWhereClause(String queryStr, MultivaluedMap<String,String> conditions)
     {
-        String uParamsPlaceHolder = "and {userParams}";
+        String uParamsPlaceHolder = "{userParams}";
         if (queryStr != null && queryStr.indexOf(uParamsPlaceHolder) != -1)
         {
             String addedParams = "";
             if (conditions != null)
             {
                 Iterator<String> keySet = conditions.keySet().iterator();
+                int index = 0;
                 while (keySet.hasNext())
                 {
+                    if (index > 0)
+                        addedParams += " and ";
+                    
                     String key = keySet.next();
+                    index ++;
+                    
                     List<String> values = conditions.get(key);
                     
                     List<String> processedList = new ArrayList<String>();
@@ -35,17 +41,17 @@ public class QueryHiveUtilities
                     if (processedList.size() == 1)
                     {
                         //Only one value. So do "equals" query.
-                        addedParams += " and "+ key + " = '" + processedList.get(0) + "'";
+                        addedParams += key + " = " + processedList.get(0) + "";
                     }
                     else if (processedList.size() > 1)
                     {
                         //More than one value. So do "in" query.
-                        addedParams += " and "+ key + " in (";
+                        addedParams += key + " in (";
                         for (int i = 0; i < processedList.size(); i++)
                         {
                             if (i != 0)
                                 addedParams += ",";
-                            addedParams += "'"+processedList.get(i)+"'";
+                            addedParams += ""+processedList.get(i)+"";
                         }
                         addedParams += ")";
                     }
