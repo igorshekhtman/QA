@@ -1,0 +1,59 @@
+<html>
+<head>
+	 	<link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	 	<link rel="stylesheet" href="report_style.css">
+		<script src="mustache.js"></script>
+		<script>
+			var etoken = "none";
+		
+			function setup() {
+				displayExternalToken();
+			}
+			function getExternalToken() {
+				var url = "http://54.176.9.220:8076/auths";
+		    	var params = new Object; 
+		    	var email = $( "#username" ).val();
+		    	var password = $( "#password" ).val();
+		    	params.email = email;//"rmc_hcc@apixio.com";
+		    	params.password = password;//"8p1rmc19..";
+     			console.log("making request");
+     			$.ajax( {
+     				type: "POST",
+     				url: url,
+     				data: params,
+     				timeout: 1500000,
+     				async:true,
+     	            dataType: 'json',
+     				success: function(data) {updateExternalToken(data);},
+	     			error: function(request,error) 
+	     			{
+	     			 console.log("got an error: ");
+	     			 console.log(error);
+	     			 //alert ( " Can't do because: " + error );
+	     			}
+     			});
+			}
+			
+			function updateExternalToken(data) {
+				etoken = data.token;
+				console.log("Got External Token: " + etoken);
+				console.log("Invalidating Internal Token");
+				itoken = "";
+				displayExternalToken();
+			}
+			
+			function displayExternalToken() {
+				console.log("Updating External Token Display");
+				$( "#etoken" ).text("Current External Token: " + etoken);
+			}
+			
+		</script>
+</head>
+<body onload="setup();">
+<p>Username: <input type="text" id="username" value="root@api.apixio.com"> Password: <input type="password" id="password" value="8p1rmc19.."></p>
+<p><input type="submit" value="Get External Token" onclick="getExternalToken();"></p>
+<p id="etoken"></p>
+</body>
+</html>

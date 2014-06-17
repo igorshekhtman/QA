@@ -119,7 +119,7 @@ public class QueryHiveResource
     {
         try
         {
-    		return SummaryQueryUtilities.getCoordinatorStats(hiveAddress, filterStat.or(""), startDate, endDate).toString();
+    		return SummaryQueryUtilities.getCoordinatorStats(hiveAddress, environment, filterStat.or(""), startDate, endDate).toString();
         }
         catch (Exception ex)
         {

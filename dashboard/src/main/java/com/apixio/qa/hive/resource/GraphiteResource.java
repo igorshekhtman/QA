@@ -34,7 +34,7 @@ public class GraphiteResource {
         {
         	Integer sampleMinutes = Integer.valueOf(sample);
         	float scale = 1 / Float.valueOf(sampleMinutes * 60);
-        	String speedUrl = graphiteConfig.getUrl() + "?from=" + from + "&until=-0hour&target=scale(summarize(" + environment + ".docreceiver.upload.document.bytes,%22" + sampleMinutes + "min%22),%22" + scale + "%22)&format=json";
+        	String speedUrl = graphiteConfig.getUrl() + "?from=" + from + "&until=-0hour&target=scale(summarize(" + environment + ".docreceiver.upload.document.serialize.bytes,%22" + sampleMinutes + "min%22),%22" + scale + "%22)&format=json";
         	 
     		URL obj = new URL(speedUrl);
     		HttpURLConnection con = (HttpURLConnection) obj.openConnection();

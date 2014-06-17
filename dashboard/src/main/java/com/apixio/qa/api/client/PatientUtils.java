@@ -101,7 +101,7 @@ public class PatientUtils {
 				JSONObject encounter = getJsonObjectFromPatientObjectPart(patient.getEncounterById(document.getSourceEncounter()));
 				for (String path : paths) {
 					String[] pathParts = path.split("/", -1);
-					String pathValue = getJsonStringForPath(encounter, pathParts);
+					String pathValue = getJsonStringForPath(patient, encounter, pathParts);
 					encounterDetails.put(path, pathValue);
 					for (int i = 0; i < pathParts.length; i++) {
 						if (i + 1 < pathParts.length) {
@@ -114,22 +114,22 @@ public class PatientUtils {
 		
 		return encounterDetails;
 	}
-
-	private static String getJsonStringForPath(JSONObject object, String[] pathParts) throws JSONException {
-		if (object == null)
-			return null;
-		if (pathParts.length == 1) {
-			return object.getString(pathParts[0]);
-		} else {
-			JSONObject nextObject = null;
-			try {
-				nextObject = object.getJSONObject(pathParts[0]);
-			} catch (Exception ex) {
-				System.out.println("Not a valid json path: " + pathParts[0] + ": " + ex.toString());
-			}
-			return getJsonStringForPath(nextObject, Arrays.copyOfRange(pathParts, 1, pathParts.length));
-		}
-	}
+//
+//	private static String getJsonStringForPath(JSONObject object, String[] pathParts) throws JSONException {
+//		if (object == null)
+//			return null;
+//		if (pathParts.length == 1) {
+//			return object.getString(pathParts[0]);
+//		} else {
+//			JSONObject nextObject = null;
+//			try {
+//				nextObject = object.getJSONObject(pathParts[0]);
+//			} catch (Exception ex) {
+//				System.out.println("Not a valid json path: " + pathParts[0] + ": " + ex.toString());
+//			}
+//			return getJsonStringForPath(nextObject, Arrays.copyOfRange(pathParts, 1, pathParts.length));
+//		}
+//	}
 	
 	public static Map<String,String> getDocumentDetails(Patient patient, String documentUuid, Map<String,String> paths) throws JSONException {
 		Map<String, String> encounterDetails = new HashMap<String,String>();
@@ -165,37 +165,75 @@ public class PatientUtils {
 	}
 	
 	private static String getJsonStringForPath(Patient patient, JSONObject object, String[] pathParts) throws JSONException {
-		if (pathParts.length == 1) {
-			return object.getString(pathParts[0]);
-		} else {
-			String currentPathPart = pathParts[0];
-			String[] remainingParts = Arrays.copyOfRange(pathParts, 1, pathParts.length);
-			JSONObject nextObject = null;
-			// @encounter[sourceEncounter]
-			if (currentPathPart.startsWith("@encounter")) {
-				String encounterPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
-				nextObject = getJsonObjectFromPatientObjectPart(patient.getEncounterById(UUID.fromString(getJsonStringForPath(patient, object, encounterPath.split("\\|", -1)))));
-			} else if (currentPathPart.startsWith("@clinicalActor")) {
-				String clinicalActorPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
-				nextObject = getJsonObjectFromPatientObjectPart(patient.getClinicalActorById(UUID.fromString(getJsonStringForPath(patient, object, clinicalActorPath.split("\\|", -1)))));
-			} else if (currentPathPart.startsWith("@parsingDetails")) {
-				String parsingDetailsPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
-				nextObject = getJsonObjectFromPatientObjectPart(patient.getParsingDetailById(UUID.fromString(getJsonStringForPath(patient, object, parsingDetailsPath.split("\\|", -1)))));
-			} else if (currentPathPart.startsWith("@source")) {
-				String sourcePath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
-				nextObject = getJsonObjectFromPatientObjectPart(patient.getSourceById(UUID.fromString(getJsonStringForPath(patient, object, sourcePath.split("\\|", -1)))));
-			} else if (currentPathPart.startsWith("@careSite")) {
-				String careSitePath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
-				nextObject = getJsonObjectFromPatientObjectPart(patient.getCareSiteById(UUID.fromString(getJsonStringForPath(patient, object, careSitePath.split("\\|", -1)))));
-			} else{
-				Object newObject = object.get(pathParts[0]);
-				if (newObject instanceof JSONArray) {
-					nextObject = ((JSONArray) newObject).getJSONObject(0);
-				} else {
-					nextObject = object.getJSONObject(pathParts[0]);
-				}
+//		if (pathParts.length == 1) {
+//			return object.getString(pathParts[0]);
+//		} else {
+		String currentPathPart = pathParts[0];
+		String[] remainingParts = null;
+		if (pathParts.length > 1)
+			remainingParts = Arrays.copyOfRange(pathParts, 1, pathParts.length);
+		JSONObject nextObject = null;
+		// @encounter[sourceEncounter]
+		if (currentPathPart.startsWith("@encounter")) {
+			String encounterPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+			nextObject = getJsonObjectFromPatientObjectPart(patient.getEncounterById(UUID.fromString(getJsonStringForPath(patient, object, encounterPath.split("\\|", -1)))));
+		} else if (currentPathPart.startsWith("@clinicalActor")) {
+			String clinicalActorPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+			nextObject = getJsonObjectFromPatientObjectPart(patient.getClinicalActorById(UUID.fromString(getJsonStringForPath(patient, object, clinicalActorPath.split("\\|", -1)))));
+		} else if (currentPathPart.startsWith("@parsingDetails")) {
+			String parsingDetailsPath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+			nextObject = getJsonObjectFromPatientObjectPart(patient.getParsingDetailById(UUID.fromString(getJsonStringForPath(patient, object, parsingDetailsPath.split("\\|", -1)))));
+		} else if (currentPathPart.startsWith("@source")) {
+			String sourcePath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+			nextObject = getJsonObjectFromPatientObjectPart(patient.getSourceById(UUID.fromString(getJsonStringForPath(patient, object, sourcePath.split("\\|", -1)))));
+		} else if (currentPathPart.startsWith("@careSite")) {
+			String careSitePath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+			nextObject = getJsonObjectFromPatientObjectPart(patient.getCareSiteById(UUID.fromString(getJsonStringForPath(patient, object, careSitePath.split("\\|", -1)))));
+		} else{	
+			String keyValuePath = "";
+			if (currentPathPart.contains("[")) {
+				//externalIDs[assignAuthority=NextGen MRN]/id
+				keyValuePath = currentPathPart.substring(currentPathPart.indexOf("[") + 1, currentPathPart.indexOf("]"));
+				currentPathPart = currentPathPart.substring(0,currentPathPart.indexOf("["));
 			}
-			return getJsonStringForPath(nextObject, remainingParts);
+			Object newObject = object.get(currentPathPart);
+			if (newObject instanceof JSONArray) {
+				JSONArray arrayObject = (JSONArray) newObject;
+				if (keyValuePath.contains("=")) {
+					String[] objectKeyValue = keyValuePath.split("=");
+					String key = objectKeyValue[0];
+					String value = objectKeyValue[1];
+					for (int i = 0; i < arrayObject.length(); i++ ) {
+						JSONObject objectInstance = arrayObject.getJSONObject(i);
+						String instanceKeyValue = objectInstance.getString(key);
+						if (instanceKeyValue.equals(value)) {
+							nextObject = objectInstance;
+						}
+					}
+				} else {
+					if (keyValuePath.length() == 1) {
+						Integer index = new Integer(keyValuePath);
+						Object indexObject = arrayObject.get(index);
+						if (indexObject instanceof String) {
+							return arrayObject.getString(index);
+						} else {
+							nextObject = arrayObject.getJSONObject(index);
+						}
+					} else {
+						// if no path, just get the first one
+						nextObject = arrayObject.getJSONObject(0);
+					}
+				}
+			} else if (newObject instanceof String) {
+				return object.getString(currentPathPart);
+			} else {
+				nextObject = object.getJSONObject(currentPathPart);
+			}
+		}
+		if (remainingParts != null) {
+			return getJsonStringForPath(patient, nextObject, remainingParts);
+		} else {
+			return nextObject.toString();
 		}
 	}
 

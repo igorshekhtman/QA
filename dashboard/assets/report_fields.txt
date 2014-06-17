@@ -1,5 +1,6 @@
 Document	Encounter Start Date	@encounter[sourceEncounter]/encounterStartDate
-Document	Encounter Original ID	@encounter[sourceEncounter]/originalId/id
+Document	Encounter Start Date	@encounter[sourceEncounter]/encounterStartDate
+Document	Encounter Original ID	@encounter[sourceEncounter]/originalId/assignAuthority
 Document	Encounter Display Name	@encounter[sourceEncounter]/code/displayName
 Document	Document Original ID	originalId/id
 Document	Parsing Date	@parsingDetails[parsingDetailsId]/parsingDateTime
@@ -7,5 +8,10 @@ Document	Author Name	@clinicalActor[primaryClinicalActorId]/actorGivenName/metad
 Document	Author Id	@clinicalActor[primaryClinicalActorId]/originalId/id
 Document	Author Specialty @clinicalActor[primaryClinicalActorId]/metadata/specialties
 Patient	Patient Original Id	primaryExternalID/id
+Patient	Patient Original Id AA	primaryExternalID/assignAuthority
+Patient	Patient NextGen MRN	externalIDs[assignAuthority=NextGen MRN]/id
+Patient	Patient NextGen Person ID	externalIDs[assignAuthority=NextGen Person ID]/id
+Patient	Patient Given Name	primaryDemographics/name/givenNames[0]
+Patient	Patient Last Name	primaryDemographics/name/familyNames[0]
 Patient	Patient DOB	primaryDemographics/dateOfBirth
     
