@@ -178,7 +178,7 @@ def checkEnvntnRepRcvrs():
 		elif (str(sys.argv[2])[0:1].upper() == "S"):
 			USERNAME="apxdemot0182"
 			PASSWORD="Hadoop.4522"
-			HOST="https://supload.apixio.com:8443"
+			HOST="https://testdr.apixio.com:8443"
 			ENVIRONMENT="Staging"
 			
 	if len(sys.argv) >= 4:

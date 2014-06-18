@@ -58,7 +58,7 @@ window.odometerOptions = {
     }
     function updateNewValue() {
     timeTillUpdate = serverInterval;
-    var url = "/hive/document_count/production";
+    var url = "/hive/document_count/staging";
     xmlhttp.open('GET',url,true);
        xmlhttp.timeout = 300000;
        xmlhttp.ontimeout = function () { alert("Timed out!!!"); }

@@ -20,7 +20,7 @@ USERNAME="apxdemot0216";
 
 PASSWORD="Hadoop.4522";
 
-HOST="https://supload.apixio.com:8443";
+HOST="https://testdr.apixio.com:8443";
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents";
 

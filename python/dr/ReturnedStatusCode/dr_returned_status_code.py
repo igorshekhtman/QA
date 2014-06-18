@@ -80,7 +80,7 @@ def checkEnvironment():
 		USERNAME="apxdemot0182"
 		ORGID="190"
 		PASSWORD="Hadoop.4522"
-		HOST="https://supload.apixio.com:8443"
+		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)

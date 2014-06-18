@@ -23,7 +23,7 @@ then
 	USERNAME=apxdemot0182;
 	ORGID=190
 	PASSWORD=Hadoop.4522;
-	HOST=https://supload.apixio.com:8443;
+	HOST=https://testdr.apixio.com:8443;
 	BATCH="SanityTestStaging_"$batchpostfix;
 else
 	USERNAME=apxdemot0138;

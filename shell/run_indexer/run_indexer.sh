@@ -11,7 +11,7 @@ key=
 test=
 i=
 environment="s"  
-stagindrurl="uploadurl=https://supload.apixio.com:8443/"  
+stagindrurl="uploadurl=https://testdr.apixio.com:8443/"  
 productiondrurl="uploadurl=https://dr.apixio.com/"  
 configfile="commsys.ini"
 #! ==============================================================================
@@ -50,13 +50,13 @@ echo "==========================================================================
 read -p "Select test environment to run your test (S/P)? " -n 1
 echo
 if [[ $REPLY =~ ^[Pp]$ ]]; then
-	sed -i s/supload/dr/g /mnt/indexer$i/V30/resources/$configfile
+	sed -i s/testdr/dr/g /mnt/indexer$i/V30/resources/$configfile
 	echo "==========================================================================="
 	echo "Environment has been set for PRODUCTION ..."
 	echo "==========================================================================="
 	environment="p"
 else
-	sed -i s/dr/supload/g /mnt/indexer$i/V30/resources/$configfile
+	sed -i s/dr/testdr/g /mnt/indexer$i/V30/resources/$configfile
 	echo "==========================================================================="
 	echo "Environment has been set for STAGING ..."
 	echo "==========================================================================="

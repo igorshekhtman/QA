@@ -6,7 +6,7 @@ timestamp=$(date +'%s')
 
 datestamp=$(date +'%m/%d/%y %r')
 
-find="uploadurl=https://supload.apixio.com:8443/"
+find="uploadurl=https://testdr.apixio.com:8443/"
 
 replace="uploadurl=https://dr.apixio.com:8443/"
 
@@ -29,7 +29,7 @@ sed "s/$find/$replace/g" /mnt/indexer0/V30/resources/commsys.ini
 # /mnt/indexer0/V30/resources
 
 # new
-# uploadurl=https://supload.apixio.com:8443/
+# uploadurl=https://testdr.apixio.com:8443/
 
 # production url
 # uploadurl=https://dr.apixio.com:8443/

@@ -268,7 +268,7 @@ remove:
 sudo iptables -D INPUT -s 74.125.239.101 -j DROP
 
 outgoing is -d not -s (Lance)
-This is how to cut off access to the API server from supload:
+This is how to cut off access to the API server from testdr:
 
 iptables -A OUTPUT -d 10.196.82.47 -j DROP
 
@@ -291,20 +291,20 @@ iptables -F
 ---------------------------------------------- Lance ---------------------------------------------------------------
 ok, got them:
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -L
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -L
 
 lists the iptables rule list
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -F
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -F
 
 removes all of the iptables rules. do this before every test.
 
-ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L
+ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L
 
 
 -L shows the list of rules
@@ -644,7 +644,7 @@ uploadurl=https://dr.apixio.com:8443/
 setting coordinator slot configuration
 
 Coordinator slot config:
-java com.apixio.coordinator.cmdline.SlotConfigTool --set “activity=1"
+java com.apixio.coordinator.cmdline.SlotConfigTool --set ï¿½activity=1"
 (check the config)
 java com.apixio.coordinator.cmdline.SlotConfigTool --listall
 [1:31:45 PM] Lilith Schneider: from bin after . setcp
@@ -1059,7 +1059,7 @@ this will transfer the packaged pipeline to staging cluster in the jenkins_v3 di
 
 CARE OPTIMIZER (STAGING):
 https://supweb.apixio.com/signup.do?action=loadSignup
-uploadurl=https://supload.apixio.com:8443/
+uploadurl=https://testdr.apixio.com:8443/
 
 
 

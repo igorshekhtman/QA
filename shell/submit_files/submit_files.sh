@@ -7,7 +7,7 @@ DATESTAMP=$(date +'%m/%d/%y %r')
 
 USERNAME=apxdemot0176;
 PASSWORD=Hadoop.4522;
-HOST=https://supload.apixio.com:8443;
+HOST=https://testdr.apixio.com:8443;
 DIR=/mnt/testdata/SanityTwentyDocuments/Documents;
 BATCH=$(date +'%d');
 
