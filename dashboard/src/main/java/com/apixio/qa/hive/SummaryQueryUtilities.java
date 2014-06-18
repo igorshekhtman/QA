@@ -52,9 +52,12 @@ public class SummaryQueryUtilities {
 		return QueryHive.queryHiveJson(hiveAddress, sql);
 	}
 	
-	public static JSONArray getCoordinatorStats(String hiveAddress, String statFilter, String startDate, String endDate) throws SQLException, JSONException, ParseException {
+	public static JSONArray getCoordinatorStats(String hiveAddress, String environment, String statFilter, String startDate, String endDate) throws SQLException, JSONException, ParseException {
 		JSONArray cleanedStatsArray = new JSONArray();
 		SummaryQueryManager manager = new SummaryQueryManager();
+		String tableName = "summary_coordinator_stats";
+		if (environment.equalsIgnoreCase("staging"))
+			tableName += "_staging";
 		List<JSONObject> output = SummaryQueryUtilities.summaryQuery(manager.getSummaryQuery("summary_coordinator_stats"), hiveAddress, startDate, endDate, true);
 		for (JSONObject outputLine : output) {
 			JSONObject cleanedStatsLine = new JSONObject();

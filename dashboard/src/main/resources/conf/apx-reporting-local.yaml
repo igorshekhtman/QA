@@ -14,7 +14,7 @@ nagiosConfiguration:
   password: 8p1clu19
   
 apiConfiguration:
-  url: https://localstagingapi.apixio.com/TESTAPI
+  url: https://localprodapi.apixio.com/API
 
 http:
   port: 8099

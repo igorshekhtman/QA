@@ -45,6 +45,14 @@ public class SummaryQueryManager {
 		coordinatorStats.setCreateStatement("create table summary_coordinator_stats (time string, stats_json string) partitioned by (month STRING, day STRING)");
 		
 		summaryQueries.put(coordinatorStats.getTableName(), coordinatorStats);
+		
+		SummaryQuery coordinatorStatsStaging = new SummaryQuery();
+		coordinatorStats.setDescription("Coordinator Stats - Staging");
+		coordinatorStats.setTableName("summary_coordinator_stats_staging");
+		coordinatorStats.setQuery("select get_json_object(line, '$.datestamp') as time, get_json_object(line, '$.coordinator.stats') as stats_json, month, day from staging_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null");
+		coordinatorStats.setCreateStatement("create table summary_coordinator_stats_staging (time string, stats_json string) partitioned by (month STRING, day STRING)");
+		
+		summaryQueries.put(coordinatorStatsStaging.getTableName(), coordinatorStatsStaging);
 	}
 
 }
