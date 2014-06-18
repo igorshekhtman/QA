@@ -34,7 +34,7 @@ else:
 	USERNAME="apxdemot0245"
 	ORGID="261"
 	PASSWORD="Hadoop.4522"
-	HOST="https://supload2.apixio.com:8443"
+	HOST="https://stagedr.apixio.com:8443"
 	ENVIRONMENT="Staging"
 
 print ("ENVIRONMANT = %s") % ENVIRONMENT

@@ -136,9 +136,9 @@ def checkEnvironment():
 		ORGID="251"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		#HOST="https://supload.apixio.com:8443"
+		#HOST="https://testdr.apixio.com:8443"
 		# alternative staging DR upload url
-		HOST="https://supload2.apixio.com:8443"
+		HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
@@ -542,7 +542,7 @@ def blockAllIPs():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -F")
 	if GRS == "UNBLOCKED":
 		blockComponentIP("Graphite")
 		GRS = "BLOCKED"
@@ -581,7 +581,7 @@ def unblockAllBlockedIP():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -F")
 	GRS = "UNBLOCKED"
 	FLS = "UNBLOCKED"
 	S3S = "UNBLOCKED"
@@ -594,7 +594,7 @@ def unblockAllBlockedIP():
 	DRS = "UNBLOCKED"
 	# os.system('clear')
 	# show list
-	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)
 
 def blockComponentIP(component):
@@ -602,10 +602,10 @@ def blockComponentIP(component):
 	print ("Block %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(add_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
 
 def unblockComponentIP(component):
@@ -613,16 +613,16 @@ def unblockComponentIP(component):
 	print ("Unblock %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(remove_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)
 	
 def listStatusComponentIP(component):
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
 	
 def obtainNumberOfFiles(path):
@@ -630,13 +630,13 @@ def obtainNumberOfFiles(path):
 	#this prints them all then counts the number of lines
 	#'wc' program does counting
 	#number = 0
-	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" wc -l")
-	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
-	#number = subprocess("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
-	#number = os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find "+path+" wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = subprocess("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l")
 	#subprocess.check_output = check_output
-	#number = subprocess.check_output('ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l')
-	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
+	#number = subprocess.check_output('ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l')
+	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
 	#command ('14549', the wc -l output
 	#path, dirs, files = os.walk(path).next()
 	#number = len(files)
@@ -650,13 +650,13 @@ def mainMenu():
 	#'wc' program does counting
 	global ENVIRONMENT
 	os.system('clear')
-	# os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28")
+	# os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28")
 	print "==========================================================================================="
 	print "Environment: %s" % (ENVIRONMENT)
 	print "===========================================================================================\n"
 	print "Doc-Receiver Work Folder List\n"
 	#print "0. \n"
-	#os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
+	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
 	#print "1. \n"
 	#print "2. \n"
 	#print "3. \n"

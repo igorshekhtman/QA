@@ -106,9 +106,9 @@ def checkEnvironment():
 		ORGID=str(sys.argv[3])
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		# HOST="https://supload.apixio.com:8443"
+		# HOST="https://testdr.apixio.com:8443"
 		# alternative staging DR upload url
-		HOST="https://supload2.apixio.com:8443"
+		HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	NUMBER_OF_DOCS_TO_UPLOAD = int(sys.argv[4])
 	#THREAD_NUMBER = int(sys.argv[5])
