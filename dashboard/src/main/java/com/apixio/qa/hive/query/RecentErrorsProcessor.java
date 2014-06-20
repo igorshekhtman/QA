@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,21 +14,11 @@ import org.json.JSONObject;
 import com.apixio.qa.hive.cache.CacheManager;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 
-public class RecentErrorsProcessor
+public class RecentErrorsProcessor extends QueryProcessor
 {
-    private Properties orgProperties;
-    
     public RecentErrorsProcessor()
     {
-        try
-        {
-            orgProperties = new Properties();
-            orgProperties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("prod_orgid_names.properties"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        super();
     }
     
     private class ErrorDetails
@@ -39,68 +28,14 @@ public class RecentErrorsProcessor
         String time;
     }
     
-    public JSONObject processRecentErrors(QueryHandler queryHandler, String outputDir, String environment, List<RunQuery> runQueries) throws Exception
-    {
-        JSONObject resultObj = null;
-        CacheManager cache = new CacheManager(environment, outputDir);
-        
-        if (runQueries != null)
-        {
-            resultObj = new JSONObject();
-            Map<String, Map<String, List<ErrorDetails>>> orgToErrorDetailsMap = new HashMap<String, Map<String,List<ErrorDetails>>>();
-            
-            for (RunQuery rQ : runQueries)
-            {
-                //Fetch data from cache...
-                List<JSONObject> results = cache.fetchResults(rQ.getName());
-
-                if (results == null)
-                {
-                    results = queryHandler.runQuery(environment, rQ);
-                    cache.writeResults(results, rQ.getName());
-                }
-                //Just collect all types of errors
-                getErrorsObject(results, rQ.getName(), orgToErrorDetailsMap); 
-            }
-            
-            Iterator<String> it = orgToErrorDetailsMap.keySet().iterator();
-            //Order each type of errors in descending order of time
-            while (it.hasNext())
-            {
-                Map<String, List<ErrorDetails>> errorDetailsMap = orgToErrorDetailsMap.get(it.next());
-                
-                Iterator<String> itErrors = orgToErrorDetailsMap.keySet().iterator();
-                
-                while (itErrors.hasNext())
-                {
-                    List<ErrorDetails> errorDetailsList = errorDetailsMap.get(itErrors.next());
-                    if (errorDetailsList != null)
-                        orderErrorsByTime(errorDetailsList);
-                }
-            }
-            
-            JSONArray resultArray = new JSONArray();
-            //Order the results by orgId
-            List<Long> sortedList = getSortedKeys(orgToErrorDetailsMap.keySet().iterator());
-            for (Long orgId : sortedList)
-            {
-                String key = orgId.toString();
-                //Create JSONObject
-                JSONObject obj = createJSONObject(orgToErrorDetailsMap.get(key), key);
-                resultArray.put(obj);
-            }
-            resultObj.put("results", resultArray);
-        }
-        return resultObj;
-    }
-    
-    private JSONObject createJSONObject(Map<String, List<ErrorDetails>> errorDetailsMap, String orgId)
+    @Override
+    protected JSONObject createJSONObject(Object resultsCollection, String orgId)
         throws Exception
     {
-        JSONObject obj = new JSONObject();
+        @SuppressWarnings("unchecked")
+        Map<String, List<ErrorDetails>> errorDetailsMap = (Map<String, List<ErrorDetails>>)resultsCollection;
         
-        obj.put("org_id", orgId);
-        obj.put("org_name", orgProperties.getProperty(orgId, ""));
+        JSONObject obj = super.createJSONObject(resultsCollection, orgId);
         
         Iterator<String> it = errorDetailsMap.keySet().iterator();
         while (it.hasNext())
@@ -134,31 +69,6 @@ public class RecentErrorsProcessor
         }
         
         return obj;
-    }
-    
-    private List<Long> getSortedKeys(Iterator<String> keyIterator)
-    {
-        if (keyIterator != null && keyIterator.hasNext())
-        {
-            List<Long> orgIds = new ArrayList<Long>();
-            while (keyIterator.hasNext())
-            {
-                String key = keyIterator.next();
-                if (!key.trim().equalsIgnoreCase("null"))
-                    orgIds.add(Long.parseLong(key));
-            }
-            
-            Collections.sort(orgIds, new Comparator<Long>()
-            {
-                public int compare(Long o1, Long o2)
-                {
-                    return o1.compareTo(o2);
-                }
-            });
-            
-            return orgIds;
-        }
-        return null;
     }
     
     /*public static void main(String[] args)
@@ -309,9 +219,68 @@ public class RecentErrorsProcessor
         });
     }
     
-    private void getErrorsObject(List<JSONObject> results, String typeOfResults, Map<String, Map<String, List<ErrorDetails>>> orgToErrorDetailsMap)
-        throws Exception
+    @Override
+    public JSONObject processQuery(QueryHandler queryHandler, String outputDir, String environment, List<RunQuery> runQueries) throws Exception
     {
+        JSONObject resultObj = null;
+        CacheManager cache = new CacheManager(environment, outputDir);
+        
+        if (runQueries != null)
+        {
+            resultObj = new JSONObject();
+            Map<String, Map<String, List<ErrorDetails>>> orgToErrorDetailsMap = new HashMap<String, Map<String,List<ErrorDetails>>>();
+            
+            for (RunQuery rQ : runQueries)
+            {
+                //Fetch data from cache...
+                List<JSONObject> results = cache.fetchResults(rQ.getName());
+
+                if (results == null)
+                {
+                    results = queryHandler.runQuery(environment, rQ);
+                    cache.writeResults(results, rQ.getName());
+                }
+                //Just collect all types of errors
+                collectResults(results, rQ.getName(), orgToErrorDetailsMap); 
+            }
+            
+            Iterator<String> it = orgToErrorDetailsMap.keySet().iterator();
+            //Order each type of errors in descending order of time
+            while (it.hasNext())
+            {
+                Map<String, List<ErrorDetails>> errorDetailsMap = orgToErrorDetailsMap.get(it.next());
+                
+                Iterator<String> itErrors = orgToErrorDetailsMap.keySet().iterator();
+                
+                while (itErrors.hasNext())
+                {
+                    List<ErrorDetails> errorDetailsList = errorDetailsMap.get(itErrors.next());
+                    if (errorDetailsList != null)
+                        orderErrorsByTime(errorDetailsList);
+                }
+            }
+            
+            JSONArray resultArray = new JSONArray();
+            //Order the results by orgId
+            List<Long> sortedList = getSortedLongKeys(orgToErrorDetailsMap.keySet().iterator());
+            for (Long orgId : sortedList)
+            {
+                String key = orgId.toString();
+                //Create JSONObject
+                JSONObject obj = createJSONObject(orgToErrorDetailsMap.get(key), key);
+                resultArray.put(obj);
+            }
+            resultObj.put("results", resultArray);
+        }
+        return resultObj;
+    }
+
+    @Override
+    protected void collectResults(List<JSONObject> results, String typeOfResults, Object resultsCollection) throws Exception
+    {
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, List<ErrorDetails>>> orgToErrorDetailsMap = (Map<String, Map<String, List<ErrorDetails>>>)resultsCollection;
+        
         for (JSONObject result : results)
         {
             String orgId = result.getString("org_id");
