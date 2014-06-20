@@ -76,7 +76,7 @@ public class QueryManager
         
         if (results != null)
         {
-            if (queryName.equalsIgnoreCase("manifest_recovery"))
+            if (queryName.equalsIgnoreCase("recovery_manifest"))
             {
                 //Generate manifest for these docs
                 DocManifestManager dmm = new DocManifestManager(environment, manifestDir);
