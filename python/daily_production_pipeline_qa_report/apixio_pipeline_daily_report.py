@@ -1,3 +1,5 @@
+__author__ = 'Igor'
+
 import pyhs2
 import os
 import time
@@ -163,7 +165,7 @@ def checkEnvironmentandReceivers():
 		PASSWORD="Hadoop.4522"
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT = "staging"
-	
+
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
 		RECEIVERS2=str(sys.argv[3])
@@ -173,13 +175,13 @@ def checkEnvironmentandReceivers():
 		RECEIVERS2="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 
-				
+
 	# overwite any previous ENVIRONMENT settings
 	#ENVIRONMENT = "Production"
 	print ("Version 1.0.1\n")
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")
-			
+
 
 def identifyReportDayandMonth():
 #======== obtain day and month for previous from current day and month ===========================================
@@ -200,7 +202,7 @@ def identifyReportDayandMonth():
 
 			if (( CURMONTH == 4 ) or ( CURMONTH == 6 ) or ( CURMONTH == 9 ) or ( CURMONTH == 11 )):
 				CURDAY=30
-			else: 
+			else:
 				if ( CURMONTH == 2 ):
 					CURDAY=28
 				else:
@@ -212,7 +214,7 @@ def identifyReportDayandMonth():
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
-	
+
 
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
@@ -234,7 +236,7 @@ def writeReportHeader ():
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	print ("End writing report header ...\n")
-	
+
 
 def connectToHive():
 	print ("Connecing to Hive ...\n")
@@ -286,18 +288,18 @@ def obtainFailedJobs(table):
 			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td>"
 		else:
 			REPORT = REPORT + "<td>"+str(i[3])+" ("+str(i[3])+")</td>"
-		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
+		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='6'><i>There were no failed jobs</i></td></tr>"
 	REPORT = REPORT+"</table>"
-	
+
 
 
 def obtainErrors(activity, summary_table_name, unique_id):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
-	
+
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
@@ -310,7 +312,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		GROUP BY org_id, \
 		if(error_message like '/mnt%%','No space left on device', error_message) \
 		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
-			
+
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -325,13 +327,13 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'>There were no "+activity+" "+summary_table_name+" specific errors</td></tr>"
-	REPORT = REPORT+"</table><br>" 
-	
+	REPORT = REPORT+"</table><br>"
+
 def removeHtmlTags(data):
     p = re.compile(r'<.*?>')
     return p.sub('', data)
-	
-	
+
+
 def careOptimizerErrors(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
@@ -345,7 +347,7 @@ def careOptimizerErrors(table):
 	#============================================================================
 	#============================================================================
 	#============================================================================
-	
+
 	QUERY_DESC="""Error(s) summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
@@ -379,7 +381,7 @@ def careOptimizerErrors(table):
 def careOptimizerLoad(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
-	
+
 	QUERY_DESC="""Load summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
 
@@ -388,7 +390,7 @@ def careOptimizerLoad(table):
 		avg(cassandra_load_millis) / 1000 as avg_load_time_seconds, \
 		max(cassandra_load_millis) / 1000 as max_load_time_seconds, \
 		percentile_approx(cassandra_load_millis / 1000, 0.05) as perc_5,
-		percentile_approx(cassandra_load_millis / 1000, 0.5) as perc_50, 
+		percentile_approx(cassandra_load_millis / 1000, 0.5) as perc_50,
 		percentile_approx(cassandra_load_millis / 1000, 0.95) as perc_95,
 		avg(patient_bytes) / 1048576 as avg_patient_mb, \
 		max(patient_bytes) / 1048576 as max_patient_mb, \
@@ -429,10 +431,10 @@ def careOptimizerLoad(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='12'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
-	
+
 def careOptimizerSearch(table):
 	global REPORT, cur, conn
-	global DAY, MONTH, COMPONENT_STATUS	
+	global DAY, MONTH, COMPONENT_STATUS
 
 	QUERY_DESC="""Search summary"""
 	print ("Running CARE OPTIMIZER query - retrieve %s ...\n") % (QUERY_DESC)
@@ -444,8 +446,8 @@ def careOptimizerSearch(table):
 		max(patient_access_millis) as max_time, \
 		avg(patient_access_millis) as avg_time, \
 		percentile_approx(patient_access_millis, 0.05) as perc_5,
-		percentile_approx(patient_access_millis, 0.5) as perc_50, 
-		percentile_approx(patient_access_millis, 0.95) as perc_95,  
+		percentile_approx(patient_access_millis, 0.5) as perc_50,
+		percentile_approx(patient_access_millis, 0.95) as perc_95,
 		min(time) as first_access, \
 		max(time) as last_access \
 		FROM %s  \
@@ -480,15 +482,15 @@ def careOptimizerSearch(table):
 		REPORT = REPORT+"<td>"+str(i[8])+"</td>"
 		REPORT = REPORT+"<td>"+FORMATEDTIME1+"</td>"
 		REPORT = REPORT+"<td>"+FORMATEDTIME2+"</td></tr>"
-			
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
-	
+
 def summaryLogstrafficTotals(table):
 	global REPORT, cur, conn
-	global DAY, MONTH, COMPONENT_STATUS	
+	global DAY, MONTH, COMPONENT_STATUS
 
 	QUERY_DESC="""Logstraffic summary"""
 	print ("Running LOGSTRAFFIC SUMMARY query - retrieve %s ...\n") % (QUERY_DESC)
@@ -513,17 +515,17 @@ def summaryLogstrafficTotals(table):
 			REPORT = REPORT + "<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+str(i[4])+"</td><td bgcolor='#FFFF00'>"+str(i[5])+"</td></tr>"
 		else:
 			REPORT = REPORT + "<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+str(i[4])+"</td><td>"+str(i[5])+"</td></tr>"
-			
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
-	
-	
-	
+
+
+
 def uploadSummary(activity, summary_table_name, unique_id):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
-	
+
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
 	#REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	cur.execute("""SELECT count(DISTINCT %s) as count, status, org_id \
@@ -533,9 +535,9 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		day=%s and month=%s \
 		GROUP BY org_id, status \
 		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
-		
+
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Organization:</td></tr>"	
+	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Organization:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -558,7 +560,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
-	REPORT = REPORT+"</table><br>" 	
+	REPORT = REPORT+"</table><br>"
 
 
 def jobSummary(table):
@@ -582,9 +584,9 @@ def jobSummary(table):
 		activity, \
 		org_id \
 		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH))
-		
+
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"		
+	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -594,7 +596,7 @@ def jobSummary(table):
 			failedjobs = failedjobs + 1
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
-			if str(i[3]) in ORGMAP: 
+			if str(i[3]) in ORGMAP:
 				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
@@ -602,7 +604,7 @@ def jobSummary(table):
 		else:
 			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
-			if str(i[3]) in ORGMAP: 
+			if str(i[3]) in ORGMAP:
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
@@ -611,14 +613,14 @@ def jobSummary(table):
 		</font></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
-	REPORT = REPORT+"</table><br>" 	
-	
+	REPORT = REPORT+"</table><br>"
+
 
 def writeReportDetails():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, ENVIRONMENT
-	
+
 #============ 1st or Failed Jobs section of the report ======================
-	
+
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -631,9 +633,9 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 	print ("Completed failed jobs query ... \n")
-	
+
 #============ 2nd or Error Messages Received section of the report =============
-			
+
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -652,16 +654,16 @@ def writeReportDetails():
 		obtainErrors("OCR","summary_ocr_staging", "doc_id")
 		obtainErrors("Persist Mapper","summary_persist_mapper_staging", "doc_id")
 		obtainErrors("Persist Reducer","summary_persist_reducer_staging", "patient_uuid")
-		
-		
+
+
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-	
-#============ 3rd or Upload Summary section of the report ======================	
-	
+
+#============ 3rd or Upload Summary section of the report ======================
+
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -672,15 +674,15 @@ def writeReportDetails():
 		uploadSummary("Doc-Receiver","summary_docreceiver_upload_staging", "doc_id")
 		uploadSummary("OCR","summary_ocr_staging", "doc_id")
 		uploadSummary("Persist Mapper","summary_persist_mapper_staging", "doc_id")
-		
+
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-#============ 4th or Job Summary section of the report =====================	
-	
+#============ 4th or Job Summary section of the report =====================
+
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -694,7 +696,7 @@ def writeReportDetails():
 	REPORT = REPORT+"<br><br>"
 
 #============ 5th or Care Optimizer Errors section of the report ==========
-	
+
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -705,7 +707,7 @@ def writeReportDetails():
 		careOptimizerErrors("summary_careopt_errors_staging")
 		careOptimizerLoad("summary_careopt_load_staging")
 		careOptimizerSearch("summary_careopt_search_staging")
-		
+
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -713,27 +715,27 @@ def writeReportDetails():
 	REPORT = REPORT+"<br><br>"
 
 #============ 6th or Logs Traffic section of the report =================
-	
+
 	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
 		summaryLogstrafficTotals("summary_logstraffic")
 	else:
 		summaryLogstrafficTotals("summary_logstraffic_staging")
-		
+
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-	
-#========================= END =============================================	
+
+#========================= END =============================================
 
 def closeHiveConnection():
 	global cur, conn
 	cur.close()
 	conn.close()
-		
+
 
 def writeReportFooter():
 	print ("Write report footer ...\n")
@@ -754,7 +756,7 @@ def archiveReport():
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
-			os.chmod(BACKUPREPORTFOLDER, 0777)	
+			os.chmod(BACKUPREPORTFOLDER, 0777)
 		if not os.path.exists(REPORTFOLDER):
 			os.makedirs(REPORTFOLDER)
 			os.chmod(REPORTFOLDER, 0777)
@@ -785,18 +787,18 @@ def emailReport():
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
-	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, RECEIVERS, REPORT)	
+	s.login("donotreply@apixio.com", "apx.mail47")
+	s.sendmail(SENDER, RECEIVERS, REPORT)
 	s.sendmail(SENDER, RECEIVERS2, REPORT)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
-	
-#================ START OF MAIN BODY =================================================================	
-	
-checkEnvironmentandReceivers()	
+
+#================ START OF MAIN BODY =================================================================
+
+checkEnvironmentandReceivers()
 
 identifyReportDayandMonth()
 
-writeReportHeader()	
+writeReportHeader()
 
 connectToHive()
 
@@ -813,3 +815,4 @@ archiveReport()
 emailReport()
 
 #================ END OF MAIN BODY ===================================================================
+

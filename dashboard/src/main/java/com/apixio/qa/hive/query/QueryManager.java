@@ -76,7 +76,7 @@ public class QueryManager
         
         if (results != null)
         {
-            if (queryName.equalsIgnoreCase("manifest_recovery"))
+            if (queryName.equalsIgnoreCase("recovery_manifest"))
             {
                 //Generate manifest for these docs
                 DocManifestManager dmm = new DocManifestManager(environment, manifestDir);
@@ -93,21 +93,22 @@ public class QueryManager
         List<RunQuery> rQs = groupToRun.getRunQuery();
 
         JSONObject processedGroup = null;
+        QueryProcessor processor = null;
         if (groupToRun.getName().equalsIgnoreCase("completeness"))
         {
-            OrgCompletenessProcessor orgCompleteness = new OrgCompletenessProcessor();
-            processedGroup = orgCompleteness.processCompletenessGroup(queryHandler, outputDir, environment, rQs);
+            processor = new OrgCompletenessProcessor();
         }
         else if (groupToRun.getName().equalsIgnoreCase("recentErrors"))
         {
-            RecentErrorsProcessor recentErrors = new RecentErrorsProcessor();
-            processedGroup = recentErrors.processRecentErrors(queryHandler, outputDir, environment, rQs);
+            processor = new RecentErrorsProcessor();
         }
         else if (groupToRun.getName().equalsIgnoreCase("failedJobs"))
         {
-            FailedJobsProcessor failedJobs = new FailedJobsProcessor();
-            processedGroup = failedJobs.processFailedJobs(queryHandler, outputDir, environment, rQs);
+            processor = new FailedJobsProcessor();
         }
+        
+        if (processor != null)
+            processedGroup = processor.processQuery(queryHandler, outputDir, environment, rQs);
         //TODO else just run the group and return results.. 
         return processedGroup;
     }

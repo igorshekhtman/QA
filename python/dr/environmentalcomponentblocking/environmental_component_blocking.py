@@ -164,7 +164,7 @@ def checkEnvironment():
 		ORGID="315"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		#HOST="https://supload.apixio.com:8443"
+		#HOST="https://testdr.apixio.com:8443"
 		# alternative staging DR upload url
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT="Staging"
@@ -570,7 +570,7 @@ def blockAllIPs():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	#os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -F")
+	#os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -F")
 	if GRS == "UNBLOCKED":
 		blockComponentIP("Graphite")
 		GRS = "BLOCKED"
@@ -609,7 +609,7 @@ def unblockAllBlockedIP():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -F")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -F")
 	GRS = "UNBLOCKED"
 	FLS = "UNBLOCKED"
 	S3S = "UNBLOCKED"
@@ -622,7 +622,7 @@ def unblockAllBlockedIP():
 	DRS = "UNBLOCKED"
 	# os.system('clear')
 	# show list
-	#os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -L")
+	#os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -L")
 	#time.sleep(2)
 
 def blockComponentIP(component):
@@ -631,10 +631,10 @@ def blockComponentIP(component):
 	print ("Block %s component - IP: %s:%s\n") % (component, IP, PORT)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -A OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -A OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
 	os.system(add_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -L")
 	#time.sleep(2)	
 
 def unblockComponentIP(component):
@@ -643,16 +643,16 @@ def unblockComponentIP(component):
 	print ("Unblock %s component - IP: %s:%s\n") % (component, IP, PORT)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -D OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -D OUTPUT -p tcp -d "+str(IP)+" --dport "+str(PORT)+" -j DROP"
 	os.system(remove_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -L")
 	#time.sleep(2)
 	
 def listStatusComponentIP(component):
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -L")
 	#time.sleep(2)	
 
 
@@ -678,7 +678,7 @@ def mainMenu():
 	print "8. MySql (%s:%s) status: %s\n" % (IPMAP["Mysql"], PORTMAP["Mysql"], MYS)
 	print "9. Doc-Receiver (%s:%s) status: %s\n" % (IPMAP["Docreceiver"], PORTMAP["Docreceiver"], DRS)
 	print "==========================================================================================="
-	os.system("ssh -i /mnt/automation/.secrets/supload.pem 10.199.22.217 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.22.217 iptables -L")
 	print "==========================================================================================="
 	
 

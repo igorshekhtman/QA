@@ -1,11 +1,6 @@
 package com.apixio.qa.hive.query;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,138 +8,11 @@ import org.json.JSONObject;
 import com.apixio.qa.hive.cache.CacheManager;
 import com.apixio.qa.hive.query.generated.Queries.Group.RunQuery;
 
-public class OrgCompletenessProcessor
+public class OrgCompletenessProcessor extends QueryProcessor
 {
-    private Properties orgProperties;
-    
     public OrgCompletenessProcessor()
     {
-        try
-        {
-            orgProperties = new Properties();
-            orgProperties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("prod_orgid_names.properties"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-    
-    public JSONObject processCompletenessGroup(QueryHandler queryHandler, String outputDir, String environment, List<RunQuery> runQueries) throws Exception
-    {
-        JSONObject resultObj = null;
-        CacheManager cache = new CacheManager(environment, outputDir);
-        if (runQueries != null)
-        {
-            resultObj = new JSONObject();
-            JSONObject orgDetails = new JSONObject();
-
-            for (RunQuery rQ : runQueries)
-            {
-                //Fetch data from cache...
-                List<JSONObject> results = cache.fetchResults(rQ.getName());
-
-                if (results == null)
-                {
-                    results = queryHandler.runQuery(environment, rQ);
-                    cache.writeResults(results, rQ.getName());
-                }
-
-                getOrgObject(results, rQ.getName(), orgDetails);
-            }
-
-            @SuppressWarnings("unchecked")
-            List<Long> sortedList = getSortedKeys(orgDetails.keys());
-            
-            JSONArray orgs = new JSONArray();
-            for (Long orgId : sortedList)
-            {
-                String key = orgId.toString();
-                
-                orgs.put(orgDetails.get(key));
-            }
-            resultObj.put("orgs", orgs);
-        }
-        return resultObj;
-    }
-    
-    private List<Long> getSortedKeys(Iterator<String> keyIterator)
-    {
-        if (keyIterator != null && keyIterator.hasNext())
-        {
-            List<Long> orgIds = new ArrayList<Long>();
-            while (keyIterator.hasNext())
-            {
-                String key = keyIterator.next();
-                if (!key.trim().equalsIgnoreCase("null"))
-                    orgIds.add(Long.parseLong(key));
-            }
-            
-            Collections.sort(orgIds, new Comparator<Long>()
-            {
-                public int compare(Long o1, Long o2)
-                {
-                    return o1.compareTo(o2);
-                }
-            });
-            
-            return orgIds;
-        }
-        return null;
-    }
-    
-    private void getOrgObject(List<JSONObject> results, String typeOfResults, JSONObject orgDetails) throws Exception
-    {
-        for (JSONObject result : results)
-        {
-            String orgId = result.getString("org_id");
-            
-            if (orgId != null && !orgId.equalsIgnoreCase("__HIVE_DEFAULT_PARTITION__"))
-            {
-                String status = "NotKnown";
-                String errorMsg = "NotKnown";
-                
-                if (result.has("error_message"))
-                    errorMsg = result.getString("error_message");
-                
-                Integer doc_count = 0;
-                if (result.has("doc_count"))
-                    doc_count = result.getInt("doc_count");
-                
-                JSONObject orgObject = null;
-                
-                if (orgDetails.has(orgId))
-                {
-                    orgObject = orgDetails.getJSONObject(orgId);
-                }
-                else
-                {
-                    orgObject = new JSONObject();
-                    orgObject.put("org_id", orgId);
-                    orgObject.put("org_name", orgProperties.getProperty(orgId, ""));
-                }
-                
-                if (result.has("status"))
-                {
-                    status = result.getString("status");
-                }
-                else
-                {
-                    fillPendingDocsData(orgObject, result, typeOfResults, doc_count);
-                }
-                
-                if (status.equals("success"))
-                {
-                    fillSucceededData(orgObject, result, typeOfResults, doc_count);
-                }
-                else if (status.equals("error"))
-                {
-                    fillErroredData(orgObject, result, typeOfResults, errorMsg, doc_count);
-                }
-                
-                orgDetails.put(orgId, orgObject);
-            }
-        }
+        super();
     }
     
     private void fillPendingDocsData(JSONObject orgObject, JSONObject result, String typeOfResults, int doc_count) throws Exception
@@ -292,6 +160,102 @@ public class OrgCompletenessProcessor
                     (((Integer)errorObject.get(errorMsg))+doc_count):doc_count);
             
             orgObject.put("upload_errors", errorObject);
+        }
+    }
+
+    @Override
+    public JSONObject processQuery(QueryHandler queryHandler, String outputDir, String environment, List<RunQuery> runQueries) throws Exception
+    {
+        JSONObject resultObj = null;
+        CacheManager cache = new CacheManager(environment, outputDir);
+        if (runQueries != null)
+        {
+            resultObj = new JSONObject();
+            JSONObject orgDetails = new JSONObject();
+
+            for (RunQuery rQ : runQueries)
+            {
+                //Fetch data from cache...
+                List<JSONObject> results = cache.fetchResults(rQ.getName());
+
+                if (results == null)
+                {
+                    results = queryHandler.runQuery(environment, rQ);
+                    cache.writeResults(results, rQ.getName());
+                }
+
+                collectResults(results, rQ.getName(), orgDetails);
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Long> sortedList = getSortedLongKeys(orgDetails.keys());
+            
+            JSONArray orgs = new JSONArray();
+            for (Long orgId : sortedList)
+            {
+                String key = orgId.toString();
+                
+                orgs.put(orgDetails.get(key));
+            }
+            resultObj.put("orgs", orgs);
+        }
+        return resultObj;
+    }
+
+    @Override
+    protected void collectResults(List<JSONObject> results, String typeOfResults, Object resultsCollection) throws Exception
+    {
+        JSONObject orgDetails = (JSONObject)resultsCollection;
+        
+        for (JSONObject result : results)
+        {
+            String orgId = result.getString("org_id");
+            
+            if (orgId != null && !orgId.equalsIgnoreCase("__HIVE_DEFAULT_PARTITION__"))
+            {
+                String status = "NotKnown";
+                String errorMsg = "NotKnown";
+                
+                if (result.has("error_message"))
+                    errorMsg = result.getString("error_message");
+                
+                Integer doc_count = 0;
+                if (result.has("doc_count"))
+                    doc_count = result.getInt("doc_count");
+                
+                JSONObject orgObject = null;
+                
+                if (orgDetails.has(orgId))
+                {
+                    orgObject = orgDetails.getJSONObject(orgId);
+                }
+                else
+                {
+                    orgObject = new JSONObject();
+                    orgObject.put("org_id", orgId);
+                    orgObject.put("org_name", orgProperties.getProperty(orgId, ""));
+                }
+                
+                if (result.has("status"))
+                {
+                    status = result.getString("status");
+                }
+                else
+                {
+                    fillPendingDocsData(orgObject, result, typeOfResults, doc_count);
+                }
+                
+                if (status.equals("success"))
+                {
+                    fillSucceededData(orgObject, result, typeOfResults, doc_count);
+                }
+                else if (status.equals("error"))
+                {
+                    fillErroredData(orgObject, result, typeOfResults, errorMsg, doc_count);
+                }
+                
+                orgDetails.put(orgId, orgObject);
+            }
         }
     }
 }

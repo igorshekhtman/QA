@@ -155,9 +155,9 @@ def checkEnvironment():
 		ORGID="251"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		HOST="https://supload.apixio.com:8443"
+		HOST="https://testdr.apixio.com:8443"
 		# alternative staging DR upload url
-		#HOST="https://supload2.apixio.com:8443"
+		#HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
@@ -681,9 +681,9 @@ def runHiveQueries ():
 def clearAllBlockedIP():
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -F")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -F")
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	time.sleep(2)
 
 def blockComponentIP(component):
@@ -691,10 +691,10 @@ def blockComponentIP(component):
 	print ("Block %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(add_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	time.sleep(2)	
 
 def unblockComponentIP(component):
@@ -702,10 +702,10 @@ def unblockComponentIP(component):
 	print ("Unblock %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(remove_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
 	time.sleep(2)
 
 # ============================= ARCHIVE REPORT TO A FILE ============================================================================

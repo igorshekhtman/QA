@@ -244,7 +244,7 @@ public class QueryHiveResource
     }
     
     @GET
-    @Path("/manifest/recovery/{environment}/{queryName}")
+    @Path("/manifest/{environment}/{queryName}")
     @Timed
     public String getManifestForRecovery(@PathParam("environment") String environment, @PathParam("queryName") String queryName, 
             @Context UriInfo uriInfo)

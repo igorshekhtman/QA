@@ -1,3 +1,6 @@
+iptables -A OUTPUT -p tcp -m string --string "http://www.springframework.org/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
+iptables -A OUTPUT -p tcp -m string --string "/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
+
 =================================================================================================
 
 10.199.22.217 testdr testdr.apixio.com
@@ -41,6 +44,24 @@ Please help us test HCC Scripps.  Here is the URL: http://hccstage.apixio.com
 
 50.18.147.10 - External - use from local machine (in office)
 
+
+setUp(scn.inject(nothingFor(4 seconds),
+                 atOnce(10 users),
+                 ramp(10 users) over (5 seconds),
+                 constantRate(20 usersPerSec) during (15 seconds),
+                 rampRate(10 usersPerSec) to(20 usersPerSec) during(10 minutes),
+                 split(1000 users).into(ramp(10 users) over (10 seconds))
+                                  .separatedBy(10 seconds),
+                 split(1000 users).into(ramp(10 users) over (10 seconds))
+                                  .separatedBy(atOnce(30 users)))
+                 .protocols(httpConf)
+
+atOnceUsers(1)
+
+
+let's try 2 to 5 minutes
+60 users over 1 hour
+setUp(scn.inject(nothingFor(4 seconds), (ramp(60 users) over (5 minutes)), constantRate(60 usersPerSec) during (55 minutes)))
 
 -------------- Automated API script (gatling.sh) --------------------------
 
@@ -247,7 +268,7 @@ remove:
 sudo iptables -D INPUT -s 74.125.239.101 -j DROP
 
 outgoing is -d not -s (Lance)
-This is how to cut off access to the API server from supload:
+This is how to cut off access to the API server from testdr:
 
 iptables -A OUTPUT -d 10.196.82.47 -j DROP
 
@@ -270,20 +291,20 @@ iptables -F
 ---------------------------------------------- Lance ---------------------------------------------------------------
 ok, got them:
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -L
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -L
 
 lists the iptables rule list
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/staging.pem supload2.apixio.com iptables -F
+ssh -i /mnt/automation/.secrets/staging.pem stagedr.apixio.com iptables -F
 
 removes all of the iptables rules. do this before every test.
 
-ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -A OUTPUT -d 10.198.43.98 -j DROP
+ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -A OUTPUT -d 10.198.43.98 -j DROP
 
-ssh -i /mnt/automation/.secrets/supload2.pem 10.199.16.28 iptables -L
+ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L
 
 
 -L shows the list of rules
@@ -623,7 +644,7 @@ uploadurl=https://dr.apixio.com:8443/
 setting coordinator slot configuration
 
 Coordinator slot config:
-java com.apixio.coordinator.cmdline.SlotConfigTool --set “activity=1"
+java com.apixio.coordinator.cmdline.SlotConfigTool --set ï¿½activity=1"
 (check the config)
 java com.apixio.coordinator.cmdline.SlotConfigTool --listall
 [1:31:45 PM] Lilith Schneider: from bin after . setcp
@@ -1038,7 +1059,7 @@ this will transfer the packaged pipeline to staging cluster in the jenkins_v3 di
 
 CARE OPTIMIZER (STAGING):
 https://supweb.apixio.com/signup.do?action=loadSignup
-uploadurl=https://supload.apixio.com:8443/
+uploadurl=https://testdr.apixio.com:8443/
 
 
 
