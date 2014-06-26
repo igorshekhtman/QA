@@ -1,4 +1,4 @@
-__author__ = 'Igor'
+__author__ = 'Igor Shekhtman'
 
 import pyhs2
 import os
@@ -31,7 +31,7 @@ QNTORUN=1
 PROCESS_ALL_QUERIES=bool(1)
 
 # Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -48,7 +48,7 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 TIMESTAMP=strftime("%s", gmtime())
-DATESTAMP=strftime("%m/%d/%y %r", gmtime())
+#DATESTAMP=strftime("%m/%d/%y %r", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
@@ -241,7 +241,9 @@ def writeReportHeader ():
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='10.196.47.205', \
+    # from office 184.169.209.24
+    # from amazon 10.196.47.205
+	conn = pyhs2.connect(host='184.169.209.24', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
