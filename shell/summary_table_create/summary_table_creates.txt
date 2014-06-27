@@ -75,6 +75,10 @@ create table summary_qapatientuuid
 (time string, job_id string, work_id string, status string, username string, patient_uuids string, patient_key string, patient_info string)
 partitioned by (month STRING, day STRING, org_id STRING)
 
+create table summary_doc_manifest
+(time string, apixio_uuid string, external_id string, doc_source string, assign_authority string, source_system string, username string, status string, error_message string)
+partitioned by (month STRING, day STRING, year STRING, org_id STRING)
+
 /**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
