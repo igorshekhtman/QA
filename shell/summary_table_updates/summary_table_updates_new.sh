@@ -840,6 +840,41 @@ get_json_object(line, '$.input.orgid') as org_id
 from staging_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
+insert overwrite table summary_event_mapper_staging partition (month, day, year, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.jobSubmitTime') as job_submit_time,
+get_json_object(line, '$.event.numOfEvents') as num_of_events_extracted,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+month, day, year,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_eventJob_epoch
+where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventMapper"
+and ($dateRange);
+
+insert overwrite table summary_event_reducer_staging partition (month, day, year, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.eventBatchId') as event_batch_id,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+month, day, year,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_eventJob_epoch 
+where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
+and ($dateRange);
+
 insert overwrite table summary_qapatientuuid_staging partition(month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
