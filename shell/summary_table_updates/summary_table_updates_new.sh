@@ -429,6 +429,24 @@ get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
+insert overwrite table summary_doc_manifest partition (month, day, year, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.document.uuid') as apixio_uuid,
+get_json_object(line, '$.document.id') as external_id,
+get_json_object(line, '$.document.source') as doc_source,
+get_json_object(line, '$.document.assignAuthority') as assign_authority,
+get_json_object(line, '$.sourceSystem') as source_system,
+get_json_object(line, '$.username') as username,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+month,
+day,
+year,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_datacheckandrecover_epoch
+where get_json_object(line, '$.docManifest') is not null
+and ($dateRange);
+
 insert overwrite table summary_careopt_load partition (org_id, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -889,6 +907,24 @@ month,
 day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
+and ($dateRange);
+
+insert overwrite table summary_doc_manifest_staging partition (month, day, year, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.document.uuid') as apixio_uuid,
+get_json_object(line, '$.document.id') as external_id,
+get_json_object(line, '$.document.source') as doc_source,
+get_json_object(line, '$.document.assignAuthority') as assign_authority,
+get_json_object(line, '$.sourceSystem') as source_system,
+get_json_object(line, '$.username') as username,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+month,
+day,
+year,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_datacheckandrecover_epoch
+where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
 
 insert overwrite table summary_careopt_load_staging partition (org_id, month, day)
