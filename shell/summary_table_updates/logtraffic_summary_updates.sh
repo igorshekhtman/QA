@@ -48,6 +48,8 @@ then
   environment=""
 fi
 
+# TODO: drop partition, then add to instead of 'override'- throws data away - Lance
+
 for t in $appNames
 do
 
