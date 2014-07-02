@@ -861,6 +861,7 @@ and ($dateRange);
 insert overwrite table summary_event_mapper_staging partition (month, day, year, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.documentUUID') as doc_id,
 get_json_object(line, '$.jobSubmitTime') as job_submit_time,
 get_json_object(line, '$.event.numOfEvents') as num_of_events_extracted,
 get_json_object(line, '$.status') as status,
