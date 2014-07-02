@@ -79,6 +79,16 @@ create table summary_doc_manifest
 (time string, apixio_uuid string, external_id string, doc_source string, assign_authority string, source_system string, username string, status string, error_message string)
 partitioned by (month STRING, day STRING, year STRING, org_id STRING)
 
+create table summary_event_mapper
+(time string, patient_uuid string, doc_id string, job_submit_time string, num_of_events_extracted int, status string,
+error_message string, extraction_time int, batch_id string, job_id string, work_id string, hadoopjob_id string, seqfilename string)
+partitioned by (month STRING, day STRING, year string, org_id STRING)
+
+create table summary_event_reducer
+(time string, patient_uuid string, status string, error_message string, process_time int, event_batch_id string, batch_id string,
+job_id string, work_id string, hadoopjob_id string, seqfilename string)
+partitioned by (month STRING, day STRING, year string, org_id STRING)
+
 /**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
