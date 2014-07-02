@@ -80,7 +80,7 @@ create table summary_doc_manifest
 partitioned by (month STRING, day STRING, year STRING, org_id STRING)
 
 create table summary_event_mapper
-(time string, patient_uuid string, job_submit_time string, num_of_events_extracted int, status string,
+(time string, patient_uuid string, doc_id string, job_submit_time string, num_of_events_extracted int, status string,
 error_message string, extraction_time int, batch_id string, job_id string, work_id string, hadoopjob_id string, seqfilename string)
 partitioned by (month STRING, day STRING, year string, org_id STRING)
 

@@ -9,7 +9,6 @@
     <properties>
         <!-- repository location -->
         <nexus.url>https://build.apixio.com:9090/nexus/content/repositories</nexus.url>
-        <eng.url>http://engineering.apixio.com:9090/nexus/content/repositories/</eng.url>
 
         <!-- distribution management -->
         <release.repo.id>apixio.releases.build</release.repo.id>
