@@ -20,7 +20,7 @@ os.system('clear')
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
 
-TEST_TYPE="SanityTest"
+TEST_TYPE="EventPubSub"
 
 # Environment for SanityTest is passed as a paramater. Staging is a default value
 if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
