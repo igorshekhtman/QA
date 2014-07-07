@@ -11,7 +11,7 @@ key=
 test=
 i=
 environment="s"  
-stagindrurl="uploadurl=https://testdr.apixio.com:8443/"  
+stagindrurl="uploadurl=https://stagedr.apixio.com:8443/"  
 productiondrurl="uploadurl=https://dr.apixio.com/"  
 configfile="commsys.ini"
 #! ==============================================================================
@@ -41,27 +41,31 @@ else
 	exit
 fi
 
-echo "==========================================================================="
-echo "Please select test environment (default value is STAGING):"
-echo "==========================================================================="
-echo "S. Staging"
-echo "P. Production"
-echo "==========================================================================="
-read -p "Select test environment to run your test (S/P)? " -n 1
-echo
-if [[ $REPLY =~ ^[Pp]$ ]]; then
-	sed -i s/testdr/dr/g /mnt/indexer$i/V30/resources/$configfile
-	echo "==========================================================================="
-	echo "Environment has been set for PRODUCTION ..."
-	echo "==========================================================================="
-	environment="p"
-else
-	sed -i s/dr/testdr/g /mnt/indexer$i/V30/resources/$configfile
-	echo "==========================================================================="
-	echo "Environment has been set for STAGING ..."
-	echo "==========================================================================="
-	environment="s"
-fi
+# NOTE !!!!
+# Since Lance made changes to the supload and supload2, I had to temporarilt comment out
+# Environmant selection, since staging DR is not testdr and stagedr, not supload and supload2 as before
+# NOTE !!!!
+#echo "==========================================================================="
+#echo "Please select test environment (default value is STAGING):"
+#echo "==========================================================================="
+#echo "S. Staging"
+#echo "P. Production"
+#echo "==========================================================================="
+#read -p "Select test environment to run your test (S/P)? " -n 1
+#echo
+#if [[ $REPLY =~ ^[Pp]$ ]]; then
+#	sed -i s/testdr/dr/g /mnt/indexer$i/V30/resources/$configfile
+#	echo "==========================================================================="
+#	echo "Environment has been set for PRODUCTION ..."
+#	echo "==========================================================================="
+#	environment="p"
+#else
+#	sed -i s/dr/testdr/g /mnt/indexer$i/V30/resources/$configfile
+#	echo "==========================================================================="
+#	echo "Environment has been set for STAGING ..."
+#	echo "==========================================================================="
+#	environment="s"
+#fi
 
 
 #! ====== DELETE ANY PRE-EXISTING DOCUMENTS FROM WORK AND SOURCE FOLDERS ========
@@ -99,6 +103,7 @@ echo "17. STRESS TEST (LARGE) - 10,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "18. STRESS TEST (MEDIUM) - 5,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "19. STRESS TEST (SMALL) - 1,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "20. CARE OPTIMIZER TEST - ONE LARGE PATIENT WITH 5000 TXT DOCUMENTS"
+echo "21. OCR SANITY TEST - 5 PDF DOCUMENTS LESS THAN 10 PAGES EACH"
 echo "==========================================================================="
 read -p "Select test number to run: " test
 
@@ -127,6 +132,7 @@ case $test in
 	18) cp -avr /mnt/testdata/5000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
 	19) cp -avr /mnt/testdata/1000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
 	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog/201404070121338174 /mnt/indexer$i/SOURCE/ ;;
+	21) cp -avr /mnt/testdata/OcrSanityTest/Catalogs/20140707022526 /mnt/indexer$i/SOURCE/ ;;
 	*) 	echo "==========================================================================="
 		echo "Error: Invalid test number selection, exiting script" 
 		echo "==========================================================================="
