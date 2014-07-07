@@ -1,4 +1,4 @@
-iptables -A OUTPUT -p tcp -m string --string "http://www.springframework.org/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
+﻿iptables -A OUTPUT -p tcp -m string --string "http://www.springframework.org/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
 iptables -A OUTPUT -p tcp -m string --string "/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
 
 =================================================================================================
@@ -172,9 +172,24 @@ ADD SEQ FILE CLOSE - LANCE:
 
 Missing - .seqfile.file.close.batch
 
-===============================
-LANCE - 04/22/2014
-===============================
+=======================================================================================================
+LANCE - 04/22/2014 DOC-RECEIVER
+=======================================================================================================
+=======================================================================================================
+=======================================================================================================
+
+STOP/START COMMANDS:
+
+service apx-receiver stop
+(wait up to a minute for it to finish)
+
+service apx-receiver start
+(ends immediately)
+
+=======================================================================================================
+
+
+
 'Sequence File Directory Add' is not useful, it's just a wrapper around 'Sequence File Generation'.
 
 The overall bytes and counts are:
@@ -1080,14 +1095,14 @@ uploadurl=https://dr.apixio.com:8443/
 
 CD C:\_Pipline\Indexer\V30
 
-CD C:\_Pipeline\Indexer\V30
+# CD C:\_Pipeline\Indexer\V30
 
 
-java -cp apixio-indexer-3.0.0-SNAPSHOT.jar com.apixio.indexer.util.Setup
+# java -cp apixio-indexer-3.0.0-SNAPSHOT.jar com.apixio.indexer.util.Setup
 
 java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
 
-java -jar apixio-indexer-3.1.0.jar
+# java -jar apixio-indexer-3.1.0.jar
 
 
 User: apxdemot463
