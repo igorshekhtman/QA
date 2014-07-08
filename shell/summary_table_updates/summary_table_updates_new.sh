@@ -754,7 +754,7 @@ FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')!='start' and get_json_object(line, '$.job.status') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_stats_staging partition(month, day)
+insert overwrite table summary_coordinator_stats_staging partition(year, month, day)
 select 
 get_json_object(line, '$.datestamp') as time, 
 get_json_object(line, '$.coordinator.stats') as stats_json, 
