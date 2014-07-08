@@ -1,109 +1,116 @@
+# Add following to end of each 'create table'
+# row format serde "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
+# stored as rcfile
+
+# Please always use year, month, day, org_id in order!
+
+
 /**********************************Doc Receiver*********************************************************************************/
 create table summary_docreceiver_archive 
 (time string, doc_id string, batch_id string, file_size int, status string, archive_time int, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_docreceiver_seqfile
 (time string, doc_id string, batch_id string, file_size int, status string, seqfile_directory string, seqfile_file string, seqfile_time int, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_docreceiver_upload
 (time string, doc_id string, batch_id string, file_size int, status string, total_time int, doc_hash string, file_type string, error_message string) 
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_docreceiver_seqfile_post
 (time string, seqfile_path string, num_seq_files int, seqfile_size int, num_docs int, batch_id string, redis_queue_name string, status string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 /**********************************Coordinator*********************************************************************************/
 create table summary_coordinator_workrequest
 (time string, batch_id string, source_dir string, seqfile string, dest_dir string, work_id string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_coordinator_movefiles
 (time string, batch_id string, activity string, source_dir string, files_moved string, dest_dir string, move_message string, job_id string, work_id string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_coordinator_jobrequest
 (time string, batch_id string, activity string, source_dir string, seqfile string, dest_dir string, from_activity string, from_job_id string, orig_job_id string, job_id string, work_id string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_coordinator_jobstart
 (time string, batch_id string, activity string, input_dir string, output_dir string, orig_job_id string, hadoop_job_id string, job_id string, work_id string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_coordinator_jobfinish
 (time string, batch_id string, activity string, input_dir string, output_dir string, orig_job_id string, hadoop_job_id string, status string, job_id string, work_id string,
 total_time int)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_coordinator_stats 
 (time string, stats_json string) 
-partitioned by (month STRING, day STRING)
+partitioned by (year STRING, month STRING, day STRING);
 
 /**********************************Hadoop Jobs*********************************************************************************/
 create table summary_afsdownload
 (time string, doc_id string, status string, download_time int, job_id string, work_id string, 
 hadoopjob_id string, seqfilename string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_parser
 (time string, doc_id string, batch_id string, file_size int, file_type string, status string, process_time int, sent_to_persist string, 
 sent_to_ocr string, job_id string, work_id string, hadoopjob_id string, seqfilename string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_ocr
 (time string, doc_id string, batch_id string, file_size int, status string, process_time int, output_size int, total_pages int, 
 job_id string, work_id string, hadoopjob_id string, seqfilename string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_persist_mapper
 (time string, doc_id string, batch_id string, file_size int, status string, process_time int, patient_key string, 
 job_id string, work_id string, hadoopjob_id string, seqfilename string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_persist_reducer
 (time string, status string, process_time int, patient_key string, patient_uuid string, mysql_lock_held_time int, mysql_patient_search_time int,
 job_id string, work_id string, hadoopjob_id string, autocorrection string, error_message string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_qafromseqfile
 (time string, job_id string, work_id string, run_id string, batch_id string, doc_ext_id string, doc_id string, file_type string, patient_key string, patient_uuid string, archived string, parser_status string, ocr_status string, persist_status string, append_to_seqfile string, submit_to_coordinator string, username_from_docentry string, sourcesystem_from_docentry string, doc_hash_from_docentry string, doc_ext_id_from_docentry string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_qapatientuuid
 (time string, job_id string, work_id string, status string, username string, patient_uuids string, patient_key string, patient_info string)
-partitioned by (month STRING, day STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_doc_manifest
 (time string, apixio_uuid string, external_id string, doc_source string, assign_authority string, source_system string, username string, status string, error_message string)
-partitioned by (month STRING, day STRING, year STRING, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_event_mapper
 (time string, patient_uuid string, doc_id string, job_submit_time string, num_of_events_extracted int, status string,
 error_message string, extraction_time int, batch_id string, job_id string, work_id string, hadoopjob_id string, seqfilename string)
-partitioned by (month STRING, day STRING, year string, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_event_reducer
 (time string, patient_uuid string, status string, error_message string, process_time int, event_batch_id string, batch_id string,
 job_id string, work_id string, hadoopjob_id string, seqfilename string)
-partitioned by (month STRING, day STRING, year string, org_id STRING)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 /**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
-partitioned by (org_id string, month string, day string);
+partitioned by (year string, month string, day string, org_id string);
 
 create table summary_careopt_search
 (time string, patient_sql_id string, user_id string, username string, error_message string, patient_access_millis int, hostname string)
-partitioned by (org_id string, month string, day string);
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_careopt_errors
 (time string, error_message string, source string)
-partitioned by (month string, day string);
+partitioned by (year STRING, month STRING, day STRING);
 
 create table summary_careopt_login
 (time string, username string, user_id string, status string, user_agent string, hostname string, processTime int, event string, remote_address string)
-partitioned by (org_id string, month string, day string);
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 _staging is appended to every table of staging

@@ -66,8 +66,9 @@ echo " "
 
 day=$scurDay
 month=$scurMonth
-dateRange="(month=$curMonth and day=$curDay)"
+dateRange="${dateRange:-(month=$curMonth and day=$curDay)}";
 # dateRange="(month=$curMonth and day=30)"
+
 
 #===========================================================
 #===========================================================
@@ -82,11 +83,19 @@ set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
 set mapred.job.queue.name=hive;
-set hive.exec.max.dynamic.partitions.pernode = 1000;
+set hive.exec.max.dynamic.partitions.pernode = 10000;
+-- compress all data 
+set mapred.output.compress=true;
+set hive.exec.compress.output=true;
+set mapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCodec;
+set io.compression.codecs=org.apache.hadoop.io.compress.GzipCodec;
+SET mapred.output.compression.type=BLOCK;
 
+-- note: all partition values must be in order as well as by name
 
+! echo Loading Production partitions
 
-insert overwrite table summary_docreceiver_archive partition (month, day, org_id)
+insert overwrite table summary_docreceiver_archive partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 coalesce(get_json_object(line, '$.archive.afs.docid'),get_json_object(line, '$.archive.aps.docid'))  as doc_id,
@@ -99,6 +108,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null ) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 coalesce(get_json_object(line, '$.archive.afs.orgid'),get_json_object(line, '$.archive.aps.orgid')) as org_id
@@ -106,7 +116,7 @@ from production_logs_docreceiver_epoch
 where get_json_object(line, '$.archive') is not null
 and ($dateRange);
 
-insert overwrite table summary_docreceiver_seqfile partition (month, day, org_id)
+insert overwrite table summary_docreceiver_seqfile partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
@@ -121,6 +131,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null ) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.seqfile.file.document.orgid') as org_id
@@ -128,7 +139,7 @@ FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.seqfile.file.document') is not null
 and ($dateRange);
 
-insert overwrite table summary_docreceiver_upload partition (month, day, org_id)
+insert overwrite table summary_docreceiver_upload partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.upload.document.docid') as doc_id,
@@ -143,6 +154,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.upload.document.orgid') as org_id
@@ -150,7 +162,7 @@ FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.upload.document') is not null
 and ($dateRange);
 
-insert overwrite table summary_docreceiver_seqfile_post partition (month, day, org_id)
+insert overwrite table summary_docreceiver_seqfile_post partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
@@ -165,6 +177,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.submit.post.orgid') as org_id
@@ -172,7 +185,7 @@ FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.submit.post') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_workrequest partition (month, day, org_id)
+insert overwrite table summary_coordinator_workrequest partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.work.context.batchID') as batch_id,
@@ -180,6 +193,7 @@ regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) 
 regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
 get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.work.context.organization') as org_id
@@ -187,7 +201,7 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.work') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_movefiles partition (month, day, org_id)
+insert overwrite table summary_coordinator_movefiles partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -198,6 +212,7 @@ get_json_object(line, '$.job.destdir') as dest_dir,
 get_json_object(line, '$.job.reason') as move_message,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -205,7 +220,7 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.filesmoved') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobrequest partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobrequest partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -218,6 +233,7 @@ get_json_object(line, '$.job.fromJob') as from_job_id,
 if(get_json_object(line, '$.job.originalJobID') is null, get_json_object(line, '$.job.jobID'), get_json_object(line, '$.job.originalJobID')) as orig_job_id,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -225,7 +241,7 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.files') is not null and get_json_object(line, '$.job.status') is null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobstart partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobstart partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -236,6 +252,7 @@ if(get_json_object(line, '$.job.originalJobID') is null, get_json_object(line, '
 get_json_object(line, '$.job.hadoopJobID') as hadoop_job_id,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -243,7 +260,7 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')='start'
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobfinish partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobfinish partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -256,6 +273,7 @@ get_json_object(line, '$.job.status') as status,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
 cast(get_json_object(line, '$.job.millis') as int) as total_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -263,16 +281,17 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')!='start' and get_json_object(line, '$.job.status') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_stats partition(month, day)
+insert overwrite table summary_coordinator_stats partition(year, month, day)
 select 
 get_json_object(line, '$.datestamp') as time, 
 get_json_object(line, '$.coordinator.stats') as stats_json, 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month, 
 day
 from production_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
 and ($dateRange);
 
-insert overwrite table summary_afsdownload partition (month, day, org_id)
+insert overwrite table summary_afsdownload partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.input.docuuid') as doc_id,
@@ -283,6 +302,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.input.orgId') as org_id
@@ -290,7 +310,7 @@ FROM production_logs_afsDownload_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_parser partition (month, day, org_id)
+insert overwrite table summary_parser partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -306,6 +326,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 if(get_json_object(line, '$.orgId') is null, 
@@ -315,7 +336,7 @@ FROM production_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_ocr partition (month, day, org_id)
+insert overwrite table summary_ocr partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -330,6 +351,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 if(get_json_object(line, '$.orgId') is null, 
@@ -339,7 +361,7 @@ FROM production_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_persist_mapper partition (month, day, org_id)
+insert overwrite table summary_persist_mapper partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -353,6 +375,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 if(get_json_object(line, '$.orgId') is null, 
@@ -362,7 +385,7 @@ FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
 
-insert overwrite table summary_persist_reducer partition (month, day, org_id)
+insert overwrite table summary_persist_reducer partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.status') as status,
@@ -376,6 +399,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 if(get_json_object(line, '$.orgId') is null, 
@@ -385,7 +409,7 @@ FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
 
-insert overwrite table summary_qafromseqfile partition(month, day, org_id)
+insert overwrite table summary_qafromseqfile partition(year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
@@ -407,13 +431,14 @@ get_json_object(line, '$.output.documentEntry.username') as username_from_docent
 get_json_object(line, '$.output.documentEntry.sourceSystem') as sourcesystem_from_docentry,
 get_json_object(line, '$.output.documentEntry.documentHash') as doc_hash_from_docentry,
 get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_docentry,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
 from production_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
-insert overwrite table summary_qapatientuuid partition(month, day, org_id)
+insert overwrite table summary_qapatientuuid partition(year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
@@ -423,13 +448,14 @@ get_json_object(line, '$.username') as username,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
 get_json_object(line, '$.patient.key') as patient_key,
 get_json_object(line, '$.patient.info') as patient_info,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
-insert overwrite table summary_doc_manifest partition (month, day, year, org_id)
+insert overwrite table summary_doc_manifest partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.document.uuid') as apixio_uuid,
 get_json_object(line, '$.document.id') as external_id,
@@ -439,15 +465,15 @@ get_json_object(line, '$.sourceSystem') as source_system,
 get_json_object(line, '$.username') as username,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-year,
 get_json_object(line, '$.orgId') as org_id
 from production_logs_datacheckandrecover_epoch
 where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
 
-insert overwrite table summary_careopt_load partition (org_id, month, day)
+insert overwrite table summary_careopt_load partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patient.id') as patient_sql_id,
@@ -456,16 +482,17 @@ cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandr
 cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
 get_json_object(line, '$.hostname') as hostname,
 cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
-get_json_object(line, '$.patient.orgId') as org_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
+day,
+get_json_object(line, '$.patient.orgId') as org_id
 from 
 production_logs_careopt_epoch 
 where get_json_object(line, '$.patient.cassandraload.millis') is not null 
 and ($dateRange);
 
 
-insert overwrite table summary_careopt_search partition (org_id, month, day)
+insert overwrite table summary_careopt_search partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
@@ -474,19 +501,21 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
-get_json_object(line, '$.patientaccess.org.id') as org_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
+day,
+get_json_object(line, '$.patientaccess.org.id') as org_id
 from 
 production_logs_careopt_epoch 
 where get_json_object(line, '$.patientaccess.patient.id') is not null 
 and ($dateRange);
 
-insert overwrite table summary_careopt_errors partition (month, day)
+insert overwrite table summary_careopt_errors partition (year, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.message') as error_message,
 get_json_object(line, '$.loggerName') as source,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day
 from 
@@ -494,7 +523,7 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.level') = 'ERROR' 
 and ($dateRange);
 
-insert overwrite table summary_careopt_login partition (org_id, month, day)
+insert overwrite table summary_careopt_login partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 if(get_json_object(line, '$.logout.username') is not null,
@@ -525,18 +554,21 @@ if(get_json_object(line, '$.logout.remoteAddr') is not null,
 get_json_object(line, '$.logout.remoteAddr'),
 get_json_object(line, '$.login.remoteAddr')) as remote_address,
 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day,
 if(get_json_object(line, '$.logout.orgId') is not null,
 get_json_object(line, '$.logout.orgId'),
-get_json_object(line, '$.login.orgId')) as org_id,
-month,
-day
+get_json_object(line, '$.login.orgId')) as org_id
 from 
 production_logs_careopt_epoch 
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null)  
 and ($dateRange);
 
 ###################################Staging#########################################################
-insert overwrite table summary_docreceiver_archive_staging partition (month, day, org_id)
+! echo Loading Staging partitions
+
+insert overwrite table summary_docreceiver_archive_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.archive.afs.docid') as doc_id,
@@ -549,6 +581,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null ) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.archive.afs.orgid') as org_id
@@ -556,7 +589,7 @@ from staging_logs_docreceiver_epoch
 where get_json_object(line, '$.archive') is not null
 and ($dateRange);
 
-insert overwrite table summary_docreceiver_seqfile_staging partition (month, day, org_id)
+insert overwrite table summary_docreceiver_seqfile_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.seqfile.file.document.docid') as doc_id,
@@ -571,6 +604,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null ) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.seqfile.file.document.orgid') as org_id
@@ -578,7 +612,7 @@ FROM staging_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.seqfile.file.document') is not null
 and ($dateRange);
 
-insert overwrite table summary_docreceiver_upload_staging partition (month, day, org_id)
+insert overwrite table summary_docreceiver_upload_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.upload.document.docid') as doc_id,
@@ -593,6 +627,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.upload.document.orgid') as org_id
@@ -600,8 +635,7 @@ FROM staging_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.upload.document') is not null
 and ($dateRange);
 
-
-insert overwrite table summary_docreceiver_seqfile_post_staging partition (month, day, org_id)
+insert overwrite table summary_docreceiver_seqfile_post_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 regexp_extract(get_json_object(line, '$.submit.post.path'), '^.*?(\/user.*?)$',1) as seqfile_path,
@@ -616,6 +650,7 @@ if( get_json_object(line, '$.error.message') is not null,
 get_json_object(line, '$.error.message'),
 regexp_extract(get_json_object(line, '$.message'), '^([^(\/0-9:]*).*$', 1) ),
 null) as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.submit.post.orgid') as org_id
@@ -623,7 +658,7 @@ FROM staging_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.submit.post') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_workrequest_staging partition (month, day, org_id)
+insert overwrite table summary_coordinator_workrequest_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.work.context.batchID') as batch_id,
@@ -631,6 +666,7 @@ regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1) 
 regexp_replace(regexp_extract(get_json_object(line, '$.work.filesmoved'), '^.*?(\/user.*?)$',1), concat(regexp_extract(get_json_object(line, '$.work.sourcedir'), '^.*?(\/user.*?)$',1),'/'), '') as seqfile,
 get_json_object(line, '$.work.destdir') as dest_dir,
 get_json_object(line, '$.work.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.work.context.organization') as org_id
@@ -638,7 +674,7 @@ FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.work') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_movefiles_staging partition (month, day, org_id)
+insert overwrite table summary_coordinator_movefiles_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -649,6 +685,7 @@ get_json_object(line, '$.job.destdir') as dest_dir,
 get_json_object(line, '$.job.reason') as move_message,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -656,7 +693,7 @@ FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.filesmoved') is not null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobrequest_staging partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobrequest_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -669,6 +706,7 @@ get_json_object(line, '$.job.fromJob') as from_job_id,
 get_json_object(line, '$.job.originalJobID') as orig_job_id,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -676,7 +714,7 @@ FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.files') is not null and get_json_object(line, '$.job.status') is null
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobstart_staging partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobstart_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -687,6 +725,7 @@ get_json_object(line, '$.job.originalJobID') as orig_job_id,
 get_json_object(line, '$.job.hadoopJobID') as hadoop_job_id,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -694,7 +733,7 @@ FROM staging_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')='start'
 and ($dateRange);
 
-insert overwrite table summary_coordinator_jobfinish_staging partition (month, day, org_id)
+insert overwrite table summary_coordinator_jobfinish_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.job.context.batchID') as batch_id,
@@ -707,6 +746,7 @@ get_json_object(line, '$.job.status') as status,
 get_json_object(line, '$.job.jobID') as job_id,
 get_json_object(line, '$.job.workID') as work_id,
 cast(get_json_object(line, '$.job.millis') as int) as total_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.job.context.organization') as org_id
@@ -718,12 +758,13 @@ insert overwrite table summary_coordinator_stats_staging partition(month, day)
 select 
 get_json_object(line, '$.datestamp') as time, 
 get_json_object(line, '$.coordinator.stats') as stats_json, 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month, 
 day
 from staging_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
 and ($dateRange);
 
-insert overwrite table summary_afsdownload_staging partition (month, day, org_id)
+insert overwrite table summary_afsdownload_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.input.docuuid') as doc_id,
@@ -734,6 +775,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.input.orgId') as org_id
@@ -741,7 +783,7 @@ FROM staging_logs_afsDownload_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_parser_staging partition (month, day, org_id)
+insert overwrite table summary_parser_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -757,6 +799,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 if(get_json_object(line, '$.orgId') is null, 
@@ -766,7 +809,7 @@ FROM staging_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_ocr_staging partition (month, day, org_id)
+insert overwrite table summary_ocr_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -781,6 +824,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
@@ -788,7 +832,7 @@ FROM staging_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
 
-insert overwrite table summary_persist_mapper_staging partition (month, day, org_id)
+insert overwrite table summary_persist_mapper_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.documentuuid') as doc_id,
@@ -802,6 +846,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
@@ -809,7 +854,7 @@ FROM staging_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
 
-insert overwrite table summary_persist_reducer_staging partition (month, day, org_id)
+insert overwrite table summary_persist_reducer_staging partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.status') as status,
@@ -823,6 +868,7 @@ get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
@@ -830,7 +876,7 @@ FROM staging_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
 
-insert overwrite table summary_qafromseqfile_staging partition(month, day, org_id)
+insert overwrite table summary_qafromseqfile_staging partition(year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
@@ -852,13 +898,14 @@ get_json_object(line, '$.output.documentEntry.username') as username_from_docent
 get_json_object(line, '$.output.documentEntry.sourceSystem') as sourcesystem_from_docentry,
 get_json_object(line, '$.output.documentEntry.documentHash') as doc_hash_from_docentry,
 get_json_object(line, '$.output.documentEntry.documentId') as doc_ext_id_from_docentry,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.input.orgid') as org_id
 from staging_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
-insert overwrite table summary_event_mapper_staging partition (month, day, year, org_id)
+insert overwrite table summary_event_mapper_staging partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientUUID') as patient_uuid,
 get_json_object(line, '$.documentUUID') as doc_id,
@@ -873,13 +920,14 @@ get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
-month, day, year,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_eventJob_epoch
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventMapper"
 and ($dateRange);
 
-insert overwrite table summary_event_reducer_staging partition (month, day, year, org_id)
+insert overwrite table summary_event_reducer_staging partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientUUID') as patient_uuid,
 get_json_object(line, '$.status') as status,
@@ -891,13 +939,14 @@ get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.inputSeqFileName') as seqfilename,
-month, day, year,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_eventJob_epoch 
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
 and ($dateRange);
 
-insert overwrite table summary_qapatientuuid_staging partition(month, day, org_id)
+insert overwrite table summary_qapatientuuid_staging partition(year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
@@ -907,13 +956,14 @@ get_json_object(line, '$.username') as username,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
 get_json_object(line, '$.patient.key') as patient_key,
 get_json_object(line, '$.patient.info') as patient_info,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
-insert overwrite table summary_doc_manifest_staging partition (month, day, year, org_id)
+insert overwrite table summary_doc_manifest_staging partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.document.uuid') as apixio_uuid,
 get_json_object(line, '$.document.id') as external_id,
@@ -923,15 +973,15 @@ get_json_object(line, '$.sourceSystem') as source_system,
 get_json_object(line, '$.username') as username,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.error.message') as error_message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-year,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_datacheckandrecover_epoch
 where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
 
-insert overwrite table summary_careopt_load_staging partition (org_id, month, day)
+insert overwrite table summary_careopt_load_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patient.id') as patient_sql_id,
@@ -940,16 +990,17 @@ cast(get_json_object(line, '$.patient.cassandraload.millis') as int) as cassandr
 cast(get_json_object(line, '$.patient.size.bytes') as int) as patient_bytes,
 get_json_object(line, '$.hostname') as hostname,
 cast(get_json_object(line, '$.patientcache.size') as int) as patient_cache_size,
-get_json_object(line, '$.patient.orgId') as org_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
+day,
+get_json_object(line, '$.patient.orgId') as org_id
 from 
 staging_logs_careopt_epoch 
 where get_json_object(line, '$.patient.cassandraload.millis') is not null 
 and ($dateRange);
 
 
-insert overwrite table summary_careopt_search_staging partition (org_id, month, day)
+insert overwrite table summary_careopt_search_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientaccess.patient.id') as patient_sql_id,
@@ -958,19 +1009,21 @@ get_json_object(line, '$.patientaccess.user.username') as username,
 get_json_object(line, '$.patientaccess.errorMessage') as error_message,
 cast(get_json_object(line, '$.patientaccess.millis') as int) as patient_access_millis,
 get_json_object(line, '$.hostname') as hostname,
-get_json_object(line, '$.patientaccess.org.id') as org_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
+day,
+get_json_object(line, '$.patientaccess.org.id') as org_id
 from 
 staging_logs_careopt_epoch 
 where get_json_object(line, '$.patientaccess.patient.id') is not null 
 and ($dateRange);
 
-insert overwrite table summary_careopt_errors_staging partition (month, day)
+insert overwrite table summary_careopt_errors_staging partition (year, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.message') as error_message,
 get_json_object(line, '$.loggerName') as source,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day
 from 
@@ -979,7 +1032,7 @@ where get_json_object(line, '$.level') = 'ERROR'
 and ($dateRange);
 
 
-insert overwrite table summary_careopt_login_staging partition (org_id, month, day)
+insert overwrite table summary_careopt_login_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
 if(get_json_object(line, '$.logout.username') is not null,
@@ -1010,11 +1063,12 @@ if(get_json_object(line, '$.logout.remoteAddr') is not null,
 get_json_object(line, '$.logout.remoteAddr'),
 get_json_object(line, '$.login.remoteAddr')) as remote_address,
 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day,
 if(get_json_object(line, '$.logout.orgId') is not null,
 get_json_object(line, '$.logout.orgId'),
-get_json_object(line, '$.login.orgId')) as org_id,
-month,
-day
+get_json_object(line, '$.login.orgId')) as org_id
 from 
 staging_logs_careopt_epoch 
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null) 

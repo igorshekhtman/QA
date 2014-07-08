@@ -59,6 +59,12 @@ set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
 set mapred.job.queue.name=hive;
 set hive.exec.max.dynamic.partitions.pernode = 1000;
+-- compress all data 
+set mapred.output.compress=true;
+set hive.exec.compress.output=true;
+set mapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCodec;
+set io.compression.codecs=org.apache.hadoop.io.compress.GzipCodec;
+SET mapred.output.compression.type=BLOCK;
 
 insert overwrite table summary_logstraffic${environment} partition (app_name, month, day, year)
 select 
@@ -66,7 +72,8 @@ count(*) as total,
 sum(if(discarded is not null, discarded, 0)) as discarded,
 count(if(line like "%INFO%", "true", null)) as infos,
 count(if(line like "%EVENT%", "true", null)) as events,
-count(if(line like "%WARN%" or line like '%ERROR%', "true", null)) as errors,
+count(if(line like "%WARN%", "true", null)) as warnings,
+count(if(line like '%ERROR%', "true", null)) as errors,
 "${t}" as app_name, month, day, year
 from
 (select month, day, line, year,

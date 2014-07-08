@@ -17,8 +17,11 @@
         <snapshot.repo.id>apixio.snapshots.build</snapshot.repo.id>
         <snapshot.repo.url>${nexus.url}/snapshots</snapshot.repo.url>
 
+        <snapshot.repo.id>apixio.public.build</snapshot.repo.id>
+        <snapshot.repo.url>${nexus.url}/public</snapshot.repo.url>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java-version>1.6</java-version>
+        <java-version>1.7</java-version>
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
 
         <org.springframework-version>3.1.0.RELEASE</org.springframework-version>
@@ -143,6 +146,14 @@
 	</dependencies>
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java-version}</source>
+                    <target>${java-version}</target>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
