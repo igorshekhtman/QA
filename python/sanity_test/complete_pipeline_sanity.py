@@ -302,7 +302,7 @@ time.sleep(PAUSE_LIMIT)
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY =========================================================================
 
-QUERY_NUMBER=13
+QUERY_NUMBER=16
 PROCESS_ALL_QUERIES=bool(1)
 
 #=================================================================================================================================
@@ -323,7 +323,8 @@ COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
 PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
 OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
 PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
-
+EVENTSLOGFILE=ENVIRONMENT.lower()+"_logs_eventJob_"+LOGTYPE
+# staging_logs_eventJob_24
 
 SENDER="donotreply@apixio.com"
 # RECEIVERS="ishekhtman@apixio.com"
@@ -915,6 +916,48 @@ else:
 	COMPONENT_STATUS="PASSED"
 	GLOBAL_STATUS="failed"
 REPORT = REPORT+"<br><br>"
+
+
+# ===================================================================================================================================
+# =============================== EVENTS related queries ===========================================================================
+# ===================================================================================================================================
+
+REPORT = REPORT+SUBHDR % "EVENTS"
+
+if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
+	QUERY_DESC="Number of events and succeeded EventsCount"
+	print ("Running EVENTS query #16 - retrieve %s ...") % (QUERY_DESC)
+	cur.execute("""SELECT SUM(get_json_object(line, '$.event.numOfEvents')) as Total_Number_of_Events, \
+		count(*) as total_event_count \
+		FROM %s \
+		WHERE \
+		day=%s and month=%s and \
+		get_json_object(line, '$.batchId') = '%s' and \
+		get_json_object(line, '$.event.numOfEvents') is not null""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
+		i = ['0', 'success']
+	REPORT = REPORT+"</table><br>"
+	#if int(i[0]) < DOCUMENTCOUNTER:
+	#	print ("QUERY 16 FAILED")
+	#	COMPONENT_STATUS="FAILED"
+
+if (COMPONENT_STATUS=="PASSED"):
+	REPORT = REPORT+PASSED
+	GLOBAL_STATUS="success"
+else:
+	REPORT = REPORT+FAILED
+	COMPONENT_STATUS="PASSED"
+	GLOBAL_STATUS="failed"
+REPORT = REPORT+"<br><br>"
+
 
 cur.close()
 conn.close()
