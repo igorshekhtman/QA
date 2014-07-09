@@ -927,8 +927,8 @@ REPORT = REPORT+SUBHDR % "EVENTS"
 if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of EventsTotal and succeeded TotalEventsCount"
 	print ("Running EVENTS query #16 - retrieve %s ...") % (QUERY_DESC)
-	cur.execute("""SELECT COUNT(get_json_object(line, '$.event.count')) as total_event_count, \
-		SUM(get_json_object(line, '$.event.numOfEvents')) as Total_Number_of_Events \
+	cur.execute("""SELECT COUNT(get_json_object(line, '$.file.count')) as Total_File_Count, \
+		SUM(get_json_object(line, '$.event.count')) as Total_Events_Count \
 		FROM %s \
 		WHERE \
 		day=%s and month=%s and \
