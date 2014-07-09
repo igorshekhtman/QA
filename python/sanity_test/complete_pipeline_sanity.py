@@ -925,10 +925,10 @@ REPORT = REPORT+"<br><br>"
 REPORT = REPORT+SUBHDR % "EVENTS"
 
 if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of events and succeeded EventsCount"
+	QUERY_DESC="Number of EventsTotal and succeeded TotalEventsCount"
 	print ("Running EVENTS query #16 - retrieve %s ...") % (QUERY_DESC)
-	cur.execute("""SELECT SUM(get_json_object(line, '$.event.numOfEvents')) as Total_Number_of_Events, \
-		count(*) as total_event_count \
+	cur.execute("""SELECT COUNT(get_json_object(line, '$.event.count')) as total_event_count, \
+		SUM(get_json_object(line, '$.event.numOfEvents')) as Total_Number_of_Events \
 		FROM %s \
 		WHERE \
 		day=%s and month=%s and \
@@ -940,14 +940,13 @@ if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(int(i[1]))+"</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	#if int(i[0]) < DOCUMENTCOUNTER:
-	#	print ("QUERY 16 FAILED")
-	#	COMPONENT_STATUS="FAILED"
+	if (int(i[1]) < 100) or (int(i[0]) < 20) :
+		print ("QUERY 16 FAILED")
+		COMPONENT_STATUS="FAILED"
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
