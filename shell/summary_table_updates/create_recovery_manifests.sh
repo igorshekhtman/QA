@@ -9,8 +9,8 @@ echo " "
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
-set mapred.job.queue.name=hive;
-set hive.exec.max.dynamic.partitions.pernode = 1000;
+set mapred.job.queue.name=default;
+set hive.exec.max.dynamic.partitions.pernode = 10000;
 
 drop table docrecovery_manifest;
 
