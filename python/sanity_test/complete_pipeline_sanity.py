@@ -71,7 +71,7 @@ MANIFEST_FILENAME=BATCH+"_manifest.txt"
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
 
-DOCUMENTS_TRANSMITTED=20
+DOCUMENTS_TRANSMITTED=13
 DOCUMENTS_TO_OCR=0
 DOCUMENTS_TO_PERSIST=0
 
@@ -227,7 +227,6 @@ for FILE in FILES:
 # print (MANIFEST_FILE)
 	
 print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
-
 print ("Closing Batch ...\n")
 import cStringIO
 import pycurl
@@ -286,7 +285,7 @@ if ENVIRONMENT == "Staging":
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 240
+PAUSE_LIMIT = 340
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
@@ -727,7 +726,7 @@ if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		i = ['0', 'success']
 	REPORT = REPORT+"</table><br>"
-	if int(i[0]) < DOCUMENTS_TRANSMITTED:
+	if int(i[0]) < DOCUMENTCOUNTER:
 		print ("QUERY 10 FAILED")
 		COMPONENT_STATUS="FAILED"
 
@@ -933,7 +932,7 @@ if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
 		WHERE \
 		day=%s and month=%s and \
 		get_json_object(line, '$.batchId') = '%s' and \
-		get_json_object(line, '$.event.numOfEvents') is not null""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
+		get_json_object(line, '$.event.count') is not null""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
@@ -941,10 +940,13 @@ if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(int(i[1]))+"</td></tr>"
-	if (ROW == 0):
+	if (ROW == 0) :
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
-	if (int(i[1]) < 100) or (int(i[0]) < 20) :
+	
+	if i[1] is None:
+		COMPONENT_STATUS="FAILED"
+	elif (int(i[1]) < 50) or (int(i[0]) < 13) :
 		print ("QUERY 16 FAILED")
 		COMPONENT_STATUS="FAILED"
 
