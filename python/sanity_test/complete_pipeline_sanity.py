@@ -924,31 +924,64 @@ REPORT = REPORT+"<br><br>"
 REPORT = REPORT+SUBHDR % "EVENTS"
 
 if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
-	QUERY_DESC="Number of EventsTotal and succeeded TotalEventsCount"
+	QUERY_DESC="Number of EventsTotal and succeeded EventMapper"
 	print ("Running EVENTS query #16 - retrieve %s ...") % (QUERY_DESC)
-	cur.execute("""SELECT COUNT(get_json_object(line, '$.file.count')) as Total_File_Count, \
-		SUM(get_json_object(line, '$.event.count')) as Total_Events_Count \
+	
+	cur.execute("""SELECT SUM(get_json_object(line, '$.event.count')) as Total_Mapper_Events_Count \
 		FROM %s \
 		WHERE \
 		day=%s and month=%s and \
 		get_json_object(line, '$.batchId') = '%s' and \
-		get_json_object(line, '$.event.count') is not null""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
+		get_json_object(line, '$.event.count') is not null and \
+		get_json_object(line, '$.className')  = 'com.apixio.jobs.event.mapper.EventMapper'""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
+	ROW = 0
+	TOTALEVENTMAPPER = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
+	if (ROW == 0) :
+		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+	if i[0] is None:
+		COMPONENT_STATUS="FAILED"
+		print ("QUERY 16 FAILED")
+	else:
+		TOTALEVENTMAPPER=int(i[0])
+				
+		
+if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
+	QUERY_DESC="Number of EventsTotal and succeeded EventReducer"
+	print ("Running EVENTS query #17 - retrieve %s ...") % (QUERY_DESC)
+		
+	
+	cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count \
+		FROM %s \
+		WHERE \
+		day=%s and month=%s and \
+		get_json_object(line, '$.batchId') = '%s' and \
+		get_json_object(line, '$.eventBatch.count') is not null and
+		get_json_object(line, '$.className')  = 'com.apixio.jobs.event.reducer.EventReducer'""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(int(i[1]))+"</td></tr>"
+		REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
 	if (ROW == 0) :
 		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 	
-	if i[1] is None:
+	if i[0] is None:
 		COMPONENT_STATUS="FAILED"
-	elif (int(i[1]) < 50) or (int(i[0]) < 13) :
-		print ("QUERY 16 FAILED")
-		COMPONENT_STATUS="FAILED"
+	elif (int(i[0]) <> TOTALEVENTMAPPER):
+		print ("QUERY 17 FAILED")
+		COMPONENT_STATUS="FAILED"		
+				
 
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
