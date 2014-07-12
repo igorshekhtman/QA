@@ -455,6 +455,51 @@ get_json_object(line, '$.orgId') as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and ($dateRange);
 
+insert overwrite table summary_event_mapper partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.documentUUID') as doc_id,
+get_json_object(line, '$.jobSubmitTime') as job_submit_time,
+cast(get_json_object(line, '$.event.count') as int) as num_of_events_extracted,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(if(get_json_object(line, '$.event.millis') is not null, get_json_object(line, '$.event.millis'), 
+get_json_object(line, '$.file.millis')) as int) as extraction_time,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_eventJob_epoch
+where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventMapper"
+and ($dateRange);
+
+insert overwrite table summary_event_reducer partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.patientevent.millis') as int) as process_time,
+get_json_object(line, '$.eventBatchId') as event_batch_id,
+cast(get_json_object(line, '$.eventBatch.count') as int) as event_batch_count,
+get_json_object(line, '$.eventBatch.pubMessage') as published_message,
+cast(get_json_object(line, '$.patientevent.count') as int) as num_of_events_persisted,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from production_logs_eventJob_epoch 
+where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
+and ($dateRange);
+
+
 insert overwrite table summary_doc_manifest partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.document.uuid') as apixio_uuid,
