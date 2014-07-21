@@ -285,7 +285,7 @@ if ENVIRONMENT == "Staging":
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-PAUSE_LIMIT = 340
+PAUSE_LIMIT = 300
 
 # wait for PAUSE_LIMIT seconds
 print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
@@ -301,7 +301,7 @@ time.sleep(PAUSE_LIMIT)
 
 #================ CONTROLS TO WORK ON ONE SPECIFIC QUERY =========================================================================
 
-QUERY_NUMBER=16
+QUERY_NUMBER=18
 PROCESS_ALL_QUERIES=bool(1)
 
 #=================================================================================================================================
@@ -476,6 +476,7 @@ REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
 if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents uploaded"
 	print ("Running DOC-RECEIVER query #3 - retrieve %s ...") % (QUERY_DESC)
+			
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
 		get_json_object(line, '$.upload.document.status') as status \
 		FROM %s \
@@ -981,8 +982,32 @@ if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
 	elif (int(i[0]) <> TOTALEVENTMAPPER):
 		print ("QUERY 17 FAILED")
 		COMPONENT_STATUS="FAILED"		
-				
-
+		
+if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
+	QUERY_DESC="Number of Events succeeded and/or failed"
+	print ("Running EVENTS query #18 - retrieve %s ...") % (QUERY_DESC)
+		
+	cur.execute("""SELECT COUNT(line) as total, get_json_object(line, '$.status') as status \
+		FROM %s \
+		WHERE \
+		day=%s and month=%s and \
+		get_json_object(line, '$.batchId') = '%s' and \
+		get_json_object(line, '$.status') is not null
+		GROUP BY get_json_object(line, '$.status')""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))		
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td><td align='center'>&nbsp;"+str(i[1])+"&nbsp;</td></tr>"
+		if str(i[1]) == "error":
+			COMPONENT_STATUS="FAILED"
+	if (ROW == 0) :
+		REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
 if (COMPONENT_STATUS=="PASSED"):
 	REPORT = REPORT+PASSED
 	GLOBAL_STATUS="success"
