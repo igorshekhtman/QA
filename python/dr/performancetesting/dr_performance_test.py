@@ -818,11 +818,11 @@ def archiveReport():
 	REPORTXTSTRING="DR Performance Report ("+ENVIRONMENT.lower()+") - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME=PIPELINE_MODULE.lower()+"_reports.txt"
 	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-	# print (REPORTFOLDER)
-	# print (REPORTFILENAME)
-	# print (REPORTXTSTRING)
-	# print (REPORTXTFILENAME)
-	# print (REPORTXTFILEFOLDER)
+	print (REPORTFOLDER)
+	print (REPORTFILENAME)
+	print (REPORTXTSTRING)
+	print (REPORTXTFILENAME)
+	print (REPORTXTFILEFOLDER)
 	os.chdir(BACKUPREPORTFOLDER)
 	REPORTFILE = open(REPORTFILENAME, 'w')
 	REPORTFILE.write(REPORT)
