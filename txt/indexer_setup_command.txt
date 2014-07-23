@@ -1,4 +1,28 @@
 ﻿
+==============================================================================================
+
+c:\windows\system32\drivers\etc\hosts
+
+====================== HCC GATLING PROD and STAGE LOAD TESTING ================================
+
+
+staging data orchestrator is pointing to prod data again, since yesterday 07-21-2014
+
+Auth Servers
+  8075 - user
+  8076 - token
+  8085 - data
+
+  Staging :
+    internal - 10.191.15.150
+    external - 50.18.147.10 - ssh -i ~/stagingauth.pem root@50.18.147.10
+
+  Production :
+    internal - 10.226.2.253
+    external - 54.193.231.8 - ssh -i ~/production_microservices.pem root@54.193.231.8
+
+
+================================================================================================
 
 iptables -A OUTPUT -p tcp -m string --string "http://www.springframework.org/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
 iptables -A OUTPUT -p tcp -m string --string "/schema/context/spring-context-3.0.xsd" --algo kmp -j REJECT --reject-with tcp-reset
@@ -1072,6 +1096,8 @@ this will transfer the packaged pipeline to staging cluster in the jenkins_v3 di
 =========================================================================================
 =========================================================================================
 =========================================================================================
+Transaction ID #7YW39652LJ283543N
+248.50
 
 CARE OPTIMIZER (STAGING):
 https://supweb.apixio.com/signup.do?action=loadSignup
@@ -1092,13 +1118,6 @@ https://acladmin.apixio.com/
 user : root@api.apixio.com
 password : thePassword
 
-
-
-# TEST:
-# https://test.apixio.com/signup.do?action=loadSignup
-
-# DEMO:
-# https://demo.apixio.com/signup.do?action=loadSignup
 
 
 CD C:\_Pipline\Indexer\V30
