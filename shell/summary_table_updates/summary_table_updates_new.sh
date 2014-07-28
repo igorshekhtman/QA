@@ -499,6 +499,31 @@ from production_logs_eventJob_epoch
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
 and ($dateRange);
 
+insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+if (	get_json_object(line, '$.input.key') is not null,
+	get_json_object(line, '$.input.key'),
+	get_json_object(line, '$.patient.key')) as input_key,
+get_json_object(line, '$.patient.uuids') as patient_uuids,
+if(	get_json_object(line, '$.multipleUUIDs.count') is not null, 
+	cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
+	1) as uuid_count,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.readColBufferSize') as read_buffer_size,
+cast(get_json_object(line, '$.loadApo.millis') as int) as millis,
+get_json_object(line, '$.className') as class_name,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_loadapo_epoch
+where get_json_object(line, '$.level') = "EVENT"
+and ($dateRange);
 
 insert overwrite table summary_doc_manifest partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -992,6 +1017,32 @@ month, day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_eventJob_epoch 
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
+and ($dateRange);
+
+insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+if (	get_json_object(line, '$.input.key') is not null,
+	get_json_object(line, '$.input.key'),
+	get_json_object(line, '$.patient.key')) as input_key,
+get_json_object(line, '$.patient.uuids') as patient_uuids,
+if(	get_json_object(line, '$.multipleUUIDs.count') is not null, 
+	cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
+	1) as uuid_count,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.readColBufferSize') as read_buffer_size,
+cast(get_json_object(line, '$.loadApo.millis') as int) as millis,
+get_json_object(line, '$.className') as class_name,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_loadapo_epoch
+where get_json_object(line, '$.level') = "EVENT"
 and ($dateRange);
 
 insert overwrite table summary_qapatientuuid_staging partition(year, month, day, org_id)
