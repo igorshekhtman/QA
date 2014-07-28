@@ -97,6 +97,10 @@ event_batch_count int, published_message string, num_of_events_persisted int, ba
 job_id string, work_id string, hadoopjob_id string, seqfilename string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+create table summary_loadapo
+(time string, input_key string, patient_uuids string, uuid_count int, status string, error_message string, jobname string, seqfilename string, hadoopjob_id string, work_id string, job_id string, read_buffer_size string, millis int, class_name string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
 /**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
