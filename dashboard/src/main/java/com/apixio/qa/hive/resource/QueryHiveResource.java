@@ -1,7 +1,9 @@
 package com.apixio.qa.hive.resource;
 
 import java.io.FileOutputStream;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
@@ -56,7 +58,58 @@ public class QueryHiveResource
     {
         try
         {
+            System.out.println("query: " + query);
     		return QueryHive.queryHive(hiveAddress,query);
+        }
+        catch (Exception ex)
+        {
+            return ex.toString();
+        }
+    }
+
+    /**
+     * Do query and return in afterquery format
+     * [["time","field1","field2"],["2014-etc.","1","2"],...]
+     * 
+     * @param query
+     * @param jsonp
+     * @return
+     */
+    @GET
+    @Path("/after")
+    @Timed
+    public String after(@QueryParam("query") String query, @QueryParam("fields") String fields, @QueryParam("jsonp") String jsonp)
+    {
+        try
+        {
+            System.out.println("query: " + query);
+            System.out.println("fields: " + fields);
+            StringBuilder sb = new StringBuilder();
+            String[] fieldset = fields.split("[,]");
+            if (jsonp != null) 
+                sb.append(jsonp + "(");
+            sb.append("[[");
+            for(String field: fieldset) 
+                sb.append("\"" + field + "\",");
+            sb.setLength(sb.length() - 1);
+            sb.append("],");
+            List<JSONObject> result = QueryHive.queryHiveJson(hiveAddress,query);
+            for(JSONObject jsonob: result) {
+                String time = null;
+                sb.append("[");
+                for(String field: fieldset) {
+                    Object cell = jsonob.get(field);
+                    sb.append("\"" + cell.toString() + "\",");
+                }
+                sb.setLength(sb.length() - 1);
+                sb.append("],");
+            }
+            sb.setLength(sb.length() - 1);
+            sb.append("]");
+            if (jsonp != null)
+                sb.append(")");
+            System.out.println("Return: " + sb.toString());
+            return sb.toString();
         }
         catch (Exception ex)
         {

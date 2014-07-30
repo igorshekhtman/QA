@@ -142,7 +142,7 @@ public class GraphiteResource {
      * Simple two-level vector where first row is field names
      */
     @GET
-    @Path("/raw")
+    @Path("/after")
     @Timed
     public String getGraphiteRaw(@QueryParam("jsonp") String jsonp,
                     @QueryParam("target") String target,
@@ -166,7 +166,7 @@ public class GraphiteResource {
             int responseCode = con.getResponseCode();
             System.out.println("\nSending 'GET' request to URL : " + speedUrl);
             System.out.println("Response Code : " + responseCode);
-            TimeSeriesTable table = new TimeSeriesTable();
+            RowKeyedTable table = new RowKeyedTable();
 
             BufferedReader in = new BufferedReader(
                             new InputStreamReader(con.getInputStream()));
