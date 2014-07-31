@@ -77,6 +77,8 @@ DOCUMENTS_TO_PERSIST=0
 
 MANIFEST_FILE=""
 GLOBAL_STATUS="success"
+OPERATION=""
+CATEGORY=""
 
 # =================================================================================================================
 
@@ -342,7 +344,7 @@ Test type: <b>%s</b><br>
 Enviromnent: <b>%s</b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
-User name: <b>%s</b><br><br>
+User name: <b>%s</b><br>
 """ % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
@@ -398,6 +400,19 @@ print (BATCH)
 
 print ("Assigning queue name to hive ...")
 cur.execute("""SET mapred.job.queue.name=hive""")
+
+print ("Obtaining operation and category...")
+cur.execute("""SELECT get_json_object(line, '$.submit.post.operation') as operation, \
+	get_json_object(line, '$.submit.post.category') as category \
+	FROM %s \
+	WHERE \
+	get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, BATCH))
+ROW = 0	
+for i in cur.fetch():
+	ROW = ROW + 1
+	print i
+	REPORT = REPORT+"Operation: <b>"+str(i[0])+"</b><BR>"
+	REPORT = REPORT+"Category: <b>"+str(i[1])+"</b><BR><BR>"		
 
 # ===================================================================================================================================
 # =============================== INDEXER related queries ===========================================================================
@@ -1037,6 +1052,7 @@ s.starttls()
 s.login("donotreply@apixio.com", "apx.mail47")
 # s.sendmail(SENDER, RECEIVERS, CONTENT)
 # send report only if failure occured
+# GLOBAL_STATUS = "failed"
 if (GLOBAL_STATUS == "success"):
 	print "Status report was NOT emailed ...\n"
 	print "Sanity Test Passed ...\n"
