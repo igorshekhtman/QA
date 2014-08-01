@@ -4,6 +4,7 @@ LOGFILE = "staging_logs_eventJob_24"
 DAY = "1"
 MONTH = "8"
 YEAR = "2014"
+ENVIRONMENT = "Staging"
 
 def connectToHive():
 	print ("Connecing to Hive ...\n")
@@ -64,7 +65,7 @@ connectToHive()
 
 setHiveParameters()
 
-runQueries("Staging")
+runQueries(ENVIRONMENT)
 
 closeHiveConnection()
 
