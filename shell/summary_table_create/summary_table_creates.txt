@@ -102,6 +102,12 @@ create table summary_event_address
 status string, error_message string, batch_id string, job_id string, work_id string, jobname string, hadoopjob_id string, seqfilename string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+create table summary_qa_event
+(time string, patient_info string, patient_uuid string, event_batch_id string, fetch_event_batch_status string, fetch_event_batch_millis int, event_batch_count int,
+decrypt_status string, decrypt_millis int, qa_event_types_status string, qa_event_types_millis int, event_type_count int, qa_failed_count int, qa_millis int, 
+status string, error_message string, batch_id string, job_id string, work_id string, jobname string, hadoopjob_id string, seqfilename string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
 create table summary_loadapo
 (time string, input_key string, patient_uuids string, uuid_count int, status string, error_message string, jobname string, seqfilename string, hadoopjob_id string, work_id string, job_id string, read_buffer_size string, millis int, class_name string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
