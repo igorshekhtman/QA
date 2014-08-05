@@ -70,8 +70,8 @@ job_id string, work_id string, hadoopjob_id string, seqfilename string, error_me
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_persist_reducer
-(time string, status string, process_time int, patient_key string, patient_uuid string, mysql_lock_held_time int, mysql_patient_search_time int,
-job_id string, work_id string, hadoopjob_id string, autocorrection string, error_message string)
+(time string, status string, process_time int, patient_key string, patient_uuid string, uuid_count int, mysql_lock_held_time int, mysql_patient_search_time int,
+job_id string, work_id string, jobname string, hadoopjob_id string, autocorrection string, error_message string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_qafromseqfile
