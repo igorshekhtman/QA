@@ -87,14 +87,13 @@ create table summary_doc_manifest
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_event_mapper
-(time string, patient_uuid string, doc_id string, job_submit_time string, num_of_events_extracted int, status string,
-error_message string, extraction_time int, batch_id string, job_id string, work_id string, hadoopjob_id string, seqfilename string)
+(time string, patient_uuid string, doc_id string, job_submit_time string, property_version string, num_of_events_extracted int, status string,
+error_message string, extraction_time int, batch_id string, job_id string, work_id string, jobname string, hadoopjob_id string, seqfilename string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_event_reducer
-(time string, patient_uuid string, status string, error_message string, process_time int, event_batch_id string, 
-event_batch_count int, published_message string, num_of_events_persisted int, batch_id string,
-job_id string, work_id string, hadoopjob_id string, seqfilename string)
+(time string, patient_uuid string, status string, error_message string, process_time int, event_batch_id string, event_batch_count int, 
+published_message string, num_of_events_persisted int, batch_id string, job_id string, work_id string, jobname string, hadoopjob_id string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_event_address
