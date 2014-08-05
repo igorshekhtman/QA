@@ -523,7 +523,7 @@ and get_json_object(line, '$.className') like "%EventMapper"
 and get_json_object(line, '$.eventAddress') is not null
 and ($dateRange);
 
-insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
+insert overwrite table summary_loadapo partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 if (	get_json_object(line, '$.input.key') is not null,
 	get_json_object(line, '$.input.key'),
@@ -545,7 +545,7 @@ get_json_object(line, '$.className') as class_name,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month, day, 
 get_json_object(line, '$.orgId') as org_id
-from staging_logs_loadapo_epoch
+from production_logs_loadapo_epoch
 where get_json_object(line, '$.level') = "EVENT"
 and ($dateRange);
 
