@@ -499,6 +499,30 @@ from production_logs_eventJob_epoch
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
 and ($dateRange);
 
+insert overwrite table summary_event_address partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.documentUUID') as doc_id,
+get_json_object(line, '$.jobSubmitTime') as job_submit_time,
+get_json_object(line, '$.propertyVersion') as property_version,
+get_json_object(line, '$.eventAddress') as event_address,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as 	seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from production_logs_eventJob_epoch
+where get_json_object(line, '$.level')="EVENT" 
+and get_json_object(line, '$.className') like "%EventMapper" 
+and get_json_object(line, '$.eventAddress') is not null
+and ($dateRange);
+
 insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 if (	get_json_object(line, '$.input.key') is not null,
@@ -1017,6 +1041,30 @@ month, day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_eventJob_epoch 
 where get_json_object(line, '$.level')="EVENT" and get_json_object(line, '$.className') like "%EventReducer"
+and ($dateRange);
+
+insert overwrite table summary_event_address_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patientUUID') as patient_uuid,
+get_json_object(line, '$.documentUUID') as doc_id,
+get_json_object(line, '$.jobSubmitTime') as job_submit_time,
+get_json_object(line, '$.propertyVersion') as property_version,
+get_json_object(line, '$.eventAddress') as event_address,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as 	seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_eventJob_epoch
+where get_json_object(line, '$.level')="EVENT" 
+and get_json_object(line, '$.className') like "%EventMapper" 
+and get_json_object(line, '$.eventAddress') is not null
 and ($dateRange);
 
 insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
