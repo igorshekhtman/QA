@@ -443,6 +443,8 @@ select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.username') as username,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
@@ -451,8 +453,11 @@ get_json_object(line, '$.patient.info') as patient_info,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(	get_json_object(line, '$.orgId') is null,
+	substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+	get_json_object(line, '$.orgId')) as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
+and get_json_object(line, '$.writeTo') is null
 and ($dateRange);
 
 insert overwrite table summary_event_mapper partition (year, month, day, org_id)
@@ -1170,6 +1175,8 @@ select
 get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.username') as username,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
@@ -1178,8 +1185,11 @@ get_json_object(line, '$.patient.info') as patient_info,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(	get_json_object(line, '$.orgId') is null,
+	substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+	get_json_object(line, '$.orgId')) as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
+and get_json_object(line, '$.writeTo') is null
 and ($dateRange);
 
 insert overwrite table summary_doc_manifest_staging partition (year, month, day, org_id)
