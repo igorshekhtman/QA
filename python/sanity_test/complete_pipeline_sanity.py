@@ -548,13 +548,13 @@ if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
 	QUERY_DESC="Number of documents added to sequence file(s)"
 	print ("Running DOC-RECEIVER query #5 - retrieve %s ...") % (QUERY_DESC)
 	cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
-		get_json_object(line, '$.seqfile.file.document.status') as status \
+		get_json_object(line, '$.seqfile.file.add.status') as status \
 		FROM %s \
 		WHERE \
 		get_json_object(line, '$.level') = "EVENT" and \
 		day=%s and month=%s and \
 		get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
-		GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
+		GROUP BY get_json_object(line, '$.seqfile.file.add.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 	ROW = 0
