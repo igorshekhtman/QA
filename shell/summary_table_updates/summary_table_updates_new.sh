@@ -523,6 +523,36 @@ and get_json_object(line, '$.className') like "%EventMapper"
 and get_json_object(line, '$.eventAddress') is not null
 and ($dateRange);
 
+insert overwrite table summary_qa_event partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.info') as patient_info,
+regexp_extract(get_json_object(line, '$.patient.info'), '^(.*)::.*::.*$', 1) as patient_uuid,
+get_json_object(line, '$.qa.eventBatch.eventBatchId') as event_batch_id,
+get_json_object(line, '$.qa.eventBatch.status')	as fetch_event_batch_status,
+cast(get_json_object(line, '$.qa.eventBatch.millis') as int) as fetch_event_batch_millis,
+cast(get_json_object(line, '$.qa.eventBatch.count') as int) as event_batch_count,
+get_json_object(line, '$.decrypt.status') as decrypt_status,
+cast(get_json_object(line, '$.decrypt.millis') as int) as decrypt_millis,
+get_json_object(line, '$.qa.eventTypes.status') as qa_event_types_status,
+cast(get_json_object(line, '$.qa.eventTypes.millis') as int) as qa_event_types_millis,
+cast(get_json_object(line, '$.qa.eventTypes.count') as int) as event_type_count,
+cast(get_json_object(line, '$.qa.failed.count') as int) as qa_failed_count,
+cast(get_json_object(line, '$.qa.millis') as int) as qa_millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from production_logs_qaeventjob_epoch
+where get_json_object(line, '$.level')="EVENT"
+and ($dateRange);
+
 insert overwrite table summary_loadapo partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 if (	get_json_object(line, '$.input.key') is not null,
@@ -1065,6 +1095,36 @@ from staging_logs_eventJob_epoch
 where get_json_object(line, '$.level')="EVENT" 
 and get_json_object(line, '$.className') like "%EventMapper" 
 and get_json_object(line, '$.eventAddress') is not null
+and ($dateRange);
+
+insert overwrite table summary_qa_event_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.info') as patient_info,
+regexp_extract(get_json_object(line, '$.patient.info'), '^(.*)::.*::.*$', 1) as patient_uuid,
+get_json_object(line, '$.qa.eventBatch.eventBatchId') as event_batch_id,
+get_json_object(line, '$.qa.eventBatch.status')	as fetch_event_batch_status,
+cast(get_json_object(line, '$.qa.eventBatch.millis') as int) as fetch_event_batch_millis,
+cast(get_json_object(line, '$.qa.eventBatch.count') as int) as event_batch_count,
+get_json_object(line, '$.decrypt.status') as decrypt_status,
+cast(get_json_object(line, '$.decrypt.millis') as int) as decrypt_millis,
+get_json_object(line, '$.qa.eventTypes.status') as qa_event_types_status,
+cast(get_json_object(line, '$.qa.eventTypes.millis') as int) as qa_event_types_millis,
+cast(get_json_object(line, '$.qa.eventTypes.count') as int) as event_type_count,
+cast(get_json_object(line, '$.qa.failed.count') as int) as qa_failed_count,
+cast(get_json_object(line, '$.qa.millis') as int) as qa_millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.inputSeqFileName') as seqfilename,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day, 
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_qaeventjob_epoch
+where get_json_object(line, '$.level')="EVENT"
 and ($dateRange);
 
 insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
