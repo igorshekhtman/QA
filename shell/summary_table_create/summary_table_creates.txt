@@ -79,7 +79,7 @@ create table summary_qafromseqfile
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_qapatientuuid
-(time string, job_id string, work_id string, status string, username string, patient_uuids string, patient_key string, patient_info string)
+(time string, job_id string, work_id string, jobname string, hadoopjob_id string, status string, username string, patient_uuids string, patient_key string, patient_info string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 create table summary_doc_manifest
