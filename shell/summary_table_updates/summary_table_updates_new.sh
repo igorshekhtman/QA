@@ -995,20 +995,24 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.status') as status,
 cast(get_json_object(line, '$.patient.millis') as int) as process_time,
 get_json_object(line, '$.patient.key') as patient_key,
-get_json_object(line, '$.patient.uuid') as patient_uuid,
+if(get_json_object(line, '$.patient.uuids') is null, get_json_object(line, '$.patient.uuid'), get_json_object(line, '$.patient.uuids')) as patient_uuid,
+cast(get_json_object(line, '$.createuuid.cassandra.count') as int) as uuid_count,
 cast(get_json_object(line, '$.lock.held.millis') as int) as mysql_lock_held_time,
 cast(get_json_object(line, '$.patient.search.millis') as int) as mysql_patient_search_time,
 get_json_object(line, '$.jobId') as job_id,
 get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobname') as jobname,
 get_json_object(line, '$.session') as hadoopjob_id,
 get_json_object(line, '$.autocorrection') as autocorrection,
 get_json_object(line, '$.error.message') as error_message,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-get_json_object(line, '$.orgId') as org_id
+if(get_json_object(line, '$.orgId') is null, 
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 FROM staging_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer";
 and ($dateRange);
 
 insert overwrite table summary_qafromseqfile_staging partition(year, month, day, org_id)
