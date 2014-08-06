@@ -1012,7 +1012,7 @@ if(get_json_object(line, '$.orgId') is null,
 substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
 get_json_object(line, '$.orgId')) as org_id
 FROM staging_logs_persistjob_epoch
-WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer";
+WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
 
 insert overwrite table summary_qafromseqfile_staging partition(year, month, day, org_id)
