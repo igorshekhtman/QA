@@ -38,7 +38,7 @@ public class QueryHiveResource
     private final String hiveAddress;
     private final String outputDir;
     private final String manifestDir;
-    private final AtomicLong counter;
+    private final AtomicLong guard;
     private DocumentCountManager dcm;
     private QueryManager queryManager;
 
@@ -47,7 +47,7 @@ public class QueryHiveResource
         this.hiveAddress = hiveAddress;
         this.outputDir = outputDir;
         this.manifestDir = manifestDir;
-        this.counter = new AtomicLong();
+        this.guard = new AtomicLong();
         this.dcm = new DocumentCountManager(hiveAddress,updateInterval);
         queryManager = new QueryManager(hiveAddress, outputDir, manifestDir);
     }
@@ -66,7 +66,7 @@ public class QueryHiveResource
         try
         {
             System.out.println("wrapped query: " + wrapped);
-    		return QueryHive.queryHive(hiveAddress,wrapped);
+            return QueryHive.queryHive(hiveAddress,wrapped);
         }
         catch (Exception ex)
         {
@@ -77,6 +77,8 @@ public class QueryHiveResource
     /**
      * Do query and return in afterquery format
      * [["time","field1","field2"],["2014-etc.","1","2"],...]
+     * 
+     * Only allow one at a time. Afterquery editor is twitchy.
      * 
      * @param query
      * @param fields
@@ -91,6 +93,11 @@ public class QueryHiveResource
     public String after(@QueryParam("query") String query, @QueryParam("fields") String fields, 
                     @QueryParam("jsonp") String jsonp, @QueryParam("limit") String limit)
     {
+        synchronized(guard) {
+            if (guard.get() > 0)
+                return "only one hive query at a time, please";
+            guard.incrementAndGet();
+        }
         try
         {
             if (limit == null)
@@ -113,8 +120,8 @@ public class QueryHiveResource
                 String time = null;
                 sb.append("[");
                 for(String field: fieldset) {
-                    Object cell = jsonob.get(field);
-                    sb.append("\"" + cell.toString() + "\",");
+                    Object cell = JSONObject.quote(jsonob.get(field).toString());
+                    sb.append(cell.toString() + ",");
                 }
                 sb.setLength(sb.length() - 1);
                 sb.append("],");
@@ -124,10 +131,12 @@ public class QueryHiveResource
             if (jsonp != null)
                 sb.append(")");
             System.out.println("Return: " + sb.toString());
+            guard.decrementAndGet();
             return sb.toString();
         }
         catch (Exception ex)
         {
+            guard.decrementAndGet();
             return ex.toString();
         }
     }
@@ -151,13 +160,13 @@ public class QueryHiveResource
     @Path("/json/{environment}/component/{component}")
     @Timed
     public String rawQuery(@PathParam("environment") String environment, @PathParam("component") String component, @QueryParam("startdate") Optional<String> startDate,
-            @QueryParam("enddate") Optional<String> endDate, @QueryParam("level") Optional<String> level, @QueryParam("conditiononeobject") Optional<String> conditionOneObject,
-            @QueryParam("conditiononevalue") Optional<String> conditionOneValue, @QueryParam("conditiontwoobject") Optional<String> conditionTwoObject,
-            @QueryParam("conditiontwovalue") Optional<String> conditionTwoValue, @QueryParam("limit") Optional<String> limit)
+                    @QueryParam("enddate") Optional<String> endDate, @QueryParam("level") Optional<String> level, @QueryParam("conditiononeobject") Optional<String> conditionOneObject,
+                    @QueryParam("conditiononevalue") Optional<String> conditionOneValue, @QueryParam("conditiontwoobject") Optional<String> conditionTwoObject,
+                    @QueryParam("conditiontwovalue") Optional<String> conditionTwoValue, @QueryParam("limit") Optional<String> limit)
     {
         try
         {
-    		return QueryHive.rawQuery(hiveAddress,environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
+            return QueryHive.rawQuery(hiveAddress,environment, component, startDate.or(""), endDate.or(""), level.or(""), conditionOneObject.or(""), conditionOneValue.or(""), conditionTwoObject.or(""), conditionTwoValue.or(""), limit.or(""));
         }
         catch (Exception ex)
         {
@@ -172,14 +181,14 @@ public class QueryHiveResource
     {
         try
         {
-    		return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
+            return QueryHive.getQueueStats(hiveAddress,environment, startDate, endDate);
         }
         catch (Exception ex)
         {
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/json/{environment}/stats")
     @Timed
@@ -187,7 +196,7 @@ public class QueryHiveResource
     {
         try
         {
-    		return SummaryQueryUtilities.getCoordinatorStats(hiveAddress, environment, filterStat.or(""), startDate, endDate).toString();
+            return SummaryQueryUtilities.getCoordinatorStats(hiveAddress, environment, filterStat.or(""), startDate, endDate).toString();
         }
         catch (Exception ex)
         {
@@ -199,18 +208,18 @@ public class QueryHiveResource
     @Path("/json/{environment}/failed")
     @Timed
     public String coordinatorStatus(@PathParam("environment") String environment, @QueryParam("startdate") String startDate, @QueryParam("enddate") String endDate,
-            @QueryParam("status") Optional<String> status)
+                    @QueryParam("status") Optional<String> status)
     {
         try
         {
-    		return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
+            return QueryHive.getJobStats(hiveAddress,environment, startDate, endDate, status.or(""));
         }
         catch (Exception ex)
         {
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/json/{environment}/group/{groupName}")
     @Timed
@@ -220,18 +229,18 @@ public class QueryHiveResource
         {
             Group groupToRun = QueryConfig.getQueryGroupByName(groupName);
             QueryHandler qm = new QueryHandler(hiveAddress);
-            
+
             List<RunQuery> rQs = groupToRun.getRunQuery();
-            
+
             if (rQs != null)
             {
                 for (RunQuery rQ : rQs)
                 {
                     String fileName = outputDir + rQ.getName();
-                    
+
                     if (environment.equalsIgnoreCase("staging"))
                         fileName = outputDir + environment.toLowerCase() + "/" + rQ.getName();
-                        
+
                     List<JSONObject> results = qm.runQuery(environment, rQ);
                     System.out.println("Writing to file:"+fileName);
                     IOUtils.write(StringUtils.join(results, "\n"), new FileOutputStream(fileName));
@@ -245,7 +254,7 @@ public class QueryHiveResource
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/query/{environment}/{queryName}")
     @Timed
@@ -268,7 +277,7 @@ public class QueryHiveResource
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/table/query/{tableName}/{queryName}")
     @Timed
@@ -292,7 +301,7 @@ public class QueryHiveResource
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/json/{environment}/ui/group/{groupName}")
     @Timed
@@ -301,7 +310,7 @@ public class QueryHiveResource
         try
         {
             QueryManager qm = new QueryManager(hiveAddress, outputDir, manifestDir);
-            
+
             return qm.processQueryGroup(environment, groupName).toString();
         }
         catch (Exception ex)
@@ -310,17 +319,17 @@ public class QueryHiveResource
             return ex.toString();
         }
     }
-    
+
     @GET
     @Path("/manifest/{environment}/{queryName}")
     @Timed
     public String getManifestForRecovery(@PathParam("environment") String environment, @PathParam("queryName") String queryName, 
-            @Context UriInfo uriInfo)
+                    @Context UriInfo uriInfo)
     {
         try
         {
             QueryManager qm = new QueryManager(hiveAddress, outputDir, manifestDir);
-            
+
             return qm.processManifestQuery(environment, queryName, uriInfo.getQueryParameters());
         }
         catch (Exception ex)
