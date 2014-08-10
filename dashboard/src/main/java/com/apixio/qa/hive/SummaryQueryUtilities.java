@@ -19,7 +19,7 @@ import com.apixio.qa.hive.query.QueryHiveUtilities;
 public class SummaryQueryUtilities {
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-	public static List<JSONObject> summaryQuery(SummaryQuery summaryQuery, String hiveAddress, String startDate, String endDate, boolean useSample) throws SQLException, JSONException, ParseException {
+	public static List<JSONObject> summaryQuery(SummaryQuery summaryQuery, String hiveAddress, String startDate, String endDate, boolean useSample) throws Exception, ParseException {
 		String sql = "";
 		
 		int days = Math.abs(Days.daysBetween(new DateTime(sdf.parse(endDate)), new DateTime(sdf.parse(startDate))).getDays()) + 1;
@@ -52,7 +52,7 @@ public class SummaryQueryUtilities {
 		return QueryHive.queryHiveJson(hiveAddress, sql);
 	}
 	
-	public static JSONArray getCoordinatorStats(String hiveAddress, String environment, String statFilter, String startDate, String endDate) throws SQLException, JSONException, ParseException {
+	public static JSONArray getCoordinatorStats(String hiveAddress, String environment, String statFilter, String startDate, String endDate) throws Exception, ParseException {
 		JSONArray cleanedStatsArray = new JSONArray();
 		SummaryQueryManager manager = new SummaryQueryManager();
 		String tableName = "summary_coordinator_stats";

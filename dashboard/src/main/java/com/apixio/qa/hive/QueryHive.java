@@ -76,7 +76,7 @@ public class QueryHive
         return cal.getTime();
     }
 
-    private static void createScopedReport(String hiveAddress, int daysBack) throws JSONException, SQLException, FileNotFoundException, IOException
+    private static void createScopedReport(String hiveAddress, int daysBack) throws Exception
     {
         Date today = new Date();
 
@@ -136,7 +136,7 @@ public class QueryHive
         IOUtils.write(obj.toString(), new FileOutputStream("C:\\eclipse_new\\workspace\\hive-query-web-trunk\\src\\main\\resources\\assets\\report_" + daysBack + ".json"));
     }
 
-    public static void createReport(String hiveAddress) throws JSONException, SQLException, FileNotFoundException, IOException
+    public static void createReport(String hiveAddress) throws Exception
     {
         JSONObject obj = new JSONObject();
         String uploadQuery = "select org_id, status, if(message like '/mnt%','No space left on device',message) as message, count(distinct upload_doc_id) as docs_uploaded, max(time) as last_upload_time "
@@ -183,7 +183,7 @@ public class QueryHive
     }
 
     public static String rawQuery(String hiveAddress, String environment, String component, String startDate, String endDate, String level, String conditionOneObject, String conditionOneValue,
-            String conditionTwoObject, String conditionTwoValue, String limit) throws SQLException, JSONException
+            String conditionTwoObject, String conditionTwoValue, String limit) throws Exception
     {
 
         String tableName = environment + "_logs_" + (Constants.COMPONENTS.valueOf(component)).getTableName() + "_epoch";
@@ -199,14 +199,14 @@ public class QueryHive
         return getLineJson(hiveAddress, sql);
     }
 
-    public static String getQueueStats(String hiveAddress, String environment, String startDate, String endDate) throws SQLException, JSONException
+    public static String getQueueStats(String hiveAddress, String environment, String startDate, String endDate) throws Exception
     {
         String sql = "select time, cast(parserQueue as int) as parserQueue, cast(ocrQueue as int) as ocrQueue, cast(traceQueue as int) as traceQueue, cast(persistQueue as int) as persistQueue " +
                 "from temp_partition_coordinator_stats " + "where " + QueryHiveUtilities.getDateRange(startDate, endDate) + " order by time asc ";
         return queryHive(hiveAddress, sql);
     }
 
-    public static String getJobStats(String hiveAddress, String environment, String startDate, String endDate, String status) throws SQLException, JSONException
+    public static String getJobStats(String hiveAddress, String environment, String startDate, String endDate, String status) throws Exception
     {
         String sql = "select get_json_object(line, '$.datestamp') as time, " + "get_json_object(line, '$.coordinator.job.jobType') as jobType, " + "get_json_object(line, '$.coordinator.job.jobID'), "
                 + "get_json_object(line, '$.coordinator.job.status') from " + environment + "_logs_coordinator_epoch " + "where " + QueryHiveUtilities.getDateRange(startDate, endDate) + " order by time asc ";
@@ -235,18 +235,18 @@ public class QueryHive
      * @throws SQLException
      * @throws JSONException
      */
-    public static String queryHive(String hiveAddress, String sql) throws SQLException, JSONException
+    public static String queryHive(String hiveAddress, String sql) throws Exception
     {
     	return queryHiveJson(hiveAddress, sql).toString();
     }
 
-    public static JSONObject queryHiveJsonFirstResult(String hiveAddress, String sql) throws SQLException, JSONException
+    public static JSONObject queryHiveJsonFirstResult(String hiveAddress, String sql) throws Exception
     {
         ArrayList results = (ArrayList) queryHiveJson(hiveAddress, sql);
         return ((JSONObject) results.get(0));
     }
 
-    public static List<JSONObject> queryHiveJson(String hiveAddress, String sql) throws SQLException, JSONException
+    public static List<JSONObject> queryHiveJson(String hiveAddress, String sql) throws Exception
     {
     	List<JSONObject> queryResult = null;
         try
@@ -284,12 +284,12 @@ public class QueryHive
         }
         catch (Exception ex)
         {
-
+            throw ex;
         }
         return queryResult;
     }
 
-    private static String getLineJson(String hiveAddress, String sql)
+    private static String getLineJson(String hiveAddress, String sql) throws Exception
     {
         String queryResult = "";
         try
@@ -332,12 +332,13 @@ public class QueryHive
         }
         catch (Exception ex)
         {
+            throw ex;
 
         }
         return queryResult;
     }
 
-    private static List<JSONObject> getJson(ResultSet rs) throws SQLException, JSONException
+    private static List<JSONObject> getJson(ResultSet rs) throws Exception
     {
         List<JSONObject> objSet = new ArrayList<JSONObject>();
 

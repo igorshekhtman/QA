@@ -34,6 +34,7 @@ import com.yammer.metrics.annotation.Timed;
 @Produces(MediaType.APPLICATION_JSON)
 public class QueryHiveResource
 {
+    public static final String LIMIT = "100";
     private final String hiveAddress;
     private final String outputDir;
     private final String manifestDir;
@@ -54,12 +55,18 @@ public class QueryHiveResource
     @GET
     @Path("/query")
     @Timed
-    public String query(@QueryParam("query") String query)
+    public String query(@QueryParam("query") String query, @QueryParam("limit") String limit)
     {
+        if (limit == null)
+            limit = LIMIT;
+        else if (limit.equals("-1"))
+            limit = Long.toString(1000*1000*1000);
+        // limit returns and mild sql injection attack prevention
+        String wrapped = "select * from (" + query + ") X limit " + limit;
         try
         {
-            System.out.println("query: " + query);
-    		return QueryHive.queryHive(hiveAddress,query);
+            System.out.println("wrapped query: " + wrapped);
+    		return QueryHive.queryHive(hiveAddress,wrapped);
         }
         catch (Exception ex)
         {
@@ -72,17 +79,25 @@ public class QueryHiveResource
      * [["time","field1","field2"],["2014-etc.","1","2"],...]
      * 
      * @param query
+     * @param fields
+     *  overrides field names from Hive
      * @param jsonp
+     *  whether to wrap with jsonp string
      * @return
      */
     @GET
     @Path("/after")
     @Timed
-    public String after(@QueryParam("query") String query, @QueryParam("fields") String fields, @QueryParam("jsonp") String jsonp)
+    public String after(@QueryParam("query") String query, @QueryParam("fields") String fields, 
+                    @QueryParam("jsonp") String jsonp, @QueryParam("limit") String limit)
     {
         try
         {
-            System.out.println("query: " + query);
+            if (limit == null)
+                limit = LIMIT;
+            // limit returns and mild sql injection attack prevention
+            String wrapped = "select * from (" + query + ") X limit " + limit;
+            System.out.println("wrapped query: " + wrapped);
             System.out.println("fields: " + fields);
             StringBuilder sb = new StringBuilder();
             String[] fieldset = fields.split("[,]");
@@ -93,7 +108,7 @@ public class QueryHiveResource
                 sb.append("\"" + field + "\",");
             sb.setLength(sb.length() - 1);
             sb.append("],");
-            List<JSONObject> result = QueryHive.queryHiveJson(hiveAddress,query);
+            List<JSONObject> result = QueryHive.queryHiveJson(hiveAddress,wrapped);
             for(JSONObject jsonob: result) {
                 String time = null;
                 sb.append("[");

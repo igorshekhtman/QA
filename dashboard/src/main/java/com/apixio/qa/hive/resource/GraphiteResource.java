@@ -183,9 +183,9 @@ public class GraphiteResource {
             }
             in.close();
             if (format == null || format.equals("json")) {
-                return table.getJson(fields, jsonp).toString();
+                return table.getJson(fields, jsonp, true).toString();
             } else if (format.equals("csv")) {
-                return table.getCsv(fields, true).toString();
+                return table.getCsv(fields, true, true).toString();
             } else {
                 throw new IllegalArgumentException("Param 'format' needs to be 'json' or 'csv': " + format);
             }
