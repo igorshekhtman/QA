@@ -92,13 +92,13 @@ ENVIRONMENT = "Staging"
 LOGTYPE = "24"
 RECEIVERS = "ishekhtman@apixio.com"
 # set to all to QA all components
-COMPONENT = "docreceiver"
+#COMPONENT = "docreceiver"
 #COMPONENT = "indexer"
 #COMPONENT = "coordinator"
 #COMPONENT = "parserjob"
 #COMPONENT = "ocrjob"
 #COMPONENT = "persistjob"
-#COMPONENT = "all"
+COMPONENT = "all"
 
 HTML_RECEIVERS = """To: Igor <ishekhtman@apixio.com>\n"""
 DATERANGE = ""
@@ -226,6 +226,8 @@ def checkEnvntnRepRcvrs():
 			COMPONENT = "ocr"
 		elif (str(sys.argv[9])[0:2].upper() == "PE"):
 			COMPONENT = "persist"
+		elif (str(sys.argv[9])[0:2].upper() == "AL"):
+			COMPONENT = "all"	
 
 		
 def prntVarValues():		
