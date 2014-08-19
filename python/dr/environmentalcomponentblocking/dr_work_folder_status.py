@@ -85,10 +85,9 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #	Lance will come up with a way to block S3 and unblock it - per Lance 04-10-2014
 #
 #   "HDFS":"10.196.84.183", \ - critical component DR fails if not available
-#	"Cassandra1":"10.222.101.109", \ - critical component DR fails if not available
-#	"Cassandra2":"10.222.139.147", \ - critical component DR fails if not available
-#	"Cassandra3":"10.174.77.69", \ - critical component DR fails if not available
-#	"Cassandra4":"10.174.49.58", \ - critical component DR fails if not available
+#	"Cassandra0":"10.199.22.32", \ - critical component DR fails if not available
+#	"Cassandra1":"10.199.52.19", \ - critical component DR fails if not available
+#	"Cassandra2":"10.196.81.90", \ - critical component DR fails if not available
 
 def obtainIP(domain):
 	ip_list = []
@@ -107,10 +106,9 @@ IPMAP = { \
 	"Keyservice":"184.169.153.214", \
 	"API":"10.198.43.98", \
 	"HDFS":"10.196.84.183", \
-	"Cassandra0":"10.222.101.109", \
-	"Cassandra1":"10.222.139.147", \
-	"Cassandra2":"10.174.77.69", \
-	"Cassandra3":"10.174.49.58", \
+	"Cassandra0":"10.199.22.32", \
+	"Cassandra1":"10.199.52.19", \
+	"Cassandra2":"10.196.81.90", \
 	"S3":str(obtainIP("s3.amazon.com"))[2:-2], \
 	"Docreceiver":"10.199.16.28" \
 }
@@ -136,9 +134,9 @@ def checkEnvironment():
 		ORGID="251"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		#HOST="https://testdr.apixio.com:8443"
+		#HOST="https://stagedr.apixio.com:8443"
 		# alternative staging DR upload url
-		HOST="https://stagedr.apixio.com:8443"
+		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT="Staging"
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 	TOKEN_URL="%s/auth/token/" % (HOST)
@@ -542,7 +540,7 @@ def blockAllIPs():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -F")
+	#os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -F")
 	if GRS == "UNBLOCKED":
 		blockComponentIP("Graphite")
 		GRS = "BLOCKED"
@@ -565,7 +563,6 @@ def blockAllIPs():
 		blockComponentIP("Cassandra0")
 		blockComponentIP("Cassandra1")
 		blockComponentIP("Cassandra2")
-		blockComponentIP("Cassandra3")
 		CAS = "BLOCKED"
 	if KES == "UNBLOCKED":	
 		blockComponentIP("Keyservice")
@@ -581,7 +578,7 @@ def unblockAllBlockedIP():
 	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove all from list
-	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -F")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -F")
 	GRS = "UNBLOCKED"
 	FLS = "UNBLOCKED"
 	S3S = "UNBLOCKED"
@@ -594,7 +591,7 @@ def unblockAllBlockedIP():
 	DRS = "UNBLOCKED"
 	# os.system('clear')
 	# show list
-	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
+	#os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)
 
 def blockComponentIP(component):
@@ -602,10 +599,10 @@ def blockComponentIP(component):
 	print ("Block %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# add to list
-	add_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
+	add_string = "ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -A OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(add_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
 
 def unblockComponentIP(component):
@@ -613,75 +610,67 @@ def unblockComponentIP(component):
 	print ("Unblock %s component - IP: %s\n") % (component, IP)
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# remove from list
-	remove_string = "ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
+	remove_string = "ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -D OUTPUT -d "+str(IP)+" -j DROP"
 	os.system(remove_string)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)
 	
 def listStatusComponentIP(component):
 	# -A (add), -D (remove), -F (remove all), -L (list or show all)
 	# show list
-	os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 iptables -L")
+	os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 iptables -L")
 	#time.sleep(2)	
 	
 def obtainNumberOfFiles(path):
-	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
-	#this prints them all then counts the number of lines
-	#'wc' program does counting
-	#number = 0
-	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find "+path+" wc -l")
-	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
-	#number = subprocess("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
-	#number = os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l")
-	#subprocess.check_output = check_output
-	#number = subprocess.check_output('ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find /mnt/log/apx-receiver -type f | wc -l')
-	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
-	#command ('14549', the wc -l output
-	#path, dirs, files = os.walk(path).next()
-	#number = len(files)
-	#os.system("exit")
+	number = subprocess.check_output("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28 find "+path+" -type f | wc -l", shell=True)
+	return (number)
+
+def obtainNumberOfFilesHDFS(path):
+	number = subprocess.check_output("hadoop fs -lsr hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020"+path+" |grep -c '^-'", shell=True)
+	#number = subprocess.check_output("hadoop fs -lsr hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020"+path+" ", shell=True)
 	return (number)
 
 
 def mainMenu():
-	#os.system("ssh -i pemfile ipaddress find /directory -type f | wc -l")
-	#this prints them all then counts the number of lines
-	#'wc' program does counting
+	#The HDFS directory for sequencfiles is:
+	#hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020/user/apxqueue/receiver
+	#
+	#The HDFS directory for manifests is:
+	#hdfs://10.196.84.183:8020/user/logmaster/staging/manifests
+	#
+	#This script will find the number of files:
+	#hadoop fs -lsr hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020/user/apxqueue/receiver |grep -c '^-'
+
 	global ENVIRONMENT
-	os.system('clear')
-	# os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28")
-	print "==========================================================================================="
-	print "Environment: %s" % (ENVIRONMENT)
-	print "===========================================================================================\n"
-	print "Doc-Receiver Work Folder List\n"
-	#print "0. \n"
-	#os.system("ssh -i /mnt/automation/.secrets/stagedr.pem 10.199.16.28 find '/mnt/log/apx-receiver' -type f | wc -l")
-	#print "1. \n"
-	#print "2. \n"
-	#print "3. \n"
-	#print "4. \n"
-	
-	
-	# path, dirs, files = os.walk("/mnt/logs/apx-receiver").next()
-	# path, dirs, files = os.walk("/mnt/automation/dr/environmentalcomponentblocking").next()
-	print "1. /mnt/log/apx-receiver number of files: %s\n" % obtainNumberOfFiles("/mnt/log/apx-receiver")
-	#print "2. /var/run/apx-receiver.pid folder count: %s\n" % obtainNumberOfFiles("/var/run/apx-receiver.pid")
-	print "2. /tmp/apxqueue/buffer number of files: %s\n" % obtainNumberOfFiles("/tmp/apxqueue/buffer")
-	print "3. /user/apxqueue/receiver/batchname folder count: %s\n" % obtainNumberOfFiles("/user/apxqueue/receiver/batchname")
-	print "4. /stag2-coordinator.highpriority folder count: %s\n" % obtainNumberOfFiles("/stag2-coordinator.highpriority")
-	print "==========================================================================================="
+	while True:
+		os.system('clear')
+		# os.system("ssh -i /mnt/automation/.secrets/testdr.pem 10.199.16.28")
+		print "==========================================================================================="
+		print "Environment: %s" % (ENVIRONMENT)
+		print "===========================================================================================\n"
+		print "Doc-Receiver Work Folder List\n"
+		print "1. /mnt/log/apx-receiver number of files: %s\n" % obtainNumberOfFiles("/mnt/log/apx-receiver")
+		print "2. /tmp/apxqueue/buffer number of files: %s\n" % obtainNumberOfFiles("/tmp/apxqueue/buffer")
+		print "3. /user/apxqueue/receiver number of files: %s\n" % obtainNumberOfFilesHDFS("/user/apxqueue/receiver")
+		print "4. /user/logmaster/staging/manifests number of files: %s\n" % obtainNumberOfFilesHDFS("/user/logmaster/staging/manifests")
+		#print "5. /user/apxqueue/receiver/batchname of files: %s\n" % obtainNumberOfFilesHDFS("/user/apxqueue/receiver/batchname")
+		#print "6. /stag2-coordinator.highpriority of files: %s\n" % obtainNumberOfFilesHDFS("/stag2-coordinator.highpriority")
+		#print "3. /user/apxqueue/receiver/batchname folder count: %s\n" % obtainNumberOfFiles("/user/apxqueue/receiver/batchname")
+		#print "4. /stag2-coordinator.highpriority folder count: %s\n" % obtainNumberOfFiles("/stag2-coordinator.highpriority")
+		print "==========================================================================================="
+		time.sleep(2.0)
 
 	
 
 def checkForStatus(component, component_status):
 	if component == "Cassandra":
 		if component_status == "UNBLOCKED":
-			for i in range(0, 4): 
+			for i in range(0, 3): 
 				blockComponentIP(component+str(i))
 			component_status = "BLOCKED"
 		else:
-			for i in range(0, 4):
+			for i in range(0, 3):
 				unblockComponentIP(component+str(i))
 			component_status = "UNBLOCKED"
 	else:

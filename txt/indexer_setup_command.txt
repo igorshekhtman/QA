@@ -1,4 +1,9 @@
 ﻿
+hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020/user/apxqueue/receiver/
+
+from now on: hdfs://user/apxqueue/receiver/
+
+
 ==============================================================================================
 
 c:\windows\system32\drivers\etc\hosts
