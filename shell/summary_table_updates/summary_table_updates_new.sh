@@ -455,9 +455,9 @@ get_json_object(line, '$.patient.info') as patient_info,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-if(	get_json_object(line, '$.orgId') is null,
-	substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
-	get_json_object(line, '$.orgId')) as org_id
+if( get_json_object(line, '$.orgId') is null,
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and get_json_object(line, '$.writeTo') is null
 and ($dateRange);
@@ -568,13 +568,13 @@ and ($dateRange);
 
 insert overwrite table summary_loadapo partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
-if (	get_json_object(line, '$.input.key') is not null,
-	get_json_object(line, '$.input.key'),
-	get_json_object(line, '$.patient.key')) as input_key,
+if( get_json_object(line, '$.input.key') is not null,
+get_json_object(line, '$.input.key'),
+get_json_object(line, '$.patient.key')) as input_key,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
-if(	get_json_object(line, '$.multipleUUIDs.count') is not null, 
-	cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
-	1) as uuid_count,
+if( get_json_object(line, '$.multipleUUIDs.count') is not null, 
+cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
+1) as uuid_count,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.error.message') as error_message,
 get_json_object(line, '$.jobname') as jobname,
@@ -1152,13 +1152,13 @@ and ($dateRange);
 
 insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
-if (	get_json_object(line, '$.input.key') is not null,
-	get_json_object(line, '$.input.key'),
-	get_json_object(line, '$.patient.key')) as input_key,
+if( get_json_object(line, '$.input.key') is not null,
+get_json_object(line, '$.input.key'),
+get_json_object(line, '$.patient.key')) as input_key,
 get_json_object(line, '$.patient.uuids') as patient_uuids,
-if(	get_json_object(line, '$.multipleUUIDs.count') is not null, 
-	cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
-	1) as uuid_count,
+if( get_json_object(line, '$.multipleUUIDs.count') is not null, 
+cast(get_json_object(line, '$.multipleUUIDs.count') as int), 
+1) as uuid_count,
 get_json_object(line, '$.status') as status,
 get_json_object(line, '$.error.message') as error_message,
 get_json_object(line, '$.jobname') as jobname,
@@ -1191,9 +1191,9 @@ get_json_object(line, '$.patient.info') as patient_info,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day,
-if(	get_json_object(line, '$.orgId') is null,
-	substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
-	get_json_object(line, '$.orgId')) as org_id
+if( get_json_object(line, '$.orgId') is null,
+substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.jobname'), "_")-1),
+get_json_object(line, '$.orgId')) as org_id
 from staging_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and get_json_object(line, '$.writeTo') is null
 and ($dateRange);
