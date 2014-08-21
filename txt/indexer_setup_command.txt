@@ -1,9 +1,12 @@
-﻿
-hdfs://ip-10-196-84-183.us-west-1.compute.internal:8020/user/apxqueue/receiver/
+﻿============================ Doc-RECEIVER TESTING: ===============================================
 
-from now on: hdfs://user/apxqueue/receiver/
+Connect to Hadoop-namenode-server: 54.215.109.178
 
 
+
+hadoop fs -ls /user/apxqueue/receiver/
+hadoop fs -ls /user/apxqueue/receiver/362_LoadTestingStaging_08152014225457
+hadoop fs -ls /user/apxqueue/receiver/362_LoadTestingStaging_08152014225458
 ==============================================================================================
 
 c:\windows\system32\drivers\etc\hosts
