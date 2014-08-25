@@ -12,7 +12,7 @@
 # 3.) Adjusted new data representation for DAYSBACK falling into previous month
 #
 # Updated by: Igor Shekhtman
-# Date: 08/20/2014 - Converted all references including Hive queries from Jobs to Docs - Igor new test
+# Date: 08/20/2014 - Converted all references including Hive queries from Jobs to Docs - Igor super new
 #
 #==========================================================================================================
 #============================= JSON TEMPLATE ==============================================================
