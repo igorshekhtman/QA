@@ -228,8 +228,10 @@ def selectLogFile(environment, component):
 	elif component == "parser":	
 		logfilename=environment.lower()+"_logs_parserjob_"+LOG_TYPE
 	elif component == "ocr":	
-		#logfilename=environment.lower()+"_logs_ocrjob_"+LOG_TYPE
-		logfilename="summary_ocr_"+environment.lower()+""
+		if environment.lower() == "staging": 
+			logfilename="summary_ocr_"+environment.lower()+""
+		else:
+			logfilename="summary_ocr"
 	elif component == "persist":	
 		logfilename=environment.lower()+"_logs_persistjob_"+LOG_TYPE
 	elif component == "event":	
