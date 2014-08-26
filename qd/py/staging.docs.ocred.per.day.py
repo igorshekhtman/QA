@@ -12,7 +12,9 @@
 # 3.) Adjusted new data representation for DAYSBACK falling into previous month
 #
 # Updated by: Igor Shekhtman
-# Date: 08/20/2014 - Converted all references including Hive queries from Jobs to Docs - Igor1
+# Date: 08/20/2014 - Converted all references including Hive queries from Jobs to Docs
+#
+# Date: 08/26/2014 - replaced _epoch tables to summary_tables for all four queries
 #
 #==========================================================================================================
 #============================= JSON TEMPLATE ==============================================================
@@ -226,7 +228,8 @@ def selectLogFile(environment, component):
 	elif component == "parser":	
 		logfilename=environment.lower()+"_logs_parserjob_"+LOG_TYPE
 	elif component == "ocr":	
-		logfilename=environment.lower()+"_logs_ocrjob_"+LOG_TYPE
+		#logfilename=environment.lower()+"_logs_ocrjob_"+LOG_TYPE
+		logfilename="summary_ocr_"+environment.lower()+""
 	elif component == "persist":	
 		logfilename=environment.lower()+"_logs_persistjob_"+LOG_TYPE
 	elif component == "event":	
@@ -268,14 +271,23 @@ def runBaseDocFailed(environment):
 	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
+	#cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
+	#	year, month, day \
+	#	FROM %s \
+	#	WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+	#	and \
+	#	get_json_object(line, '$.level') ='EVENT' and \
+	#	get_json_object(line, '$.status') = 'error' \
+	#	GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+	
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_ocred, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+		
 	
 	print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
 	print ("Ended running %s Hive Query to extract baseline failed docs ...\n")	 % (environment)
@@ -310,13 +322,12 @@ def runBaseDocSucceeded(environment):
 		
 
 	
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_ocred, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.status') = 'success' \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	
@@ -345,13 +356,12 @@ def runDocSucceeded(environment):
 	print ("Running %s Hive Query to extract successful docs, please wait ...\n") % (environment)
 		
 		
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_ocred, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.status') = 'success' \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	print ("Ended running %s Hive Query to extract successful docs ...\n")	 % (environment)
@@ -375,16 +385,14 @@ def runDocFailed(environment):
 	LOGFILE = selectLogFile(environment,"ocr")
 	
 	print ("Running %s Hive Query to extract failed docs, please wait ...\n") % (environment)
+		
 	
-	
-	
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_ocred, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	
