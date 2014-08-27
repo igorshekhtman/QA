@@ -610,6 +610,7 @@ from production_logs_datacheckandrecover_epoch
 where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
 
+
 insert overwrite table summary_careopt_load partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -627,7 +628,6 @@ from
 production_logs_careopt_epoch 
 where get_json_object(line, '$.patient.cassandraload.millis') is not null 
 and ($dateRange);
-
 
 insert overwrite table summary_careopt_search partition (year, month, day, org_id)
 select
@@ -700,6 +700,44 @@ get_json_object(line, '$.login.orgId')) as org_id
 from 
 production_logs_careopt_epoch 
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null)  
+and ($dateRange);
+
+
+insert overwrite table summary_bundler_historical partition (year, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.lo') as bigint) as low,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.hi') as bigint) as high,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.count') as int) as count,
+get_json_object(line, '$.hcc.bundler.historicalEvents.status') as status,
+get_json_object(line, '$.hcc.bundler.historicalEvents.bytes') as bytes,
+get_json_object(line, '$.hcc.bundler.historicalEvents.millis') as millis,
+get_json_object(line, '$.jvm.memory.total.bytes') as memory_total_bytes,
+get_json_object(line, '$.jvm.memory.free.bytes') as memory_free_bytes,
+get_json_object(line, '$.hostname') as hostname,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day
+from production_logs_bundler_epoch where
+get_json_object(line, '$.level') = 'EVENT' and
+get_json_object(line, '$.hcc.bundler.historicalEvents') is not null
+and ($dateRange);
+
+insert overwrite table summary_bundler_sequence partition (year, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+cast(get_json_object(line, '$.hcc.bundler.get_sequence.count') as int) as count,
+get_json_object(line, '$.hcc.bundler.get_sequence.pattern') as pattern,
+get_json_object(line, '$.hcc.bundler.get_sequence.status') as status,
+get_json_object(line, '$.hcc.bundler.get_sequence.millis') as millis,
+get_json_object(line, '$.jvm.memory.total.bytes') as memory_total_bytes,
+get_json_object(line, '$.jvm.memory.free.bytes') as memory_free_bytes,
+get_json_object(line, '$.jvm.memory.max.bytes') as memory_max_bytes,
+get_json_object(line, '$.hostname') as hostname,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day
+from production_logs_bundler_epoch where
+get_json_object(line, '$.level') = 'EVENT' and
+get_json_object(line, '$.hcc.bundler.get_sequence') is not null
 and ($dateRange);
 
 ###################################Staging#########################################################
@@ -1308,6 +1346,45 @@ from
 staging_logs_careopt_epoch 
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null) 
 and ($dateRange);
+
+
+insert overwrite table summary_bundler_historical_staging partition (year, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.lo') as bigint) as low,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.hi') as bigint) as high,
+cast(get_json_object(line, '$.hcc.bundler.historicalEvents.count') as int) as count,
+get_json_object(line, '$.hcc.bundler.historicalEvents.status') as status,
+get_json_object(line, '$.hcc.bundler.historicalEvents.bytes') as bytes,
+get_json_object(line, '$.hcc.bundler.historicalEvents.millis') as millis,
+get_json_object(line, '$.jvm.memory.total.bytes') as memory_total_bytes,
+get_json_object(line, '$.jvm.memory.free.bytes') as memory_free_bytes,
+get_json_object(line, '$.hostname') as hostname,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day
+from staging_logs_bundler_epoch where
+get_json_object(line, '$.level') = 'EVENT' and
+get_json_object(line, '$.hcc.bundler.historicalEvents') is not null
+and ($dateRange);
+
+insert overwrite table summary_bundler_sequence_staging partition (year, month, day)
+select
+get_json_object(line, '$.datestamp') as time,
+cast(get_json_object(line, '$.hcc.bundler.get_sequence.count') as int) as count,
+get_json_object(line, '$.hcc.bundler.get_sequence.pattern') as pattern,
+get_json_object(line, '$.hcc.bundler.get_sequence.status') as status,
+get_json_object(line, '$.hcc.bundler.get_sequence.millis') as millis,
+get_json_object(line, '$.jvm.memory.total.bytes') as memory_total_bytes,
+get_json_object(line, '$.jvm.memory.free.bytes') as memory_free_bytes,
+get_json_object(line, '$.jvm.memory.max.bytes') as memory_max_bytes,
+get_json_object(line, '$.hostname') as hostname,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day
+from staging_logs_bundler_epoch where
+get_json_object(line, '$.level') = 'EVENT' and
+get_json_object(line, '$.hcc.bundler.get_sequence') is not null
+and ($dateRange);
+
 
 EOF
 
