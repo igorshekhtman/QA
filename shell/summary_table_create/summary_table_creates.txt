@@ -128,4 +128,18 @@ create table summary_careopt_login
 (time string, username string, user_id string, status string, user_agent string, hostname string, processTime int, event string, remote_address string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+/**********************************Bundler*********************************************************************************/
+create table summary_bundler_document
+(time string, doc_id string, patient_uuid string, event_address string, event_batch_id string)
+partitioned by (year string, month string, day string, org_id string);
+
+create table summary_bundler_historical
+(time string, low bigint, high bigint, count int, status string, bytes string, millis string, memory_total_bytes string, memory_free_bytes string, hostname string)
+partitioned by (year string, month string, day string);
+
+create table summary_bundler_sequence
+(time string, count int, pattern string, status string, millis string, memory_total_bytes string, memory_free_bytes string, memory_max_bytes string, hostname string)
+partitioned by (year string, month string, day string)
+
+
 _staging is appended to every table of staging
