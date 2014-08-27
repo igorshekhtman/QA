@@ -257,25 +257,30 @@ def adjustArray(input_array, notBase):
 	
 def runBaseDocFailed(environment):
 	global B_DOCS_FAILED
-	LOGFILE = selectLogFile(environment,"docreceiver")
 	
-	#baseDateStart2 = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd2 = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart2 = START_DATE - td(days =7)
-	#baseDateEnd2 = END_DATE - td(days = 7)
+	#LOGFILE = selectLogFile(environment,"docreceiver")
+	LOGFILE = "summary_docreceiver_upload_staging"
 	
 	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	#cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	#	year, month, day \
+	#	FROM %s \
+	#	WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+	#	and \
+	#	get_json_object(line, '$.level') ='EVENT' and \
+	#	get_json_object(line, '$.upload.document.status') = 'error' \
+	#	GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+	
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_uploaded, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.upload.document.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+		
 	
 	print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
 	print ("Ended running %s Hive Query to extract baseline failed docs ...\n")	 % (environment)
@@ -300,23 +305,19 @@ def runBaseDocFailed(environment):
 	
 def runBaseDocSucceeded(environment):
 	global B_DOCS_SUCCEEDED
-	LOGFILE = selectLogFile(environment,"docreceiver")
-	#baseDateStart = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart = START_DATE - td(days =7)
-	#baseDateEnd = END_DATE - td(days = 7)
+	#LOGFILE = selectLogFile(environment,"docreceiver")
+	LOGFILE = "summary_docreceiver_upload_staging"
+
 	print ("Running %s Hive Query to extract successful docs baseline data, please wait ...\n") % (environment)
 		
 
 	
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_uploaded, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.upload.document.status') = 'success' \
+		status = 'success'
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	
@@ -340,19 +341,19 @@ def runBaseDocSucceeded(environment):
 	
 def runDocSucceeded(environment):
 	global DOCS_SUCCEEDED
-	LOGFILE = selectLogFile(environment,"docreceiver")
+	#LOGFILE = selectLogFile(environment,"docreceiver")
+	LOGFILE = "summary_docreceiver_upload_staging"
 		
 	print ("Running %s Hive Query to extract successful docs, please wait ...\n") % (environment)
 		
 
 	
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_uploaded, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.upload.document.status') = 'success' \
+		status = 'success'
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	print ("Ended running %s Hive Query to extract successful docs ...\n")	 % (environment)
@@ -373,17 +374,17 @@ def runDocSucceeded(environment):
 
 def runDocFailed(environment):
 	global DOCS_FAILED
-	LOGFILE = selectLogFile(environment,"docreceiver")
+	#LOGFILE = selectLogFile(environment,"docreceiver")
+	LOGFILE = "summary_docreceiver_upload_staging"
 	
 	print ("Running %s Hive Query to extract failed docs, please wait ...\n") % (environment)
 	
-	cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_uploaded, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.upload.document.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	
