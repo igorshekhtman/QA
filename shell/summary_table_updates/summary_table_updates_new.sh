@@ -703,6 +703,19 @@ where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$
 and ($dateRange);
 
 
+insert overwrite table summary_bundler_document partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hcc.bundler.receive.document') as doc_id,
+get_json_object(line, '$.hcc.bundler.receive.patient') as patient_uuid,
+get_json_object(line, '$.hcc.bundler.receive.event_address') as event_address,
+get_json_object(line, '$.hcc.bundler.receive.event_batch_id') as event_batch_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day,
+get_json_object(line, '$.hcc.bundler.receive.org_id') as org_id
+from production_logs_bundler_epoch where get_json_object(line, '$.hcc.bundler.receive') is not null
+and ($dateRange);
+
 insert overwrite table summary_bundler_historical partition (year, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -1347,6 +1360,19 @@ staging_logs_careopt_epoch
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null) 
 and ($dateRange);
 
+
+insert overwrite table summary_bundler_document_staging partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hcc.bundler.receive.document') as doc_id,
+get_json_object(line, '$.hcc.bundler.receive.patient') as patient_uuid,
+get_json_object(line, '$.hcc.bundler.receive.event_address') as event_address,
+get_json_object(line, '$.hcc.bundler.receive.event_batch_id') as event_batch_id,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, day,
+get_json_object(line, '$.hcc.bundler.receive.org_id') as org_id
+from staging_logs_bundler_epoch where get_json_object(line, '$.hcc.bundler.receive') is not null
+and ($dateRange);
 
 insert overwrite table summary_bundler_historical_staging partition (year, month, day)
 select
