@@ -88,10 +88,14 @@ RECEIVERS_HTML="""To: Igor <ishekhtman@apixio.com>\n"""
 #	Lance will come up with a way to block S3 and unblock it - per Lance 04-10-2014
 #
 #   "HDFS":"10.196.84.183", \ - critical component DR fails if not available
-#	"Cassandra1":"10.222.101.109", \ - critical component DR fails if not available
-#	"Cassandra2":"10.222.139.147", \ - critical component DR fails if not available
-#	"Cassandra3":"10.174.77.69", \ - critical component DR fails if not available
-#	"Cassandra4":"10.174.49.58", \ - critical component DR fails if not available
+#	seeds:
+#	"Cassandra0":"10.199.22.32" \ - critical component DR fails if not available
+#	"Cassandra1":"10.199.52.19", \ - critical component DR fails if not available
+#	"Cassandra2":"10.196.81.90", \ - critical component DR fails if not available
+#	other:
+#	"Cassandra3":"10.196.100.53" \ - critical component DR fails if not available
+#	"Cassandra4":"10.197.91.36", \ - critical component DR fails if not available
+#	"Cassandra5":"10.198.2.83", \ - critical component DR fails if not available
 
 def obtainIP(domain):
 	ip_list = []
@@ -103,17 +107,19 @@ def obtainIP(domain):
 
 IPMAP = { \
 	"Hive":"10.196.47.205", \
-	"Fluent":"10.222.103.158", \
-	"Redis":"10.222.103.158", \
+	"Fluent":"10.197.53.3", \
+	"Redis":"10.197.53.3", \
 	"Graphite":"10.160.150.32", \
 	"Mysql":"54.193.138.149", \
-	"Keyservice":"184.169.153.214", \
+	"Keyservice":"10.196.23.162", \
 	"API":"10.198.43.98", \
 	"HDFS":"10.196.84.183", \
-	"Cassandra0":"10.222.101.109", \
-	"Cassandra1":"10.222.139.147", \
-	"Cassandra2":"10.174.77.69", \
-	"Cassandra3":"10.174.49.58", \
+	"Cassandra0":"10.199.22.32", \
+	"Cassandra1":"10.199.52.19", \
+	"Cassandra2":"10.196.81.90", \
+	"Cassandra3":"10.196.100.53", \
+	"Cassandra4":"10.197.91.36", \
+	"Cassandra5":"10.198.2.83", \
 	"S3":str(obtainIP("s3.amazon.com"))[2:-2], \
 	"Docreceiver":"10.199.22.217" \
 }
@@ -133,15 +139,17 @@ PORTMAP = { \
 	"Redis":"6379", \
 	"Graphite":"2003", \
 	"Mysql":"3306", \
-	"Keyservice":"8020", \
+	"Keyservice":"443", \
 	"API":"443", \
 	"HDFS":"8020", \
 	"Cassandra0":"9042", \
 	"Cassandra1":"9042", \
 	"Cassandra2":"9042", \
 	"Cassandra3":"9042", \
-	"S3":"80", \
-	"Docreceiver":"8020" \
+	"Cassandra4":"9042", \
+	"Cassandra5":"9042", \
+	"S3":"8443", \
+	"Docreceiver":"8443" \
 }
 # S3 - 80 and 443
 #===========================================================================================================================================================
@@ -164,7 +172,7 @@ def checkEnvironment():
 		ORGID="315"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		#HOST="https://testdr.apixio.com:8443"
+		#HOST="https://stagedr.apixio.com:8443"
 		# alternative staging DR upload url
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT="Staging"
@@ -594,6 +602,8 @@ def blockAllIPs():
 		blockComponentIP("Cassandra1")
 		blockComponentIP("Cassandra2")
 		blockComponentIP("Cassandra3")
+		blockComponentIP("Cassandra4")
+		blockComponentIP("Cassandra5")
 		CAS = "BLOCKED"
 	if KES == "UNBLOCKED":	
 		blockComponentIP("Keyservice")
@@ -671,9 +681,12 @@ def mainMenu():
 	print "3. HDFS (%s:%s) status: %s\n" % (IPMAP["HDFS"], PORTMAP["HDFS"], HDS)
 	print "4. API (%s:%s) status: %s\n" % (IPMAP["API"], PORTMAP["API"], APS)
 	print "5. Redis (%s:%s): status: %s\n" % (IPMAP["Redis"], PORTMAP["Redis"], RES)
-	print "6. Cassandra (%s:%s, %s:%s, %s:%s, %s:%s) status: %s\n"  % (IPMAP["Cassandra0"], \
-		PORTMAP["Cassandra0"], IPMAP["Cassandra1"], PORTMAP["Cassandra1"], IPMAP["Cassandra2"], \
-		PORTMAP["Cassandra2"], IPMAP["Cassandra3"], PORTMAP["Cassandra3"], CAS)
+#	print "6. Cassandra (%s:%s, %s:%s, %s:%s, %s:%s, %s:%s, %s:%s) status: %s\n"  % (IPMAP["Cassandra0"], \
+#		PORTMAP["Cassandra0"], IPMAP["Cassandra1"], PORTMAP["Cassandra1"], IPMAP["Cassandra2"], \
+#		PORTMAP["Cassandra2"], IPMAP["Cassandra3"], PORTMAP["Cassandra3"], IPMAP["Cassandra3"], \
+#		PORTMAP["Cassandra3"], IPMAP["Cassandra4"], PORTMAP["Cassandra4"], IPMAP["Cassandra5"], \
+#		PORTMAP["Cassandra5"], CAS)
+	print "6. Cassandra () status: %s\n"  % (CAS)
 	print "7. Key service (%s:%s) status: %s\n" % (IPMAP["Keyservice"], PORTMAP["Keyservice"], KES)
 	print "8. MySql (%s:%s) status: %s\n" % (IPMAP["Mysql"], PORTMAP["Mysql"], MYS)
 	print "9. Doc-Receiver (%s:%s) status: %s\n" % (IPMAP["Docreceiver"], PORTMAP["Docreceiver"], DRS)
@@ -685,11 +698,11 @@ def mainMenu():
 def checkForStatus(component, component_status):
 	if component == "Cassandra":
 		if component_status == "UNBLOCKED":
-			for i in range(0, 4): 
+			for i in range(0, 6): 
 				blockComponentIP(component+str(i))
 			component_status = "BLOCKED"
 		else:
-			for i in range(0, 4):
+			for i in range(0, 6):
 				unblockComponentIP(component+str(i))
 			component_status = "UNBLOCKED"
 	else:

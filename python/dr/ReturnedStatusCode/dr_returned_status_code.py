@@ -414,7 +414,7 @@ TOKEN = SAVED_TOKEN
 #========= CASE #5 ========================================================================
 
 TEST_DESCRIPTION = "Negative Test - Empty Catalog File"
-EXPECTED_CODE = "500"
+EXPECTED_CODE = "400"
 createCatalogFile("empty")
 uploadDocument("docandcat")
 writeReportDetails(TEST_DESCRIPTION, EXPECTED_CODE)

@@ -1,0 +1,38 @@
+{
+    "charttitle": "Events per Org",
+    "charttype": "line",
+    "dotColor": "black",
+    "dotSize": "4",
+    "updateInterval": "5",
+    "legendtitle": {
+        "1": "Events per Org"
+    },
+    "legenddata": {
+        "1": "Events"
+    },
+    "legendcolors": {
+        "1": "red"
+    },
+    "xaxistitle": "Number of Orgs",
+    "xaxisdata": {
+        "1": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+        ]
+    },
+    "yaxistitle": "Number of Events",
+    "yaxisdata": {
+        "1": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+        ]
+    }
+}

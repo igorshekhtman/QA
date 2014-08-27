@@ -1,0 +1,65 @@
+<html>
+  <body>
+    <center><h2>Charts</h2></center>
+    <h3>Doc Receiver</h3>
+    <a href="html/production.docs.uploaded.per.day.html" target="frame3">Production: Docs Uploaded per Day</a><br>
+    <a href="html/production.docs.archived.per.day.html" target="frame3">Production: Docs Archived per Day</a><br>
+    <a href="html/production.docs.added.to.seq.file.per.day.html" target="frame3">Production: Docs Added to SEQ File per Day</a><br>
+    <a href="html/staging.docs.uploaded.per.day.html" target="frame3">Staging: Docs Uploaded per Day</a><br>
+    <a href="html/staging.docs.archived.per.day.html" target="frame3">Staging: Docs Archived per Day</a><br>
+    <a href="html/staging.docs.added.to.seq.file.per.day.html" target="frame3">Staging: Docs Added to SEQ File per Day</a><br>
+    <h3>Coordinator</h3>
+    <a href="html/production.jobs.succeeded.per.day.html" target="frame3">Production: Jobs Succeeded per Day</a><br>
+    <a href="html/staging.jobs.succeeded.per.day.html" target="frame3">Staging: Jobs Succeeded per Day</a><br>
+    <h3>Parser</h3>
+    <a href="html/production.docs.parsed.per.day.html" target="frame3">Production: Docs Parsed per Day</a><br>
+    <a href="html/staging.docs.parsed.per.day.html" target="frame3">Staging: Docs Parsed per Day</a><br>
+    <h3>OCR</h3>
+    <a href="html/production.docs.ocred.per.day.html" target="frame3">Production: Docs OCRed per Day</a><br>
+    <a href="html/staging.docs.ocred.per.day.html" target="frame3">Staging: Docs OCRed per Day</a><br>
+    <h3>Persist Mapper</h3>
+    <a href="html/production.docs.persist.mapped.per.day.html" target="frame3">Production: Docs Persist-Mapped per Day</a><br>
+    <a href="html/staging.docs.persist.mapped.per.day.html" target="frame3">Staging: Docs Persist-Mapped per Day</a><br>
+    <h3>Persist Reducer</h3>
+    <a href="html/production.docs.persist.reduced.per.day.html" target="frame3">Production: Docs Persist-Reduced per Day</a><br>
+    <a href="html/staging.docs.persist.reduced.per.day.html" target="frame3">Staging: Docs Persist-Reduced per Day</a><br>
+    <h3>Events Mapper</h3>
+    <a href="html/production.events.mapped.per.day.html " target="frame3">Production: Events Created per Day</a><br>
+    <a href="html/staging.events.mapped.per.day.html" target="frame3">Staging: Events Created per Day</a><br>
+    <h3>Events Reducer</h3>
+    <a href="html/production.events.reduced.per.day.html" target="frame3">Production: Events Reduced per Day</a><br>
+    <a href="html/staging.events.reduced.per.day.html" target="frame3">Staging: Events Reduced per Day</a><br>
+    <h3>Data Quality Charts</h3>
+    <a href="html/production.patient.events.after.bundling.html" target="frame3">Production: All Orgs, Patient Events after Bundling</a><br>
+    <a href="html/production.opportunities.after.bundling.html" target="frame3">Production: All Orgs, Opportunities after Bundling</a><br>
+    <a href="html/production.successful.docs.through.event.extraction.html" target="frame3">Production: All Orgs, Successful Docs through Event Extraction</a><br>
+    <a href="html/production.errors.after.event.extraction.html" target="frame3">Production: All Orgs, # Errors after Event Extraction</a><br>
+    <a href="html/staging.patient.events.after.bundling.html" target="frame3">Staging: All Orgs, Patient Events after Bundling</a><br>
+    <a href="html/staging.opportunities.after.bundling.html" target="frame3">Staging: All Orgs, Opportunities after Bundling</a><br>
+    <a href="html/staging.successful.docs.through.event.extraction.html" target="frame3">Staging: All Orgs, Succesful Docs through Event Extraction</a><br>
+    <a href="html/staging.errors.after.event.extraction.html" target="frame3">Staging: All Orgs, # Errors after Event Extraction</a><br>
+    <h3>Customer Excellence Charts</h3>
+    <a href="html/production.active.coders.last.day.html" target="frame3">Production: All Orgs, Active Coders, Last Day</a><br>
+    <a href="html/production.opportunities.last.day.html" target="frame3">Production: All Orgs, Opportunities, Last Day</a><br>
+    <br>
+    <br><b>Notes</b>
+    <li>Charts run daily via <a href="https://stagegw.apixio.com:8075" target="_blank">Jenkins Stage</a>
+</li>
+    <li>Send feedback to <a href="mailto:abeyk@apixio.com" target="_blank">abeyk@apixio.com</a></li>
+	<li>Test Link <a href="html/frame3.html" target="frame3">Test Link</a></li>
+    <br><b>How to Add a Chart</b>
+    <br>1.Log onto QA (54.219.117.239)
+    <br>2.Create a Python file in /var/www/html/py
+    <br>3.Create a JSON file in /var/www/html/json
+    <br>4.Use existing files as examples
+    <br>
+    <br><b>Todo List</b>
+    <li>Test with Chrome</li>
+    <li>Test with FireFox</li>
+    <li>Test with Safari</li>
+	<li>Change to 7-day span (DONE)</li>
+	<li>Add Data Orchestrator</li>
+	<li>Add ACL</li>
+    <br>
+   </body>
+</html>

@@ -154,6 +154,10 @@ if [ "$environment" == "s" ]; then
 	echo "Use the following key value for STAGING environment:"
 	echo "  "
 	echo "V01_8p1x1o1825sanmateocalifornia9440"
+	echo "  "
+	echo "Use the following key value for PRODUCTION environment:"
+	echo "  "
+	echo "V01_dWbZtN56Hnwez6jR5Tfjx25bdfj8GVJt"
 else
 	echo "  "
 	echo "Use the following key value for PRODUCTION environment:"

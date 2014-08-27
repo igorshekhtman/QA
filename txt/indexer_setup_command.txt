@@ -1,4 +1,12 @@
-﻿
+﻿============================ Doc-RECEIVER TESTING: ===============================================
+
+Connect to Hadoop-namenode-server: 54.215.109.178
+
+
+
+hadoop fs -ls /user/apxqueue/receiver/
+hadoop fs -ls /user/apxqueue/receiver/362_LoadTestingStaging_08152014225457
+hadoop fs -ls /user/apxqueue/receiver/362_LoadTestingStaging_08152014225458
 ==============================================================================================
 
 c:\windows\system32\drivers\etc\hosts

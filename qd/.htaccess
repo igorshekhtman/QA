@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Restricted Access"
+AuthUserFile /home/secure/apasswords
+Require user qd

@@ -1,0 +1,75 @@
+{
+    "charttitle": "Events per Org",
+    "charttype": "line",
+    "dotColor": "black",
+    "dotSize": "4",
+    "updateInterval": "5",
+    "legendtitle": {
+        "1": "Legend"
+    },
+    "legenddata": {
+        "1": "Events",
+        "2": "other Events"
+       
+    },
+    "legendcolors": {
+        "1": "red",
+        "2": "lime"
+        
+    },
+    "xaxistitle": "Number of Orgs",
+	"baselinedata": {
+		"1": [
+            "3872",
+            "2871",
+            "9307",
+            "1754",
+            "2986",
+            "7304",
+			"4923"
+        ],
+		"2": [
+			"2823",
+			"3278",
+			"6251",
+			"9476",
+			"8362",
+			"8372",
+			"2371"
+			]
+		},
+    "xaxisdata": {
+        "1": [
+            "Sun",
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thur",
+            "Fri",
+			"Sat"
+        ]
+    },
+    "yaxistitle": "Number of Events",
+    "yaxisdata": {
+        "1": [
+            "9910",
+            "1200",
+            "2135",
+            "1134",
+            "7353",
+            "5012",
+			"8376"
+        ],
+        "2": [
+            "1111",
+            "1234",
+            "3038",
+            "9821",
+            "104",
+            "1937",
+			"2615"
+        ]
+        
+        
+    }
+}
