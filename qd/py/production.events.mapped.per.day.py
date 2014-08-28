@@ -264,7 +264,7 @@ def runBaseEventFailed(environment):
 	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT SUM(num_of_events_extracted) as Total_Mapper_Events_Count, \
+	cur.execute("""SELECT COUNT(*) as Total_Mapper_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
@@ -369,7 +369,7 @@ def runEventFailed(environment):
 	
 
 	
-	cur.execute("""SELECT SUM(num_of_events_extracted) as Total_Mapper_Events_Count, \
+	cur.execute("""SELECT COUNT(*) as Total_Mapper_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
