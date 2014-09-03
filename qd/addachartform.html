@@ -4,7 +4,7 @@
 	<br>
 	<form name="newchart" action="py/addChart.py" method="POST">
 	<table border="0" align="center" cellpadding="2" cellspacing="2">
-		<tr><td align="right">Environment:</td><td><input type="radio" name="env" value="staging">Staging <input type="radio" name="env" value="production">Production</td><td></td></tr>
+		<tr><td align="right">Environment:</td><td><input type="radio" name="env" value="staging"><i>Staging</i> <input type="radio" name="env" value="production"><i>Production</i></td><td></td></tr>
 		
 		<tr><td align="right">Log file name:</td><td><input type="text" name="cat"></td><td>(e.g. "summary_docreceiver_upload" or "summary_docreceiver_archive")</td></tr>
 		
@@ -18,7 +18,7 @@
 		
 		<tr><td align="right">Label of the Y-axis:</td><td><input type="text" name="yaxis"></td><td>(e.g. "docs", "jobs", "events", etc.)</td></tr>
 		
-		<tr><td align="right">Type of chart to be displayed:</td><td><input type="radio" name="charttype" value="bar">Bar <input type="radio" name="charttype" value="line">Line</td><td></td></tr>
+		<tr><td align="right">Type of chart to be displayed:</td><td><input type="radio" name="charttype" value="bar"><i>Bar</i> <input type="radio" name="charttype" value="line"><i>Line</i></td><td></td></tr>
 
 		<tr><td></td><td align="center"><br><input type="submit" value="Submit" name="Submit" label="Submit"></td><td></td></tr>
 	
