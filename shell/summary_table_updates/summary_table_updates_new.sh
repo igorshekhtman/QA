@@ -1479,6 +1479,34 @@ WHERE get_json_object(line, '$.app.data_orchestrator.acl') is not null
 and ($dateRange);
 
 
+insert overwrite table summary_useraccount_request_staging partition (year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.user_account.request.userId') as user_xuuid,
+get_json_object(line, '$.app.user_account.request.parameters') as parameters,
+get_json_object(line, '$.app.user_account.request.parameters.orgId') as org_id,
+get_json_object(line, '$.app.user_account.request.parameters.userId') as user_id,
+get_json_object(line, '$.app.user_account.request.parameters.detail') as detail,
+get_json_object(line, '$.app.user_account.request.parameters.email') as email,
+get_json_object(line, '$.app.user_account.request.parameters.name') as name,
+get_json_object(line, '$.app.user_account.request.parameters.id') as id,
+get_json_object(line, '$.app.user_account.request.status') as status, 
+get_json_object(line, '$.app.user_account.request.error') as error, 
+get_json_object(line, '$.app.user_account.request.failureReason') as failure_reason,
+get_json_object(line, '$.app.user_account.request.code') as response_code,
+get_json_object(line, '$.app.user_account.request.method') as method,
+get_json_object(line, '$.app.user_account.request.endpoint') as endpoint,
+get_json_object(line, '$.app.user_account.request.millis') as response_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM staging_logs_useraccount_epoch
+WHERE get_json_object(line, '$.app.user_account.request') is not null
+and ($dateRange);
+
+
 EOF
 
 chmod 777 update_summary.log
