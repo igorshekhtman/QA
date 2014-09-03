@@ -22,14 +22,20 @@ os.system('clear')
 
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
-# Specific Query Number to Run
-QNTORUN=1
+# Specific Report Section to Run:
+# 0 - All
+# 1 - failedJobsRD()
+# 2 - errorMessagesRD()
+# 3 - uploadSummaryRD()
+# 4 - jobSummaryRD()
+# 5 - careOptimizerErrorsRD()
+# 6 - logsTrafficRD()
+REPSECTORUN=0
 
-# Run one or all queries
-PROCESS_ALL_QUERIES=bool(1)
-
-# Send report emails and archive report html file
-DEBUG_MODE=bool(0)
+# Email reports to eng@apixio.com and archive report html file:
+# 0 - False
+# 1 - True
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -612,13 +618,10 @@ def jobSummary(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
-	
 
-def writeReportDetails():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, ENVIRONMENT
-	
-#============ 1st or Failed Jobs section of the report ======================
-	
+
+def failedJobsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -632,8 +635,8 @@ def writeReportDetails():
 	REPORT = REPORT+"<br><br>"
 	print ("Completed failed jobs query ... \n")
 	
-#============ 2nd or Error Messages Received section of the report =============
-			
+def errorMessagesRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -659,9 +662,9 @@ def writeReportDetails():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-	
-#============ 3rd or Upload Summary section of the report ======================	
-	
+
+def uploadSummaryRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -679,8 +682,8 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-#============ 4th or Job Summary section of the report =====================	
-	
+def jobSummaryRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -693,8 +696,8 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-#============ 5th or Care Optimizer Errors section of the report ==========
-	
+def careOptimizerErrorsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -711,9 +714,9 @@ def writeReportDetails():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-
-#============ 6th or Logs Traffic section of the report =================
 	
+def logsTrafficRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
 	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
 	COMPONENT_STATUS="PASSED"
 	if ENVIRONMENT == "production":
@@ -726,8 +729,20 @@ def writeReportDetails():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-	
-#========================= END =============================================	
+
+def writeReportDetails():
+	if (REPSECTORUN == 1) or (REPSECTORUN == 0):
+		failedJobsRD()
+	if (REPSECTORUN == 2) or (REPSECTORUN == 0):	
+		errorMessagesRD()			
+	if (REPSECTORUN == 3) or (REPSECTORUN == 0):
+		uploadSummaryRD()
+	if (REPSECTORUN == 4) or (REPSECTORUN == 0):
+		jobSummaryRD()
+	if (REPSECTORUN == 5) or (REPSECTORUN == 0):
+		careOptimizerErrorsRD()
+	if (REPSECTORUN == 6) or (REPSECTORUN == 0):
+		logsTrafficRD()
 
 def closeHiveConnection():
 	global cur, conn
