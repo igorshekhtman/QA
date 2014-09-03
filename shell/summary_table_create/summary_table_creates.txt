@@ -141,7 +141,7 @@ create table summary_bundler_sequence
 (time string, count int, pattern string, status string, millis string, memory_total_bytes string, memory_free_bytes string, memory_max_bytes string, hostname string)
 partitioned by (year string, month string, day string)
 
-/**********************************Data Orchestrator*********************************************************************************/
+/**********************************APIs*********************************************************************************/
 create table summary_dataorchestrator_request
 (time string, hostname string, client string, request_id string, is_bulk string, parameters string,
 patient_uuid string, doc_uuid string, bulk_count int, status string, error string, response_code string,
@@ -157,6 +157,12 @@ create table summary_dataorchestrator_acl
 (time string, hostname string, client string, request_id string, permission string, user_id string,
 auth_status string, status string, error string)
 partitioned by (year string, month string, day string, org_id string);
+
+create table summary_useraccount_request
+(time string, hostname string, client string, user_xuuid string, parameters string, org_id string, 
+user_id string, detail string, email string, name string, id string, status string, error string, 
+failure_reason string, response_code string, method string, endpoint string, response_time string)
+partitioned by (year string, month string, day string);
 
 
 _staging is appended to every table of staging
