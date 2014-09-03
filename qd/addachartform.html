@@ -1,0 +1,30 @@
+<html>
+  <body>
+    <center><h2>Add New Chart</h2></center>
+	<br>
+	<form name="newchart" action="py/addChart.py" method="POST">
+	<table border="0" align="center" cellpadding="2" cellspacing="2">
+		<tr><td align="right">Environment:</td><td><input type="radio" name="env" value="staging">Staging <input type="radio" name="env" value="production">Production</td><td></td></tr>
+		
+		<tr><td align="right">Log file name:</td><td><input type="text" name="cat"></td><td>(e.g. "summary_docreceiver_upload" or "summary_docreceiver_archive")</td></tr>
+		
+		<tr><td align="right">Attributes to be displayed by the graph:</td><td><input type="text" name="types"></td><td>(e.g. ["Successful Docs", "Failed Docs"])</td></tr>
+		
+		<tr><td align="right">How many days back:</td><td><input type="text" name="days"></td><td>(7 is typically used)</td></tr>
+		
+		<tr><td align="right">Query:</td><td><input type="text" name="query"></td><td>(e.g. QUERIES["docsuploaded"] or QUERIES["docsarchived"])</td></tr>
+		
+		<tr><td align="right">Filename to save to:</td><td><input type="text" name="dataloc"></td><td>(e.g. "docs.uploaded.per.day" or "docs.archived.per.day")</td></tr>
+		
+		<tr><td align="right">Label of the Y-axis:</td><td><input type="text" name="yaxis"></td><td>(e.g. "docs", "jobs", "events", etc.)</td></tr>
+		
+		<tr><td align="right">Type of chart to be displayed:</td><td><input type="radio" name="charttype" value="bar">Bar <input type="radio" name="charttype" value="line">Line</td><td></td></tr>
+
+		<tr><td></td><td align="center"><br><input type="submit" value="Submit" name="Submit" label="Submit"></td><td></td></tr>
+	
+	</table>
+	<br>
+	<center></center>
+	</form>
+   </body>
+</html>
