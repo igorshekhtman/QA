@@ -4,6 +4,11 @@ http://10.19.220.89:5000/webman/index.cgi
 
 user: ishekhtman
 
+zip -r qa_data.zip /mnt/testdata/*
+
+using windows explorer:
+\\whitepants\public
+
 ============================ Doc-RECEIVER TESTING: ===============================================
 
 Connect to Hadoop-namenode-server: 54.215.109.178
