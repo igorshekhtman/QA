@@ -30,12 +30,13 @@ os.system('clear')
 # 4 - jobSummaryRD()
 # 5 - careOptimizerErrorsRD()
 # 6 - logsTrafficRD()
-REPSECTORUN=0
+# 7 - dataOrchestratorRD() - currently (09/05/2014) only available in staging environment
+REPSECTORUN=7
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=bool(0)
+DEBUG_MODE=bool(1)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -337,6 +338,112 @@ def removeHtmlTags(data):
     p = re.compile(r'<.*?>')
     return p.sub('', data)
 	
+
+def dataOrchestratorAcls(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""ACL(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		permission, auth_status, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, permission, auth_status, status, error \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Permission:</td><td>Auth Status:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def dataOrchestratorLookups(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""Lookup(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		request_id, endpoint, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, request_id, endpoint, status, error \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Request ID:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def dataOrchestratorRequests(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""Request(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		response_code, endpoint, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, endpoint, status, error, response_code \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Response code:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
 	
 def careOptimizerErrors(table):
 	global REPORT, cur, conn
@@ -729,6 +836,26 @@ def logsTrafficRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
+	
+def dataOrchestratorRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS
+	REPORT = REPORT+SUBHDR % "DATA ORCHESTRATOR"
+	COMPONENT_STATUS="PASSED"
+	if ENVIRONMENT == "production":
+		dataOrchestratorAcls("summary_dataorchestrator_acl")
+		dataOrchestratorLookups("summary_dataorchestrator_lookup")
+		dataOrchestratorRequests("summary_dataorchestrator_request")
+	else:
+		dataOrchestratorAcls("summary_dataorchestrator_acl_staging")
+		dataOrchestratorLookups("summary_dataorchestrator_lookup_staging")
+		dataOrchestratorRequests("summary_dataorchestrator_request_staging")
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"	
+	
 
 def writeReportDetails():
 	if (REPSECTORUN == 1) or (REPSECTORUN == 0):
@@ -743,6 +870,10 @@ def writeReportDetails():
 		careOptimizerErrorsRD()
 	if (REPSECTORUN == 6) or (REPSECTORUN == 0):
 		logsTrafficRD()
+	if (REPSECTORUN == 7) or (REPSECTORUN == 0):
+		# currently 09/05/2014 only available for staging env
+		if ENVIRONMENT == "staging":
+			dataOrchestratorRD()
 
 def closeHiveConnection():
 	global cur, conn
