@@ -31,12 +31,12 @@ os.system('clear')
 # 5 - careOptimizerErrorsRD()
 # 6 - logsTrafficRD()
 # 7 - dataOrchestratorRD() - currently (09/05/2014) only available in staging environment
-REPSECTORUN=7
+REPSECTORUN=0
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=bool(1)
+DEBUG_MODE=bool(0)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
