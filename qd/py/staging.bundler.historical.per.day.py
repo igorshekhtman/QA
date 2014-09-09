@@ -124,8 +124,8 @@ END_DATE_BASE = None
 LOG_TYPE = "epoch"
 
 #Values can be "Staging" or "Production"
-ENVIRONMENT = "Production" 
-#ENVIRONMENT = "Staging"
+#ENVIRONMENT = "Production" 
+ENVIRONMENT = "Staging"
 
 
 
@@ -258,16 +258,18 @@ def adjustArray(input_array, notBase):
 def runBaseDocFailed(environment):
 	global B_DOCS_FAILED
 	#LOGFILE = selectLogFile(environment,"parser")
-	LOGFILE = "summary_bundler_document"
+	LOGFILE = "summary_parser_staging"
 	
 	
 	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT COUNT(DISTINCT doc_id) as total_documents, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_parsed, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
@@ -294,14 +296,16 @@ def runBaseDocFailed(environment):
 def runBaseDocSucceeded(environment):
 	global B_DOCS_SUCCEEDED
 	#LOGFILE = selectLogFile(environment,"parser")
-	LOGFILE = "summary_bundler_document"
+	LOGFILE = "summary_parser_staging"
 
 	print ("Running %s Hive Query to extract successful docs baseline data, please wait ...\n") % (environment)
 			
-	cur.execute("""SELECT COUNT(DISTINCT doc_id) as total_documents, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_parsed, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	
@@ -326,15 +330,17 @@ def runBaseDocSucceeded(environment):
 def runDocSucceeded(environment):
 	global DOCS_SUCCEEDED
 	#LOGFILE = selectLogFile(environment,"parser")
-	LOGFILE = "summary_bundler_document"
+	LOGFILE = "summary_parser_staging"
 		
 	print ("Running %s Hive Query to extract successful docs, please wait ...\n") % (environment)
 		
 		
-	cur.execute("""SELECT COUNT(DISTINCT doc_id) as total_documents, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_parsed, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	print ("Ended running %s Hive Query to extract successful docs ...\n")	 % (environment)
@@ -356,16 +362,18 @@ def runDocSucceeded(environment):
 def runDocFailed(environment):
 	global DOCS_FAILED
 	#LOGFILE = selectLogFile(environment,"parser")
-	LOGFILE = "summary_bundler_document"
+	LOGFILE = "summary_parser_staging"
 	
 	print ("Running %s Hive Query to extract failed docs, please wait ...\n") % (environment)
 	
 	
 	
-	cur.execute("""SELECT COUNT(DISTINCT doc_id) as total_documents, \
+	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_parsed, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	
@@ -393,9 +401,9 @@ def runQueries(environment):
 	global ST_DAY, ST_MONTH, ST_MONTHS,ST_YEAR, EN_DAY, EN_MONTH, EN_MONTHS, EN_YEAR
 	
 	runDocSucceeded(environment)
-	#runDocFailed(environment)	
+	runDocFailed(environment)	
 	runBaseDocSucceeded(environment)
-	#runBaseDocFailed(environment)
+	runBaseDocFailed(environment)
 	#time.sleep(45)	
 
 	
@@ -411,18 +419,18 @@ def appendData():
 	global DATA, ORGID, ENVIRONMENT, MONTH_FMN#, DOCS_FAILED, DOCS_SUCCEEDED, B_DOCS_FAILED, B_DOCS_SUCCEEDED
 	global ST_DAY, ST_MONTH, ST_MONTHS,ST_YEAR, EN_DAY, EN_MONTH, EN_MONTHS, EN_YEAR
 	
-	JSON_DATA_FILENAME ="/var/www/html/json/"+ENVIRONMENT.lower()+".bundler.documents.per.day.json" 
+	JSON_DATA_FILENAME ="/var/www/html/json/"+ENVIRONMENT.lower()+".bundler.historical.per.day.json" 
 	print ("Start writing json data ...\n")
 
 	new_json_data = { \
-		"charttitle": ""+ENVIRONMENT.lower()+".bundler.documents.per.day", \
+		"charttitle": ""+ENVIRONMENT.lower()+".bundler.historical.per.day", \
 		"charttype": "line", \
 		"dotColor": "black", \
 		"dotSize": "4", \
 		"updateInterval": "5", \
 		"legendtitle": {"1": "Legend"}, \
-		"legenddata": { "1": "Succeeded Docs" }, \
-		"legendcolors": { "1": "lime" }, \
+		"legenddata": { "1": "Succeeded Historical", "2": "Failed Historical" }, \
+		"legendcolors": { "1": "lime", "2": "red" }, \
 		"xaxistitle": str(DAYSBACK+1)+" Days", \
 		"baselinedata": { \
 		"1": B_DOCS_SUCCEEDED, \
