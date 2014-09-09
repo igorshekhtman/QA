@@ -2,8 +2,11 @@
   <body>
     <center><h2>Add New Chart</h2></center>
 	<br>
-	<form name="newchart" action="addChart.py" method="POST">
+	<form name="newchart" action="py/addChart.py" method="POST">
 	<table border="0" align="center" cellpadding="2" cellspacing="0">
+		
+		<tr><td align="right" nowrap>Graph title:</td><td><input type="text" name="gtitle"></td><td>(e.g. "Doc Receiver Archived Documents")</td></tr>
+
 		<tr><td align="right" nowrap bgcolor="#E6E6E6">Environment:</td><td bgcolor="#E6E6E6"><input type="radio" name="env" value="staging"><i>Staging</i> <input type="radio" name="env" value="production"><i>Production</i></td><td bgcolor="#E6E6E6"></td></tr>
 		
 		<tr><td align="right" nowrap>Log file name:</td><td><input type="text" name="cat"></td><td>(e.g. "summary_docreceiver_upload" or "summary_docreceiver_archive")</td></tr>
