@@ -127,7 +127,7 @@ LOG_TYPE = "epoch"
 ENVIRONMENT = "Production" 
 #ENVIRONMENT = "Staging"
 
-if environment == "Production":
+if ENVIRONMENT == "Production":
 	POSTFIX = ""
 else:
 	POSTFIX = "_staging"
