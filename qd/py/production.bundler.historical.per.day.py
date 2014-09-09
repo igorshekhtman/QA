@@ -124,8 +124,8 @@ END_DATE_BASE = None
 LOG_TYPE = "epoch"
 
 #Values can be "Staging" or "Production"
-#ENVIRONMENT = "Production" 
-ENVIRONMENT = "Staging"
+ENVIRONMENT = "Production" 
+#ENVIRONMENT = "Staging"
 
 if environment == "Production":
 	POSTFIX = ""
