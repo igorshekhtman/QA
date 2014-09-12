@@ -1,0 +1,11 @@
+name	nbRequest	nbRequestOK	nbRequestKO	minResponseTime	minResponseTimeOK	minResponseTimeKO	maxResponseTime	maxResponseTimeOK	maxResponseTimeKO	meanResponseTime	meanResponseTimeOK	meanResponseTimeKO	deviation	deviationOK	deviationKO	percentile1	percentile1OK	percentile1KO	percentile2	percentile2OK	percentile2KO	group1Name	group1Count	group1Percentage	group2Name	group2Count	group2Percentage	group3Name	group3Count	group3Percentage	group4Name	group4Count	group4Percentage	meanNumberOfRequestsPerSecond	meanNumberOfRequestsPerSecondOK	meanNumberOfRequestsPerSecondKO
+Global Information	6	0	6	20	-1	20	40	-1	40	30	-1	30	6	-1	6	40	-1	40	40	-1	40	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	6	100	0	-1	0
+Login	3	0	3	12100	-1	12100	12130	-1	12130	12110	-1	12110	14	-1	14	12130	-1	12130	12130	-1	12130	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Login / Login page	3	0	3	20	-1	20	40	-1	40	30	-1	30	8	-1	8	40	-1	40	40	-1	40	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Login / Submit login	3	0	3	30	-1	30	30	-1	30	30	-1	30	0	-1	0	30	-1	30	30	-1	30	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Patient	3	0	3	6000	-1	6000	6020	-1	6020	6007	-1	6007	0	-1	0	6020	-1	6020	6020	-1	6020	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+
+Token	3	0	3	0	-1	0	10	-1	10	3	-1	3	5	-1	5	10	-1	10	10	-1	10	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+
+Document	3	0	3	6000	-1	6000	6030	-1	6030	6010	-1	6010	14	-1	14	6030	-1	6030	6030	-1	6030	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+

@@ -1,0 +1,13 @@
+name	nbRequest	nbRequestOK	nbRequestKO	minResponseTime	minResponseTimeOK	minResponseTimeKO	maxResponseTime	maxResponseTimeOK	maxResponseTimeKO	meanResponseTime	meanResponseTimeOK	meanResponseTimeKO	deviation	deviationOK	deviationKO	percentile1	percentile1OK	percentile1KO	percentile2	percentile2OK	percentile2KO	group1Name	group1Count	group1Percentage	group2Name	group2Count	group2Percentage	group3Name	group3Count	group3Percentage	group4Name	group4Count	group4Percentage	meanNumberOfRequestsPerSecond	meanNumberOfRequestsPerSecondOK	meanNumberOfRequestsPerSecondKO
+Global Information	21	9	12	10	40	10	150	150	70	50	86	23	44	44	17	130	150	40	150	150	70	t < 800 ms	9	42	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	12	57	0	0	0
+Login	3	3	0	12200	12200	-1	12360	12360	-1	12253	12253	-1	118	118	-1	12360	12360	-1	12360	12360	-1	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	3	100	failed	0	0	0	0	-1
+Login / Login page	3	3	0	40	40	-1	150	150	-1	77	77	-1	51	51	-1	150	150	-1	150	150	-1	t < 800 ms	3	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Login / Submit login	3	3	0	130	130	-1	130	130	-1	130	130	-1	0	0	-1	130	130	-1	130	130	-1	t < 800 ms	3	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Token	3	3	0	50	50	-1	90	90	-1	67	67	-1	16	16	-1	90	90	-1	90	90	-1	t < 800 ms	3	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Token / Token exchange	3	3	0	40	40	-1	60	60	-1	50	50	-1	8	8	-1	60	60	-1	60	60	-1	t < 800 ms	3	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Patient	3	0	3	6020	-1	6020	6060	-1	6060	6033	-1	6033	66	-1	66	6060	-1	6060	6060	-1	6060	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Patient / Patient demographics	3	0	3	30	-1	30	70	-1	70	47	-1	47	16	-1	16	70	-1	70	70	-1	70	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Document	3	0	3	6050	-1	6050	6090	-1	6090	6070	-1	6070	16	-1	16	6090	-1	6090	6090	-1	6090	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Document / Document retrieval text	3	0	3	20	-1	20	20	-1	20	20	-1	20	0	-1	0	20	-1	20	20	-1	20	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Document / Document retrieval metadata	3	0	3	10	-1	10	20	-1	20	17	-1	17	3	-1	3	20	-1	20	20	-1	20	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
+Document / Document retrieval file	3	0	3	10	-1	10	10	-1	10	10	-1	10	0	-1	0	10	-1	10	10	-1	10	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	3	100	0	-1	0
