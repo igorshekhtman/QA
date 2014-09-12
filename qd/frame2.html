@@ -1,8 +1,27 @@
+
 <html>
+  <head>
+  <style>
+  #addchart{
+    padding: 10px 30px 10px 30px;
+    background: #006666;
+    border: none;
+    color: #FFF;
+    box-shadow: 1px 1px 1px #4C6E91;
+    -webkit-box-shadow: 1px 1px 1px #4C6E91;
+    -moz-box-shadow: 1px 1px 1px #4C6E91;
+    text-shadow: 1px 1px 1px #5079A3;
+    
+	}
+	#addchart:hover{
+    background: #009966;
+    }
+  </style> 
+  </head>
   <body>
     <center><h2>Charts</h2></center>
-	<form name="newchart" action="addachartform.html" method="POST">
-		<center><input type="submit" value="Create New Chart" name="Create New Chart" label="Create New Chart" formtarget="frame3"></center>
+	<form name="newchart" action="form.html" method="POST">
+		<center><input id="addchart" type="submit" value="Create Custom Chart" name="Create Custom Chart" label="Create Custom Chart" formtarget="frame3"></center>
 	</form>
     <h3>Doc Receiver</h3>
     <a href="html/production.docs.uploaded.per.day.html" target="frame3">Production: Docs Uploaded per Day</a><br>
@@ -61,12 +80,13 @@
     <h3>Customer Excellence Charts</h3>
     <a href="html/production.active.coders.last.day.html" target="frame3">Production: All Orgs, Active Coders, Last Day</a><br>
     <a href="html/production.opportunities.last.day.html" target="frame3">Production: All Orgs, Opportunities, Last Day</a><br>
-    <br>
+    
+ <h3>Custom Charts</h3>
 
-<a href="html/staging.docs.uploaded.per.day.html" target="frame3">staging: docs.uploaded.per.day</a><br>
-<a href="html/staging.docs.persist.reduced.per.day.html" target="frame3">staging: docs.persist.reduced.per.day</a><br>
+<a href="html/staging.jobs.started.per.day.html" target="frame3">staging: New Jobs Started Chart</a><br>
 <!-- This is a comment for updating purposes DO NOT REMOVE -->
-    <br><b>Notes</b>
+<br>   
+ <br><b>Notes</b>
     <li>Charts run daily via <a href="https://stagegw.apixio.com:8075" target="_blank">Jenkins Stage</a>
 </li>
     <li>Send feedback to <a href="mailto:abeyk@apixio.com" target="_blank">abeyk@apixio.com</a></li>
@@ -89,3 +109,4 @@
     <br>
    </body>
 </html>
+
