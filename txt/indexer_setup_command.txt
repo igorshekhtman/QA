@@ -29,7 +29,6 @@ Look at the @Path annotations
 /Patient
 @Path("patient/")
 @Path("{uuid}/demographics")
-@Path("demographics")
 @Path("{uuid}/summary/{type}")
 @Path("{uuid}/summary/{type}/{key}")
 @Path("{uuid}/apo")
