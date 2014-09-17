@@ -24,17 +24,20 @@ TEST_TYPE="SanityTest"
 
 # Environment for SanityTest is passed as a paramater. Staging is a default value
 if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
+	# PRODUCTION ==================
 	USERNAME="apxdemot0138"
 	ORGID="10000279"
 	PASSWORD="Hadoop.4522"
 	HOST="https://dr.apixio.com"
 	ENVIRONMENT="Production"
 else:
-	USERNAME="apxdemot0182"
-	ORGID="190"
+	# STAGING =====================
+	USERNAME="sanitytest1"
+	ORGID="370"
 	PASSWORD="Hadoop.4522"
 	HOST="https://stagedr.apixio.com:8443"
 	ENVIRONMENT="Staging"
+#==================================
 
 	
 

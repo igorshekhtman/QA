@@ -1,4 +1,64 @@
-﻿============================ NAS - BACKUP - WHITEPANTS ===========================================
+﻿============================ DATA-ORCHESTRATOR -- MICHAEL =======================================
+
+API END - POINTS:
+
+https://github.com/Apixio/data-orchestrator/tree/master/app/resource
+Look at the @Path annotations
+
+/Document
+@Path("document/")
+@Path("{uuid}/metadata")
+@Path("{uuid}/file")
+@Path("{uuid}/file/{page}")
+@Path("{uuid}/text")
+@Path("{uuid}/textContent")
+@Path("{uuid}/simpleContent")
+@Path("{uuid}/rawContent")
+@Path("{uuid}/extractedContent")
+@Path("{uuid}/entry")
+@Path("{uuid}/traces")
+@Path("{uuid}/apo")
+
+
+/Event
+@Path("events/")
+@Path("{message}")
+@Path("history/{start}/{end}")
+
+
+/Patient
+@Path("patient/")
+@Path("{uuid}/demographics")
+@Path("demographics")
+@Path("{uuid}/summary/{type}")
+@Path("{uuid}/summary/{type}/{key}")
+@Path("{uuid}/apo")
+@Path("{uuid}/events/{orgId}")
+@Path("external/{id}/{source}/{orgId}")
+
+
+/Util
+@Path("/util")
+@Path("refreshBeans")
+@Path("healthcheck")
+@Path("version")
+@Path("config")
+
+
+============================ RANDOM UUID - LILITH ===============================================
+
+[root@ip-10-197-53-3 org_tools]# sh addWorkCFAndPrimaryAssignAuth.sh 
+
+Arguments: 1=orgId 2=primaryAssignAuthority 3={staging,production}
+we use the assign authority "RANDOM_UUID" in the sanity test
+it will now be important to always include the required assign authority for an org 
+(in general your tests are already very consistent)
+
+so I ran this:
+sh addWorkCFAndPrimaryAssignAuth.sh 370 "RANDOM_UUID" staging
+
+
+============================ NAS - BACKUP - WHITEPANTS ===========================================
 
 http://10.19.220.89:5000/webman/index.cgi
 
