@@ -388,7 +388,7 @@ def runEventFailed(environment):
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
 		get_json_object(line, '$.level') ='EVENT' and \
-		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \		
+		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \
 		get_json_object(line, '$.bundler.consume.status') = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
