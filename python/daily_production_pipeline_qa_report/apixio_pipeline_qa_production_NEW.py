@@ -23,16 +23,17 @@ os.system('clear')
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
 # Specific Report Section to Run:
-# 0 - All
-# 1 - failedJobsRD()
-# 2 - errorMessagesRD()
-# 3 - uploadSummaryRD()
-# 4 - jobSummaryRD()
-# 5 - careOptimizerErrorsRD()
-# 6 - logsTrafficRD()
-# 7 - dataOrchestratorRD() - currently (09/05/2014) only available in staging environment
-# 8 - userAccountsRD() - currently (09/08/2014) only available in staging environment
-# 9 - bundlerRD()
+#  0 - All
+#  1 - failedJobsRD()
+#  2 - errorMessagesRD()
+#  3 - uploadSummaryRD()
+#  4 - jobSummaryRD()
+#  5 - careOptimizerErrorsRD()
+#  6 - logsTrafficRD()
+#  7 - eventsRD()
+#  8 - dataOrchestratorRD() - currently (09/05/2014) only available in staging environment
+#  9 - userAccountsRD() - currently (09/08/2014) only available in staging environment
+# 10 - bundlerRD()
 REPSECTORUN=0
 
 # Email reports to eng@apixio.com and archive report html file:
@@ -121,11 +122,14 @@ ORGMAP = { \
 	"10000272":"org0002", \
 	"10000275":"org0005", \
 	"10000278":"Hill Physicians", \
+	"10000318":"Cambia", \
 	"10000279":"Production Test Org", \
 	"10000289":"Production Test Org", \
 	"190":"Staging Test Org", \
+	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
 	"316":"Staging Test Org Dan", \
+	"368":"batmed2", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
@@ -579,7 +583,48 @@ def bundlerDocuments(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='3'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+
+def eventAMR(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="Table: "+table+""
+	print ("Running EVENTS query - retrieve %s ...\n") % (QUERY_DESC)
+
+	
+	cur.execute("""SELECT count(*) as count, \
+		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message) as message, \
+		org_id, status \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, \
+		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message), \
+		status \
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
 		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Event count:</td><td>Error message:</td><td>Status:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "success":
+			BG_COLOR="#FFFFFF"
+		else:
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+		BG_COLOR="#FFFFFF"	
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+	
 	
 def careOptimizerErrors(table):
 	global REPORT, cur, conn
@@ -987,6 +1032,20 @@ def bundlerRD():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
 	
+def eventsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "EVENTS"
+	COMPONENT_STATUS="PASSED"
+	eventAMR("summary_event_address"+POSTFIX)
+	eventAMR("summary_event_mapper"+POSTFIX)
+	eventAMR("summary_event_reducer"+POSTFIX)	
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"		
+	
 
 def writeReportDetails():
 	if (REPSECTORUN == 1) or (REPSECTORUN == 0):
@@ -1002,14 +1061,16 @@ def writeReportDetails():
 	if (REPSECTORUN == 6) or (REPSECTORUN == 0):
 		logsTrafficRD()
 	if (REPSECTORUN == 7) or (REPSECTORUN == 0):
+		eventsRD()
+	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
 		# currently 09/05/2014 only available for staging env
 		if ENVIRONMENT == "staging":
 			dataOrchestratorRD()
-	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
+	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
 		# currently 09/08/2014 only available for staging env
 		if ENVIRONMENT == "staging":
 			userAccountsRD()
-	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
+	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
 		bundlerRD()			
 
 def closeHiveConnection():
