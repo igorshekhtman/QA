@@ -754,6 +754,101 @@ get_json_object(line, '$.hcc.bundler.get_sequence') is not null
 and ($dateRange);
 
 
+insert overwrite table summary_dataorchestrator_request partition (year, month, day, org_id)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.data_orchestrator.request.id') as request_id,
+get_json_object(line, '$.app.data_orchestrator.request.bulk') as is_bulk,
+get_json_object(line, '$.app.data_orchestrator.request.parameters') as parameters,
+get_json_object(line, '$.app.data_orchestrator.request.parameters.patientUUID') as patient_uuid,
+get_json_object(line, '$.app.data_orchestrator.request.parameters.documentUUID') as doc_uuid,
+if( get_json_object(line, '$.app.data_orchestrator.request.bulk') = 'true', 0,
+cast(get_json_object(line, '$.app.data_orchestrator.request.parameters.count') as int)) as bulk_count,
+get_json_object(line, '$.app.data_orchestrator.request.status') as status, 
+get_json_object(line, '$.app.data_orchestrator.request.error') as error , 
+get_json_object(line, '$.app.data_orchestrator.request.code') as response_code,
+get_json_object(line, '$.app.data_orchestrator.request.millis') as response_time,
+get_json_object(line, '$.app.data_orchestrator.request.bytes') as content_length,
+get_json_object(line, '$.app.data_orchestrator.request.method') as method,
+get_json_object(line, '$.app.data_orchestrator.request.endpoint') as endpoint,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day,
+get_json_object(line, '$.app.data_orchestrator.request.orgId') as org_id
+FROM production_logs_dataorchestrator_epoch
+WHERE get_json_object(line, '$.app.data_orchestrator.request') is not null
+and ($dateRange);
+
+insert overwrite table summary_dataorchestrator_lookup partition (year, month, day, org_id)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.data_orchestrator.lookup.request_id') as request_id,
+get_json_object(line, '$.app.data_orchestrator.lookup.parameters') as parameters,
+get_json_object(line, '$.app.data_orchestrator.lookup.parameters.patientUUID') as patient_uuid,
+get_json_object(line, '$.app.data_orchestrator.lookup.parameters.documentUUID') as doc_uuid,
+get_json_object(line, '$.app.data_orchestrator.lookup.status') as status, 
+get_json_object(line, '$.app.data_orchestrator.lookup.error') as error , 
+get_json_object(line, '$.app.data_orchestrator.lookup.endpoint') as endpoint,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day,
+get_json_object(line, '$.app.data_orchestrator.lookup.orgId') as org_id
+FROM production_logs_dataorchestrator_epoch
+WHERE get_json_object(line, '$.app.data_orchestrator.lookup') is not null
+and ($dateRange);
+
+insert overwrite table summary_dataorchestrator_acl partition (year, month, day, org_id)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.data_orchestrator.acl.request_id') as request_id,
+get_json_object(line, '$.app.data_orchestrator.acl.permission') as permission,
+get_json_object(line, '$.app.data_orchestrator.acl.userId')  as user_id,
+get_json_object(line, '$.app.data_orchestrator.acl.authStatus') as auth_status, 
+get_json_object(line, '$.app.data_orchestrator.acl.status') as status, 
+get_json_object(line, '$.app.data_orchestrator.acl.error') as error , 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day,
+get_json_object(line, '$.app.data_orchestrator.acl.orgId') as org_id
+FROM production_logs_dataorchestrator_epoch
+WHERE get_json_object(line, '$.app.data_orchestrator.acl') is not null
+and ($dateRange);
+
+
+insert overwrite table summary_useraccount_request partition (year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.user_account.request.userId') as user_xuuid,
+get_json_object(line, '$.app.user_account.request.parameters') as parameters,
+get_json_object(line, '$.app.user_account.request.parameters.orgId') as org_id,
+get_json_object(line, '$.app.user_account.request.parameters.userId') as user_id,
+get_json_object(line, '$.app.user_account.request.parameters.detail') as detail,
+get_json_object(line, '$.app.user_account.request.parameters.email') as email,
+get_json_object(line, '$.app.user_account.request.parameters.name') as name,
+get_json_object(line, '$.app.user_account.request.parameters.id') as id,
+get_json_object(line, '$.app.user_account.request.status') as status, 
+get_json_object(line, '$.app.user_account.request.error') as error, 
+get_json_object(line, '$.app.user_account.request.failureReason') as failure_reason,
+get_json_object(line, '$.app.user_account.request.code') as response_code,
+get_json_object(line, '$.app.user_account.request.method') as method,
+get_json_object(line, '$.app.user_account.request.endpoint') as endpoint,
+get_json_object(line, '$.app.user_account.request.millis') as response_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM production_logs_useraccount_epoch
+WHERE get_json_object(line, '$.app.user_account.request') is not null
+and ($dateRange);
+
+
 insert overwrite table summary_loader_upload partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.batch_name') as batch_name,
