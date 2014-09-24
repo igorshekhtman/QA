@@ -38,10 +38,10 @@ Look at the @Path annotations
 
 /Util
 @Path("/util")
-@Path("refreshBeans")
+@Path("refreshBeans") - - takes too long to refresh, removed from sanity tests 
 @Path("healthcheck")
 @Path("version")
-@Path("config")
+@Path("config") -not functional - 
 
 
 ============================ RANDOM UUID - LILITH ===============================================
