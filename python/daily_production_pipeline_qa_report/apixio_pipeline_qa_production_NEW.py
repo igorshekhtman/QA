@@ -131,6 +131,7 @@ ORGMAP = { \
 	"315":"Staging DR Perf Test Org", \
 	"316":"Staging Test Org Dan", \
 	"368":"batmed2", \
+	"372":"MMG", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
