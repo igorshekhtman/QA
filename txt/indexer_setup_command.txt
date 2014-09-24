@@ -46,6 +46,15 @@ Look at the @Path annotations
 
 ============================ RANDOM UUID - LILITH ===============================================
 
+TOOLS-SERVER:
+Host stagingCoordinator
+     HostName 50.18.20.216
+     User root
+     IdentityFile ~/.ssh/stage_root.pem (same as QA server)
+
+
+/mnt/home/apxqueue/org_tools/addWorkCFAndPrimaryAssignAuth.sh
+
 [root@ip-10-197-53-3 org_tools]# sh addWorkCFAndPrimaryAssignAuth.sh 
 
 Arguments: 1=orgId 2=primaryAssignAuthority 3={staging,production}
@@ -55,6 +64,8 @@ it will now be important to always include the required assign authority for an 
 
 so I ran this:
 sh addWorkCFAndPrimaryAssignAuth.sh 370 "RANDOM_UUID" staging
+
+sh addWorkCFAndPrimaryAssignAuth.sh 377 "Prosperity Health Care" staging
 
 
 ============================ NAS - BACKUP - WHITEPANTS ===========================================
