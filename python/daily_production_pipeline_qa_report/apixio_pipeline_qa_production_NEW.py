@@ -1064,12 +1064,14 @@ def writeReportDetails():
 		eventsRD()
 	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
 		# currently 09/05/2014 only available for staging env
-		if ENVIRONMENT == "staging":
-			dataOrchestratorRD()
+		# if ENVIRONMENT == "staging":
+		# now 09/24/2014 available in both staging and production
+		dataOrchestratorRD()
 	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
 		# currently 09/08/2014 only available for staging env
-		if ENVIRONMENT == "staging":
-			userAccountsRD()
+		# if ENVIRONMENT == "staging":
+		# now 09/24/2014 available in both staging and production
+		userAccountsRD()
 	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
 		bundlerRD()			
 
