@@ -753,6 +753,30 @@ get_json_object(line, '$.level') = 'EVENT' and
 get_json_object(line, '$.hcc.bundler.get_sequence') is not null
 and ($dateRange);
 
+
+insert overwrite table summary_loader_upload partition (year, month, day, org_id)
+SELECT
+get_json_object(line, '$.batch_name') as batch_name,
+get_json_object(line, '$.user') as user,
+cast(get_json_object(line, '$.success') as boolean) as success,
+get_json_object(line, '$.primary_id') as primary_id,
+get_json_object(line, '$.upload_id') as upload_id,
+get_json_object(line, '$.uuid') as uuid,
+cast(get_json_object(line, '$.size') as bigint) as size,
+get_json_object(line, '$.payload') as payload,
+cast(get_json_object(line, '$.attempts') as int) as attempts,
+get_json_object(line, '$.original_id') as original_id,
+get_json_object(line, '$.reference') as reference,
+get_json_object(line, '$.message') as message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM production_logs_loader_epoch
+WHERE get_json_object(line, '$.level') = 'EVENT' and 
+get_json_object(line, '$.batch_name') is not NULL and
+($dateRange);
+
+
 ###################################Staging#########################################################
 ! echo Loading Staging partitions
 
@@ -1505,6 +1529,29 @@ day
 FROM staging_logs_useraccount_epoch
 WHERE get_json_object(line, '$.app.user_account.request') is not null
 and ($dateRange);
+
+
+insert overwrite table summary_loader_upload_staging partition (year, month, day, org_id)
+SELECT
+get_json_object(line, '$.batch_name') as batch_name,
+get_json_object(line, '$.user') as user,
+cast(get_json_object(line, '$.success') as boolean) as success,
+get_json_object(line, '$.primary_id') as primary_id,
+get_json_object(line, '$.upload_id') as upload_id,
+get_json_object(line, '$.uuid') as uuid,
+cast(get_json_object(line, '$.size') as bigint) as size,
+get_json_object(line, '$.payload') as payload,
+cast(get_json_object(line, '$.attempts') as int) as attempts,
+get_json_object(line, '$.original_id') as original_id,
+get_json_object(line, '$.reference') as reference,
+get_json_object(line, '$.message') as message,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM staging_logs_loader_epoch
+WHERE get_json_object(line, '$.level') = 'EVENT' and 
+get_json_object(line, '$.batch_name') is not NULL and
+($dateRange);
 
 
 EOF
