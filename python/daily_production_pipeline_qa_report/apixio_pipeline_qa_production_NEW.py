@@ -124,6 +124,9 @@ ORGMAP = { \
 	"10000278":"Hill Physicians", \
 	"10000318":"Cambia", \
 	"10000320":"Health Net", \
+	"10000331":"Hill Physicians Medical Group", \
+	"10000367":"org0420", \
+	"10000306":"batmed1", \
 	"10000279":"Production Test Org", \
 	"10000289":"Production Test Org", \
 	"190":"Staging Test Org", \
