@@ -143,6 +143,7 @@ ORGMAP = { \
 	"10000285":"Scripps [Test]", \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
+	"10000291":"HCP of Nevada", \
 	"genManifest":"genManifest", \
 	"defaultOrgID":"defaultOrgID", \
 	"CCHCA":"CCHCA", \
