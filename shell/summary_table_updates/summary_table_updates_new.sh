@@ -865,10 +865,11 @@ get_json_object(line, '$.reference') as reference,
 get_json_object(line, '$.message') as message,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
+day,
+get_json_object(line, '$.org_id') as org_id 
 FROM production_logs_loader_epoch
 WHERE get_json_object(line, '$.level') = 'EVENT' and 
-get_json_object(line, '$.batch_name') is not NULL and
+get_json_object(line, '$.org_id') is not NULL and
 ($dateRange);
 
 
@@ -1642,10 +1643,11 @@ get_json_object(line, '$.reference') as reference,
 get_json_object(line, '$.message') as message,
 substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
-day
-FROM staging_logs_loader_epoch
+day,
+get_json_object(line, '$.org_id') as org_id 
+FROM staging_logs_loader_epoch 
 WHERE get_json_object(line, '$.level') = 'EVENT' and 
-get_json_object(line, '$.batch_name') is not NULL and
+get_json_object(line, '$.org_id') is not NULL and
 ($dateRange);
 
 
