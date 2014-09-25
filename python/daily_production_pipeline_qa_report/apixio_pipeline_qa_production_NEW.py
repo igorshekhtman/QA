@@ -129,12 +129,6 @@ ORGMAP = { \
 	"10000306":"batmed1", \
 	"10000279":"Production Test Org", \
 	"10000289":"Production Test Org", \
-	"190":"Staging Test Org", \
-	"370":"Sanity Test Org", \
-	"315":"Staging DR Perf Test Org", \
-	"316":"Staging Test Org Dan", \
-	"368":"batmed2", \
-	"372":"MMG", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
@@ -144,6 +138,19 @@ ORGMAP = { \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
 	"10000291":"HCP of Nevada", \
+	"10000298":"Theresas Hospital", \
+	"10000299":"Erins Hospital", \
+	"10000300":"Erics Hospital", \
+	"190":"Staging Test Org", \
+	"370":"Sanity Test Org", \
+	"315":"Staging DR Perf Test Org", \
+	"316":"Staging Test Org Dan", \
+	"368":"batmed2", \
+	"372":"MMG", \
+	"377":"org0434", \
+	"367":"org0420", \
+	"331":"Hill Physicians Medical Group", \
+	"243":"org0233", \
 	"genManifest":"genManifest", \
 	"defaultOrgID":"defaultOrgID", \
 	"CCHCA":"CCHCA", \
@@ -269,14 +276,18 @@ def connectToHive():
 
 
 def setHiveParameters():
+	hadoopqueuename="hive"
 	print ("Assigning Hive paramaters ...\n")
 	# cur.execute("""SET mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	# cur.execute("""set mapred.job.queue.name=default""")
-	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
+	if hadoopqueuename=="hive":
+		cur.execute("""set mapred.job.queue.name=hive""")	
+	else:
+		cur.execute("""set mapred.job.queue.name=default""")
+	print ("Hadoop queue was set to: %s\n") % hadoopqueuename	
 	print ("Completed assigning Hive paramaters ...\n")
 
 
@@ -374,7 +385,7 @@ def dataOrchestratorAcls(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		if str(i[3]) == "error":
+		if (str(i[3]) == "error") or (str(i[2]) == "FORBIDDEN") :
 			COMPONENT_STATUS="FAILED"
 			BG_COLOR="#FFFF00"
 		else:
@@ -396,15 +407,15 @@ def dataOrchestratorLookups(table):
 	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(*) as count, \
-		request_id, endpoint, status, error, org_id \
+		endpoint, status, error, org_id \
 		FROM %s \
 		WHERE day=%s and month=%s \
-		GROUP BY org_id, request_id, endpoint, status, error \
+		GROUP BY org_id, endpoint, status, error \
 		ORDER BY count DESC""" %(table, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Count:</td><td>Request ID:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -415,12 +426,12 @@ def dataOrchestratorLookups(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		if str(i[4]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 def dataOrchestratorRequests(table):
@@ -466,15 +477,15 @@ def userAccountsRequests(table):
 	print ("Running USER ACCOUNTS query - retrieve %s ...\n") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(*) as count, \
-		email, response_code, status, error, response_time \
+		email, response_code, status, error \
 		FROM %s \
 		WHERE day=%s and month=%s \
-		GROUP BY email, response_code, status, error, response_time \
+		GROUP BY email, response_code, status, error \
 		ORDER BY status, count DESC""" %(table, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Count:</td><td>Email:</td><td>Respose Code:</td><td>Status:</td><td>Error:</td><td>Response Time:</td></tr>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Email:</td><td>Respose Code:</td><td>Status:</td><td>Error:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -485,9 +496,9 @@ def userAccountsRequests(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+"</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 def bundlerSequence(table):
@@ -563,15 +574,15 @@ def bundlerDocuments(table):
 
 	
 	cur.execute("""SELECT count(distinct doc_id) as count, \
-		patient_uuid, org_id \
+		event_batch_id, org_id \
 		FROM %s \
 		WHERE day=%s and month=%s \
-		GROUP BY org_id, patient_uuid \
+		GROUP BY org_id, event_batch_id \
 		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Document count:</td><td>Patient UUID:</td><td>Org(ID):</td></tr>"
+	REPORT = REPORT+"<tr><td>Document count:</td><td>Event Batch ID:</td><td>Org(ID):</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
