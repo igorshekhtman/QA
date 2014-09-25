@@ -166,7 +166,7 @@ partitioned by (year string, month string, day string);
 
 /**********************************Loader*********************************************************************************/
 create table summary_loader_upload
-(batch_name string, user string, success boolean, primary_id string, upload_id string, uuid string, size bigint, payload string, attempts int, original_id string, reference string, message string)
+(batch_name string, user string, success boolean, primary_id string, upload_id string, uuid string, size bigint, payload string, attempts int, original_id string, reference string, message string, org_id string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 
