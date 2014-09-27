@@ -819,11 +819,13 @@ def summaryLogstrafficTotals(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		if (int(i[4]) > 0):
-			COMPONENT_STATUS="FAILED"
-			REPORT = REPORT + "<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+str(i[4])+"</td><td bgcolor='#FFFF00'>"+str(i[5])+"</td></tr>"
+		if (int(i[4]) > 0) or (int(i[1]) > 0):
+			BG_COLOR="#FFFF00"
 		else:
-			REPORT = REPORT + "<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+str(i[4])+"</td><td>"+str(i[5])+"</td></tr>"
+			BG_COLOR="#FFFFFF"		
+		REPORT = REPORT + "<tr><td bgcolor="+BG_COLOR+">"+str(i[0])+"</td><td bgcolor="+BG_COLOR+">"+str(i[1])+"</td><td bgcolor="+BG_COLOR+">"+str(i[2])+"</td><td bgcolor="+BG_COLOR+">"+str(i[3])+"</td><td bgcolor="+BG_COLOR+">"+str(i[4])+"</td><td bgcolor="+BG_COLOR+">"+str(i[5])+"</td></tr>"	
+		if (int(i[1]) > 0):
+			COMPONENT_STATUS="FAILED"
 			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
@@ -900,9 +902,9 @@ def jobSummary(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		jobs = jobs + i[0]
+		jobs = jobs + int(i[0])
 		if str(i[1]) == "error":
-			failedjobs = failedjobs + 1
+			failedjobs = failedjobs + int(i[0])
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
 			if str(i[3]) in ORGMAP: 
@@ -917,8 +919,8 @@ def jobSummary(table):
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
-	REPORT = REPORT+"<tr><td colspan='4' bgcolor='#4E4E4E' align='left'><font size='3' color='white'> \
-		"+str(jobs)+" - Total number of Jobs processed, out of which "+str(failedjobs)+" Failed and "+str(jobs-failedjobs)+" Succeeded \
+	REPORT = REPORT+"<tr><td colspan='4' align='left' bgcolor='#D0D0D0'><b> \
+		"+str(jobs)+"</b> - Total number of Jobs processed, out of which <font color='#DF1000'><b>"+str(failedjobs)+" failed</b></font> and <font color='#00A303'><b>"+str(jobs-failedjobs)+" succeeded</b></font> \
 		</font></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
