@@ -1,4 +1,16 @@
-TEST
+Subversion
+
+
+https://github.com/Apixio/QA/trunk/shell/summary_table_updates@HEAD
+
+https://github.com/Apixio/QA/trunk/python/daily_production_pipeline_qa_report@HEAD
+
+infinity
+Always check out fresh copy
+(Auto)
+
+
+ssh -i ~/secrets/id_rsa.pem ishekhtman@ip-10-170-181-208 "cd /mnt/automation; python2.6 apixio_pipeline_qa_production_NEW.py production eng@apixio.com ops@apixio.com"
 
 ============================ DATA-ORCHESTRATOR -- MICHAEL =======================================
 
