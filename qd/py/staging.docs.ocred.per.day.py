@@ -212,8 +212,8 @@ def setHiveParameters():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	cur.execute("""set mapred.job.queue.name=default""")
-	#cur.execute("""set mapred.job.queue.name=hive""")
+	#cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Hive parameters assigned ...\n")	
 
@@ -260,26 +260,13 @@ def adjustArray(input_array, notBase):
 	
 def runBaseDocFailed(environment):
 	global B_DOCS_FAILED
-	LOGFILE = selectLogFile(environment,"ocr")
+	#LOGFILE = selectLogFile(environment,"ocr")
+	LOGFILE = "summary_ocr_staging"
 	
-	#baseDateStart2 = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd2 = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart2 = START_DATE - td(days =7)
-	#baseDateEnd2 = END_DATE - td(days = 7)
 	
 	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
-		
-	#cur.execute("""SELECT COUNT(DISTINCT get_json_object(line, '$.documentuuid')) as documents_ocred, \
-	#	year, month, day \
-	#	FROM %s \
-	#	WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
-	#	and \
-	#	get_json_object(line, '$.level') ='EVENT' and \
-	#	get_json_object(line, '$.status') = 'error' \
-	#	GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
-	
+
 	cur.execute("""SELECT COUNT(DISTINCT doc_id) as documents_ocred, \
 		year, month, day \
 		FROM %s \
@@ -312,12 +299,9 @@ def runBaseDocFailed(environment):
 	
 def runBaseDocSucceeded(environment):
 	global B_DOCS_SUCCEEDED
-	LOGFILE = selectLogFile(environment,"ocr")
-	#baseDateStart = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart = START_DATE - td(days =7)
-	#baseDateEnd = END_DATE - td(days = 7)
+	#LOGFILE = selectLogFile(environment,"ocr")
+	LOGFILE = "summary_ocr_staging"
+
 	print ("Running %s Hive Query to extract successful docs baseline data, please wait ...\n") % (environment)
 		
 

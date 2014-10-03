@@ -1,0 +1,7 @@
+name	nbRequest	nbRequestOK	nbRequestKO	minResponseTime	minResponseTimeOK	minResponseTimeKO	maxResponseTime	maxResponseTimeOK	maxResponseTimeKO	meanResponseTime	meanResponseTimeOK	meanResponseTimeKO	deviation	deviationOK	deviationKO	percentile1	percentile1OK	percentile1KO	percentile2	percentile2OK	percentile2KO	group1Name	group1Count	group1Percentage	group2Name	group2Count	group2Percentage	group3Name	group3Count	group3Percentage	group4Name	group4Count	group4Percentage	meanNumberOfRequestsPerSecond	meanNumberOfRequestsPerSecondOK	meanNumberOfRequestsPerSecondKO
+Global Information	165	165	0	30	30	-1	390	390	-1	95	95	-1	84	84	-1	200	200	-1	380	380	-1	t < 800 ms	165	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	1	1	-1
+Login	55	55	0	12200	12200	-1	12690	12690	-1	12289	12289	-1	163	163	-1	12690	12690	-1	12690	12690	-1	t < 800 ms	0	0	800 ms < t < 1200 ms	0	0	t > 1200 ms	55	100	failed	0	0	0	0	-1
+Login / Login page	55	55	0	30	30	-1	330	330	-1	65	65	-1	59	59	-1	190	190	-1	210	210	-1	t < 800 ms	55	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Login / Submit login	55	55	0	120	120	-1	390	390	-1	186	186	-1	69	69	-1	370	370	-1	380	380	-1	t < 800 ms	55	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Token	55	55	0	30	30	-1	80	80	-1	42	42	-1	8	8	-1	50	50	-1	80	80	-1	t < 800 ms	55	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1
+Token / Token exchange	55	55	0	30	30	-1	50	50	-1	34	34	-1	8	8	-1	40	40	-1	50	50	-1	t < 800 ms	55	100	800 ms < t < 1200 ms	0	0	t > 1200 ms	0	0	failed	0	0	0	0	-1

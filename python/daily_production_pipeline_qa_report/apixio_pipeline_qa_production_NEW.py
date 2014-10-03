@@ -22,13 +22,23 @@ os.system('clear')
 
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
 
-# Specific Query Number to Run
-QNTORUN=1
+# Specific Report Section to Run:
+#  0 - All
+#  1 - failedJobsRD()
+#  2 - errorMessagesRD()
+#  3 - uploadSummaryRD()
+#  4 - jobSummaryRD()
+#  5 - careOptimizerErrorsRD()
+#  6 - logsTrafficRD()
+#  7 - eventsRD()
+#  8 - dataOrchestratorRD()
+#  9 - userAccountsRD()
+# 10 - bundlerRD()
+REPSECTORUN=0
 
-# Run one or all queries
-PROCESS_ALL_QUERIES=bool(1)
-
-# Send report emails and archive report html file
+# Email reports to eng@apixio.com and archive report html file:
+# 0 - False
+# 1 - True
 DEBUG_MODE=bool(0)
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
@@ -112,11 +122,13 @@ ORGMAP = { \
 	"10000272":"org0002", \
 	"10000275":"org0005", \
 	"10000278":"Hill Physicians", \
+	"10000318":"Cambia", \
+	"10000320":"Health Net", \
+	"10000331":"Hill Physicians Medical Group", \
+	"10000367":"org0420", \
+	"10000306":"batmed1", \
 	"10000279":"Production Test Org", \
 	"10000289":"Production Test Org", \
-	"190":"Staging Test Org", \
-	"315":"Staging DR Perf Test Org", \
-	"316":"Staging Test Org Dan", \
 	"10000280":"Prosper Care Health", \
 	"10000281":"Prosperity Health Care", \
 	"10000282":"Apixio Coder Training", \
@@ -125,6 +137,20 @@ ORGMAP = { \
 	"10000285":"Scripps [Test]", \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
+	"10000291":"HCP of Nevada", \
+	"10000298":"Theresas Hospital", \
+	"10000299":"Erins Hospital", \
+	"10000300":"Erics Hospital", \
+	"190":"Staging Test Org", \
+	"370":"Sanity Test Org", \
+	"315":"Staging DR Perf Test Org", \
+	"316":"Staging Test Org Dan", \
+	"368":"batmed2", \
+	"372":"MMG", \
+	"377":"org0434", \
+	"367":"org0420", \
+	"331":"Hill Physicians Medical Group", \
+	"243":"org0233", \
 	"genManifest":"genManifest", \
 	"defaultOrgID":"defaultOrgID", \
 	"CCHCA":"CCHCA", \
@@ -143,7 +169,7 @@ def checkEnvironmentandReceivers():
 	# Arg1 - environment
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
-	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -157,12 +183,14 @@ def checkEnvironmentandReceivers():
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT = "production"
+		POSTFIX = ""
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
 		PASSWORD="Hadoop.4522"
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT = "staging"
+		POSTFIX = "_staging"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -248,14 +276,18 @@ def connectToHive():
 
 
 def setHiveParameters():
+	hadoopqueuename="hive"
 	print ("Assigning Hive paramaters ...\n")
 	# cur.execute("""SET mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	# cur.execute("""set mapred.job.queue.name=default""")
-	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
+	if hadoopqueuename=="hive":
+		cur.execute("""set mapred.job.queue.name=hive""")	
+	else:
+		cur.execute("""set mapred.job.queue.name=default""")
+	print ("Hadoop queue was set to: %s\n") % hadoopqueuename	
 	print ("Completed assigning Hive paramaters ...\n")
 
 
@@ -330,6 +362,285 @@ def obtainErrors(activity, summary_table_name, unique_id):
 def removeHtmlTags(data):
     p = re.compile(r'<.*?>')
     return p.sub('', data)
+	
+
+def dataOrchestratorAcls(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""ACL(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		permission, auth_status, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, permission, auth_status, status, error \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Permission:</td><td>Auth Status:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if (str(i[3]) == "error") or (str(i[2]) == "FORBIDDEN") :
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def dataOrchestratorLookups(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""Lookup(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		endpoint, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, endpoint, status, error \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[4]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def dataOrchestratorRequests(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	# print (table)
+	QUERY_DESC="""Request(s) summary"""
+	print ("Running DATA ORCHESTRATOR query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		response_code, endpoint, status, error, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, endpoint, status, error, response_code \
+		ORDER BY count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Response code:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def userAccountsRequests(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="""User Accounts Request(s) summary"""
+	print ("Running USER ACCOUNTS query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		email, response_code, status, error \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY email, response_code, status, error \
+		ORDER BY status, count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Email:</td><td>Respose Code:</td><td>Status:</td><td>Error:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+def bundlerSequence(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="""Bundler Sequence summary"""
+	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		pattern, memory_total_bytes, status \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY pattern, status, memory_total_bytes \
+		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Pattern:</td><td>Memory Total Bytes:</td><td>Status:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+def bundlerHistorical(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="""Bundler Historical summary"""
+	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
+
+	cur.execute("""SELECT count(*) as count, \
+		low, high, status, millis, memory_total_bytes \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY low, high, status, millis, memory_total_bytes \
+		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Low:</td><td>High:</td><td>Status:</td><td>Millis:</td><td>Memory Total Bytes:</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "error":
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		else:
+			BG_COLOR="#FFFFFF"
+
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
+def bundlerDocuments(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="""Bundler Document(s) summary"""
+	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
+
+	
+	cur.execute("""SELECT count(distinct doc_id) as count, \
+		event_batch_id, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, event_batch_id \
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Document count:</td><td>Event Batch ID:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		#if str(i[3]) == "error":
+		#	COMPONENT_STATUS="FAILED"
+		#	BG_COLOR="#FFFF00"
+		#else:
+		#	BG_COLOR="#FFFFFF"
+		BG_COLOR="#FFFFFF"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='3'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+
+
+def eventAMR(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	#print (table)
+	QUERY_DESC="Table: "+table+""
+	print ("Running EVENTS query - retrieve %s ...\n") % (QUERY_DESC)
+
+	
+	cur.execute("""SELECT count(*) as count, \
+		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message) as message, \
+		org_id, status \
+		FROM %s \
+		WHERE day=%s and month=%s \
+		GROUP BY org_id, \
+		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message), \
+		status \
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Event count:</td><td>Error message:</td><td>Status:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "success":
+			BG_COLOR="#FFFFFF"
+		else:
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		if str(i[2]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+		BG_COLOR="#FFFFFF"	
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"
+	
 	
 	
 def careOptimizerErrors(table):
@@ -508,11 +819,13 @@ def summaryLogstrafficTotals(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		if (int(i[4]) > 0):
-			COMPONENT_STATUS="FAILED"
-			REPORT = REPORT + "<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td><td bgcolor='#FFFF00'>"+str(i[2])+"</td><td bgcolor='#FFFF00'>"+str(i[3])+"</td><td bgcolor='#FFFF00'>"+str(i[4])+"</td><td bgcolor='#FFFF00'>"+str(i[5])+"</td></tr>"
+		if (int(i[4]) > 0) or (int(i[1]) > 0):
+			BG_COLOR="#FFFF00"
 		else:
-			REPORT = REPORT + "<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td><td>"+str(i[3])+"</td><td>"+str(i[4])+"</td><td>"+str(i[5])+"</td></tr>"
+			BG_COLOR="#FFFFFF"		
+		REPORT = REPORT + "<tr><td bgcolor="+BG_COLOR+">"+str(i[0])+"</td><td bgcolor="+BG_COLOR+">"+str(i[1])+"</td><td bgcolor="+BG_COLOR+">"+str(i[2])+"</td><td bgcolor="+BG_COLOR+">"+str(i[3])+"</td><td bgcolor="+BG_COLOR+">"+str(i[4])+"</td><td bgcolor="+BG_COLOR+">"+str(i[5])+"</td></tr>"	
+		if (int(i[1]) > 0):
+			COMPONENT_STATUS="FAILED"
 			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
@@ -589,9 +902,9 @@ def jobSummary(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		jobs = jobs + i[0]
+		jobs = jobs + int(i[0])
 		if str(i[1]) == "error":
-			failedjobs = failedjobs + 1
+			failedjobs = failedjobs + int(i[0])
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
 			if str(i[3]) in ORGMAP: 
@@ -606,25 +919,20 @@ def jobSummary(table):
 				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
 			else:
 				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
-	REPORT = REPORT+"<tr><td colspan='4' bgcolor='#4E4E4E' align='left'><font size='3' color='white'> \
-		"+str(jobs)+" - Total number of Jobs processed, out of which "+str(failedjobs)+" Failed and "+str(jobs-failedjobs)+" Succeeded \
+	REPORT = REPORT+"<tr><td colspan='4' align='left' bgcolor='#D0D0D0'><b> \
+		"+str(jobs)+"</b> - Total number of Jobs processed, out of which <font color='#DF1000'><b>"+str(failedjobs)+" failed</b></font> and <font color='#00A303'><b>"+str(jobs-failedjobs)+" succeeded</b></font> \
 		</font></td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
-	
 
-def writeReportDetails():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, ENVIRONMENT
-	
-#============ 1st or Failed Jobs section of the report ======================
-	
+
+def failedJobsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		obtainFailedJobs("summary_coordinator_jobfinish")
-	else:
-		obtainFailedJobs("summary_coordinator_jobfinish_staging")
+	obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
+
 	if (COMPONENT_STATUS == "PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -632,46 +940,31 @@ def writeReportDetails():
 	REPORT = REPORT+"<br><br>"
 	print ("Completed failed jobs query ... \n")
 	
-#============ 2nd or Error Messages Received section of the report =============
-			
+def errorMessagesRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		obtainErrors("DR","summary_docreceiver_upload", "doc_id")
-		obtainErrors("DR","summary_docreceiver_archive", "doc_id")
-		obtainErrors("DR","summary_docreceiver_seqfile", "doc_id")
-		obtainErrors("Parser","summary_parser", "doc_id")
-		obtainErrors("OCR","summary_ocr", "doc_id")
-		obtainErrors("Persist Mapper","summary_persist_mapper", "doc_id")
-		obtainErrors("Persist Reducer","summary_persist_reducer", "patient_uuid")
-	else:
-		obtainErrors("DR","summary_docreceiver_upload_staging", "doc_id")
-		obtainErrors("DR","summary_docreceiver_archive_staging", "doc_id")
-		obtainErrors("DR","summary_docreceiver_seqfile_staging", "doc_id")
-		obtainErrors("Parser","summary_parser_staging", "doc_id")
-		obtainErrors("OCR","summary_ocr_staging", "doc_id")
-		obtainErrors("Persist Mapper","summary_persist_mapper_staging", "doc_id")
-		obtainErrors("Persist Reducer","summary_persist_reducer_staging", "patient_uuid")
-		
+	obtainErrors("DR","summary_docreceiver_upload"+POSTFIX, "doc_id")
+	obtainErrors("DR","summary_docreceiver_archive"+POSTFIX, "doc_id")
+	obtainErrors("DR","summary_docreceiver_seqfile"+POSTFIX, "doc_id")
+	obtainErrors("Parser","summary_parser"+POSTFIX, "doc_id")
+	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
+	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
+	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_uuid")
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-	
-#============ 3rd or Upload Summary section of the report ======================	
-	
+
+def uploadSummaryRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		uploadSummary("Doc-Receiver","summary_docreceiver_upload", "doc_id")
-		uploadSummary("OCR","summary_ocr", "doc_id")
-		uploadSummary("Persist Mapper","summary_persist_mapper", "doc_id")
-	else:
-		uploadSummary("Doc-Receiver","summary_docreceiver_upload_staging", "doc_id")
-		uploadSummary("OCR","summary_ocr_staging", "doc_id")
-		uploadSummary("Persist Mapper","summary_persist_mapper_staging", "doc_id")
+	uploadSummary("Doc-Receiver","summary_docreceiver_upload"+POSTFIX, "doc_id")
+	uploadSummary("OCR","summary_ocr"+POSTFIX, "doc_id")
+	uploadSummary("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
@@ -679,47 +972,37 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-#============ 4th or Job Summary section of the report =====================	
-	
+def jobSummaryRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		jobSummary("summary_coordinator_jobfinish")
-	else:
-		jobSummary("summary_coordinator_jobfinish_staging")
+	jobSummary("summary_coordinator_jobfinish"+POSTFIX)
+
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 
-#============ 5th or Care Optimizer Errors section of the report ==========
-	
+def careOptimizerErrorsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		careOptimizerErrors("summary_careopt_errors")
-		careOptimizerLoad("summary_careopt_load")
-		careOptimizerSearch("summary_careopt_search")
-	else:
-		careOptimizerErrors("summary_careopt_errors_staging")
-		careOptimizerLoad("summary_careopt_load_staging")
-		careOptimizerSearch("summary_careopt_search_staging")
+	careOptimizerErrors("summary_careopt_errors"+POSTFIX)
+	careOptimizerLoad("summary_careopt_load"+POSTFIX)
+	careOptimizerSearch("summary_careopt_search"+POSTFIX)
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
-
-#============ 6th or Logs Traffic section of the report =================
 	
+def logsTrafficRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
 	COMPONENT_STATUS="PASSED"
-	if ENVIRONMENT == "production":
-		summaryLogstrafficTotals("summary_logstraffic")
-	else:
-		summaryLogstrafficTotals("summary_logstraffic_staging")
+	summaryLogstrafficTotals("summary_logstraffic"+POSTFIX)
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
@@ -727,7 +1010,89 @@ def writeReportDetails():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 	
-#========================= END =============================================	
+def dataOrchestratorRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "DATA ORCHESTRATOR"
+	COMPONENT_STATUS="PASSED"
+	dataOrchestratorAcls("summary_dataorchestrator_acl"+POSTFIX)
+	dataOrchestratorLookups("summary_dataorchestrator_lookup"+POSTFIX)
+	dataOrchestratorRequests("summary_dataorchestrator_request"+POSTFIX)
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"	
+
+def userAccountsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "USER ACCOUNTS"
+	COMPONENT_STATUS="PASSED"
+	userAccountsRequests("summary_useraccount_request"+POSTFIX)
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"	
+
+def bundlerRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "BUNDLER"
+	COMPONENT_STATUS="PASSED"
+	bundlerSequence("summary_bundler_sequence"+POSTFIX)
+	bundlerHistorical("summary_bundler_historical"+POSTFIX)
+	bundlerDocuments("summary_bundler_document"+POSTFIX)
+	
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"	
+	
+def eventsRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "EVENTS"
+	COMPONENT_STATUS="PASSED"
+	eventAMR("summary_event_address"+POSTFIX)
+	eventAMR("summary_event_mapper"+POSTFIX)
+	eventAMR("summary_event_reducer"+POSTFIX)	
+		
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"		
+	
+
+def writeReportDetails():
+	if (REPSECTORUN == 1) or (REPSECTORUN == 0):
+		failedJobsRD()
+	if (REPSECTORUN == 2) or (REPSECTORUN == 0):	
+		errorMessagesRD()			
+	if (REPSECTORUN == 3) or (REPSECTORUN == 0):
+		uploadSummaryRD()
+	if (REPSECTORUN == 4) or (REPSECTORUN == 0):
+		jobSummaryRD()
+	if (REPSECTORUN == 5) or (REPSECTORUN == 0):
+		careOptimizerErrorsRD()
+	if (REPSECTORUN == 6) or (REPSECTORUN == 0):
+		logsTrafficRD()
+	if (REPSECTORUN == 7) or (REPSECTORUN == 0):
+		eventsRD()
+	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
+		# currently 09/05/2014 only available for staging env
+		# if ENVIRONMENT == "staging":
+		# now 09/24/2014 available in both staging and production
+		dataOrchestratorRD()
+	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
+		# currently 09/08/2014 only available for staging env
+		# if ENVIRONMENT == "staging":
+		# now 09/24/2014 available in both staging and production
+		userAccountsRD()
+	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
+		bundlerRD()			
 
 def closeHiveConnection():
 	global cur, conn

@@ -176,8 +176,8 @@ def setHiveParameters():
         cur.execute("""set hive.exec.dynamic.partition=true""")
         cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
         cur.execute("""set mapred.reduce.tasks=16""")
-        cur.execute("""set mapred.job.queue.name=default""")
-        #cur.execute("""set mapred.job.queue.name=hive""")
+        #cur.execute("""set mapred.job.queue.name=default""")
+        cur.execute("""set mapred.job.queue.name=hive""")
         cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
         print ("Hive parameters assigned ...\n")
 
@@ -220,100 +220,104 @@ def adjustArray(input_array, notBase):
 
 
 def runBaseJobFailed(environment):
-        global B_JOBS_FAILED
-        LOGFILE = selectLogFile(environment,"coordinator")
-        print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
+	global B_JOBS_FAILED
+	#LOGFILE = selectLogFile(environment,"coordinator")
+	LOGFILE = "summary_coordinator_jobfinish_staging"
+	print ("Running %s Hive Query to extract failed jobs baseline data, please wait ...\n") % (environment)
 
-        cur.execute("""SELECT COUNT(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
-                year, month, day \
-                FROM %s \
-                WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
-                and \
-                get_json_object(line, '$.job.status') = 'error' \
-                GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+	cur.execute("""SELECT COUNT(DISTINCT job_id) as count, \
+		year, month, day \
+		FROM %s \
+		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'error' \
+		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 
-        print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
-        print ("Ended running %s Hive Query to extract baseline failed jobs ...\n")      % (environment)
-        result = cur.fetch()
-        new_result = adjustArray(result, False)
-        print ("Failed:\tYear:\t\tMonth:\t\tDay:")
-        ind = 0
-        for i in new_result:
-                print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
-                B_JOBS_FAILED[ind] = int(i[0])
-                ind = ind + 1
+	print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
+	print ("Ended running %s Hive Query to extract baseline failed jobs ...\n")      % (environment)
+	result = cur.fetch()
+	new_result = adjustArray(result, False)
+	print ("Failed:\tYear:\t\tMonth:\t\tDay:")
+	ind = 0
+	for i in new_result:
+		print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
+		B_JOBS_FAILED[ind] = int(i[0])
+		ind = ind + 1
 
 
 def runBaseJobSucceeded(environment):
-        global B_JOBS_SUCCEEDED
-        LOGFILE = selectLogFile(environment,"coordinator")
-        print ("Running %s Hive Query to extract successful jobs baseline data, please wait ...\n") % (environment)
+	global B_JOBS_SUCCEEDED
+	#LOGFILE = selectLogFile(environment,"coordinator")
+	LOGFILE = "summary_coordinator_jobfinish_staging"
+	print ("Running %s Hive Query to extract successful jobs baseline data, please wait ...\n") % (environment)
 
-        cur.execute("""SELECT COUNT(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
-                year, month, day \
-                FROM %s \
-                WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
-                and \
-                get_json_object(line, '$.job.status') = 'success' \
-                GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
+	cur.execute("""SELECT COUNT(DISTINCT job_id) as count, \
+		year, month, day \
+		FROM %s \
+		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'success' \
+		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 
-        print ("Ended running %s Hive Query to extract baseline successful jobs ...\n")  % (environment)
-        result = cur.fetch()
-        new_result = adjustArray(result, False)
-        print ("Success:\tYear:\t\tMonth:\t\tDay:")
-        ind = 0
-        for i in new_result:
-                print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
-                B_JOBS_SUCCEEDED[ind] = int(i[0])
-                ind = ind + 1
+	print ("Ended running %s Hive Query to extract baseline successful jobs ...\n")  % (environment)
+	result = cur.fetch()
+	new_result = adjustArray(result, False)
+	print ("Success:\tYear:\t\tMonth:\t\tDay:")
+	ind = 0
+	for i in new_result:
+		print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
+		B_JOBS_SUCCEEDED[ind] = int(i[0])
+		ind = ind + 1
 
 
 def runJobSucceeded(environment):
-        global JOBS_SUCCEEDED
-        LOGFILE = selectLogFile(environment,"coordinator")
-        print ("Running %s Hive Query to extract successful jobs, please wait ...\n") % (environment)
+	global JOBS_SUCCEEDED
+	#LOGFILE = selectLogFile(environment,"coordinator")
+	LOGFILE = "summary_coordinator_jobfinish_staging"
+	print ("Running %s Hive Query to extract successful jobs, please wait ...\n") % (environment)
 
-        cur.execute("""SELECT COUNT(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
-                year, month, day \
-                FROM %s \
-                WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
-                and \
-                get_json_object(line, '$.job.status') = 'success' \
-                GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
+	cur.execute("""SELECT COUNT(DISTINCT job_id) as count, \
+		year, month, day \
+		FROM %s \
+		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'success' \
+		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 
-        print ("Ended running %s Hive Query to extract successful jobs ...\n")   % (environment)
-        result = cur.fetch()
-        print ("Success:\tYear:\t\tMonth:\t\tDay:")
-        ind = 0
-        new_result = adjustArray(result, True)
-        for i in new_result:
-           print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
-           JOBS_SUCCEEDED[ind] = int(i[0])
-           ind = ind + 1
+	print ("Ended running %s Hive Query to extract successful jobs ...\n")   % (environment)
+	result = cur.fetch()
+	print ("Success:\tYear:\t\tMonth:\t\tDay:")
+	ind = 0
+	new_result = adjustArray(result, True)
+	for i in new_result:
+		print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
+		JOBS_SUCCEEDED[ind] = int(i[0])
+		ind = ind + 1
 
 
 def runJobFailed(environment):
-        global JOBS_FAILED
-        LOGFILE = selectLogFile(environment,"coordinator")
-        print ("Running %s Hive Query to extract failed jobs, please wait ...\n") % (environment)
+	global JOBS_FAILED
+	#LOGFILE = selectLogFile(environment,"coordinator")
+	LOGFILE = "summary_coordinator_jobfinish_staging"
+	print ("Running %s Hive Query to extract failed jobs, please wait ...\n") % (environment)
 
-        cur.execute("""SELECT COUNT(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
-                year, month, day \
-                FROM %s \
-                WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
-                and \
-                get_json_object(line, '$.job.status') = 'error' \
-                GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
+	cur.execute("""SELECT COUNT(DISTINCT job_id) as count, \
+		year, month, day \
+		FROM %s \
+		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
+		and \
+		status = 'error' \
+		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 
-        print ("Ended running %s Hive Query to extract failed jobs ...\n")       % (environment)
-        result = cur.fetch()
-        new_result = adjustArray(result, True)
-        print ("Failed:\tYear:\t\tMonth:\t\tDay:")
-        ind = 0
-        for i in new_result:
-			print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
-			JOBS_FAILED[ind] = int(i[0])
-			ind = ind + 1
+	print ("Ended running %s Hive Query to extract failed jobs ...\n")       % (environment)
+	result = cur.fetch()
+	new_result = adjustArray(result, True)
+	print ("Failed:\tYear:\t\tMonth:\t\tDay:")
+	ind = 0
+	for i in new_result:
+		print (str(i[0])+" \t\t "+str(i[1])+" \t\t "+str(i[2])+" \t\t "+str(i[3]))
+		JOBS_FAILED[ind] = int(i[0])
+		ind = ind + 1
 
 
 def runQueries(environment):

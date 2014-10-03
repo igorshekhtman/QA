@@ -1,6 +1,28 @@
+
 <html>
+  <head>
+  <style>
+  #addchart{
+    padding: 10px 30px 10px 30px;
+    background: #006666;
+    border: none;
+    color: #FFF;
+    box-shadow: 1px 1px 1px #4C6E91;
+    -webkit-box-shadow: 1px 1px 1px #4C6E91;
+    -moz-box-shadow: 1px 1px 1px #4C6E91;
+    text-shadow: 1px 1px 1px #5079A3;
+    
+	}
+	#addchart:hover{
+    background: #009966;
+    }
+  </style> 
+  </head>
   <body>
     <center><h2>Charts</h2></center>
+	<form name="newchart" action="form.html" method="POST">
+		<center><input id="addchart" type="submit" value="Create Custom Chart" name="Create Custom Chart" label="Create Custom Chart" formtarget="frame3"></center>
+	</form>
     <h3>Doc Receiver</h3>
     <a href="html/production.docs.uploaded.per.day.html" target="frame3">Production: Docs Uploaded per Day</a><br>
     <a href="html/production.docs.archived.per.day.html" target="frame3">Production: Docs Archived per Day</a><br>
@@ -9,7 +31,11 @@
     <a href="html/staging.docs.archived.per.day.html" target="frame3">Staging: Docs Archived per Day</a><br>
     <a href="html/staging.docs.added.to.seq.file.per.day.html" target="frame3">Staging: Docs Added to SEQ File per Day</a><br>
     <h3>Coordinator</h3>
+	<a href="html/production.jobs.requested.per.day.html" target="frame3">Production: Jobs Requested per Day</a><br>
+    <a href="html/production.jobs.started.per.day.html" target="frame3">Production: Jobs Started per Day</a><br>
     <a href="html/production.jobs.succeeded.per.day.html" target="frame3">Production: Jobs Succeeded per Day</a><br>
+    <a href="html/staging.jobs.requested.per.day.html" target="frame3">Staging: Jobs Requested per Day</a><br>
+    <a href="html/staging.jobs.started.per.day.html" target="frame3">Staging: Jobs Started per Day</a><br>
     <a href="html/staging.jobs.succeeded.per.day.html" target="frame3">Staging: Jobs Succeeded per Day</a><br>
     <h3>Parser</h3>
     <a href="html/production.docs.parsed.per.day.html" target="frame3">Production: Docs Parsed per Day</a><br>
@@ -29,6 +55,19 @@
     <h3>Events Reducer</h3>
     <a href="html/production.events.reduced.per.day.html" target="frame3">Production: Events Reduced per Day</a><br>
     <a href="html/staging.events.reduced.per.day.html" target="frame3">Staging: Events Reduced per Day</a><br>
+	<h3>Data Orchestrator</h3>
+    <a href="html/staging.data.orchestrator.acl.per.day.html" target="frame3">Staging: ACL per Day</a><br>
+    <a href="html/staging.data.orchestrator.lookup.per.day.html" target="frame3">Staging: Lookup per Day</a><br>
+	<a href="html/staging.data.orchestrator.request.per.day.html" target="frame3">Staging: Requests per Day</a><br>
+	<h3>User Accounts</h3>
+    <a href="html/staging.user.accounts.requests.per.day.html" target="frame3">Staging: User Accounts Requests per Day</a><br>
+	<h3>Bundler</h3>
+	<a href="html/production.bundler.sequence.per.day.html" target="frame3">Production: Bundler Sequence per Day</a><br>
+	<a href="html/production.bundler.historical.per.day.html" target="frame3">Production: Bundler Historical per Day</a><br>
+	<a href="html/production.bundler.documents.per.day.html" target="frame3">Production: Bundler Documents per Day</a><br>
+    <a href="html/staging.bundler.sequence.per.day.html" target="frame3">Staging: Bundler Sequence per Day</a><br>
+	<a href="html/staging.bundler.historical.per.day.html" target="frame3">Staging: Bundler Historical per Day</a><br>
+	<a href="html/staging.bundler.documents.per.day.html" target="frame3">Staging: Bundler Documents per Day</a><br>
     <h3>Data Quality Charts</h3>
     <a href="html/production.patient.events.after.bundling.html" target="frame3">Production: All Orgs, Patient Events after Bundling</a><br>
     <a href="html/production.opportunities.after.bundling.html" target="frame3">Production: All Orgs, Opportunities after Bundling</a><br>
@@ -41,8 +80,13 @@
     <h3>Customer Excellence Charts</h3>
     <a href="html/production.active.coders.last.day.html" target="frame3">Production: All Orgs, Active Coders, Last Day</a><br>
     <a href="html/production.opportunities.last.day.html" target="frame3">Production: All Orgs, Opportunities, Last Day</a><br>
-    <br>
-    <br><b>Notes</b>
+    
+ <h3>Custom Charts</h3>
+
+<a href="html/staging.jobs.started.per.day.html" target="frame3">staging: New Jobs Started Chart</a><br>
+<!-- This is a comment for updating purposes DO NOT REMOVE -->
+<br>   
+ <br><b>Notes</b>
     <li>Charts run daily via <a href="https://stagegw.apixio.com:8075" target="_blank">Jenkins Stage</a>
 </li>
     <li>Send feedback to <a href="mailto:abeyk@apixio.com" target="_blank">abeyk@apixio.com</a></li>
@@ -54,12 +98,15 @@
     <br>4.Use existing files as examples
     <br>
     <br><b>Todo List</b>
-    <li>Test with Chrome</li>
-    <li>Test with FireFox</li>
-    <li>Test with Safari</li>
-	<li>Change to 7-day span (DONE)</li>
-	<li>Add Data Orchestrator</li>
-	<li>Add ACL</li>
+    <li>Test with Chrome(done)</li>
+    <li>Test with FireFox(done)</li>
+    <li>Test with Safari(done)</li>
+	<li>Change to 7-day span(done)</li>
+	<li>Add Data Orchestrator(done)</li>
+	<li>Add ACL(done)</li>
+	<li>Add Bundler(done)</li>
+	<li>Add New Chart creation UI(done)</li>
     <br>
    </body>
 </html>
+

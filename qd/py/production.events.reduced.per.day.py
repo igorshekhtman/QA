@@ -210,8 +210,8 @@ def setHiveParameters():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	cur.execute("""set mapred.job.queue.name=default""")
-	#cur.execute("""set mapred.job.queue.name=hive""")
+	#cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Hive parameters assigned ...\n")	
 
@@ -257,24 +257,18 @@ def adjustArray(input_array, notBase):
 	
 def runBaseEventFailed(environment):
 	global B_EVENTS_FEILED
-	LOGFILE = selectLogFile(environment,"event")
-	
-	#baseDateStart2 = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd2 = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart2 = START_DATE - td(days =7)
-	#baseDateEnd2 = END_DATE - td(days = 7)
+	#LOGFILE = selectLogFile(environment,"event")
+	LOGFILE = "summary_event_reducer"
 	
 	print ("Running %s Hive Query to extract failed events baseline data, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count, \
+	cur.execute("""SELECT COUNT(*) as Total_Reducer_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.className') = 'com.apixio.jobs.event.reducer.EventReducer' and \
-		get_json_object(line, '$.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	print (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day)
@@ -300,23 +294,19 @@ def runBaseEventFailed(environment):
 	
 def runBaseEventSucceeded(environment):
 	global B_EVENTS_SUCCEEDED
-	LOGFILE = selectLogFile(environment,"event")
-	#baseDateStart = date(int(ST_YEAR),int(ST_MONTH),int(ST_DAY))
-	#baseDateEnd = date(int(EN_YEAR),int(EN_MONTH),int(EN_DAY))
-	
-	#baseDateStart = START_DATE - td(days =7)
-	#baseDateEnd = END_DATE - td(days = 7)
+	#LOGFILE = selectLogFile(environment,"event")
+	LOGFILE = "summary_event_reducer"
+
 	print ("Running %s Hive Query to extract successful events baseline data, please wait ...\n") % (environment)
 		
 		
-	cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count, \
+	cur.execute("""SELECT SUM(num_of_events_persisted) as Total_Reducer_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.className') = 'com.apixio.jobs.event.reducer.EventReducer' and \
-		get_json_object(line, '$.eventBatch.count') is not null and \
-		get_json_object(line, '$.status') = 'success' \
+		num_of_events_persisted is not null and \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
 	
@@ -340,19 +330,19 @@ def runBaseEventSucceeded(environment):
 	
 def runEventSucceeded(environment):
 	global EVENTS_SUCCEEDED
-	LOGFILE = selectLogFile(environment,"event")
+	#LOGFILE = selectLogFile(environment,"event")
+	LOGFILE = "summary_event_reducer"
 		
 	print ("Running %s Hive Query to extract successful events, please wait ...\n") % (environment)
 
 		
-	cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count, \
+	cur.execute("""SELECT SUM(num_of_events_persisted) as Total_Reducer_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.className') = 'com.apixio.jobs.event.reducer.EventReducer' and \
-		get_json_object(line, '$.eventBatch.count') is not null and \
-		get_json_object(line, '$.status') = 'success' \
+		num_of_events_persisted is not null and \
+		status = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	print ("Ended running %s Hive Query to extract successful events ...\n")	 % (environment)
@@ -373,19 +363,19 @@ def runEventSucceeded(environment):
 
 def runEventFailed(environment):
 	global EVENTS_FEILED
-	LOGFILE = selectLogFile(environment,"event")
+	#LOGFILE = selectLogFile(environment,"event")
+	LOGFILE = "summary_event_reducer"
 	
 	print ("Running %s Hive Query to extract failed events, please wait ...\n") % (environment)
 	
 
 	
-	cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count, \
+	cur.execute("""SELECT COUNT(*) as Total_Reducer_Events_Count, \
 		year, month, day \
 		FROM %s \
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
-		get_json_object(line, '$.className') = 'com.apixio.jobs.event.reducer.EventReducer' and \
-		get_json_object(line, '$.status') = 'error' \
+		status = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
 	

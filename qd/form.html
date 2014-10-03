@@ -1,0 +1,141 @@
+<html>
+<head>
+    <title>Please Provide Information Below:</title>
+    <style type="text/css">
+
+    .container {
+        width: 500px;
+        clear: both;
+		
+    }
+    .container input {
+        width: 100%;
+        clear: both;
+    }
+	
+	#subbutton{
+    padding: 10px 30px 10px 30px;
+    background: #006666;
+    border: none;
+    color: #FFF;
+    box-shadow: 1px 1px 1px #4C6E91;
+    -webkit-box-shadow: 1px 1px 1px #4C6E91;
+    -moz-box-shadow: 1px 1px 1px #4C6E91;
+    text-shadow: 1px 1px 1px #5079A3;
+    
+	}
+	#subbutton:hover{
+    background: #009966;
+}
+    </style>
+</head>
+<body>
+<center>
+<div class="container" align="center">
+
+<center><h2>Create Custom Chart</h2></center>
+	<table align="center" cellspacing="0" cellpadding="0" width="500" >
+		<tr>
+			<td bgcolor="#E8E8E8">
+				<form action="py/addChart.py/email" method="POST">
+				<label><b>&nbsp;Chart Title:</b>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. Docs Uploaded Per Day)</label>    
+				<input type="text" name="title">
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">
+				<label><b>&nbsp;Environment:</b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. staging or production)</label>
+				<input type="text" name="env">
+				<!-- <input type="radio" name="env" value="staging"> staging <input type="radio" name="env" value="production"> production -->
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">   
+				<label><b>&nbsp;Log File Name:</b> &nbsp; &nbsp; &nbsp; &nbsp; (e.g. summary-docreceiver-upload) </label>
+				<input type="text" name="cat">
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">  
+				<label><b>&nbsp;Attribute:</b> &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. Successful Docs or Failed Docs)</label>
+				<input type="text" name="type1">
+			</td>
+		</tr>
+		<!--
+		<tr>
+			<td bgcolor="#E8E8E8"> 				
+				<label><b>&nbsp;Attribute 2:</b> </label>
+				<input type="text" name="type2">
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8"> 				
+				<label><b>&nbsp;Attribute 3:</b></label>
+				<input type="text" name="type3">
+			</td>
+		</tr>
+		-->
+		<tr>
+			<td bgcolor="#E8E8E8">  
+				<label><b>&nbsp;Historical View:</b>&nbsp; &nbsp; &nbsp; &nbsp; (e.g. 7 for seven days)</label>
+				<input type="text" name="days"><br>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">   
+				<label><b>&nbsp;Hive Query:</b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (<a href="http://docs.treasuredata.com/articles/hive" target="_blank">HQL Reference</a>)</label>
+				<textarea name="query1" rows=4 cols=68></textarea>
+			</td>
+		</tr>
+		<!--
+		<tr>
+			<td bgcolor="#E8E8E8"> 
+				<label><b>&nbsp;Hive Query 2:</b></label>
+				<textarea name="query2" rows=4 cols=68></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8"> 				
+				<label><b>&nbsp;Hive Query 3:</b></label>
+				<textarea name="query3" rows=4 cols=68></textarea>
+			</td>
+		</tr>
+		-->
+		<tr>
+			<td bgcolor="#E8E8E8">  
+				<label><b>&nbsp;File Name:</b>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. docs.uploaded.per.day)</label>
+				<input type="text" name="dataloc">
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">  
+				<label><b>&nbsp;Y Axis Label:</b> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. Docs)</label>
+				<input type="text" name="yaxis">
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#E8E8E8">  
+				<label><b>&nbsp;Chart Type:</b>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. line or bar)</label>
+				<input type="text" name="charttype">
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<br>
+				<h3><i>Notes:</i></h3>
+				<li>Successful chart submissions take around 3-5 minutes</li>
+				<li>Charts will automatically update daily via <a href="https://stagegw.apixio.com:8075" target="_blank">Jenkins Stage</a></li>
+				<li>Custom Chart links will be placed at the bottom of the Charts pane</li>
+				<li>Unsuccessful chart submissions usually return within a few seconds with a MOD_PYTHON error page</li>
+				<br>
+				<center><input id="subbutton" type="submit" style="width:100px"></center>
+				</form>
+			</td>
+		</tr>
+	</table>   
+
+</div>
+</center>
+</body>
+</html>
+

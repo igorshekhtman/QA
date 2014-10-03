@@ -210,8 +210,8 @@ def setHiveParameters():
 	cur.execute("""set hive.exec.dynamic.partition=true""")
 	cur.execute("""set hive.exec.dynamic.partition.mode=nonstrict""")
 	cur.execute("""set mapred.reduce.tasks=16""")
-	cur.execute("""set mapred.job.queue.name=default""")
-	#cur.execute("""set mapred.job.queue.name=hive""")
+	#cur.execute("""set mapred.job.queue.name=default""")
+	cur.execute("""set mapred.job.queue.name=hive""")
 	cur.execute("""set hive.exec.max.dynamic.partitions.pernode = 1000""")
 	print ("Hive parameters assigned ...\n")	
 
@@ -277,6 +277,7 @@ def runBaseEventFailed(environment):
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
 		get_json_object(line, '$.level') ='EVENT' and \
+		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \
 		get_json_object(line, '$.bundler.consume.status') = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
@@ -318,6 +319,7 @@ def runBaseEventSucceeded(environment):
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
 		get_json_object(line, '$.level') ='EVENT' and \
+		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \
 		get_json_object(line, '$.bundler.consume.status') = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE_BASE.year * 10000 + START_DATE_BASE.month * 100 + START_DATE_BASE.day), (END_DATE_BASE.year * 10000 + END_DATE_BASE.month * 100 + END_DATE_BASE.day)))
 	
@@ -353,6 +355,7 @@ def runEventSucceeded(environment):
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
 		get_json_object(line, '$.level') ='EVENT' and \
+		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \
 		get_json_object(line, '$.bundler.consume.status') = 'success' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	
@@ -385,6 +388,7 @@ def runEventFailed(environment):
 		WHERE year*10000+month*100+day >= %s and year*10000+month*100+day <= %s \
 		and \
 		get_json_object(line, '$.level') ='EVENT' and \
+		get_json_object(line, '$.bundler.consume.raw_events') is not NULL and \
 		get_json_object(line, '$.bundler.consume.status') = 'error' \
 		GROUP BY year, month, day ORDER BY year, month, day ASC""" % (LOGFILE, (START_DATE.year * 10000 + START_DATE.month * 100 + START_DATE.day), (END_DATE.year * 10000 + END_DATE.month * 100 + END_DATE.day)))
 	

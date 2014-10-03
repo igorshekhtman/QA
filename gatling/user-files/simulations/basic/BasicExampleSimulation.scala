@@ -9,8 +9,8 @@ import assertions._
 
 class BasicExampleSimulation extends Simulation {
 
-  //val environment = "Production"
-  val environment = "Staging"
+  val environment = "Production"
+  //val environment = "Staging"
   
   var ip = "54.193.231.8"
   var userdatafn = "user_credentials_prod.csv"
@@ -45,6 +45,11 @@ class BasicExampleSimulation extends Simulation {
 	documentdatafn = "document_uuids.csv"  
   }
   
+  
+  // val login = ip + ":8085"
+  // val login = ip + ":8076"
+  // val token = ip + ":8085/tokens"
+  
   val login = ip + ":8079"
   val loginSubmit = login + "/uh/login"
   val token = ip + ":8075/tokens"
@@ -64,7 +69,7 @@ class BasicExampleSimulation extends Simulation {
   //val username = "apxdemot0001@apixio.net"
   //val password = "Hadoop.4522"
   
-
+  println(login)
   val scn = scenario("HCC app under load")
 
   
@@ -107,7 +112,7 @@ class BasicExampleSimulation extends Simulation {
       http("Patient demographics")
         //.param("patientuuid", "${username}")
         //.get(session => patient + "/" + patientuuid + "/demographics")
-        .get("50.18.147.10:8085/patient/${patient_uuid}/demographics")
+        .get("54.193.231.8:8085/patient/${patient_uuid}/demographics")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
         // TODO: Add other data checks here, i.e. Content-Type and response length
@@ -117,19 +122,19 @@ class BasicExampleSimulation extends Simulation {
       feed(csv(documentdatafn))
       .exec( 
       http("Document retrieval text")
-        .get("50.18.147.10:8085/document/${document_uuid}/text")
+        .get("54.193.231.8:8085/document/${document_uuid}/text")
         //.get(session => document + "/" + documentuuid + "/text")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
       .exec( 
       http("Document retrieval metadata")
-        .get("50.18.147.10:8085/document/${document_uuid}/metadata")
+        .get("54.193.231.8:8085/document/${document_uuid}/metadata")
         //.get(session => document + "/" + documentuuid + "/metadata")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
       .exec( 
       http("Document retrieval file")
-        .get("50.18.147.10:8085/document/${document_uuid}/file")
+        .get("54.193.231.8:8085/document/${document_uuid}/file")
         //.get(session => document + "/" + documentuuid + "/file")
         .header("Authorization", "Apixio ${internalToken}")
         .check(status.is(ok)))
@@ -159,9 +164,9 @@ class BasicExampleSimulation extends Simulation {
   // 30 users over 1 hour
   // setUp(scn.inject(ramp(30 users) over (3600 seconds)))
   // 3 users over 20 seconds
-  // setUp(scn.inject(ramp(3 users) over (20 seconds)))
+  setUp(scn.inject(ramp(3 users) over (20 seconds)))
   // 25 users over 120 seconds
-  setUp(scn.inject(ramp(25 users) over (120 seconds)))
+  // setUp(scn.inject(ramp(25 users) over (120 seconds)))
   // 11 users over 1 hour
   // setUp(scn.inject(ramp(11 users) over (3600 seconds)))
   // 60 users over 1 hour

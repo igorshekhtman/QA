@@ -1,4 +1,114 @@
-﻿============================ Doc-RECEIVER TESTING: ===============================================
+
+
+[10/1/14, 10:58:18 AM] Alex Beyk: To edit the server name:
+[10/1/14, 10:58:31 AM] Alex Beyk:   vi /etc/hosts
+    127.0.0.1   grinder2   localhost.localdomain
+  vi /etc/sysconfig/network
+    HOSTNAME=grinder2
+  shutdown -r 0
+  vi /etc/hosts
+    127.0.0.1   grinder2   localhost.localdomain
+  cd /mnt/automation/grinder
+  ./run-grinder-agent.sh
+
+
+============================ JENKINS PULLING LATEST FROM GIT =====================================
+Subversion
+
+
+https://github.com/Apixio/QA/trunk/shell/summary_table_updates@HEAD
+
+https://github.com/Apixio/QA/trunk/python/daily_production_pipeline_qa_report@HEAD
+
+infinity
+Always check out fresh copy
+(Auto)
+
+
+ssh -i ~/secrets/id_rsa.pem ishekhtman@ip-10-170-181-208 "cd /mnt/automation; python2.6 apixio_pipeline_qa_production_NEW.py production eng@apixio.com ops@apixio.com"
+
+============================ DATA-ORCHESTRATOR -- MICHAEL =======================================
+
+API END - POINTS:
+
+https://github.com/Apixio/data-orchestrator/tree/master/app/resource
+Look at the @Path annotations
+
+/Document
+@Path("document/")
+@Path("{uuid}/metadata")
+@Path("{uuid}/file")
+@Path("{uuid}/file/{page}")
+@Path("{uuid}/text")
+@Path("{uuid}/textContent")
+@Path("{uuid}/simpleContent")
+@Path("{uuid}/rawContent")
+@Path("{uuid}/extractedContent")
+@Path("{uuid}/entry")
+@Path("{uuid}/traces")
+@Path("{uuid}/apo")
+
+
+/Event
+@Path("events/")
+@Path("{message}")
+@Path("history/{start}/{end}")
+
+
+/Patient
+@Path("patient/")
+@Path("{uuid}/demographics")
+@Path("{uuid}/summary/{type}")
+@Path("{uuid}/summary/{type}/{key}")
+@Path("{uuid}/apo")
+@Path("{uuid}/events/{orgId}")
+@Path("external/{id}/{source}/{orgId}")
+
+
+/Util
+@Path("/util")
+@Path("refreshBeans") - - takes too long to refresh, removed from sanity tests 
+@Path("healthcheck")
+@Path("version")
+@Path("config") -not functional - 
+
+
+============================ RANDOM UUID - LILITH ===============================================
+
+TOOLS-SERVER:
+Host stagingCoordinator
+     HostName 50.18.20.216
+     User root
+     IdentityFile ~/.ssh/stage_root.pem (same as QA server)
+
+
+/mnt/home/apxqueue/org_tools/addWorkCFAndPrimaryAssignAuth.sh
+
+[root@ip-10-197-53-3 org_tools]# sh addWorkCFAndPrimaryAssignAuth.sh 
+
+Arguments: 1=orgId 2=primaryAssignAuthority 3={staging,production}
+we use the assign authority "RANDOM_UUID" in the sanity test
+it will now be important to always include the required assign authority for an org 
+(in general your tests are already very consistent)
+
+so I ran this:
+sh addWorkCFAndPrimaryAssignAuth.sh 370 "RANDOM_UUID" staging
+
+sh addWorkCFAndPrimaryAssignAuth.sh 377 "Prosperity Health Care" staging
+
+
+============================ NAS - BACKUP - WHITEPANTS ===========================================
+
+http://10.19.220.89:5000/webman/index.cgi
+
+user: ishekhtman
+
+zip -r qa_data.zip /mnt/testdata/*
+
+using windows explorer:
+\\whitepants\public
+
+============================ Doc-RECEIVER TESTING: ===============================================
 
 Connect to Hadoop-namenode-server: 54.215.109.178
 
@@ -1127,17 +1237,14 @@ user : root@api.apixio.com
 password : thePassword
 
 
-
-CD C:\_Pipline\Indexer\V30
-
+# CD C:\_Pipline\Indexer\V30
 # CD C:\_Pipeline\Indexer\V30
+cd /Users/ishekhtman/Documents/indexer/V30
 
 
 # java -cp apixio-indexer-3.0.0-SNAPSHOT.jar com.apixio.indexer.util.Setup
-
-java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
-
 # java -jar apixio-indexer-3.1.0.jar
+java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
 
 
 User: apxdemot463
@@ -1147,6 +1254,9 @@ pw: H....4x2x (you know what it is)
 key: V01_8p1x1o1825sanmateocalifornia9440
 
 production key: V01_dWbZtN56Hnwez6jR5Tfjx25bdfj8GVJt
+
+RUN INDEXER:
+java -jar apixio-indexer-3.1.0.jar
 
 
 PRODUCTION:
