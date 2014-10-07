@@ -358,6 +358,7 @@ substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.job
 get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
+and (get_json_object(line, '$.jobname') is not null or get_json_object(line, '$.orgId') is not null)
 and ($dateRange);
 
 insert overwrite table summary_persist_mapper partition (year, month, day, org_id)
@@ -1137,6 +1138,7 @@ day,
 get_json_object(line, '$.orgId') as org_id
 FROM staging_logs_ocrjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
+and get_json_object(line, '$.orgId') is not null
 and ($dateRange);
 
 insert overwrite table summary_persist_mapper_staging partition (year, month, day, org_id)
