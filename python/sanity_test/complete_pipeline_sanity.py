@@ -351,7 +351,7 @@ User name: <b>%s</b><br>
 """ % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
-conn = pyhs2.connect(host='10.196.47.205',
+conn = pyhs2.connect(host='54.191.226.61',
                    port=10000,
                    authMechanism="PLAIN",
                    user='hive',
