@@ -1,4 +1,17 @@
 
+conn = pyhs2.connect(host='54.191.226.61',
+                   port=10000,
+                   authMechanism="PLAIN",
+                   user='hive',
+                   password='',
+                   database='default')
+
+============================ UNIX COMMANDS ====================================================
+PWD - show full directory path
+cp -av /usr/lib/apx-reporting/html/assets/reports/* /mnt/reports
+
+
+================================================================================================
 
 [10/1/14, 10:58:18 AM] Alex Beyk: To edit the server name:
 [10/1/14, 10:58:31 AM] Alex Beyk:   vi /etc/hosts
