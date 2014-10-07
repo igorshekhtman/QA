@@ -267,7 +267,7 @@ def writeReportHeader ():
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='10.196.47.205', \
+	conn = pyhs2.connect(host='54.191.226.61', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
