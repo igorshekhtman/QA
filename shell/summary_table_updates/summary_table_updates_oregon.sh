@@ -333,6 +333,7 @@ substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.job
 get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
+and (get_json_object(line, '$.documentuuid') is not null or get_json_object(line, '$.status') is not null)
 and ($dateRange);
 
 insert overwrite table summary_ocr partition (year, month, day, org_id)
@@ -1115,6 +1116,7 @@ substr(get_json_object(line, '$.jobname'), 1, instr(get_json_object(line, '$.job
 get_json_object(line, '$.orgId')) as org_id
 FROM staging_logs_parserjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
+and (get_json_object(line, '$.documentuuid') is not null or get_json_object(line, '$.status') is not null)
 and ($dateRange);
 
 insert overwrite table summary_ocr_staging partition (year, month, day, org_id)
