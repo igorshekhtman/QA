@@ -31,7 +31,7 @@ echo " "
 day=$scurDay
 month=$scurMonth
 year=$scurYear
-dateRange="(month=$curMonth and day=$curDay and year=$year)"
+dateRange="(month='$curMonth' and day='$curDay' and year=$year)"
 
 echo "Updating partitioned log traffic summary table with date range: $dateRange"
 echo " "
