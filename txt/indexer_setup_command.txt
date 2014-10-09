@@ -1,6 +1,8 @@
 
 /mnt/gatling_2_0_0_RC5/bin
 
+<shift>:q - exit from the editor
+
 whitepants - \\10.19.220.89
 ishekhtman
 
