@@ -1,4 +1,6 @@
 
+/mnt/gatling_2_0_0_RC5/bin
+
 whitepants - \\10.19.220.89
 ishekhtman
 
@@ -15,6 +17,10 @@ conn = pyhs2.connect(host='54.191.226.61',
 ============================ UNIX COMMANDS ====================================================
 PWD - show full directory path
 cp -av /usr/lib/apx-reporting/html/assets/reports/* /mnt/reports
+
+/usr/lib/apx-reporting/html/assets/reports/production/pipeline/2014/10 - new
+
+/usr/lib/apx-reporting/assets/reports/production/pipeline/2014/10 - old
 
 
 ================================================================================================
