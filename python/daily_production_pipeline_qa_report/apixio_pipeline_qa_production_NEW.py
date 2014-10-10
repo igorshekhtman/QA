@@ -234,9 +234,13 @@ def identifyReportDayandMonth():
 				else:
 					CURDAY=31
 
-	DAY = CURDAY
-	MONTH = CURMONTH
-	MONTH_FMN=calendar.month_name[MONTH]
+	DAY = "\"%s\"" % (CURDAY)
+	if (CURDAY < 10):
+		DAY = "\"0%s\"" % (CURDAY)
+	MONTH = "\"%s\"" % (CURMONTH)
+	if (MONTH < 10):
+		MONTH = "\"0%s\"" % (CURMONTH)
+	MONTH_FMN = "\"%s\"" % (calendar.month_name[MONTH])
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
