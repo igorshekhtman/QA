@@ -1128,7 +1128,7 @@ def archiveReport():
 			os.makedirs(REPORTFOLDER)
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
-		REPORTFILENAME=str(DAY)+".html"
+		REPORTFILENAME=str(CURDAY)+".html"
 		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="reports.txt"
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
