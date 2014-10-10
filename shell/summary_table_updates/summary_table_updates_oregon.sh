@@ -77,7 +77,7 @@ dateRange="${dateRange:-(month='$curMonth' and day='$curDay')}";
 echo "Updating partitioned summary tables with date range: $dateRange"
 echo " "
 
-/usr/bin/hive --service beeline -u jdbc:hive2://10.0.2.10:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
+/usr/bin/hive --service beeline -u jdbc:hive2://10.0.0.10:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
