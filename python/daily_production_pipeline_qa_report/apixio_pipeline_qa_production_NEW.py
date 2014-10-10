@@ -238,7 +238,7 @@ def identifyReportDayandMonth():
 	if (CURDAY < 10):
 		DAY = "\"0%s\"" % (CURDAY)
 	MONTH = "\"%s\"" % (CURMONTH)
-	if (MONTH < 10):
+	if (CURMONTH < 10):
 		MONTH = "\"0%s\"" % (CURMONTH)
 	MONTH_FMN = calendar.month_name[CURMONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
@@ -1118,8 +1118,8 @@ def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -1129,7 +1129,7 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(DAY)+".html"
-		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="reports.txt"
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		os.chdir(BACKUPREPORTFOLDER)
