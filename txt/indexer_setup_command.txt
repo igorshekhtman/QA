@@ -25,7 +25,9 @@ cp -av /usr/lib/apx-reporting/html/assets/reports/* /mnt/reports
 /usr/lib/apx-reporting/assets/reports/production/pipeline/2014/10 - old
 
 
-================================================================================================
+=========================== GRINDER FUNCTIONS LIST =================================================
+
+http://grinder.sourceforge.net/g3/script-javadoc/index-all.html
 
 [10/1/14, 10:58:18 AM] Alex Beyk: To edit the server name:
 [10/1/14, 10:58:31 AM] Alex Beyk:   vi /etc/hosts
