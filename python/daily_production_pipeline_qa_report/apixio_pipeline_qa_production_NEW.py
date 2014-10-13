@@ -240,6 +240,8 @@ def identifyReportDayandMonth():
 	MONTH = "\"%s\"" % (CURMONTH)
 	if (CURMONTH < 10):
 		MONTH = "\"0%s\"" % (CURMONTH)
+	DAY = str(CURDAY)
+	MONTH = str(CURMONTH)	
 	MONTH_FMN = calendar.month_name[CURMONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
@@ -302,9 +304,9 @@ def obtainFailedJobs(table):
 	cur.execute("""SELECT activity, hadoop_job_id, batch_id, org_id, time \
 		FROM %s \
 		WHERE \
-		day=%s and month=%s and \
+		day=%s and month=%s and year=%s and \
 		status = 'error' \
-		ORDER BY org_id ASC""" % (table, DAY, MONTH))
+		ORDER BY org_id ASC""" % (table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
@@ -342,10 +344,10 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		WHERE \
 		%s is not null and \
 		status = 'error' and \
-		day=%s and month=%s \
+		day=%s and month=%s and year=%s \
 		GROUP BY org_id, \
 		if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 			
 	ROW = 0
 	for i in cur.fetch():
@@ -378,9 +380,9 @@ def dataOrchestratorAcls(table):
 	cur.execute("""SELECT count(*) as count, \
 		permission, auth_status, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, permission, auth_status, status, error \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -413,9 +415,9 @@ def dataOrchestratorLookups(table):
 	cur.execute("""SELECT count(*) as count, \
 		endpoint, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY org_id, endpoint, status, error \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -448,9 +450,9 @@ def dataOrchestratorRequests(table):
 	cur.execute("""SELECT count(*) as count, \
 		response_code, endpoint, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY org_id, endpoint, status, error, response_code \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -483,9 +485,9 @@ def userAccountsRequests(table):
 	cur.execute("""SELECT count(*) as count, \
 		email, response_code, status, error \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY email, response_code, status, error \
-		ORDER BY status, count DESC""" %(table, DAY, MONTH))
+		ORDER BY status, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -515,9 +517,9 @@ def bundlerSequence(table):
 	cur.execute("""SELECT count(*) as count, \
 		pattern, memory_total_bytes, status \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY pattern, status, memory_total_bytes \
-		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		ORDER BY status, count ASC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -547,9 +549,9 @@ def bundlerHistorical(table):
 	cur.execute("""SELECT count(*) as count, \
 		low, high, status, millis, memory_total_bytes \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY low, high, status, millis, memory_total_bytes \
-		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		ORDER BY status, count ASC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -580,9 +582,9 @@ def bundlerDocuments(table):
 	cur.execute("""SELECT count(distinct doc_id) as count, \
 		event_batch_id, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, event_batch_id \
-		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -618,11 +620,11 @@ def eventAMR(table):
 		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message) as message, \
 		org_id, status \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, \
 		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message), \
 		status \
-		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -667,9 +669,9 @@ def careOptimizerErrors(table):
 	cur.execute("""SELECT error_message, min(time) as first_occurence, \
 		max(time) as last_occurence, count(*) as count \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY error_message \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -711,9 +713,9 @@ def careOptimizerLoad(table):
 		min(patient_cache_size) as min_patient_cache, \
 		max(patient_cache_size) as max_patient_cache \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY org_id \
-		ORDER BY max_load_time_seconds DESC""" %(table, DAY, MONTH))
+		ORDER BY max_load_time_seconds DESC""" %(table, DAY, MONTH, YEAR))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -764,9 +766,9 @@ def careOptimizerSearch(table):
 		min(time) as first_access, \
 		max(time) as last_access \
 		FROM %s  \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, split(username, "_")[1] \
-		ORDER BY max_time DESC""" %(table, DAY, MONTH))
+		ORDER BY max_time DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -811,8 +813,8 @@ def summaryLogstrafficTotals(table):
 	cur.execute("""SELECT app_name, \
 		discarded, infos, events, errors, total \
 		FROM %s  \
-		WHERE day=%s and month=%s \
-		ORDER BY total DESC""" %(table, DAY, MONTH))
+		WHERE day=%s and month=%s and year=%s \
+		ORDER BY total DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -847,9 +849,9 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		FROM %s \
 		WHERE \
 		%s is not null and \
-		day=%s and month=%s \
+		day=%s and month=%s and year=%s \
 		GROUP BY org_id, status \
-		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Organization:</td></tr>"	
@@ -892,13 +894,13 @@ def jobSummary(table):
 		org_id \
 		FROM %s \
 		WHERE \
-		day=%s and month=%s and \
+		day=%s and month=%s and year=%s and \
 		status is not null and \
 		status <> 'start' \
 		GROUP BY status, \
 		activity, \
 		org_id \
-		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH))
+		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"		
@@ -1019,8 +1021,8 @@ def dataOrchestratorRD():
 	REPORT = REPORT+SUBHDR % "DATA ORCHESTRATOR"
 	COMPONENT_STATUS="PASSED"
 	dataOrchestratorAcls("summary_dataorchestrator_acl"+POSTFIX)
-	dataOrchestratorLookups("summary_dataorchestrator_lookup"+POSTFIX)
-	dataOrchestratorRequests("summary_dataorchestrator_request"+POSTFIX)
+	#dataOrchestratorLookups("summary_dataorchestrator_lookup"+POSTFIX)
+	#dataOrchestratorRequests("summary_dataorchestrator_request"+POSTFIX)
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
