@@ -56,13 +56,16 @@ redirect = 302
 
 HOST_DOMAIN = "acladmin" +postfix+ ".apixio.com"
 HOST_URL = "https://%s" % HOST_DOMAIN
+#Anthonys computer - used for testing
 #HOST_URL = "http://10.19.220.51:8086"
 USERNAME = "root@api.apixio.com"
 PASSWORD = "thePassword"
 MAX_OPPS = 2
 NEWUSER  = "apxdemot1010@apixio.net"
 USERPASSWORD = "apixio.123"
-UUID = ""
+USR_UUID = ""
+# Apixio Coders
+ORG_UUID = "UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76"
 
 
 def create_request(test, headers=None):
@@ -155,7 +158,7 @@ class TestRunner:
 
 		# main loop, designating number of users to create
 		for i in range (0, 1):
-			username = "apxdemot000082"+str(i)+"@apixio.net"
+			username = "apxdemot000085"+str(i)+"@apixio.net"
 			print "Username = [%s]" % username
 			auth_result = login.POST(HOST_URL+"/access/user", (
 				NVPair('email', username),
@@ -164,8 +167,8 @@ class TestRunner:
 			userjson = JSONValue.parse(auth_result.getText())
 			json2 = auth_result.getText()
 			if userjson is not None:
-				UUID = userjson.get("id")
-				print "User UUID: " + UUID
+				USR_UUID = userjson.get("id")
+				print "User UUID: " + USR_UUID
 			
 			statuscode = auth_result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
@@ -173,13 +176,13 @@ class TestRunner:
 		#=================================================================================
 		
 		print "\nActivate New User..."	
-		print "User UUID: " + UUID 
+		print "User UUID: " + USR_UUID 
 		json1 = '{\"password\"        :  \"apixio.123\"}'
 		login = create_request(Test(4000, 'Activate new user'),[
             NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
         ])
 
-		result = login.PUT(HOST_URL+"/access/user/"+UUID, json2, (
+		result = login.PUT(HOST_URL+"/access/user/"+USR_UUID, json2, (
 			NVPair('session', token),))
 			
 		print_all_cookies(thread_context)
@@ -190,7 +193,7 @@ class TestRunner:
 		#=================================================================================
  
 		print "\nAssign New User Password..."		
-		print "User UUID: " + UUID 
+		print "User UUID: " + USR_UUID 
 		print "Password: " + USERPASSWORD
 
 		headers = [
@@ -206,28 +209,33 @@ class TestRunner:
             NVPair('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36'),  
             NVPair('session', token),          
         ]
-		login = create_request(Test(5000, 'Set new user password'),headers)
+		login = create_request(Test(5000, 'Set Password'),headers)
 		
-		password_url = HOST_URL+"/access/user/"+UUID+"/password"
-		print "password_url = [%s]" % password_url
+		password_url = HOST_URL+"/access/user/"+USR_UUID+"/password"
 		params = (NVPair('password', USERPASSWORD),)
 		#data = Codecs.mpFormDataEncode(params,zeros(1,NVPair),headers)
-		#result = login.PUT(HOST_URL+"/access/user/"+UUID+"/password", data, headers)
-		result = login.PUT(HOST_URL+"/access/user/"+UUID+"/password", str.encode("password=apixio.123"), headers)
+		#result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", data, headers)
 		
-		
-		
-		#result = login.PUT(HOST_URL+"/access/user/"+UUID+"/password", (
-		#	NVPair('password', USERPASSWORD),), (
-		#	NVPair('session', token),))
-		#time.sleep(10)
-		
-		#NVPair('Cookie', cookies),
-		
-			
+		result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", str.encode("password=apixio.123"), headers)
+					
 		statuscode = result.statusCode
 		print "Status Code = [%s]\t\t" % statuscode	
 		
+		#=================================================================================
+ 
+		print "\nAssign Coding Organization..."	
+		print "User UUID: " + USR_UUID 
+		print "Org UUID: " + ORG_UUID
+			
+		login = create_request(Test(6000, 'Coding Organization'),[
+            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
+        ])
+		auth_result = login.POST(HOST_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
+			NVPair('session', token),))
+				
+			
+		statuscode = auth_result.statusCode
+		print "Status Code = [%s]\t\t" % statuscode
 		
 		#=================================================================================
 		
