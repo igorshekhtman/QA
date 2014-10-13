@@ -1,0 +1,19 @@
+http://grinder.sourceforge.net/g3/script-gallery.html#helloworld.py
+
+Script Gallery:
+http://grinder.sourceforge.net/g3/script-gallery.html
+
+
+Building URL:
+http://stackoverflow.com/questions/9886469/grinder-hit-multiple-urls-using-multiple-threads-from-same-process
+
+har2grinder script:
+https://github.com/postrational/har2grinder/blob/master/har2grinder.py
+
+Anatomy of a Grinder test-script:
+http://vivin.net/2009/08/14/anatomy-of-a-grinder-testscript/
+
+
+Using nGrinder to perform load test for socket.io app Python version
+http://www.cubrid.org/wiki_ngrinder/entry/using-ngrinder-to-perform-load-test-for-socket-io-app-python-version
+
