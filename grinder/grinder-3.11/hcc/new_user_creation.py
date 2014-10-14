@@ -54,8 +54,10 @@ accepted = 202
 movedperm = 301
 redirect = 302
 
+
 HOST_DOMAIN = "acladmin" +postfix+ ".apixio.com"
-HOST_URL = "https://%s" % HOST_DOMAIN
+HOST_URL = "https://" + HOST_DOMAIN
+#HOST_URL = "https://%s" % HOST_DOMAIN
 #Anthonys computer - used for testing
 #HOST_URL = "http://10.19.220.51:8086"
 USERNAME = "root@api.apixio.com"
@@ -65,7 +67,9 @@ NEWUSER  = "apxdemot1010@apixio.net"
 USERPASSWORD = "apixio.123"
 USR_UUID = ""
 # Apixio Coders
-ORG_UUID = "UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76"
+# ORG_UUID = "UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76"
+# Load Test Coders
+ORG_UUID = "UO_149af107-1ef7-49a0-923e-be4b2de174b3"
 
 
 def create_request(test, headers=None):
@@ -86,6 +90,14 @@ def get_session(thread_context):
             session = cookie.getValue()
             #print "cookie = [%s]" % cookie
     return session
+    
+def get_csrf_token(thread_context):
+    cookies = CookieModule.listAllCookies(thread_context)
+    csrftoken = ''
+    for cookie in cookies:
+        if cookie.getName() == 'csrftoken':
+            csrftoken = cookie.getValue()
+    return csrftoken    
     
 def print_all_cookies(thread_context):
     cookies = CookieModule.listAllCookies(thread_context)
@@ -109,11 +121,13 @@ class TestRunner:
 		print "User Account API URL: \t\t"+useraccount
 		print "Tokenizer API URL: \t\t"+tokenizer
 		print "Data Orchestrator API URL: \t"+dataorchestrator
+		print "Host URL: \t\t\t"+HOST_URL
 		print "Host Domain: \t\t\t"+HOST_DOMAIN+"\n\n"
 		
 		#=================================================================================
 		
 		print "\nObtain Authorization..."
+		print "HOST_URL: " + HOST_URL
 		statuscode = 500
 		# repeat until successful login is reached
 		while statuscode != 200:
@@ -122,14 +136,14 @@ class TestRunner:
             	NVPair('Referer', 'https://acladmin-stg.apixio.com/'),
         	])
 			
-			auth_result = login.POST(HOST_URL+"/auth", (
+			result = login.POST(HOST_URL+"/auth", (
 				NVPair('session', get_session(thread_context)),
 				NVPair('email', USERNAME),
 				NVPair('password', PASSWORD),))
 		
 			token = get_session(thread_context)
 
-			statuscode = auth_result.statusCode
+			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
 				
 		#=================================================================================
@@ -140,11 +154,11 @@ class TestRunner:
             NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
         ])
 
-		auth_result = login.GET(HOST_URL+"/access/users", (
+		result = login.GET(HOST_URL+"/access/users", (
 			NVPair('session', token),))
 
 			
-		statuscode = auth_result.statusCode
+		statuscode = result.statusCode
 
 		print "Status Code = [%s]\t\t" % statuscode
 		
@@ -158,19 +172,19 @@ class TestRunner:
 
 		# main loop, designating number of users to create
 		for i in range (0, 1):
-			username = "apxdemot000085"+str(i)+"@apixio.net"
+			username = "apxdemot000093"+str(i)+"@apixio.net"
 			print "Username = [%s]" % username
-			auth_result = login.POST(HOST_URL+"/access/user", (
+			result = login.POST(HOST_URL+"/access/user", (
 				NVPair('email', username),
 				NVPair('session', token),))
 				
-			userjson = JSONValue.parse(auth_result.getText())
-			json2 = auth_result.getText()
+			userjson = JSONValue.parse(result.getText())
+			json2 = result.getText()
 			if userjson is not None:
 				USR_UUID = userjson.get("id")
 				print "User UUID: " + USR_UUID
 			
-			statuscode = auth_result.statusCode
+			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
 		
 		#=================================================================================
@@ -227,17 +241,53 @@ class TestRunner:
 		print "User UUID: " + USR_UUID 
 		print "Org UUID: " + ORG_UUID
 			
-		login = create_request(Test(6000, 'Coding Organization'),[
+		login = create_request(Test(6000, 'Add Coding Organization'),[
             NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
         ])
-		auth_result = login.POST(HOST_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
+		result = login.POST(HOST_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 			NVPair('session', token),))
 				
 			
-		statuscode = auth_result.statusCode
+		statuscode = result.statusCode
 		print "Status Code = [%s]\t\t" % statuscode
 		
 		#=================================================================================
+		
+		
+		#HCC_REQUEST_URL = "https://hccstage.apixio.com/account/login/"
+		#HCC_HOST_URL = "https://hccstage.apixio.com"
+		HCC_HOST_DOMAIN = 'hccstage.apixio.com'
+		HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
+		
+		print "\nLog into HCC with newly created user..."	
+		print "User name: " + username 
+		print "Password: " + USERPASSWORD
+		print "HCC Host Domain: " + HCC_HOST_DOMAIN
+		print "HCC Host URL: " + HCC_HOST_URL
+		
+		print "\nConnecting to host..."
+		create_request(Test(70000, 'HCC Connect to host')).GET(HCC_HOST_URL + '/')
+		
+		print "\nDetecting login page..."
+		create_request(Test(71000, 'HCC Get login page')).GET(HCC_HOST_URL + '/account/login/?next=/')
+		
+		# Create login request. Referer appears to be necessary
+		login = create_request(Test(72000, 'HCC Log in user'),[
+			NVPair('Referer', HCC_HOST_URL + '/account/login/?next=/'),
+		])
+		
+		print "\nLogging in to HCC Front End..."
+		result = login.POST(HCC_HOST_URL + '/account/login/?next=/', (
+			NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
+			NVPair('username', username),
+			NVPair('password', USERPASSWORD),))
+			
+		statuscode = result.statusCode
+		print "Status Code = [%s]\t\t" % statuscode
+		
+		
+		#=================================================================================
+		
 		
 		print "\nThe End..."
 		
