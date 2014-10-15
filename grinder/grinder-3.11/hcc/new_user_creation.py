@@ -170,14 +170,14 @@ class TestRunner:
 
 			# main loop, designating number of users to create
 			for i in range (0, 1):
-				HCCUSERNAME = "apxdemot000111"+str(i)+"@apixio.net"
+				HCCUSERNAME = "apxdemot000112"+str(i)+"@apixio.net"
 				print "Username = [%s]" % HCCUSERNAME
 				result = login.POST(HOST_URL+"/access/user", (
 					NVPair('email', HCCUSERNAME),
 					NVPair('session', TOKEN),))
 				
 				userjson = JSONValue.parse(result.getText())
-				json2 = result.getText()
+				#json2 = result.getText()
 				if userjson is not None:
 					USR_UUID = userjson.get("id")
 					print "User UUID: " + USR_UUID
