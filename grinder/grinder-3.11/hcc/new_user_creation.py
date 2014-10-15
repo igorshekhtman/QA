@@ -70,6 +70,9 @@ USR_UUID = ""
 # ORG_UUID = "UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76"
 # Load Test Coders
 ORG_UUID = "UO_149af107-1ef7-49a0-923e-be4b2de174b3"
+HCCUSERNAME = ""
+HCCPASSWORD = "apixio.123"
+TOKEN = ""
 
 
 def create_request(test, headers=None):
@@ -125,172 +128,177 @@ class TestRunner:
 		print "Host Domain: \t\t\t"+HOST_DOMAIN+"\n\n"
 		
 		#=================================================================================
+		def ACLObtainAuthorization():
+			global TOKEN		
+			print "\nACL Obtain Authorization..."
+			print "HOST_URL: " + HOST_URL
+			statuscode = 500
+			# repeat until successful login is reached
+			while statuscode != 200:
 		
-		print "\nObtain Authorization..."
-		print "HOST_URL: " + HOST_URL
-		statuscode = 500
-		# repeat until successful login is reached
-		while statuscode != 200:
+				login = create_request(Test(1000, 'ACL Log in admin'),[
+            		NVPair('Referer', 'https://acladmin-stg.apixio.com/'),
+        		])
+			
+				result = login.POST(HOST_URL+"/auth", (
+					NVPair('session', get_session(thread_context)),
+					NVPair('email', USERNAME),
+					NVPair('password', PASSWORD),))
 		
-			login = create_request(Test(1000, 'Log in admin'),[
-            	NVPair('Referer', 'https://acladmin-stg.apixio.com/'),
+				TOKEN = get_session(thread_context)
+
+				statuscode = result.statusCode
+				print "Status Code = [%s]\t\t" % statuscode	
+		#=================================================================================
+		def ACLSelectUsers():
+			global TOKEN
+			print "\nACL Select useres tab..."
+			login = create_request(Test(2000, 'ACL Select users'),[
+            	NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
         	])
-			
-			result = login.POST(HOST_URL+"/auth", (
-				NVPair('session', get_session(thread_context)),
-				NVPair('email', USERNAME),
-				NVPair('password', PASSWORD),))
-		
-			token = get_session(thread_context)
-
+			result = login.GET(HOST_URL+"/access/users", (
+				NVPair('session', TOKEN),))	
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
-				
 		#=================================================================================
+		def ACLCreateNewUser():
+			global USR_UUID, HCCUSERNAME, TOKEN
+			print "\nACL Create New User..."
+			login = create_request(Test(3000, 'ACL Create new user'),[
+    	        NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
+        	])
+
+			# main loop, designating number of users to create
+			for i in range (0, 1):
+				HCCUSERNAME = "apxdemot000111"+str(i)+"@apixio.net"
+				print "Username = [%s]" % HCCUSERNAME
+				result = login.POST(HOST_URL+"/access/user", (
+					NVPair('email', HCCUSERNAME),
+					NVPair('session', TOKEN),))
 				
-		print "\nSelect useres tab..."
-		
-		login = create_request(Test(2000, 'Select users'),[
-            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
-        ])
-
-		result = login.GET(HOST_URL+"/access/users", (
-			NVPair('session', token),))
-
+				userjson = JSONValue.parse(result.getText())
+				json2 = result.getText()
+				if userjson is not None:
+					USR_UUID = userjson.get("id")
+					print "User UUID: " + USR_UUID
 			
-		statuscode = result.statusCode
-
-		print "Status Code = [%s]\t\t" % statuscode
-		
+				statuscode = result.statusCode
+				print "Status Code = [%s]\t\t" % statuscode
+				if statuscode == 500:
+					print ">>> Failure occured: username already exists <<<"
+					exit()
 		#=================================================================================
-		
-		print "\nCreate New User..."
-		
-		login = create_request(Test(3000, 'Create new user'),[
-            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
-        ])
+		def ACLActivateNewUser():
+			global USR_UUID, TOKEN
+			print "\nACL Activate New User..."	
+			print "User UUID: " + USR_UUID 
+			data = str.encode("session="+str(TOKEN))
+			login = create_request(Test(4000, 'ACL Activate new user'),[
+				NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
+       	     ])
 
-		# main loop, designating number of users to create
-		for i in range (0, 1):
-			username = "apxdemot000093"+str(i)+"@apixio.net"
-			print "Username = [%s]" % username
-			result = login.POST(HOST_URL+"/access/user", (
-				NVPair('email', username),
-				NVPair('session', token),))
-				
-			userjson = JSONValue.parse(result.getText())
-			json2 = result.getText()
-			if userjson is not None:
-				USR_UUID = userjson.get("id")
-				print "User UUID: " + USR_UUID
+			result = login.PUT(HOST_URL+"/access/user/"+USR_UUID, data, (
+				NVPair('session', TOKEN),))
 			
+			print_all_cookies(thread_context)
+		
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode
-		
+			print "Status Code = [%s]\t\t" % statuscode		
 		#=================================================================================
-		
-		print "\nActivate New User..."	
-		print "User UUID: " + USR_UUID 
-		json1 = '{\"password\"        :  \"apixio.123\"}'
-		login = create_request(Test(4000, 'Activate new user'),[
-            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
-        ])
+		def ACLSetPassword():
+			global USR_UUID, HCCPASSWORD, TOKEN
+			print "\nACL Assign New User Password..."		
+			print "User UUID: " + USR_UUID 
+			print "Password: " + HCCPASSWORD
 
-		result = login.PUT(HOST_URL+"/access/user/"+USR_UUID, json2, (
-			NVPair('session', token),))
+			headers = [
+    	        NVPair('Accept', 'application/json, text/plain, */*'),
+    	        NVPair('Accept-Encoding', 'gzip,deflate,sdch'),
+    	        NVPair('Accept-Language', 'en-US,en;q=0.8'),
+    	        NVPair('Connection', 'keep-alive'),
+    	        NVPair('Content-Length', '19'),
+    	        NVPair('Content-Type', 'application/x-www-form-urlencoded'),
+    	        NVPair('Host', 'acladmin-stg.apixio.com'),
+    	        NVPair('Origin', 'https://acladmin-stg.apixio.com'),
+    	        NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
+    	        NVPair('session', TOKEN),
+    	    ]
+			login = create_request(Test(5000, 'ACL Set Password'),headers)
+		
+			password_url = HOST_URL+"/access/user/"+USR_UUID+"/password"
+			params = (NVPair('password', HCCPASSWORD),)
 			
-		print_all_cookies(thread_context)
+			#data = Codecs.mpFormDataEncode(params,zeros(1,NVPair),headers)
+			
+			#result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", 
+			#	data, headers)
 		
-		statuscode = result.statusCode
-		print "Status Code = [%s]\t\t" % statuscode		
-		
-		#=================================================================================
- 
-		print "\nAssign New User Password..."		
-		print "User UUID: " + USR_UUID 
-		print "Password: " + USERPASSWORD
-
-		headers = [
-            NVPair('Accept', 'application/json, text/plain, */*'),
-            NVPair('Accept-Encoding', 'gzip,deflate,sdch'),
-            NVPair('Accept-Language', 'en-US,en;q=0.8'),
-            NVPair('Connection', 'keep-alive'),
-            NVPair('Content-Length', '19'),
-            NVPair('Content-Type', 'application/x-www-form-urlencoded'),
-            NVPair('Host', 'acladmin-stg.apixio.com'),
-            NVPair('Origin', 'https://acladmin-stg.apixio.com'),
-            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
-            NVPair('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36'),  
-            NVPair('session', token),          
-        ]
-		login = create_request(Test(5000, 'Set Password'),headers)
-		
-		password_url = HOST_URL+"/access/user/"+USR_UUID+"/password"
-		params = (NVPair('password', USERPASSWORD),)
-		#data = Codecs.mpFormDataEncode(params,zeros(1,NVPair),headers)
-		#result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", data, headers)
-		
-		result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", str.encode("password=apixio.123"), headers)
+			result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", 
+				str.encode("password=apixio.123"), headers)
 					
-		statuscode = result.statusCode
-		print "Status Code = [%s]\t\t" % statuscode	
-		
+			statuscode = result.statusCode
+			print "Status Code = [%s]\t\t" % statuscode	
 		#=================================================================================
- 
-		print "\nAssign Coding Organization..."	
-		print "User UUID: " + USR_UUID 
-		print "Org UUID: " + ORG_UUID
+ 		def ACLAssignCodingOrg():
+ 			global USR_UUID, ORG_UUID
+			print "\nACL Assign Coding Organization..."	
+			print "User UUID: " + USR_UUID 
+			print "Org UUID: " + ORG_UUID
 			
-		login = create_request(Test(6000, 'Add Coding Organization'),[
-            NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
-        ])
-		result = login.POST(HOST_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
-			NVPair('session', token),))
+			login = create_request(Test(6000, 'ACL Add Coding Organization'),[
+	   	         NVPair('Referer', 'https://acladmin-stg.apixio.com/admin/'),
+	        ])
+			result = login.POST(HOST_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
+				NVPair('session', TOKEN),))
 				
 			
-		statuscode = result.statusCode
-		print "Status Code = [%s]\t\t" % statuscode
+			statuscode = result.statusCode
+			print "Status Code = [%s]\t\t" % statuscode
+		#=================================================================================
+		def HCCLogInto():
+			global HCCUSERNAME, HCCPASSWORD
+			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
+			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
 		
+			print "\nHCC Log into HCC with newly created user..."	
+			print "HCC Host Domain: " + HCC_HOST_DOMAIN
+			print "HCC Host URL: " + HCC_HOST_URL
+		
+			print "\nConnecting to host..."
+			create_request(Test(7000, 'HCC Connect to host')).GET(HCC_HOST_URL + '/')
+		
+			print "\nDetecting login page..."
+			create_request(Test(7100, 'HCC Get login page')).GET(HCC_HOST_URL + '/account/login/?next=/')
+		
+			# Create login request. Referer appears to be necessary
+			login = create_request(Test(7200, 'HCC Log in user'),[
+				NVPair('Referer', HCC_HOST_URL + '/account/login/?next=/'),
+			])
+		
+			print "\nLogging in to HCC Front End..."
+			result = login.POST(HCC_HOST_URL + '/account/login/?next=/', (
+				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
+				NVPair('username', HCCUSERNAME),
+				NVPair('password', HCCPASSWORD),))
+		
+			print HCCUSERNAME 
+			print HCCPASSWORD	
+			statuscode = result.statusCode
+			print "Status Code = [%s]\t\t" % statuscode	
+		#=================================================================================
+		#================== MAIN PROGRAM BODY ============================================
 		#=================================================================================
 		
-		
-		#HCC_REQUEST_URL = "https://hccstage.apixio.com/account/login/"
-		#HCC_HOST_URL = "https://hccstage.apixio.com"
-		HCC_HOST_DOMAIN = 'hccstage.apixio.com'
-		HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-		
-		print "\nLog into HCC with newly created user..."	
-		print "User name: " + username 
-		print "Password: " + USERPASSWORD
-		print "HCC Host Domain: " + HCC_HOST_DOMAIN
-		print "HCC Host URL: " + HCC_HOST_URL
-		
-		print "\nConnecting to host..."
-		create_request(Test(70000, 'HCC Connect to host')).GET(HCC_HOST_URL + '/')
-		
-		print "\nDetecting login page..."
-		create_request(Test(71000, 'HCC Get login page')).GET(HCC_HOST_URL + '/account/login/?next=/')
-		
-		# Create login request. Referer appears to be necessary
-		login = create_request(Test(72000, 'HCC Log in user'),[
-			NVPair('Referer', HCC_HOST_URL + '/account/login/?next=/'),
-		])
-		
-		print "\nLogging in to HCC Front End..."
-		result = login.POST(HCC_HOST_URL + '/account/login/?next=/', (
-			NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
-			NVPair('username', username),
-			NVPair('password', USERPASSWORD),))
-			
-		statuscode = result.statusCode
-		print "Status Code = [%s]\t\t" % statuscode
-		
-		
-		#=================================================================================
-		
+		ACLObtainAuthorization()
+		ACLSelectUsers()
+		ACLCreateNewUser()
+		ACLActivateNewUser()
+		ACLSetPassword()
+		ACLAssignCodingOrg()
+		HCCLogInto()
 		
 		print "\nThe End..."
-		
+		#=================================================================================
 		
 		
 		
