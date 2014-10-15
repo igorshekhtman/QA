@@ -2,9 +2,12 @@
 # Author: Igor Shekhtman
 # Date Created: 15-Oct-2014
 # Initial Version: 1.0.0
+#=========================================================================================
 # Global Paramaters:
 # ENVIRONMENT - "Staging" or "Production"
 # NUMBEROFUSERSTOCREATE - integer - total number of HCC users to create
+# CODINGORGANIZATION - any organization from CDGORGMAP list below
+# HCCPASSWORD - default password to be assigned to every HCC user
 #=========================================================================================
 # Revision 1:
 # Author:
@@ -27,12 +30,35 @@ from org.json.simple import JSONObject, JSONValue
 from jarray import zeros
 import time
 import csv
-
+#=========================================================================================
+#=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
+#=========================================================================================
+CDGORGMAP = { \
+	"AE & Associates":"UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", \
+	"Scripps":"UO_609aa5c3-4bff-4aec-a629-1da4f0be144e", \
+	"Coding Org 1":"UO_5c83fcf7-d216-42ca-859d-9908e74049e5", \
+	"Coding Org 2":"UO_c2fee803-b169-4bfb-9e46-137295379b46", \
+	"Coding Org 3":"UO_fb540446-a07d-4e2f-b2a2-6caf1179d455", \
+	"HealthCare Partners":"UO_62eb7683-e42b-4cf4-a7cf-e91dcaf68bbb", \
+	"Apixio Coders":"UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76", \
+	"CCHCA":"UO_6cbe9df5-cdfb-414f-b1f0-f44c7b519bcb", \
+	"Load Test Coders":"UO_149af107-1ef7-49a0-923e-be4b2de174b3", \
+	"org0420":"UO_7c6cf5ea-b35c-4ecf-866f-915f70269d34", \
+	"test Coding org":"UO_ee2a6959-bc38-40c3-813b-d3e7a9cc681b", \
+	"Test Org2":"UO_8f2082b8-5060-4e90-bd6e-3db8f97659a6", \
+	"Test Org 1000":"UO_45dcce68-47a8-4e0f-9cf4-467476021337", \
+	"Test Org 1000":"UO_1296f532-2605-4e63-9d09-e5e992bd07ea", \
+	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
+	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \	
+}
+#=========================================================================================
 #===================== Global Test Environment Selection =================================
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBEROFUSERSTOCREATE = 2
+NUMBEROFUSERSTOCREATE = 1
+CODINGORGANIZATION = "Load Test Coders"
+HCCPASSWORD = "apixio.123"
 #=========================================================================================
 
 #============ Global variable declaration, initialization ================================
@@ -68,19 +94,14 @@ ACLUSERNAME = "root@api.apixio.com"
 ACLPASSWORD = "thePassword"
 MAX_OPPS = 2
 USR_UUID = ""
-# Apixio Coders
-# ORG_UUID = "UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76"
-# Load Test Coders
-ORG_UUID = "UO_149af107-1ef7-49a0-923e-be4b2de174b3"
+ORG_UUID = CDGORGMAP[CODINGORGANIZATION]
 TOKEN = ""
 HCCUSERNAMEPREFIX = "test"
 HCCUSERNAMEPOSTFIX = "@apixio.net"
 HCCUSERNAME = ""
-HCCPASSWORD = "apixio.123"
 HCCUSERSLIST = [0]
 
 
-#=========================================================================================
 
 def create_request(test, headers=None):
     request = HTTPRequest()
@@ -132,14 +153,17 @@ class TestRunner:
 		thread_context = HTTPPluginControl.getThreadHTTPClientContext()
 		control = HTTPPluginControl.getConnectionDefaults()
 		control.setFollowRedirects(1)
-	
-		print "\nEnvironment: \t\t\t"+ENVIRONMENT
-		#print "User Account API URL: \t\t"+useraccount
-		#print "Tokenizer API URL: \t\t"+tokenizer
-		#print "Data Orchestrator API URL: \t"+dataorchestrator
-		#print "Host URL: \t\t\t"+HOST_URL
-		#print "Host Domain: \t\t\t"+HOST_DOMAIN+"\n\n"
 		
+#=========================================================================================
+
+		def PrintGlobalParamaterSettings():
+			print "\nEnvironment: \t\t\t"+ENVIRONMENT
+			print "ACL URL: \t\t\t"+ACL_URL
+			print "HCC URL: \t\t\t"+HCC_URL
+			print "ACL Admin User Name: \t\t"+ACLUSERNAME
+			print "Coding Organization: \t\t"+CODINGORGANIZATION
+			print "HCC Users to Create: \t\t"+str(NUMBEROFUSERSTOCREATE)
+			
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL		
@@ -248,7 +272,8 @@ class TestRunner:
 			login = create_request(Test(1400, 'ACL Add Coding Organization'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),
 	        ])
-			result = login.POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
+			result = login. \
+				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
 				
 			
@@ -291,10 +316,13 @@ class TestRunner:
 			#print HCCPASSWORD	
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode	
+			
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
 
+		PrintGlobalParamaterSettings()
+		
 		for i in range (0, NUMBEROFUSERSTOCREATE):
 			ACLObtainAuthorization()
 			ACLCreateNewUser()
