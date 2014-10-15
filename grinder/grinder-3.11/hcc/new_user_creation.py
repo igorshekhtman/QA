@@ -56,9 +56,12 @@ CDGORGMAP = { \
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBEROFUSERSTOCREATE = 1
+NUMBEROFUSERSTOCREATE = 3
 CODINGORGANIZATION = "Load Test Coders"
 HCCPASSWORD = "apixio.123"
+HCCUSERNAMEPREFIX = "grinder"
+HCCUSERNAMEPOSTFIX = "@apixio.net"
+ACLCODNGORGPREFIX = "Grinder"
 #=========================================================================================
 
 #============ Global variable declaration, initialization ================================
@@ -96,8 +99,6 @@ MAX_OPPS = 2
 USR_UUID = ""
 ORG_UUID = CDGORGMAP[CODINGORGANIZATION]
 TOKEN = ""
-HCCUSERNAMEPREFIX = "test"
-HCCUSERNAMEPOSTFIX = "@apixio.net"
 HCCUSERNAME = ""
 HCCUSERSLIST = [0]
 
@@ -194,9 +195,7 @@ class TestRunner:
     	        NVPair('Referer', ACL_URL+'/admin/'),
         	])
 
-			#HCCUSERNAME = "apxdemot00004@apixio.net"
 			HCCUSERNAME = get_new_hcc_user()
-			#print "Username = [%s]" % HCCUSERNAME
 			result = login.POST(ACL_URL+"/access/user", (
 				NVPair('email', HCCUSERNAME),
 				NVPair('session', TOKEN),))
@@ -262,6 +261,36 @@ class TestRunner:
 					
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode	
+			
+#=========================================================================================
+		def ACLCreateNewCodingOrg():
+			global ACL_URL, TOKEN, ORG_UUID, ACLCODNGORGPREFIX, CODINGORGANIZATION
+			print "\nACL Create New Coding Org..."
+			 
+			conumber = str(int(time.time()))
+			coname = ACLCODNGORGPREFIX +"-"+ conumber
+			CODINGORGANIZATION = coname									
+			#print "Coding Org Name: "+coname
+						
+			login = create_request(Test(1400, 'ACL Create new coding org'),[
+    	        NVPair('Referer', ACL_URL+'/admin/'),
+        	])
+
+			result = login.POST(ACL_URL+"/access/userOrganization", (
+				NVPair('name', coname),
+				NVPair('key', conumber),
+				NVPair('description', coname),
+				NVPair('session', TOKEN),))
+				
+			userjson = JSONValue.parse(result.getText())
+			if userjson is not None:
+				ORG_UUID = userjson.get("id")
+				#print "Coding Org UUID: " + ORG_UUID
+				#print "Coding Org Name: " + coname
+			
+			statuscode = result.statusCode
+			print "Status Code = [%s]\t\t" % statuscode
+		
 #=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
@@ -269,7 +298,7 @@ class TestRunner:
 			#print "User UUID: " + USR_UUID 
 			#print "Org UUID: " + ORG_UUID
 			
-			login = create_request(Test(1400, 'ACL Add Coding Organization'),[
+			login = create_request(Test(1500, 'ACL Add Coding Organization'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),
 	        ])
 			result = login. \
@@ -322,15 +351,17 @@ class TestRunner:
 #=========================================================================================
 
 		PrintGlobalParamaterSettings()
+		ACLObtainAuthorization()
+		ACLCreateNewCodingOrg()
 		
 		for i in range (0, NUMBEROFUSERSTOCREATE):
 			ACLObtainAuthorization()
 			ACLCreateNewUser()
 			ACLActivateNewUser()
 			ACLSetPassword()
+			#ACLCreateNewCodingOrg()
 			ACLAssignCodingOrg()
 			HCCLogInto()
-			
 			HCCUSERSLIST.append(i)
 			HCCUSERSLIST[i] = HCCUSERNAME
 		
@@ -339,6 +370,8 @@ class TestRunner:
 		print "================================"
 		for i in range (0, NUMBEROFUSERSTOCREATE):
 			print HCCUSERSLIST[i]
+		print "================================"
+		print "Coding Org :"+CODINGORGANIZATION	
 		print "================================"	
 		print "\nThe End..."
 #=========================================================================================
