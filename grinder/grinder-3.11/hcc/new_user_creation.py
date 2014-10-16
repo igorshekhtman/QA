@@ -86,7 +86,7 @@ CDGORGMAP = { \
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBEROFUSERSTOCREATE = 2
+NUMBEROFUSERSTOCREATE = 1
 NUMBEROFORGSTOCREATE = 1
 CODINGORGANIZATION = "Load Test Coders"
 HCCPASSWORD = "apixio.123"
@@ -184,18 +184,18 @@ class TestRunner:
 		
 #=========================================================================================
 		def PrintGlobalParamaterSettings():
-			print "\nEnvironment: \t\t\t"+ENVIRONMENT
-			print "ACL URL: \t\t\t"+ACL_URL
-			print "HCC URL: \t\t\t"+HCC_URL
-			print "ACL Admin User Name: \t\t"+ACLUSERNAME
-			print "Coding Organization: \t\t"+CODINGORGANIZATION
-			print "HCC Users to Create: \t\t"+str(NUMBEROFUSERSTOCREATE)
-			print "HCC Orgs to Create: \t\t"+str(NUMBEROFORGSTOCREATE)
+			log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
+			log ("ACL URL: \t\t\t"+ACL_URL)
+			log ("HCC URL: \t\t\t"+HCC_URL)
+			log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
+			log ("Coding Organization: \t\t"+CODINGORGANIZATION)
+			log ("HCC Users to Create: \t\t"+str(NUMBEROFUSERSTOCREATE))
+			log ("HCC Orgs to Create: \t\t"+str(NUMBEROFORGSTOCREATE))
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL		
-			print "\nACL Obtain Authorization..."
-			#print "HOST_URL: " + HOST_URL
+			log ("\nACL Obtain Authorization...")
+			#log ("HOST_URL: " + HOST_URL)
 			statuscode = 500
 			# repeat until successful login is reached
 			while statuscode != 200:
@@ -208,11 +208,11 @@ class TestRunner:
 					NVPair('password', ACLPASSWORD),))
 				TOKEN = get_session(thread_context)
 				statuscode = result.statusCode
-				print "Status Code = [%s]\t\t" % statuscode	
+				log ("Status Code = [%s]\t\t" % statuscode)
 #=========================================================================================
 		def ACLCreateNewUser():
 			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
-			print "\nACL Create New User..."
+			log ("\nACL Create New User...")
 			login = create_request(Test(1100, 'ACL Create new user'),[
     	        NVPair('Referer', ACL_URL+'/admin/'),])
 			HCCUSERNAME = get_new_hcc_user()
@@ -222,17 +222,17 @@ class TestRunner:
 			userjson = JSONValue.parse(result.getText())
 			if userjson is not None:
 				USR_UUID = userjson.get("id")
-				#print "User UUID: " + USR_UUID
+				#log ("User UUID: " + USR_UUID)
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode
+			log ("Status Code = [%s]\t\t" % statuscode)
 			if statuscode == 500:
-				print ">>> Failure occured: username already exists <<<"
+				log (">>> Failure occured: username already exists <<<")
 				exit()
 #=========================================================================================
 		def ACLActivateNewUser():
 			global USR_UUID, TOKEN, ACL_URL
-			print "\nACL Activate New User..."	
-			#print "User UUID: " + USR_UUID 
+			log ("\nACL Activate New User...")	
+			#log ("User UUID: " + USR_UUID)
 			data = str.encode("session="+str(TOKEN))
 			login = create_request(Test(1200, 'ACL Activate new user'),[
 				NVPair('Referer', ACL_URL+'/admin/'),
@@ -241,13 +241,13 @@ class TestRunner:
 				NVPair('session', TOKEN),))
 			#print_all_cookies(thread_context)
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode		
+			log ("Status Code = [%s]\t\t" % statuscode)		
 #=========================================================================================
 		def ACLSetPassword():
 			global USR_UUID, HCCPASSWORD, TOKEN, ACL_URL
-			print "\nACL Assign New User Password..."		
-			#print "User UUID: " + USR_UUID 
-			#print "Password: " + HCCPASSWORD
+			log ("\nACL Assign New User Password...")		
+			#log ("User UUID: " + USR_UUID)
+			#log ("Password: " + HCCPASSWORD)
 			headers = [
     	        NVPair('Origin', ACL_URL),
     	        NVPair('Referer', ACL_URL+'/admin/'),
@@ -259,15 +259,15 @@ class TestRunner:
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
 				data, headers)
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode				
+			log ("Status Code = [%s]\t\t" % statuscode)			
 #=========================================================================================
 		def ACLCreateNewCodingOrg():
 			global ACL_URL, TOKEN, ORG_UUID, ACLCODNGORGPREFIX, CODINGORGANIZATION
-			print "\nACL Create New Coding Org..."
+			log ("\nACL Create New Coding Org...")
 			conumber = str(int(time.time()))
 			coname = ACLCODNGORGPREFIX +"-"+ conumber
 			CODINGORGANIZATION = coname									
-			#print "Coding Org Name: "+coname			
+			#log ("Coding Org Name: "+coname)		
 			login = create_request(Test(1400, 'ACL Create new coding org'),[
     	        NVPair('Referer', ACL_URL+'/admin/'),
         	])
@@ -279,16 +279,16 @@ class TestRunner:
 			userjson = JSONValue.parse(result.getText())
 			if userjson is not None:
 				ORG_UUID = userjson.get("id")
-				#print "Coding Org UUID: " + ORG_UUID
-				#print "Coding Org Name: " + coname
+				#log ("Coding Org UUID: " + ORG_UUID)
+				#log ("Coding Org Name: " + coname)
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode
+			log ("Status Code = [%s]\t\t" % statuscode)
 #=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
-			print "\nACL Assign Coding Organization..."	
-			#print "User UUID: " + USR_UUID 
-			#print "Org UUID: " + ORG_UUID
+			log ("\nACL Assign Coding Organization...")	
+			#log ("User UUID: " + USR_UUID)
+			#log ("Org UUID: " + ORG_UUID)
 			login = create_request(Test(1500, 'ACL Add Coding Organization'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),
 	        ])
@@ -296,35 +296,35 @@ class TestRunner:
 				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode
+			log ("Status Code = [%s]\t\t" % statuscode)
 #=========================================================================================
 		def HCCLogInto():
 			global HCCUSERNAME, HCCPASSWORD, HCC_URL
 			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
 			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-			print "\nHCC Connecting to host..."
+			log ("\nHCC Connecting to host...")
 			result = create_request(Test(2000, 'HCC Connect to host')) \
 				.GET(HCC_URL + '/')
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode		
-			print "\nHCC Detecting login page..."
+			log ("Status Code = [%s]\t\t" % statuscode)		
+			log ("\nHCC Detecting login page...")
 			result = create_request(Test(2100, 'HCC Get login page')) \
 				.GET(HCC_URL + '/account/login/?next=/')
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode		
+			log ("Status Code = [%s]\t\t" % statuscode)	
 			# Create login request. Referer appears to be necessary
 			login = create_request(Test(2200, 'HCC Log in user'),[
 				NVPair('Referer', HCC_URL + '/account/login/?next=/'),
 			])
-			print "\nLogging in to HCC Front End..."
+			log ("\nLogging in to HCC Front End...")
 			result = login.POST(HCC_URL + '/account/login/?next=/', (
 				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
 				NVPair('username', HCCUSERNAME),
 				NVPair('password', HCCPASSWORD),))
-			#print HCCUSERNAME 
-			#print HCCPASSWORD	
+			#log (HCCUSERNAME)
+			#log (HCCPASSWORD)	
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode	
+			log ("Status Code = [%s]\t\t" % statuscode)	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -347,18 +347,18 @@ class TestRunner:
 			HCCUSERSLIST.append(i)
 			HCCUSERSLIST[i] = HCCUSERNAME
 		
-		print "\n================================"
-		print "List of newly created HCC Users:"
-		print "================================"
+		log ("\n================================")
+		log ("List of newly created HCC Users:")
+		log ("================================")
 		for i in range (0, NUMBEROFUSERSTOCREATE):
-			print HCCUSERSLIST[i]
-		print "================================"
-		print "List of newly created HCC Orgs:"
-		print "================================"
+			log (HCCUSERSLIST[i])
+		log ("================================")
+		log ("List of newly created HCC Orgs:")
+		log ("================================")
 		for i in range (0, NUMBEROFORGSTOCREATE):
-			print HCCORGLIST[i]
-		print "================================"	
-		print "\nThe End..."
+			log (HCCORGLIST[i])
+		log ("================================")	
+		log ("\nThe End...")
 #=========================================================================================
 		
 		
