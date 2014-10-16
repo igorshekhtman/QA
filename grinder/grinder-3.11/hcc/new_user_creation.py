@@ -1,11 +1,42 @@
 #=========================================================================================
-# Author: Igor Shekhtman
-# Date Created: 15-Oct-2014
-# Initial Version: 1.0.0
+#
+# PROGRAM:         new_user_creation.py
+# AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
+# DATE CREATED:    15-Oct-2014
+# INITIAL VERSION: 1.0.0
+#
+# PURPOSE:
+#          This program should be executed via Grinder for testing ACL functionality:
+#			* Log into ACL
+#			* Obtain and save token
+#			* Create new unique Coding Org(s) and save org_uuid(s)
+#				- Multiple Coding Orgs allowed (NUMBEROFORGSTOCREATE) 
+#			* Create new unique HCC user(s) and save user_uuid(s) 
+#				- Multiple HCC Users allowed (NUMBEROFUSERSTOCREATE)
+#			* Activate newly created HCC user
+#			* Assign newly created user pre-defined password (HCCPASSWORD)
+#			* Assign newly created HCC user coding org
+#				- Either pre-defined coding org or newly created coding org
+#			* Log into HCC with newly created user/org
+#			* Store each of the newly created users in an array (HCCUSERSLIST[])
+#			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
+#
+# SETUP:
+#          * Assumes a ACL and HCC environments are available
+#          * Assumes a Grinder environment is available
+#          * For further details, see http://grinder.sourceforge.net
+#
+# USAGE:
+#          * Ensure Grinder is configured to execute new_user_creation.py
+#          * Set the global variables, see below (Global Test Environment Selection)
+#          * Run new_user_creation.py
+#          * Results will be printed on Grinder Agent and in Grinder Console log files
+#
 #=========================================================================================
-# Global Paramaters:
+# Global Paramaters descriptions and possible values:
 # ENVIRONMENT - "Staging" or "Production"
-# NUMBEROFUSERSTOCREATE - integer - total number of HCC users to create
+# NUMBEROFUSERSTOCREATE - integer (0 through x) - total number of HCC users to create
+# NUMBEROFORGSTOCREATE - integer (0 through x) - total number of coding orgs to create
 # CODINGORGANIZATION - any organization from CDGORGMAP list below
 # HCCPASSWORD - default password to be assigned to every HCC user
 #=========================================================================================
@@ -21,7 +52,6 @@
 # Author:
 # Specifics:
 #=========================================================================================
-
 from net.grinder.script.Grinder import grinder
 from net.grinder.script import Test
 from net.grinder.plugin.http import HTTPRequest, HTTPPluginControl
@@ -56,7 +86,8 @@ CDGORGMAP = { \
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBEROFUSERSTOCREATE = 3
+NUMBEROFUSERSTOCREATE = 2
+NUMBEROFORGSTOCREATE = 1
 CODINGORGANIZATION = "Load Test Coders"
 HCCPASSWORD = "apixio.123"
 HCCUSERNAMEPREFIX = "grinder"
@@ -83,24 +114,21 @@ forbidden = 403
 intserveror = 500
 servunavail = 503
 
-
-ACL_PROTOCOL = "https://"
+PROTOCOL = "https://"
 ACL_DOMAIN = "acladmin" +aclpostfix+ ".apixio.com"
-ACL_URL = ACL_PROTOCOL + ACL_DOMAIN
+ACL_URL = PROTOCOL + ACL_DOMAIN
 
-HCC_PROTOCOL = "https://"
 HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
-HCC_URL = ACL_PROTOCOL + HCC_DOMAIN
-
+HCC_URL = PROTOCOL + HCC_DOMAIN
 
 ACLUSERNAME = "root@api.apixio.com"
 ACLPASSWORD = "thePassword"
-MAX_OPPS = 2
 USR_UUID = ""
 ORG_UUID = CDGORGMAP[CODINGORGANIZATION]
 TOKEN = ""
 HCCUSERNAME = ""
 HCCUSERSLIST = [0]
+HCCORGLIST = [0]
 
 
 
@@ -136,7 +164,6 @@ def print_all_cookies(thread_context):
     print "cookies = [%s]" % cookies
     return cookies    
     
-
 def log(text):
     grinder.logger.info(text)
     print(text)
@@ -156,7 +183,6 @@ class TestRunner:
 		control.setFollowRedirects(1)
 		
 #=========================================================================================
-
 		def PrintGlobalParamaterSettings():
 			print "\nEnvironment: \t\t\t"+ENVIRONMENT
 			print "ACL URL: \t\t\t"+ACL_URL
@@ -164,7 +190,7 @@ class TestRunner:
 			print "ACL Admin User Name: \t\t"+ACLUSERNAME
 			print "Coding Organization: \t\t"+CODINGORGANIZATION
 			print "HCC Users to Create: \t\t"+str(NUMBEROFUSERSTOCREATE)
-			
+			print "HCC Orgs to Create: \t\t"+str(NUMBEROFORGSTOCREATE)
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL		
@@ -173,18 +199,14 @@ class TestRunner:
 			statuscode = 500
 			# repeat until successful login is reached
 			while statuscode != 200:
-		
 				login = create_request(Test(1000, 'ACL Log in admin'),[
             		NVPair('Referer', ACL_URL+'/'),
         		])
-			
 				result = login.POST(ACL_URL+"/auth", (
 					NVPair('session', get_session(thread_context)),
 					NVPair('email', ACLUSERNAME),
 					NVPair('password', ACLPASSWORD),))
-		
 				TOKEN = get_session(thread_context)
-
 				statuscode = result.statusCode
 				print "Status Code = [%s]\t\t" % statuscode	
 #=========================================================================================
@@ -192,19 +214,15 @@ class TestRunner:
 			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
 			print "\nACL Create New User..."
 			login = create_request(Test(1100, 'ACL Create new user'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-
+    	        NVPair('Referer', ACL_URL+'/admin/'),])
 			HCCUSERNAME = get_new_hcc_user()
 			result = login.POST(ACL_URL+"/access/user", (
 				NVPair('email', HCCUSERNAME),
 				NVPair('session', TOKEN),))
-				
 			userjson = JSONValue.parse(result.getText())
 			if userjson is not None:
 				USR_UUID = userjson.get("id")
 				#print "User UUID: " + USR_UUID
-			
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
 			if statuscode == 500:
@@ -219,12 +237,9 @@ class TestRunner:
 			login = create_request(Test(1200, 'ACL Activate new user'),[
 				NVPair('Referer', ACL_URL+'/admin/'),
        	     ])
-
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID, data, (
 				NVPair('session', TOKEN),))
-			
 			#print_all_cookies(thread_context)
-		
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode		
 #=========================================================================================
@@ -233,79 +248,53 @@ class TestRunner:
 			print "\nACL Assign New User Password..."		
 			#print "User UUID: " + USR_UUID 
 			#print "Password: " + HCCPASSWORD
-
 			headers = [
-    	        NVPair('Accept', 'application/json, text/plain, */*'),
-    	        NVPair('Accept-Encoding', 'gzip,deflate,sdch'),
-    	        NVPair('Accept-Language', 'en-US,en;q=0.8'),
-    	        NVPair('Connection', 'keep-alive'),
-    	        NVPair('Content-Length', '19'),
-    	        NVPair('Content-Type', 'application/x-www-form-urlencoded'),
-    	        NVPair('Host', 'acladmin-stg.apixio.com'),
     	        NVPair('Origin', ACL_URL),
     	        NVPair('Referer', ACL_URL+'/admin/'),
     	        NVPair('session', TOKEN),
     	    ]
 			login = create_request(Test(1300, 'ACL Set Password'),headers)
-		
-			password_url = ACL_URL+"/access/user/"+USR_UUID+"/password"
-			params = (NVPair('password', HCCPASSWORD),)
-			
-			#data = Codecs.mpFormDataEncode(params,zeros(1,NVPair),headers)
-			
-			#result = login.PUT(HOST_URL+"/access/user/"+USR_UUID+"/password", 
-			#	data, headers)
-		
+			#PUT(uri, data, headers)
+			data = str.encode("password=apixio.123")
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
-				str.encode("password=apixio.123"), headers)
-					
+				data, headers)
 			statuscode = result.statusCode
-			print "Status Code = [%s]\t\t" % statuscode	
-			
+			print "Status Code = [%s]\t\t" % statuscode				
 #=========================================================================================
 		def ACLCreateNewCodingOrg():
 			global ACL_URL, TOKEN, ORG_UUID, ACLCODNGORGPREFIX, CODINGORGANIZATION
 			print "\nACL Create New Coding Org..."
-			 
 			conumber = str(int(time.time()))
 			coname = ACLCODNGORGPREFIX +"-"+ conumber
 			CODINGORGANIZATION = coname									
-			#print "Coding Org Name: "+coname
-						
+			#print "Coding Org Name: "+coname			
 			login = create_request(Test(1400, 'ACL Create new coding org'),[
     	        NVPair('Referer', ACL_URL+'/admin/'),
         	])
-
 			result = login.POST(ACL_URL+"/access/userOrganization", (
 				NVPair('name', coname),
 				NVPair('key', conumber),
 				NVPair('description', coname),
-				NVPair('session', TOKEN),))
-				
+				NVPair('session', TOKEN),))				
 			userjson = JSONValue.parse(result.getText())
 			if userjson is not None:
 				ORG_UUID = userjson.get("id")
 				#print "Coding Org UUID: " + ORG_UUID
 				#print "Coding Org Name: " + coname
-			
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
-		
 #=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
 			print "\nACL Assign Coding Organization..."	
 			#print "User UUID: " + USR_UUID 
 			#print "Org UUID: " + ORG_UUID
-			
 			login = create_request(Test(1500, 'ACL Add Coding Organization'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),
 	        ])
 			result = login. \
 				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
-				
-			
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode
 #=========================================================================================
@@ -313,46 +302,39 @@ class TestRunner:
 			global HCCUSERNAME, HCCPASSWORD, HCC_URL
 			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
 			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-		
-			#print "\nHCC Log into HCC with newly created user..."	
-			#print "HCC Host Domain: " + HCC_HOST_DOMAIN
-			#print "HCC Host URL: " + HCC_HOST_URL
-		
 			print "\nHCC Connecting to host..."
 			result = create_request(Test(2000, 'HCC Connect to host')) \
 				.GET(HCC_URL + '/')
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode		
-		
 			print "\nHCC Detecting login page..."
 			result = create_request(Test(2100, 'HCC Get login page')) \
 				.GET(HCC_URL + '/account/login/?next=/')
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode		
-		
 			# Create login request. Referer appears to be necessary
 			login = create_request(Test(2200, 'HCC Log in user'),[
 				NVPair('Referer', HCC_URL + '/account/login/?next=/'),
 			])
-		
 			print "\nLogging in to HCC Front End..."
 			result = login.POST(HCC_URL + '/account/login/?next=/', (
 				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
 				NVPair('username', HCCUSERNAME),
 				NVPair('password', HCCPASSWORD),))
-		
 			#print HCCUSERNAME 
 			#print HCCPASSWORD	
 			statuscode = result.statusCode
 			print "Status Code = [%s]\t\t" % statuscode	
-			
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-
 		PrintGlobalParamaterSettings()
-		ACLObtainAuthorization()
-		ACLCreateNewCodingOrg()
+		
+		for i in range (0, NUMBEROFORGSTOCREATE):
+			ACLObtainAuthorization()
+			ACLCreateNewCodingOrg()
+			HCCORGLIST.append(i)
+			HCCORGLIST[i] = CODINGORGANIZATION
 		
 		for i in range (0, NUMBEROFUSERSTOCREATE):
 			ACLObtainAuthorization()
@@ -371,7 +353,10 @@ class TestRunner:
 		for i in range (0, NUMBEROFUSERSTOCREATE):
 			print HCCUSERSLIST[i]
 		print "================================"
-		print "Coding Org :"+CODINGORGANIZATION	
+		print "List of newly created HCC Orgs:"
+		print "================================"
+		for i in range (0, NUMBEROFORGSTOCREATE):
+			print HCCORGLIST[i]
 		print "================================"	
 		print "\nThe End..."
 #=========================================================================================
