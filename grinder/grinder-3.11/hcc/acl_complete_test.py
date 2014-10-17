@@ -1,6 +1,6 @@
 #=========================================================================================
 #
-# PROGRAM:         new_user_creation.py
+# PROGRAM:         acl_complete_test.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    15-Oct-2014
 # INITIAL VERSION: 1.0.0
@@ -10,11 +10,13 @@
 #			* Log into ACL
 #			* Obtain and save token
 #			* Create new unique Coding Org(s) and save org_uuid(s)
-#				- Multiple Coding Orgs allowed (NUMBEROFORGSTOCREATE) 
+#				- Multiple Coding Orgs allowed (NUMBER_OF_ORGS_TO_CREATE) 
 #			* Create new unique HCC user(s) and save user_uuid(s) 
-#				- Multiple HCC Users allowed (NUMBEROFUSERSTOCREATE)
+#				- Multiple HCC Users allowed (NUMBER_OF_USERS_TO_CREATE)
+#			* Create new unique ALC Group and save GRP_UUID
+#				- Multiple ACL Groups are allowed (NUMBER_OF_GRPS_TO_CREATE)
 #			* Activate newly created HCC user
-#			* Assign newly created user pre-defined password (HCCPASSWORD)
+#			* Assign newly created user pre-defined password (HCC_PASSWORD)
 #			* Assign newly created HCC user coding org
 #				- Either pre-defined coding org or newly created coding org
 #			* Log into HCC with newly created user/org
@@ -27,9 +29,9 @@
 #          * For further details, see http://grinder.sourceforge.net
 #
 # USAGE:
-#          * Ensure Grinder is configured to execute new_user_creation.py
+#          * Ensure Grinder is configured to execute acl_complete_test.py
 #          * Set the global variables, see below (Global Test Environment Selection)
-#          * Run new_user_creation.py
+#          * Run acl_complete_test.py
 #          * Results will be printed on Grinder Agent and in Grinder Console log files
 #
 #=========================================================================================
