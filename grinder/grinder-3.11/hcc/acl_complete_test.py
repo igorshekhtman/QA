@@ -19,6 +19,8 @@
 #			* Assign newly created user pre-defined password (HCC_PASSWORD)
 #			* Assign newly created HCC user coding org
 #				- Either pre-defined coding org or newly created coding org
+#			* Assign specific or newly created coding org to a user
+#			* Add list of members to a newly created Group
 #			* Log into HCC with newly created user/org
 #			* Store each of the newly created users in an array (HCCUSERSLIST[])
 #			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
@@ -89,7 +91,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 3
+NUMBER_OF_USERS_TO_CREATE = 1
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -309,9 +311,18 @@ class TestRunner:
 			if grpjson is not None:
 				GRP_UUID = grpjson.get("id").get("id")
 				log ("Group UUID: " + GRP_UUID)
-				log ("Group Name: " + gname)
-				
-			log ("Status Code = [%s]\t\t" % result.statusCode)						
+				log ("Group Name: " + gname)			
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+#=========================================================================================
+		def ACLDeleteExistingGroup(group_uuid):									
+			global ACL_URL, TOKEN
+			log ("\nACL Delete Existing Group...")		
+			login = create_request(Test(1800, 'ACL Delete existing group'),[
+    	        NVPair('Referer', ACL_URL+'/admin/'),
+        	])
+			result = login.DELETE(ACL_URL+"/access/group/"+group_uuid, (
+				NVPair('session', TOKEN),))							
+			log ("Status Code = [%s]\t\t" % result.statusCode)
 #=========================================================================================
 		def ACLAddMemberToGroup():
 			global USR_UUID, GRP_UUID, ACL_URL
@@ -391,7 +402,10 @@ class TestRunner:
 			ACLCreateNewCodingOrg()
 			HCCORGLIST[0] = CODING_ORGANIZATION
 			ACLCreateNewGroup()
+			ACLDeleteExistingGroup(GRP_UUID)
+			ACLCreateNewGroup()
 			HCCGRPLIST[0] = ACLGROUPNAME
+			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
 				ACLCreateNewUser()
 				HCCUSERSLIST.append(i)
