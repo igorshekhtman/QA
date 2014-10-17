@@ -91,7 +91,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 1
+NUMBER_OF_USERS_TO_CREATE = 2
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -133,9 +133,9 @@ HCC_URL = PROTOCOL + HCC_DOMAIN
 
 ACLUSERNAME = "root@api.apixio.com"
 ACLPASSWORD = "thePassword"
-USR_UUID = ""
+USR_UUID = "U_318893fc-9c56-45be-aea3-ddb1994d2d7f"
 ORG_UUID = CDGORGMAP[CODING_ORGANIZATION]
-GRP_UUID = ""
+GRP_UUID = "G_f2def4d2-92bf-40d0-8f05-2b3a57f0770a"
 TOKEN = ""
 HCCUSERNAME = ""
 ACLGROUPNAME = ""
@@ -324,6 +324,16 @@ class TestRunner:
 				NVPair('session', TOKEN),))							
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 #=========================================================================================
+		def ACLAddGroupPermission(per_type, group_uuid, org_uuid, user_uuid):
+			log ("\nACL Add "+per_type+" Group Permission...")
+			login = create_request(Test(1900, 'ACL add '+per_type+' permission'),[
+				NVPair('Referer', ACL_URL+'/admin/'),])
+			if per_type == "viewReportsAnnotatedBy":
+				result = login.POST(ACL_URL+"/access/permission/"+group_uuid+"/"+user_uuid+"/"+per_type, (NVPair('session', TOKEN),))
+			else:
+				result = login.POST(ACL_URL+"/access/permission/"+group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+#=========================================================================================
 		def ACLAddMemberToGroup():
 			global USR_UUID, GRP_UUID, ACL_URL
 			log ("\nACL Add Member to Group...")	
@@ -405,6 +415,11 @@ class TestRunner:
 			ACLDeleteExistingGroup(GRP_UUID)
 			ACLCreateNewGroup()
 			HCCGRPLIST[0] = ACLGROUPNAME
+			ACLAddGroupPermission("canAnnotate", GRP_UUID, ORG_UUID, USR_UUID)
+			ACLAddGroupPermission("viewDocuments", GRP_UUID, ORG_UUID, USR_UUID)
+			ACLAddGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID, USR_UUID)
+			ACLAddGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID, USR_UUID)
+			ACLAddGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID, USR_UUID)
 			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
 				ACLCreateNewUser()
