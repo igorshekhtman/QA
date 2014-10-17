@@ -21,6 +21,7 @@
 #				- Either pre-defined coding org or newly created coding org
 #			* Assign specific or newly created coding org to a user
 #			* Add list of members to a newly created Group
+#			* Remove specific member(s) from a Group
 #			* Add specific rules to a Group
 #			* Delete specific rules from a Group
 #			* Log into HCC with newly created user/org
@@ -93,7 +94,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 5
+NUMBER_OF_USERS_TO_CREATE = 3
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -354,6 +355,17 @@ class TestRunner:
 				NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 #=========================================================================================
+		def ACLDelMemberFromGroup(group_uuid, usr_uuid):
+			log ("\nACL Del Member from Group...")	
+			log ("User UUID: " + usr_uuid)
+			log ("Group UUID: " + group_uuid)
+			login = create_request(Test(1650, 'ACL Del Member from Group'),[
+	   	         NVPair('Referer', ACL_URL+'/admin/'),])
+			result = login. \
+				DELETE(ACL_URL+"/access/groupMembership/"+group_uuid+"/"+usr_uuid, (
+				NVPair('session', TOKEN),))
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+#=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
 			log ("\nACL Assign Coding Organization...")	
@@ -451,6 +463,8 @@ class TestRunner:
 				ACLActivateNewUser()
 				ACLSetPassword()
 				ACLAssignCodingOrg()
+				ACLAddMemberToGroup()
+				ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
 				ACLAddMemberToGroup()
 				HCCLogInto()
 			ListUserGroupOrg()					
