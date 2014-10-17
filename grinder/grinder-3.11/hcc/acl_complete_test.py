@@ -91,7 +91,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 2
+NUMBER_OF_USERS_TO_CREATE = 5
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -332,6 +332,14 @@ class TestRunner:
 				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 #=========================================================================================
+		def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
+			log ("\nACL Del "+per_type+" Group Permission...")
+			login = create_request(Test(1950, 'ACL del '+per_type+' permission'),[
+				NVPair('Referer', ACL_URL+'/admin/'),])
+			result = login.DELETE(ACL_URL+"/access/permission/"+ \
+				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
+			log ("Status Code = [%s]\t\t" % result.statusCode)			
+#=========================================================================================
 		def ACLAddMemberToGroup():
 			global USR_UUID, GRP_UUID, ACL_URL
 			log ("\nACL Add Member to Group...")	
@@ -413,10 +421,25 @@ class TestRunner:
 			ACLDeleteExistingGroup(GRP_UUID)
 			ACLCreateNewGroup()
 			HCCGRPLIST[0] = ACLGROUPNAME
+			
 			ACLAddGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
+			ACLAddGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
+			
 			ACLAddGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
+			ACLAddGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
+			
 			ACLAddGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
+			ACLAddGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
+			
 			ACLAddGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
+			ACLAddGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
+			
+			ACLAddGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
 			ACLAddGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
 			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
