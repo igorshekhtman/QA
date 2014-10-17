@@ -1,8 +1,8 @@
 ####################################################################################################
 #
-# PROGRAM: grinder.hcc.tests.py
+# PROGRAM: grinder.py
 # AUTHOR:  Alex Beyk abeyk@apixio.com
-# DATE:    2014.10.15
+# DATE:    2014.10.16
 #
 # PURPOSE:
 #          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
@@ -13,6 +13,7 @@
 #          * Skip   Docs + Opportunities
 #          * View History Report
 #          * View QA Report
+#          * Logout
 #
 # SETUP:
 #          * Assumes a HCC environment is available
@@ -50,14 +51,16 @@ PASSWORD         = "thePassword"
 CODE_OPPS        = 1 # 0 means Do NOT code Opps, 1 means code Opps
 CODE_OPPS_ACTION = 1 # 0 means Do NOT Accept or Reject Doc, 1 means Accept Doc, 2 means Reject Doc, 3 means Skip Opp
 CODE_OPPS_MAX    = 2 # Number of Opps to Code
-VIEW_HISTORY     = 0 # 0 means Do NOT select View History, 1 means select View History
+VIEW_HISTORY     = 1 # 0 means Do NOT select View History, 1 means select View History
 VIEW_HISTORY_MAX = 2 # Number of View History Reports to View
-QA_REPORT        = 0 # 0 means Do NOT select QA Report, 1 means select QA Report
+QA_REPORT        = 1 # 0 means Do NOT select QA Report, 1 means select QA Report
 QA_REPORT_MAX    = 2 # Number of QA Reports to View
+LOGOUT           = 1 # 0 means Do NOT select Logout, 1 means Logout
 
 # MAIN FUNCTIONS ####################################################################################################
 
 def code():
+  log("-------------------------------------------------------------------------------")
   if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
     action = "Do NOT Accept or Reject Doc"
   elif CODE_OPPS_ACTION == 1: # Accept Doc
@@ -105,7 +108,7 @@ def code():
       document_uuid = scorable.get("document_uuid")
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
-      log("PATIENT DOC %d OF %d\n* ORG ID       = %s\n* PATIENT UUID = %s\n* FINDING ID   = %s\n* DOC UUID     = %s\n* DOC TITLE    = %s\n* DOC DATE     = %s" % (doc_no_current, doc_no_max, org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      log("PATIENT DOC %d OF %d\n* ORG ID           = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
       if patient_uuid    == "":
         log("WARNING : PATIENT UUID is Empty")
       if org_id          == "":
@@ -126,7 +129,8 @@ def code():
   return 0
 
 def history():
-  log("URL            = %s\nCODER USERNAME = %s\nCODER PASSWORD = %s\nCODER ACTION   = View History Report" % (URL, USERNAME, PASSWORD))
+  log("-------------------------------------------------------------------------------")
+  log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
   thread_context = HTTPPluginControl.getThreadHTTPClientContext()
   control = HTTPPluginControl.getConnectionDefaults()
   control.setFollowRedirects(1)
@@ -149,16 +153,17 @@ def history():
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z&user=%s" % (now.year, now.month, now.day, USERNAME)
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
     if response.statusCode == 200:
-      log("* CODER ACTION   = View History Report\n* HCC RESPONSE   = 200 OK")
+      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION   = View History Report\n* HCC RESPONSE   = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     view_history_details = response.getText()
     view_history_details_length = len(view_history_details)
-    log("* REPORT PAYLOAD = %d KBytes" % view_history_details_length)
+    log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
   return 0
 
 def report():
-  log("URL            = %s\nCODER USERNAME = %s\nCODER PASSWORD = %s\nCODER ACTION   = QA Report" % (URL, USERNAME, PASSWORD))
+  log("-------------------------------------------------------------------------------")
+  log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
   thread_context = HTTPPluginControl.getThreadHTTPClientContext()
   control = HTTPPluginControl.getConnectionDefaults()
   control.setFollowRedirects(1)
@@ -181,12 +186,22 @@ def report():
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     if response.statusCode == 200:
-      log("* CODER ACTION   = QA Report\n* HCC RESPONSE   = 200 OK")
+      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION   = QA Report\n* HCC RESPONSE   = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     qa_report_details = response.getText()
     qa_report_details_length = len(qa_report_details)
-    log("* REPORT PAYLOAD = %d KBytes" % qa_report_details_length)
+    log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)
+  return 0
+
+def logout():
+  log("-------------------------------------------------------------------------------")
+  testCode = 99
+  response = create_request(Test(testCode, "Logout")).GET(URL + "/account/logout")
+  if response.statusCode == 200:
+    log("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
+  else:
+    log("* CODER ACTION     = Logout\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   return 0
 
 # HELPER FUNCTIONS ####################################################################################################
@@ -221,22 +236,17 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("user_id", USERNAME),
     NVPair("timestamp",str(1000 * int(time.time()))),
     NVPair("result","accept"),
-    NVPair("icd9[code_system_name]",
-    opportunity.get("suggested_codes")[0].get("[code_system_name")),
-    NVPair("icd9[code]",
-    opportunity.get("suggested_codes")[0].get("[code")),
-    NVPair("icd9[display_name]",
-    opportunity.get("suggested_codes")[0].get("[display_name")),
-    NVPair("icd9[code_system]",
-    opportunity.get("suggested_codes")[0].get("[code_system")),
-    NVPair("icd9[code_system_version]",
-    opportunity.get("suggested_codes")[0].get("[code_system_version")),
+    NVPair("comment","Comment by The Grinder"),
+    NVPair("date_of_service",scorable.get("date_of_service")),
+    NVPair("flag_for_review","true"),
+    NVPair("icd9[code_system_name]", opportunity.get("suggested_codes")[0].get("[code_system_name")),
+    NVPair("icd9[code]", opportunity.get("suggested_codes")[0].get("[code")),
+    NVPair("icd9[display_name]", opportunity.get("suggested_codes")[0].get("[display_name")),
+    NVPair("icd9[code_system]", opportunity.get("suggested_codes")[0].get("[code_system")),
+    NVPair("icd9[code_system_version]", opportunity.get("suggested_codes")[0].get("[code_system_version")),
     NVPair("provider[name]","The Grinder M.D."),
     NVPair("provider[id]","1992754832"),
     NVPair("provider[type]","Hospital Outpatient Setting"),
-    NVPair("comment","Comment by The Grinder"),
-    NVPair("flag_for_review","true"),
-    NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
     NVPair("org_id",str(scorable.get("org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
@@ -257,11 +267,16 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("list_length",str(doc_no_max)),
     NVPair("document_date",scorable.get("date_of_service")),
     NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),))
     if response.statusCode == 200:
-      log("* CODER ACTION = Accept Doc\n* HCC RESPONSE = 200 OK")
+      log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION = Accept Doc\n* HCC RESPONSE = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   elif CODE_OPPS_ACTION == 2: # Reject Doc
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
@@ -271,8 +286,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("result","reject"),
     NVPair("reject_reason","Additional documentation needed to Accept the document for this HCC"),
     NVPair("comment","Comment by The Grinder"),
-    NVPair("flag_for_review","true"),
     NVPair("date_of_service",scorable.get("date_of_service")),
+    NVPair("flag_for_review","true"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
     NVPair("org_id",str(scorable.get("org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
@@ -293,11 +308,16 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("list_length",str(doc_no_max)),
     NVPair("document_date",scorable.get("date_of_service")),
     NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),))
     if response.statusCode == 200:
-      log("* CODER ACTION = Reject Doc\n* HCC RESPONSE = 200 OK")
+      log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION = Reject Doc\n* HCC RESPONSE = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   elif CODE_OPPS_ACTION == 3: # Skip Opp
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
@@ -326,6 +346,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("list_length",str(doc_no_max)),
     NVPair("document_date",scorable.get("date_of_service")),
     NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),))
     if response.statusCode == 200:
       log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = 200 OK")
@@ -340,10 +365,12 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 class TestRunner:
   def __call__(self):
     log("============================= START GRINDER TEST ============================")
-    if CODE_OPPS == 1:
+    if CODE_OPPS    == 1:
       code()
     if VIEW_HISTORY == 1:
       history()
-    if QA_REPORT == 1:
+    if QA_REPORT    == 1:
       report()
+    if LOGOUT       == 1:
+      logout()
     log("============================== END GRINDER TEST =============================")
