@@ -35,8 +35,8 @@
 #=========================================================================================
 # Global Paramaters descriptions and possible values:
 # ENVIRONMENT - "Staging" or "Production"
-# NUMBEROFUSERSTOCREATE - integer (0 through x) - total number of HCC users to create
-# NUMBEROFORGSTOCREATE - integer (0 through x) - total number of coding orgs to create
+# NUMBER_OF_USERS_TO_CREATE - integer (0 through x) - total number of HCC users to create
+# NUMBER_OF_ORGS_TO_CREATE - integer (0 through x) - total number of coding orgs to create
 # CODINGORGANIZATION - any organization from CDGORGMAP list below
 # HCCPASSWORD - default password to be assigned to every HCC user
 #=========================================================================================
@@ -86,13 +86,15 @@ CDGORGMAP = { \
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBEROFUSERSTOCREATE = 1
-NUMBEROFORGSTOCREATE = 1
-CODINGORGANIZATION = "Load Test Coders"
-HCCPASSWORD = "apixio.123"
-HCCUSERNAMEPREFIX = "grinder"
-HCCUSERNAMEPOSTFIX = "@apixio.net"
-ACLCODNGORGPREFIX = "Grinder"
+NUMBER_OF_USERS_TO_CREATE = 3
+NUMBER_OF_ORGS_TO_CREATE = 1
+NUMBER_OF_GRPS_TO_CREATE = 1
+CODING_ORGANIZATION = "Load Test Coders"
+HCC_PASSWORD = "apixio.123"
+HCC_USERNAME_PREFIX = "grinder"
+HCC_USERNAME_POSTFIX = "@apixio.net"
+ACL_CODNG_ORG_PREFIX = "grinder"
+ACL_GROUP_PREFIX = "grinder"
 #=========================================================================================
 
 #============ Global variable declaration, initialization ================================
@@ -103,7 +105,10 @@ if (ENVIRONMENT == "Production"):
 else:
 	aclpostfix = "-stg"
 	hccpostfix = "stage"
-
+	#hccpostfix = "stage2"
+	#hccpostfix = "hcc-opprouter-stg"
+	
+	
 ok = 200
 created = 201
 accepted = 202
@@ -115,20 +120,24 @@ intserveror = 500
 servunavail = 503
 
 PROTOCOL = "https://"
+
 ACL_DOMAIN = "acladmin" +aclpostfix+ ".apixio.com"
 ACL_URL = PROTOCOL + ACL_DOMAIN
 
 HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
 HCC_URL = PROTOCOL + HCC_DOMAIN
+#HCC_URL = PROTOCOL + "hcc-opprouter-stg.apixio.com"
 
 ACLUSERNAME = "root@api.apixio.com"
 ACLPASSWORD = "thePassword"
 USR_UUID = ""
-ORG_UUID = CDGORGMAP[CODINGORGANIZATION]
+ORG_UUID = CDGORGMAP[CODING_ORGANIZATION]
+GRP_UUID = ""
 TOKEN = ""
 HCCUSERNAME = ""
 HCCUSERSLIST = [0]
 HCCORGLIST = [0]
+HCCGRPLIST = [0]
 
 
 
@@ -169,9 +178,9 @@ def log(text):
     print(text)
     
 def get_new_hcc_user():
-	global HCCUSERNAMEPREFIX, HCCUSERNAMEPOSTFIX
+	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
 	hccusernumber = str(int(time.time()))
-	hccusername = HCCUSERNAMEPREFIX + hccusernumber + HCCUSERNAMEPOSTFIX
+	hccusername = HCC_USERNAME_PREFIX + hccusernumber + HCC_USERNAME_POSTFIX
 	return hccusername	
 
 
@@ -188,9 +197,9 @@ class TestRunner:
 			log ("ACL URL: \t\t\t"+ACL_URL)
 			log ("HCC URL: \t\t\t"+HCC_URL)
 			log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
-			log ("Coding Organization: \t\t"+CODINGORGANIZATION)
-			log ("HCC Users to Create: \t\t"+str(NUMBEROFUSERSTOCREATE))
-			log ("HCC Orgs to Create: \t\t"+str(NUMBEROFORGSTOCREATE))
+			log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
+			log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
+			log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL		
@@ -244,10 +253,10 @@ class TestRunner:
 			log ("Status Code = [%s]\t\t" % statuscode)		
 #=========================================================================================
 		def ACLSetPassword():
-			global USR_UUID, HCCPASSWORD, TOKEN, ACL_URL
+			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
 			log ("\nACL Assign New User Password...")		
 			#log ("User UUID: " + USR_UUID)
-			#log ("Password: " + HCCPASSWORD)
+			#log ("Password: " + HCC_PASSWORD)
 			headers = [
     	        NVPair('Origin', ACL_URL),
     	        NVPair('Referer', ACL_URL+'/admin/'),
@@ -262,11 +271,11 @@ class TestRunner:
 			log ("Status Code = [%s]\t\t" % statuscode)			
 #=========================================================================================
 		def ACLCreateNewCodingOrg():
-			global ACL_URL, TOKEN, ORG_UUID, ACLCODNGORGPREFIX, CODINGORGANIZATION
+			global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
 			log ("\nACL Create New Coding Org...")
 			conumber = str(int(time.time()))
-			coname = ACLCODNGORGPREFIX +"-"+ conumber
-			CODINGORGANIZATION = coname									
+			coname = ACL_CODNG_ORG_PREFIX +"-"+ conumber
+			CODING_ORGANIZATION = coname									
 			#log ("Coding Org Name: "+coname)		
 			login = create_request(Test(1400, 'ACL Create new coding org'),[
     	        NVPair('Referer', ACL_URL+'/admin/'),
@@ -284,12 +293,46 @@ class TestRunner:
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)
 #=========================================================================================
+		def ACLCreateNewGroup():
+			global ACL_URL, TOKEN, ACL_GROUP_PREFIX
+			log ("\nACL Create New Group...")
+			gnumber = str(int(time.time()))
+			gname = ACL_GROUP_PREFIX +"-"+ gnumber									
+			#log ("Group Name: "+gname)		
+			login = create_request(Test(1500, 'ACL Create new group'),[
+    	        NVPair('Referer', ACL_URL+'/admin/'),
+        	])
+			result = login.POST(ACL_URL+"/access/group", (
+				NVPair('name', gname),
+				NVPair('session', TOKEN),))				
+			grpjson = JSONValue.parse(result.getText())
+			if grpjson is not None:
+				GRP_UUID = grpjson.get("id").get("id")
+				log ("Group UUID: " + GRP_UUID)
+				log ("Group Name: " + gname)
+			statuscode = result.statusCode
+			log ("Status Code = [%s]\t\t" % statuscode)						
+#=========================================================================================
+		def ACLAddMemberToGroup():
+			global USR_UUID, GRP_UUID, ACL_URL
+			log ("\nACL Add Member to Group...")	
+			log ("User UUID: " + USR_UUID)
+			log ("Group UUID: " + GRP_UUID)
+			login = create_request(Test(1600, 'ACL Add Member to Group'),[
+	   	         NVPair('Referer', ACL_URL+'/admin/'),
+	        ])
+			result = login. \
+				POST(ACL_URL+"/access/groupMembership/"+GRP_UUID+"/"+USR_UUID, (
+				NVPair('session', TOKEN),))
+			statuscode = result.statusCode
+			log ("Status Code = [%s]\t\t" % statuscode)
+#=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
 			log ("\nACL Assign Coding Organization...")	
 			#log ("User UUID: " + USR_UUID)
 			#log ("Org UUID: " + ORG_UUID)
-			login = create_request(Test(1500, 'ACL Add Coding Organization'),[
+			login = create_request(Test(1700, 'ACL Add Coding Organization'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),
 	        ])
 			result = login. \
@@ -299,7 +342,7 @@ class TestRunner:
 			log ("Status Code = [%s]\t\t" % statuscode)
 #=========================================================================================
 		def HCCLogInto():
-			global HCCUSERNAME, HCCPASSWORD, HCC_URL
+			global HCCUSERNAME, HCC_PASSWORD, HCC_URL
 			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
 			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
 			log ("\nHCC Connecting to host...")
@@ -320,9 +363,9 @@ class TestRunner:
 			result = login.POST(HCC_URL + '/account/login/?next=/', (
 				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
 				NVPair('username', HCCUSERNAME),
-				NVPair('password', HCCPASSWORD),))
+				NVPair('password', HCC_PASSWORD),))
 			#log (HCCUSERNAME)
-			#log (HCCPASSWORD)	
+			#log (HCC_PASSWORD)	
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)	
 #=========================================================================================
@@ -330,34 +373,47 @@ class TestRunner:
 #=========================================================================================
 		PrintGlobalParamaterSettings()
 		
-		for i in range (0, NUMBEROFORGSTOCREATE):
+		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
 			ACLObtainAuthorization()
+			ACLCreateNewGroup()
+			HCCGRPLIST.append(i)
+			HCCGRPLIST[i] = CODING_ORGANIZATION		
+		
+		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+			#ACLObtainAuthorization()
 			ACLCreateNewCodingOrg()
 			HCCORGLIST.append(i)
-			HCCORGLIST[i] = CODINGORGANIZATION
+			HCCORGLIST[i] = CODING_ORGANIZATION
 		
-		for i in range (0, NUMBEROFUSERSTOCREATE):
-			ACLObtainAuthorization()
+		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+			#ACLObtainAuthorization()
 			ACLCreateNewUser()
 			ACLActivateNewUser()
 			ACLSetPassword()
 			#ACLCreateNewCodingOrg()
 			ACLAssignCodingOrg()
+			#ACLCreateNewGroup()
+			ACLAddMemberToGroup()
 			HCCLogInto()
 			HCCUSERSLIST.append(i)
 			HCCUSERSLIST[i] = HCCUSERNAME
 		
-		log ("\n================================")
+		log ("\n=================================")
 		log ("List of newly created HCC Users:")
-		log ("================================")
-		for i in range (0, NUMBEROFUSERSTOCREATE):
+		log ("=================================")
+		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
 			log (HCCUSERSLIST[i])
-		log ("================================")
+		log ("=================================")
 		log ("List of newly created HCC Orgs:")
-		log ("================================")
-		for i in range (0, NUMBEROFORGSTOCREATE):
+		log ("=================================")
+		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
 			log (HCCORGLIST[i])
-		log ("================================")	
+		log ("=================================")
+		log ("List of newly created HCC Groups:")
+		log ("=================================")
+		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+			log (HCCGRPLIST[i])			
+		log ("=================================")	
 		log ("\nThe End...")
 #=========================================================================================
 		
