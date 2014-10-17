@@ -42,9 +42,9 @@
 # CODINGORGANIZATION - any organization from CDGORGMAP list below
 # HCCPASSWORD - default password to be assigned to every HCC user
 #=========================================================================================
-# Revision 1:
-# Author:
-# Specifics:
+# Revision 1: 1.0.1
+# Author: Igor Shekhtman ishekhtman@apixio.com 
+# Specifics: Introduction of Program Flow Control
 #=========================================================================================
 # Revision 2:
 # Author:
@@ -83,14 +83,16 @@ CDGORGMAP = { \
 	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
 	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \	
 }
-#=========================================================================================
+#===================== Program Version ===================================================
+VERSION = '1.0.1'
 #===================== Global Test Environment Selection =================================
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 2
+NUMBER_OF_USERS_TO_CREATE = 3
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
+
 CODING_ORGANIZATION = "Load Test Coders"
 HCC_PASSWORD = "apixio.123"
 HCC_USERNAME_PREFIX = "grinderU"
@@ -107,8 +109,6 @@ if (ENVIRONMENT == "Production"):
 else:
 	aclpostfix = "-stg"
 	hccpostfix = "stage"
-	#hccpostfix = "stage2"
-	#hccpostfix = "hcc-opprouter-stg"
 	
 	
 ok = 200
@@ -128,7 +128,6 @@ ACL_URL = PROTOCOL + ACL_DOMAIN
 
 HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
 HCC_URL = PROTOCOL + HCC_DOMAIN
-#HCC_URL = PROTOCOL + "hcc-opprouter-stg.apixio.com"
 
 ACLUSERNAME = "root@api.apixio.com"
 ACLPASSWORD = "thePassword"
@@ -196,6 +195,7 @@ class TestRunner:
 		
 #=========================================================================================
 		def PrintGlobalParamaterSettings():
+			log ("\nVersion: \t\t\t"+VERSION)
 			log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
 			log ("ACL URL: \t\t\t"+ACL_URL)
 			log ("HCC URL: \t\t\t"+HCC_URL)
@@ -203,6 +203,7 @@ class TestRunner:
 			log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
 			log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
 			log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
+			log ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL		
@@ -288,6 +289,7 @@ class TestRunner:
 				ORG_UUID = userjson.get("id")
 				#log ("Coding Org UUID: " + ORG_UUID)
 				#log ("Coding Org Name: " + coname)
+	
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 #=========================================================================================
 		def ACLCreateNewGroup():
@@ -308,6 +310,7 @@ class TestRunner:
 				GRP_UUID = grpjson.get("id").get("id")
 				log ("Group UUID: " + GRP_UUID)
 				log ("Group Name: " + gname)
+				
 			log ("Status Code = [%s]\t\t" % result.statusCode)						
 #=========================================================================================
 		def ACLAddMemberToGroup():
@@ -360,52 +363,103 @@ class TestRunner:
 			#log (HCC_PASSWORD)	
 			log ("Status Code = [%s]\t\t" % result.statusCode)	
 #=========================================================================================
+		def ListUserGroupOrg():
+			log ("\n=================================")
+			log ("List of newly created HCC Users:")
+			log ("=================================")
+			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+				log (HCCUSERSLIST[i])
+			log ("=================================")
+			log ("List of newly created HCC Orgs:")
+			log ("=================================")
+			for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+				log (HCCORGLIST[i])
+			log ("=================================")
+			log ("List of newly created HCC Groups:")
+			log ("=================================")
+			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+				log (HCCGRPLIST[i])			
+			log ("=================================")	
+			log ("\nThe End...")						
+#=========================================================================================
+#============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
+#=========================================================================================
+		def ProgramFlowControlOne():
+			global HCCUSERSLIST
+			PrintGlobalParamaterSettings()
+			ACLObtainAuthorization()
+			ACLCreateNewCodingOrg()
+			HCCORGLIST[0] = CODING_ORGANIZATION
+			ACLCreateNewGroup()
+			HCCGRPLIST[0] = ACLGROUPNAME
+			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+				ACLCreateNewUser()
+				HCCUSERSLIST.append(i)
+				HCCUSERSLIST[i] = HCCUSERNAME
+				ACLActivateNewUser()
+				ACLSetPassword()
+				ACLAssignCodingOrg()
+				ACLAddMemberToGroup()
+				HCCLogInto()
+			ListUserGroupOrg()					
+#=========================================================================================
+#============= MULTIPLE GROUPS ONE CODING ORG MULTIPLE USERS =============================
+#=========================================================================================
+		def ProgramFlowControlTwo():
+			global HCCGRPLIST, HCCUSERSLIST
+			PrintGlobalParamaterSettings()
+			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+				ACLObtainAuthorization()
+				ACLCreateNewGroup()
+				HCCGRPLIST.append(i)
+				HCCGRPLIST[i] = ACLGROUPNAME
+				
+			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+				ACLCreateNewUser()
+				ACLActivateNewUser()
+				ACLSetPassword()
+				ACLCreateNewCodingOrg()
+				HCCORGLIST[0] = CODING_ORGANIZATION
+				ACLAssignCodingOrg()
+				ACLAddMemberToGroup()
+				HCCLogInto()
+				HCCUSERSLIST.append(i)
+				HCCUSERSLIST[i] = HCCUSERNAME
+			ListUserGroupOrg()			
+#=========================================================================================
+#============= ONE GROUP MULTIPLE CODING ORGS MULTIPLE USERS =============================
+#=========================================================================================
+		def ProgramFlowControlThree():	
+			global HCCORGLIST, HCCUSERSLIST
+			PrintGlobalParamaterSettings()
+			for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+				ACLObtainAuthorization()
+				ACLCreateNewCodingOrg()
+				HCCORGLIST.append(i)
+				HCCORGLIST[i] = CODING_ORGANIZATION			
+			
+			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+				ACLCreateNewUser()
+				ACLActivateNewUser()
+				ACLSetPassword()
+				ACLAssignCodingOrg()
+				ACLCreateNewGroup()
+				HCCGRPLIST[0] = ACLGROUPNAME
+				ACLAddMemberToGroup()
+				HCCLogInto()
+				HCCUSERSLIST.append(i)
+				HCCUSERSLIST[i] = HCCUSERNAME
+			ListUserGroupOrg()						
+#=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-		PrintGlobalParamaterSettings()
 		
-		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-			ACLObtainAuthorization()
-			ACLCreateNewGroup()
-			HCCGRPLIST.append(i)
-			HCCGRPLIST[i] = ACLGROUPNAME		
+		ProgramFlowControlOne()
 		
-		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
-			#ACLObtainAuthorization()
-			ACLCreateNewCodingOrg()
-			HCCORGLIST.append(i)
-			HCCORGLIST[i] = CODING_ORGANIZATION
+		#ProgramFlowControlTwo()
 		
-		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-			#ACLObtainAuthorization()
-			ACLCreateNewUser()
-			ACLActivateNewUser()
-			ACLSetPassword()
-			#ACLCreateNewCodingOrg()
-			ACLAssignCodingOrg()
-			#ACLCreateNewGroup()
-			ACLAddMemberToGroup()
-			HCCLogInto()
-			HCCUSERSLIST.append(i)
-			HCCUSERSLIST[i] = HCCUSERNAME
+		#ProgramFlowControlThree()
 		
-		log ("\n=================================")
-		log ("List of newly created HCC Users:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-			log (HCCUSERSLIST[i])
-		log ("=================================")
-		log ("List of newly created HCC Orgs:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
-			log (HCCORGLIST[i])
-		log ("=================================")
-		log ("List of newly created HCC Groups:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-			log (HCCGRPLIST[i])			
-		log ("=================================")	
-		log ("\nThe End...")
 #=========================================================================================
 		
 		
