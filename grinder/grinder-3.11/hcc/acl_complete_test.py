@@ -21,6 +21,8 @@
 #				- Either pre-defined coding org or newly created coding org
 #			* Assign specific or newly created coding org to a user
 #			* Add list of members to a newly created Group
+#			* Add specific rules to a Group
+#			* Delete specific rules from a Group
 #			* Log into HCC with newly created user/org
 #			* Store each of the newly created users in an array (HCCUSERSLIST[])
 #			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
