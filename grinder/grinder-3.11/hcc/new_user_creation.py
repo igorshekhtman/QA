@@ -1,427 +1,376 @@
-#=========================================================================================
+####################################################################################################
 #
-# PROGRAM:         new_user_creation.py
-# AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
-# DATE CREATED:    15-Oct-2014
-# INITIAL VERSION: 1.0.0
+# PROGRAM: grinder.py
+# AUTHOR:  Alex Beyk abeyk@apixio.com
+# DATE:    2014.10.16
 #
 # PURPOSE:
-#          This program should be executed via Grinder for testing ACL functionality:
-#			* Log into ACL
-#			* Obtain and save token
-#			* Create new unique Coding Org(s) and save org_uuid(s)
-#				- Multiple Coding Orgs allowed (NUMBEROFORGSTOCREATE) 
-#			* Create new unique HCC user(s) and save user_uuid(s) 
-#				- Multiple HCC Users allowed (NUMBEROFUSERSTOCREATE)
-#			* Activate newly created HCC user
-#			* Assign newly created user pre-defined password (HCCPASSWORD)
-#			* Assign newly created HCC user coding org
-#				- Either pre-defined coding org or newly created coding org
-#			* Log into HCC with newly created user/org
-#			* Store each of the newly created users in an array (HCCUSERSLIST[])
-#			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
+#          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
+#          * Login
+#          * View   Docs + Opportunities
+#          * Accept Docs + Opportunities
+#          * Reject Docs + Opportunities
+#          * Skip   Docs + Opportunities
+#          * View History Report
+#          * View QA Report
+#          * Logout
 #
 # SETUP:
-#          * Assumes a ACL and HCC environments are available
+#          * Assumes a HCC environment is available
 #          * Assumes a Grinder environment is available
 #          * For further details, see http://grinder.sourceforge.net
 #
 # USAGE:
-#          * Ensure Grinder is configured to execute new_user_creation.py
-#          * Set the global variables, see below (Global Test Environment Selection)
-#          * Run new_user_creation.py
-#          * Results will be printed on Grinder Agent and in Grinder Console log files
+#          * Ensure Grinder is configured to execute grinder.py (this program)
+#          * Set the global variables, see below
+#          * Run grinder.py (this program)
+#          * Results will be printed on both the Grinder Agent and in Grinder Console log files
 #
-#=========================================================================================
-# Global Paramaters descriptions and possible values:
-# ENVIRONMENT - "Staging" or "Production"
-# NUMBER_OF_USERS_TO_CREATE - integer (0 through x) - total number of HCC users to create
-# NUMBER_OF_ORGS_TO_CREATE - integer (0 through x) - total number of coding orgs to create
-# CODINGORGANIZATION - any organization from CDGORGMAP list below
-# HCCPASSWORD - default password to be assigned to every HCC user
-#=========================================================================================
-# Revision 1:
-# Author:
-# Specifics:
-#=========================================================================================
-# Revision 2:
-# Author:
-# Specifics:
-#=========================================================================================
-# Revision 3:
-# Author:
-# Specifics:
-#=========================================================================================
+####################################################################################################
+
+# LIBRARIES ####################################################################################################
+
 from net.grinder.script.Grinder import grinder
 from net.grinder.script import Test
 from net.grinder.plugin.http import HTTPRequest, HTTPPluginControl
-from HTTPClient import Codecs, Cookie, CookieModule, CookiePolicyHandler, NVPair
+from HTTPClient import Cookie, CookieModule, CookiePolicyHandler, NVPair
 from org.json.simple import JSONObject, JSONValue
-from jarray import zeros
 import time
-import csv
-#=========================================================================================
-#=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
-#=========================================================================================
-CDGORGMAP = { \
-	"AE & Associates":"UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", \
-	"Scripps":"UO_609aa5c3-4bff-4aec-a629-1da4f0be144e", \
-	"Coding Org 1":"UO_5c83fcf7-d216-42ca-859d-9908e74049e5", \
-	"Coding Org 2":"UO_c2fee803-b169-4bfb-9e46-137295379b46", \
-	"Coding Org 3":"UO_fb540446-a07d-4e2f-b2a2-6caf1179d455", \
-	"HealthCare Partners":"UO_62eb7683-e42b-4cf4-a7cf-e91dcaf68bbb", \
-	"Apixio Coders":"UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76", \
-	"CCHCA":"UO_6cbe9df5-cdfb-414f-b1f0-f44c7b519bcb", \
-	"Load Test Coders":"UO_149af107-1ef7-49a0-923e-be4b2de174b3", \
-	"org0420":"UO_7c6cf5ea-b35c-4ecf-866f-915f70269d34", \
-	"test Coding org":"UO_ee2a6959-bc38-40c3-813b-d3e7a9cc681b", \
-	"Test Org2":"UO_8f2082b8-5060-4e90-bd6e-3db8f97659a6", \
-	"Test Org 1000":"UO_45dcce68-47a8-4e0f-9cf4-467476021337", \
-	"Test Org 1000":"UO_1296f532-2605-4e63-9d09-e5e992bd07ea", \
-	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
-	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \	
-}
-#=========================================================================================
-#===================== Global Test Environment Selection =================================
-#ENVIRONMENT = 'Production'
-ENVIRONMENT = 'Staging'
+import datetime
 
-NUMBER_OF_USERS_TO_CREATE = 3
-NUMBER_OF_ORGS_TO_CREATE = 1
-NUMBER_OF_GRPS_TO_CREATE = 1
-CODING_ORGANIZATION = "Load Test Coders"
-HCC_PASSWORD = "apixio.123"
-HCC_USERNAME_PREFIX = "grinder"
-HCC_USERNAME_POSTFIX = "@apixio.net"
-ACL_CODNG_ORG_PREFIX = "grinder"
-ACL_GROUP_PREFIX = "grinder"
-#=========================================================================================
+# GLOBAL VARIABLES ####################################################################################################
 
-#============ Global variable declaration, initialization ================================
+DOMAIN           = "hcc.apixio.com"
+URL              = "https://%s" % DOMAIN
+USERNAME         = "root@api.apixio.com"
+PASSWORD         = "thePassword"
+#USERNAME        = "hillroot@apixio.net"
+#PASSWORD        = "multiplexor"
+#USERNAME        = "hcpnvroot@apixio.net" # Simulate No Opportunities
+#PASSWORD        = "multiplexor"          # Simulate No Opportunities
+CODE_OPPS        = 1 # 0 means Do NOT code Opps, 1 means code Opps
+CODE_OPPS_ACTION = 1 # 0 means Do NOT Accept or Reject Doc, 1 means Accept Doc, 2 means Reject Doc, 3 means Skip Opp
+CODE_OPPS_MAX    = 2 # Number of Opps to Code
+VIEW_HISTORY     = 1 # 0 means Do NOT select View History, 1 means select View History
+VIEW_HISTORY_MAX = 2 # Number of View History Reports to View
+QA_REPORT        = 1 # 0 means Do NOT select QA Report, 1 means select QA Report
+QA_REPORT_MAX    = 2 # Number of QA Reports to View
+LOGOUT           = 1 # 0 means Do NOT select Logout, 1 means Logout
 
-if (ENVIRONMENT == "Production"):
-	aclpostfix = "-prd"
-	hccpostfix = ""
-else:
-	aclpostfix = "-stg"
-	hccpostfix = "stage"
-	#hccpostfix = "stage2"
-	#hccpostfix = "hcc-opprouter-stg"
-	
-	
-ok = 200
-created = 201
-accepted = 202
-nocontent = 204
-movedperm = 301
-redirect = 302
-forbidden = 403
-intserveror = 500
-servunavail = 503
+# MAIN FUNCTIONS ####################################################################################################
 
-PROTOCOL = "https://"
+def code():
+  log("-------------------------------------------------------------------------------")
+  if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
+    action = "Do NOT Accept or Reject Doc"
+  elif CODE_OPPS_ACTION == 1: # Accept Doc
+    action = "Accept Docs"
+  elif CODE_OPPS_ACTION == 2: # Reject Doc
+    action = "Reject Docs"
+  elif CODE_OPPS_ACTION == 3: # Skip Opp
+    action = "Skip Opp"
+  else:
+    action = "Unknown"
+  log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = %s\nMAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, action, CODE_OPPS_MAX))
+  thread_context = HTTPPluginControl.getThreadHTTPClientContext()
+  control = HTTPPluginControl.getConnectionDefaults()
+  control.setFollowRedirects(1)
+  result = create_request(Test(1, "Connect to host")).GET(URL + "/")
+  result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
+  login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
+  response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  coding_opp_current = 1
+  for coding_opp_current in range(1, (CODE_OPPS_MAX+1)):
+    testCode = 10 + (1 * coding_opp_current)
+    response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
+    opportunity = JSONValue.parse(response.getText())
+    patient_details = response.getText()
+    if opportunity == None:
+      log("ERROR : Login Failed or No More Opportunities For This Coder")
+      return 1
+    patient_uuid = ""
+    patient_uuid = opportunity.get("patient_uuid")
+    scorables = opportunity.get("scorables")
+    log("-------------------------------------------------------------------------------")
+    log("PATIENT OPP %d OF %d" % (coding_opp_current, CODE_OPPS_MAX))
+    test_counter = 0
+    doc_no_current = 0
+    doc_no_max = len(scorables)
+    for scorable in scorables:
+      org_id          = ""
+      finding_id      = ""
+      document_uuid   = ""
+      document_title  = ""
+      date_of_service = ""
+      doc_no_current = doc_no_current + 1
+      org_id = scorable.get("org_id")
+      finding_id = scorable.get("id")
+      document_uuid = scorable.get("document_uuid")
+      document_title = scorable.get("document_title")
+      date_of_service = scorable.get("date_of_service")
+      log("PATIENT DOC %d OF %d\n* ORG ID           = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      if patient_uuid    == "":
+        log("WARNING : PATIENT UUID is Empty")
+      if org_id          == "":
+        log("WARNING : ORG ID is Empty")
+      if finding_id      == "":
+        log("WARNING : FINDING ID is Empty")
+      if document_uuid   == "":
+        log("WARNING : DOC UUID is Empty")
+      if document_title  == "":
+        log("WARNING : DOC TITLE is Empty")
+      if date_of_service == "":
+        log("WARNING : DOC DATE is Empty")
+      test_counter = test_counter + 1
+      doc_request = create_request(Test(testCode + test_counter, "Get scorable document"),[NVPair("Referer", URL + "/"),NVPair("Host", DOMAIN),])
+      response = doc_request.GET(URL + "/api/document/" + document_uuid)
+      test_counter = test_counter + 1
+      act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
+  return 0
 
-ACL_DOMAIN = "acladmin" +aclpostfix+ ".apixio.com"
-ACL_URL = PROTOCOL + ACL_DOMAIN
+def history():
+  log("-------------------------------------------------------------------------------")
+  log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
+  thread_context = HTTPPluginControl.getThreadHTTPClientContext()
+  control = HTTPPluginControl.getConnectionDefaults()
+  control.setFollowRedirects(1)
+  result = create_request(Test(1, "Connect to host")).GET(URL + "/")
+  result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
+  login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
+  response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  view_history_count = 1
+  testCode = 10 + (1 * view_history_count)
+  response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
+  opportunity = JSONValue.parse(response.getText())
+  patient_details = response.getText()
+  if opportunity == None:
+    log("ERROR : Login Failed or No More Opportunities For This Coder")
+    return 1
+  for view_history_count in range(1, (VIEW_HISTORY_MAX+1)):
+    log("-------------------------------------------------------------------------------")
+    log("Report %d OF %d" % (view_history_count, VIEW_HISTORY_MAX))
+    now = datetime.datetime.now()
+    report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z&user=%s" % (now.year, now.month, now.day, USERNAME)
+    response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
+    if response.statusCode == 200:
+      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = 200 OK")
+    else:
+      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+    view_history_details = response.getText()
+    view_history_details_length = len(view_history_details)
+    log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
+  return 0
 
-HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
-HCC_URL = PROTOCOL + HCC_DOMAIN
-#HCC_URL = PROTOCOL + "hcc-opprouter-stg.apixio.com"
+def report():
+  log("-------------------------------------------------------------------------------")
+  log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
+  thread_context = HTTPPluginControl.getThreadHTTPClientContext()
+  control = HTTPPluginControl.getConnectionDefaults()
+  control.setFollowRedirects(1)
+  result = create_request(Test(1, "Connect to host")).GET(URL + "/")
+  result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
+  login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
+  response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  qa_report_count = 1
+  testCode = 10 + (1 * qa_report_count)
+  response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
+  opportunity = JSONValue.parse(response.getText())
+  patient_details = response.getText()
+  if opportunity == None:
+    log("ERROR : Login Failed or No More Opportunities For This Coder")
+    return 1
+  for qa_report_count in range(1, (QA_REPORT_MAX+1)):
+    log("-------------------------------------------------------------------------------")
+    log("Report %d OF %d" % (qa_report_count, QA_REPORT_MAX))
+    now = datetime.datetime.now()
+    report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
+    response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
+    if response.statusCode == 200:
+      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = 200 OK")
+    else:
+      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+    qa_report_details = response.getText()
+    qa_report_details_length = len(qa_report_details)
+    log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)
+  return 0
 
-ACLUSERNAME = "root@api.apixio.com"
-ACLPASSWORD = "thePassword"
-USR_UUID = ""
-ORG_UUID = CDGORGMAP[CODING_ORGANIZATION]
-GRP_UUID = ""
-TOKEN = ""
-HCCUSERNAME = ""
-HCCUSERSLIST = [0]
-HCCORGLIST = [0]
-HCCGRPLIST = [0]
+def logout():
+  log("-------------------------------------------------------------------------------")
+  testCode = 99
+  response = create_request(Test(testCode, "Logout")).GET(URL + "/account/logout")
+  if response.statusCode == 200:
+    log("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
+  else:
+    log("* CODER ACTION     = Logout\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+  return 0
 
+# HELPER FUNCTIONS ####################################################################################################
 
+def log(text):
+  grinder.logger.info(text)
+  print(text)
+  return 0
 
 def create_request(test, headers=None):
-    request = HTTPRequest()
-    if headers:
-        request.headers = headers
-        #print "headers = [%s]" % headers
-    test.record(request)
-    #print "request = [%s]" % request
-    return request
+  request = HTTPRequest()
+  if headers:
+    request.headers = headers
+  test.record(request)
+  return request
 
-def get_session(thread_context):
-    cookies = CookieModule.listAllCookies(thread_context)
-    session = ''
-    #print "cookies = [%s]" % cookies
-    for cookie in cookies:
-        if cookie.getName() == 'session':
-            session = cookie.getValue()
-            #print "cookie = [%s]" % cookie
-    return session
-    
 def get_csrf_token(thread_context):
-    cookies = CookieModule.listAllCookies(thread_context)
-    csrftoken = ''
-    for cookie in cookies:
-        if cookie.getName() == 'csrftoken':
-            csrftoken = cookie.getValue()
-    return csrftoken    
-    
-def print_all_cookies(thread_context):
-    cookies = CookieModule.listAllCookies(thread_context)
-    print "cookies = [%s]" % cookies
-    return cookies    
-    
-def log(text):
-    grinder.logger.info(text)
-    print(text)
-    
-def get_new_hcc_user():
-	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
-	hccusernumber = str(int(time.time()))
-	hccusername = HCC_USERNAME_PREFIX + hccusernumber + HCC_USERNAME_POSTFIX
-	return hccusername	
+  cookies = CookieModule.listAllCookies(thread_context)
+  csrftoken = ""
+  for cookie in cookies:
+    if cookie.getName() == "csrftoken":
+      csrftoken = cookie.getValue()
+  return csrftoken
 
+def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
+  if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
+    log("* CODER ACTION = Do NOT Accept or Reject Doc")
+  elif CODE_OPPS_ACTION == 1: # Accept Doc
+    finding_id = scorable.get("id")
+    annotation = create_request(Test(testname, "Annotate Finding"))
+    response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    NVPair("user_id", USERNAME),
+    NVPair("timestamp",str(1000 * int(time.time()))),
+    NVPair("result","accept"),
+    NVPair("comment","Comment by The Grinder"),
+    NVPair("date_of_service",scorable.get("date_of_service")),
+    NVPair("flag_for_review","true"),
+    NVPair("icd9[code_system_name]", opportunity.get("suggested_codes")[0].get("[code_system_name")),
+    NVPair("icd9[code]", opportunity.get("suggested_codes")[0].get("[code")),
+    NVPair("icd9[display_name]", opportunity.get("suggested_codes")[0].get("[display_name")),
+    NVPair("icd9[code_system]", opportunity.get("suggested_codes")[0].get("[code_system")),
+    NVPair("icd9[code_system_version]", opportunity.get("suggested_codes")[0].get("[code_system_version")),
+    NVPair("provider[name]","The Grinder M.D."),
+    NVPair("provider[id]","1992754832"),
+    NVPair("provider[type]","Hospital Outpatient Setting"),
+    NVPair("payment_year",str(opportunity.get("payment_year"))),
+    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("orig_date_of_service",scorable.get("date_of_service")),
+    NVPair("opportunity_hash",opportunity.get("hash")),
+    NVPair("rule_hash",opportunity.get("rule_hash")),
+    NVPair("get_id",str(opportunity.get("get_id"))),
+    NVPair("patient_uuid",opportunity.get("patient_uuid")),
+    NVPair("hcc[code]",str(opportunity.get("hcc"))),
+    NVPair("hcc[model_run]",opportunity.get("model_run")),
+    NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
+    NVPair("hcc[description]",opportunity.get("hcc_description")),
+    NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
+    NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
+    NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
+    NVPair("finding_id",str(finding_id)),
+    NVPair("document_uuid", scorable.get("document_uuid")),
+    NVPair("list_position",str(doc_no_current)),
+    NVPair("list_length",str(doc_no_max)),
+    NVPair("document_date",scorable.get("date_of_service")),
+    NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
+    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    if response.statusCode == 200:
+      log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
+    else:
+      log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+  elif CODE_OPPS_ACTION == 2: # Reject Doc
+    finding_id = scorable.get("id")
+    annotation = create_request(Test(testname, "Annotate Finding"))
+    response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    NVPair("user_id", USERNAME),
+    NVPair("timestamp",str(1000 * int(time.time()))),
+    NVPair("result","reject"),
+    NVPair("reject_reason","Additional documentation needed to Accept the document for this HCC"),
+    NVPair("comment","Comment by The Grinder"),
+    NVPair("date_of_service",scorable.get("date_of_service")),
+    NVPair("flag_for_review","true"),
+    NVPair("payment_year",str(opportunity.get("payment_year"))),
+    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("orig_date_of_service",scorable.get("date_of_service")),
+    NVPair("opportunity_hash",opportunity.get("hash")),
+    NVPair("rule_hash",opportunity.get("rule_hash")),
+    NVPair("get_id",str(opportunity.get("get_id"))),
+    NVPair("patient_uuid",opportunity.get("patient_uuid")),
+    NVPair("hcc[code]",str(opportunity.get("hcc"))),
+    NVPair("hcc[model_run]",opportunity.get("model_run")),
+    NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
+    NVPair("hcc[description]",opportunity.get("hcc_description")),
+    NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
+    NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
+    NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
+    NVPair("finding_id",str(finding_id)),
+    NVPair("document_uuid", scorable.get("document_uuid")),
+    NVPair("list_position",str(doc_no_current)),
+    NVPair("list_length",str(doc_no_max)),
+    NVPair("document_date",scorable.get("date_of_service")),
+    NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
+    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    if response.statusCode == 200:
+      log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
+    else:
+      log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+  elif CODE_OPPS_ACTION == 3: # Skip Opp
+    finding_id = scorable.get("id")
+    annotation = create_request(Test(testname, "Annotate Finding"))
+    response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    NVPair("user_id", USERNAME),
+    NVPair("timestamp",str(1000 * int(time.time()))),
+    NVPair("result","skipped"),
+    NVPair("date_of_service",scorable.get("date_of_service")),
+    NVPair("payment_year",str(opportunity.get("payment_year"))),
+    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("orig_date_of_service",scorable.get("date_of_service")),
+    NVPair("opportunity_hash",opportunity.get("hash")),
+    NVPair("rule_hash",opportunity.get("rule_hash")),
+    NVPair("get_id",str(opportunity.get("get_id"))),
+    NVPair("patient_uuid",opportunity.get("patient_uuid")),
+    NVPair("hcc[code]",str(opportunity.get("hcc"))),
+    NVPair("hcc[model_run]",opportunity.get("model_run")),
+    NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
+    NVPair("hcc[description]",opportunity.get("hcc_description")),
+    NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
+    NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
+    NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
+    NVPair("finding_id",str(finding_id)),
+    NVPair("document_uuid", scorable.get("document_uuid")),
+    NVPair("list_position",str(doc_no_current)),
+    NVPair("list_length",str(doc_no_max)),
+    NVPair("document_date",scorable.get("date_of_service")),
+    NVPair("snippets",str(scorable.get("snippets"))),
+    NVPair("predicted_code[code_system_name]", "The Grinder"),
+    NVPair("predicted_code[code]", "The Grinder"),
+    NVPair("predicted_code[display_name]", "The Grinder"),
+    NVPair("predicted_code[code_system]", "The Grinder"),
+    NVPair("predicted_code[code_system_version]", "The Grinder"),
+    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    if response.statusCode == 200:
+      log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = 200 OK")
+    else:
+      log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = WARNING : Bad HCC Server Response\n[%s]" % response)
+  else:
+    log("* CODER ACTION = Unknown\n")
+  return 0
+
+# MAIN FUNCTION CALLER ####################################################################################################
 
 class TestRunner:
-    def __call__(self):
-		log ("\n\nStarting ACL-Admin New User Creation...\n")
-		thread_context = HTTPPluginControl.getThreadHTTPClientContext()
-		control = HTTPPluginControl.getConnectionDefaults()
-		control.setFollowRedirects(1)
-		
-#=========================================================================================
-		def PrintGlobalParamaterSettings():
-			log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
-			log ("ACL URL: \t\t\t"+ACL_URL)
-			log ("HCC URL: \t\t\t"+HCC_URL)
-			log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
-			log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
-			log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
-			log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
-#=========================================================================================
-		def ACLObtainAuthorization():
-			global TOKEN, ACL_URL		
-			log ("\nACL Obtain Authorization...")
-			#log ("HOST_URL: " + HOST_URL)
-			statuscode = 500
-			# repeat until successful login is reached
-			while statuscode != 200:
-				login = create_request(Test(1000, 'ACL Log in admin'),[
-            		NVPair('Referer', ACL_URL+'/'),
-        		])
-				result = login.POST(ACL_URL+"/auth", (
-					NVPair('session', get_session(thread_context)),
-					NVPair('email', ACLUSERNAME),
-					NVPair('password', ACLPASSWORD),))
-				TOKEN = get_session(thread_context)
-				statuscode = result.statusCode
-				log ("Status Code = [%s]\t\t" % statuscode)
-#=========================================================================================
-		def ACLCreateNewUser():
-			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
-			log ("\nACL Create New User...")
-			login = create_request(Test(1100, 'ACL Create new user'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),])
-			HCCUSERNAME = get_new_hcc_user()
-			result = login.POST(ACL_URL+"/access/user", (
-				NVPair('email', HCCUSERNAME),
-				NVPair('session', TOKEN),))
-			userjson = JSONValue.parse(result.getText())
-			if userjson is not None:
-				USR_UUID = userjson.get("id")
-				#log ("User UUID: " + USR_UUID)
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)
-			if statuscode == 500:
-				log (">>> Failure occured: username already exists <<<")
-				exit()
-#=========================================================================================
-		def ACLActivateNewUser():
-			global USR_UUID, TOKEN, ACL_URL
-			log ("\nACL Activate New User...")	
-			#log ("User UUID: " + USR_UUID)
-			data = str.encode("session="+str(TOKEN))
-			login = create_request(Test(1200, 'ACL Activate new user'),[
-				NVPair('Referer', ACL_URL+'/admin/'),
-       	     ])
-			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID, data, (
-				NVPair('session', TOKEN),))
-			#print_all_cookies(thread_context)
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)		
-#=========================================================================================
-		def ACLSetPassword():
-			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
-			log ("\nACL Assign New User Password...")		
-			#log ("User UUID: " + USR_UUID)
-			#log ("Password: " + HCC_PASSWORD)
-			headers = [
-    	        NVPair('Origin', ACL_URL),
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-    	        NVPair('session', TOKEN),
-    	    ]
-			login = create_request(Test(1300, 'ACL Set Password'),headers)
-			#PUT(uri, data, headers)
-			data = str.encode("password=apixio.123")
-			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
-				data, headers)
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)			
-#=========================================================================================
-		def ACLCreateNewCodingOrg():
-			global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
-			log ("\nACL Create New Coding Org...")
-			conumber = str(int(time.time()))
-			coname = ACL_CODNG_ORG_PREFIX +"-"+ conumber
-			CODING_ORGANIZATION = coname									
-			#log ("Coding Org Name: "+coname)		
-			login = create_request(Test(1400, 'ACL Create new coding org'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-			result = login.POST(ACL_URL+"/access/userOrganization", (
-				NVPair('name', coname),
-				NVPair('key', conumber),
-				NVPair('description', coname),
-				NVPair('session', TOKEN),))				
-			userjson = JSONValue.parse(result.getText())
-			if userjson is not None:
-				ORG_UUID = userjson.get("id")
-				#log ("Coding Org UUID: " + ORG_UUID)
-				#log ("Coding Org Name: " + coname)
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)
-#=========================================================================================
-		def ACLCreateNewGroup():
-			global ACL_URL, TOKEN, ACL_GROUP_PREFIX
-			log ("\nACL Create New Group...")
-			gnumber = str(int(time.time()))
-			gname = ACL_GROUP_PREFIX +"-"+ gnumber									
-			#log ("Group Name: "+gname)		
-			login = create_request(Test(1500, 'ACL Create new group'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-			result = login.POST(ACL_URL+"/access/group", (
-				NVPair('name', gname),
-				NVPair('session', TOKEN),))				
-			grpjson = JSONValue.parse(result.getText())
-			if grpjson is not None:
-				GRP_UUID = grpjson.get("id").get("id")
-				log ("Group UUID: " + GRP_UUID)
-				log ("Group Name: " + gname)
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)						
-#=========================================================================================
-		def ACLAddMemberToGroup():
-			global USR_UUID, GRP_UUID, ACL_URL
-			log ("\nACL Add Member to Group...")	
-			log ("User UUID: " + USR_UUID)
-			log ("Group UUID: " + GRP_UUID)
-			login = create_request(Test(1600, 'ACL Add Member to Group'),[
-	   	         NVPair('Referer', ACL_URL+'/admin/'),
-	        ])
-			result = login. \
-				POST(ACL_URL+"/access/groupMembership/"+GRP_UUID+"/"+USR_UUID, (
-				NVPair('session', TOKEN),))
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)
-#=========================================================================================
- 		def ACLAssignCodingOrg():
- 			global USR_UUID, ORG_UUID, ACL_URL
-			log ("\nACL Assign Coding Organization...")	
-			#log ("User UUID: " + USR_UUID)
-			#log ("Org UUID: " + ORG_UUID)
-			login = create_request(Test(1700, 'ACL Add Coding Organization'),[
-	   	         NVPair('Referer', ACL_URL+'/admin/'),
-	        ])
-			result = login. \
-				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
-				NVPair('session', TOKEN),))
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)
-#=========================================================================================
-		def HCCLogInto():
-			global HCCUSERNAME, HCC_PASSWORD, HCC_URL
-			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
-			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-			log ("\nHCC Connecting to host...")
-			result = create_request(Test(2000, 'HCC Connect to host')) \
-				.GET(HCC_URL + '/')
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)		
-			log ("\nHCC Detecting login page...")
-			result = create_request(Test(2100, 'HCC Get login page')) \
-				.GET(HCC_URL + '/account/login/?next=/')
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)	
-			# Create login request. Referer appears to be necessary
-			login = create_request(Test(2200, 'HCC Log in user'),[
-				NVPair('Referer', HCC_URL + '/account/login/?next=/'),
-			])
-			log ("\nLogging in to HCC Front End...")
-			result = login.POST(HCC_URL + '/account/login/?next=/', (
-				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
-				NVPair('username', HCCUSERNAME),
-				NVPair('password', HCC_PASSWORD),))
-			#log (HCCUSERNAME)
-			#log (HCC_PASSWORD)	
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)	
-#=========================================================================================
-#====================== MAIN PROGRAM BODY ================================================
-#=========================================================================================
-		PrintGlobalParamaterSettings()
-		
-		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-			ACLObtainAuthorization()
-			ACLCreateNewGroup()
-			HCCGRPLIST.append(i)
-			HCCGRPLIST[i] = CODING_ORGANIZATION		
-		
-		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
-			#ACLObtainAuthorization()
-			ACLCreateNewCodingOrg()
-			HCCORGLIST.append(i)
-			HCCORGLIST[i] = CODING_ORGANIZATION
-		
-		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-			#ACLObtainAuthorization()
-			ACLCreateNewUser()
-			ACLActivateNewUser()
-			ACLSetPassword()
-			#ACLCreateNewCodingOrg()
-			ACLAssignCodingOrg()
-			#ACLCreateNewGroup()
-			ACLAddMemberToGroup()
-			HCCLogInto()
-			HCCUSERSLIST.append(i)
-			HCCUSERSLIST[i] = HCCUSERNAME
-		
-		log ("\n=================================")
-		log ("List of newly created HCC Users:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-			log (HCCUSERSLIST[i])
-		log ("=================================")
-		log ("List of newly created HCC Orgs:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
-			log (HCCORGLIST[i])
-		log ("=================================")
-		log ("List of newly created HCC Groups:")
-		log ("=================================")
-		for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-			log (HCCGRPLIST[i])			
-		log ("=================================")	
-		log ("\nThe End...")
-#=========================================================================================
-		
-		
-		
-		
-		
-		
-		
-		       
-            
+  def __call__(self):
+    log("============================= START GRINDER TEST ============================")
+    if CODE_OPPS    == 1:
+      code()
+    if VIEW_HISTORY == 1:
+      history()
+    if QA_REPORT    == 1:
+      report()
+    if LOGOUT       == 1:
+      logout()
+    log("============================== END GRINDER TEST =============================")
