@@ -88,13 +88,21 @@ CDGORGMAP = { \
 	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
 	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \	
 }
+
+PERIMISSION_TYPES = [ \
+	"canAnnotate", \
+	"viewDocuments", \
+	"viewReportsAnnotatedFor", \
+	"viewReportsAnnotatedBy", \
+	"viewAllAnnotations" \
+	]
 #===================== Program Version ===================================================
 VERSION = '1.0.1'
 #===================== Global Test Environment Selection =================================
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 3
+NUMBER_OF_USERS_TO_CREATE = 5
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -426,7 +434,7 @@ class TestRunner:
 #============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
 #=========================================================================================
 		def ProgramFlowControlOne():
-			global HCCUSERSLIST
+			global HCCUSERSLIST, PERIMISSION_TYPES
 			PrintGlobalParamaterSettings()
 			ACLObtainAuthorization()
 			ACLCreateNewCodingOrg()
@@ -436,25 +444,10 @@ class TestRunner:
 			ACLCreateNewGroup()
 			HCCGRPLIST[0] = ACLGROUPNAME
 			
-			ACLAddGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
-			ACLAddGroupPermission("canAnnotate", GRP_UUID, ORG_UUID)
-			
-			ACLAddGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
-			ACLAddGroupPermission("viewDocuments", GRP_UUID, ORG_UUID)
-			
-			ACLAddGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
-			ACLAddGroupPermission("viewReportsAnnotatedFor", GRP_UUID, ORG_UUID)
-			
-			ACLAddGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
-			ACLAddGroupPermission("viewReportsAnnotatedBy", GRP_UUID, ORG_UUID)
-			
-			ACLAddGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
-			ACLAddGroupPermission("viewAllAnnotations", GRP_UUID, ORG_UUID)
+			for permission in PERIMISSION_TYPES:
+				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+				ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
 			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
 				ACLCreateNewUser()
