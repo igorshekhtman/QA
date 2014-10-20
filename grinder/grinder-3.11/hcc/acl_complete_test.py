@@ -16,6 +16,7 @@
 #			* Create new unique ALC Group and save GRP_UUID
 #				- Multiple ACL Groups are allowed (NUMBER_OF_GRPS_TO_CREATE)
 #			* Activate newly created HCC user
+#			* Deactivate a specific HCC user
 #			* Assign newly created user pre-defined password (HCC_PASSWORD)
 #			* Assign newly created HCC user coding org
 #				- Either pre-defined coding org or newly created coding org
@@ -103,7 +104,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 5
+NUMBER_OF_USERS_TO_CREATE = 4
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -281,6 +282,18 @@ class TestRunner:
 				NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
+#=========================================================================================
+		def ACLDectivateUser(uuid):
+			global USR_UUID, TOKEN, ACL_URL
+			log ("\nACL Deactivate User...")	
+			#log ("User UUID: " + USR_UUID)
+			#data = str.encode("session="+str(TOKEN))
+			login = create_request(Test(1250, 'ACL Deactivate user'),[
+				NVPair('Referer', ACL_URL+'/admin/'),])
+			result = login.DELETE(ACL_URL+"/access/user/"+uuid, (
+				NVPair('session', TOKEN),))
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)					
 #=========================================================================================
 		def ACLSetPassword():
 			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
@@ -488,6 +501,8 @@ class TestRunner:
 				ACLCreateNewUser()
 				HCCUSERSLIST.append(i)
 				HCCUSERSLIST[i] = HCCUSERNAME
+				ACLActivateNewUser()
+				ACLDectivateUser(USR_UUID)
 				ACLActivateNewUser()
 				ACLSetPassword()
 				ACLAssignCodingOrg()

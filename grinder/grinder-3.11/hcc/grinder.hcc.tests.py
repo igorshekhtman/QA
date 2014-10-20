@@ -55,11 +55,11 @@ PASSWORD         = "thePassword"
 #PASSWORD        = "multiplexor"          # Simulate No Opportunities
 CODE_OPPS        = 1 # 0 means Do NOT code Opps, 1 means code Opps
 CODE_OPPS_ACTION = 1 # 0 means Do NOT Accept or Reject Doc, 1 means Accept Doc, 2 means Reject Doc, 3 means Skip Opp
-CODE_OPPS_MAX    = 1 # Number of Opps to Code
+CODE_OPPS_MAX    = 3 # Number of Opps to Code
 VIEW_HISTORY     = 1 # 0 means Do NOT select View History, 1 means select View History
-VIEW_HISTORY_MAX = 1 # Number of View History Reports to View
+VIEW_HISTORY_MAX = 3 # Number of View History Reports to View
 QA_REPORT        = 1 # 0 means Do NOT select QA Report, 1 means select QA Report
-QA_REPORT_MAX    = 1 # Number of QA Reports to View
+QA_REPORT_MAX    = 5 # Number of QA Reports to View
 LOGOUT           = 1 # 0 means Do NOT select Logout, 1 means Logout
 
 ok = 200
