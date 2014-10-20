@@ -15,6 +15,9 @@ nagiosConfiguration:
   
 apiConfiguration:
   url: https://localprodapi.apixio.com/API
+  authUrl: https://useraccount-prd.apixio.com:7076/auths
+  tokenUrl: https://tokenizer-prd.apixio.com:7075/tokens
+  dataUrl: https://dataorchestrator-prd.apixio.com:7085
 
 http:
   port: 8099

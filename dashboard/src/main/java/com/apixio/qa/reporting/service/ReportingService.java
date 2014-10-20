@@ -1,9 +1,6 @@
 package com.apixio.qa.reporting.service;
 
-import com.apixio.qa.hive.resource.ApiResource;
-import com.apixio.qa.hive.resource.GraphiteResource;
-import com.apixio.qa.hive.resource.NagiosResource;
-import com.apixio.qa.hive.resource.QueryHiveResource;
+import com.apixio.qa.hive.resource.*;
 import com.apixio.qa.reporting.conf.ReportingServiceConfiguration;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
@@ -42,5 +39,10 @@ public class ReportingService extends Service<ReportingServiceConfiguration>
         
         final String apiUrl = configuration.getApiConfiguration().getUrl();
         environment.addResource(new ApiResource(apiUrl));
+
+        final String authUrl = configuration.getApiConfiguration().getAuthUrl();
+        final String tokenUrl = configuration.getApiConfiguration().getTokenUrl();
+        final String dataUrl = configuration.getApiConfiguration().getDataUrl();
+        environment.addResource(new DataOrchestratorResource(authUrl,tokenUrl, dataUrl));
     }
 }
