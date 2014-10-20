@@ -208,7 +208,7 @@
 		    			});
 			    		//console.log("processing patient " + patient_uuid + " with documents: ");
 			    		console.log(current_patient_documents);
-			    		var url = "/api/document/details/paths";
+			    		var url = "/dataorchestrator/document/details/paths";
 				    	var params = new Object; 
 				    	var username = $( "#username" ).val();
 				    	var password = $( "#password" ).val();
@@ -348,7 +348,7 @@
 		</script>
 	</head>
 	<body onload="setupListener();">
-		<p>Username: <input type="text" id="username" value="rmc_hcc@apixio.com"> Password: <input type="password" id="password" value="8p1rmc19.."></p>
+		<p>Username: <input type="text" id="username" value="root@api.apixio.com"> Password: <input type="password" id="password" value=""></p>
 		<p>Select Report Input: <input type="file" id="file" name="file" enctype="multipart/form-data"/></p>
 		<p>Specify Delimeter: <input type="text" id="delimiter" name="delimiter" value = "\t"/>
 		<input type="checkbox" id="skipHeader" name="header" value="skipHeader" checked=true>File has a header row</p>
