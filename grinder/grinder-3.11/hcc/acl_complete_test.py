@@ -27,6 +27,7 @@
 #			* Log into HCC with newly created user/org
 #			* Store each of the newly created users in an array (HCCUSERSLIST[])
 #			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
+#			* Report total number of retries, failures and successes
 #
 # SETUP:
 #          * Assumes a ACL and HCC environments are available
@@ -102,7 +103,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 5
+NUMBER_OF_USERS_TO_CREATE = 2
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -153,6 +154,9 @@ ACLGROUPNAME = ""
 HCCUSERSLIST = [0]
 HCCORGLIST = [0]
 HCCGRPLIST = [0]
+FAILED = 0
+SUCCEEDED = 0
+RETRIED = 0
 
 
 
@@ -218,8 +222,17 @@ class TestRunner:
 			log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
 			log ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
 #=========================================================================================
+		def IncrementTestResultsTotals(code):
+			global FAILED, SUCCEEDED, RETRIED
+			if (code == ok) or (code == nocontent):
+				SUCCEEDED = SUCCEEDED+1
+			elif code == intserveror:
+				RETRIED = RETRIED+1
+			else:	
+				FAILED = FAILED+1 
+#=========================================================================================
 		def ACLObtainAuthorization():
-			global TOKEN, ACL_URL		
+			global TOKEN, ACL_URL
 			log ("\nACL Obtain Authorization...")
 			#log ("HOST_URL: " + HOST_URL)
 			statuscode = 500
@@ -235,6 +248,7 @@ class TestRunner:
 				TOKEN = get_session(thread_context)
 				statuscode = result.statusCode
 				log ("Status Code = [%s]\t\t" % statuscode)
+				IncrementTestResultsTotals(statuscode)	
 #=========================================================================================
 		def ACLCreateNewUser():
 			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
@@ -251,6 +265,7 @@ class TestRunner:
 				#log ("User UUID: " + USR_UUID)
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)
+			IncrementTestResultsTotals(statuscode)
 			if statuscode == 500:
 				log (">>> Failure occured: username already exists <<<")
 				exit()
@@ -264,7 +279,8 @@ class TestRunner:
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID, data, (
 				NVPair('session', TOKEN),))
-			log ("Status Code = [%s]\t\t" % result.statusCode)		
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLSetPassword():
 			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
@@ -280,7 +296,8 @@ class TestRunner:
 			data = str.encode("password=apixio.123")
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
 				data, headers)
-			log ("Status Code = [%s]\t\t" % result.statusCode)			
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLCreateNewCodingOrg():
 			global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
@@ -304,6 +321,7 @@ class TestRunner:
 				#log ("Coding Org Name: " + coname)
 	
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLCreateNewGroup():
 			global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
@@ -324,6 +342,7 @@ class TestRunner:
 				log ("Group UUID: " + GRP_UUID)
 				log ("Group Name: " + gname)			
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLDeleteExistingGroup(group_uuid):									
 			global ACL_URL, TOKEN
@@ -334,6 +353,7 @@ class TestRunner:
 			result = login.DELETE(ACL_URL+"/access/group/"+group_uuid, (
 				NVPair('session', TOKEN),))							
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
 			log ("\nACL Add "+per_type+" Group Permission...")
@@ -342,6 +362,7 @@ class TestRunner:
 			result = login.POST(ACL_URL+"/access/permission/"+ \
 				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
 			log ("\nACL Del "+per_type+" Group Permission...")
@@ -349,7 +370,8 @@ class TestRunner:
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.DELETE(ACL_URL+"/access/permission/"+ \
 				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
-			log ("Status Code = [%s]\t\t" % result.statusCode)			
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)			
 #=========================================================================================
 		def ACLAddMemberToGroup():
 			global USR_UUID, GRP_UUID, ACL_URL
@@ -362,6 +384,7 @@ class TestRunner:
 				POST(ACL_URL+"/access/groupMembership/"+GRP_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLDelMemberFromGroup(group_uuid, usr_uuid):
 			log ("\nACL Del Member from Group...")	
@@ -373,6 +396,7 @@ class TestRunner:
 				DELETE(ACL_URL+"/access/groupMembership/"+group_uuid+"/"+usr_uuid, (
 				NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
  		def ACLAssignCodingOrg():
  			global USR_UUID, ORG_UUID, ACL_URL
@@ -386,6 +410,7 @@ class TestRunner:
 				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def HCCLogInto():
 			global HCCUSERNAME, HCC_PASSWORD, HCC_URL
@@ -394,11 +419,13 @@ class TestRunner:
 			log ("\nHCC Connecting to host...")
 			result = create_request(Test(2000, 'HCC Connect to host')) \
 				.GET(HCC_URL + '/')
-			log ("Status Code = [%s]\t\t" % result.statusCode)		
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)		
 			log ("\nHCC Detecting login page...")
 			result = create_request(Test(2100, 'HCC Get login page')) \
 				.GET(HCC_URL + '/account/login/?next=/')
-			log ("Status Code = [%s]\t\t" % result.statusCode)	
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 			# Create login request. Referer appears to be necessary
 			login = create_request(Test(2200, 'HCC Log in user'),[
 				NVPair('Referer', HCC_URL + '/account/login/?next=/'),
@@ -410,7 +437,8 @@ class TestRunner:
 				NVPair('password', HCC_PASSWORD),))
 			#log (HCCUSERNAME)
 			#log (HCC_PASSWORD)	
-			log ("Status Code = [%s]\t\t" % result.statusCode)	
+			log ("Status Code = [%s]\t\t" % result.statusCode)
+			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ListUserGroupOrg():
 			log ("\n=================================")
@@ -427,13 +455,20 @@ class TestRunner:
 			log ("List of newly created HCC Groups:")
 			log ("=================================")
 			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-				log (HCCGRPLIST[i])			
+				log (HCCGRPLIST[i])	
+			log ("=================================")
+			log ("Test execution results summary:")
+			log ("=================================")	
+			log ("RETRIED: %s\t" % RETRIED)			
+			log ("FAILED: %s\t" % FAILED)
+			log ("SUCCEEDED: %s\t" % SUCCEEDED)
+			log ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
 			log ("=================================")	
 			log ("\nThe End...")						
 #=========================================================================================
 #============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
 #=========================================================================================
-		def ProgramFlowControlOne():
+		def TestFlowControlOne():
 			global HCCUSERSLIST, PERIMISSION_TYPES
 			PrintGlobalParamaterSettings()
 			ACLObtainAuthorization()
@@ -464,7 +499,7 @@ class TestRunner:
 #=========================================================================================
 #============= MULTIPLE GROUPS ONE CODING ORG MULTIPLE USERS =============================
 #=========================================================================================
-		def ProgramFlowControlTwo():
+		def TestFlowControlTwo():
 			global HCCGRPLIST, HCCUSERSLIST
 			PrintGlobalParamaterSettings()
 			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
@@ -488,7 +523,7 @@ class TestRunner:
 #=========================================================================================
 #============= ONE GROUP MULTIPLE CODING ORGS MULTIPLE USERS =============================
 #=========================================================================================
-		def ProgramFlowControlThree():	
+		def TestFlowControlThree():	
 			global HCCORGLIST, HCCUSERSLIST
 			PrintGlobalParamaterSettings()
 			for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
@@ -513,11 +548,11 @@ class TestRunner:
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
 		
-		ProgramFlowControlOne()
+		TestFlowControlOne()
 		
-		#ProgramFlowControlTwo()
+		#TestFlowControlTwo()
 		
-		#ProgramFlowControlThree()
+		#TestFlowControlThree()
 		
 #=========================================================================================
 		
