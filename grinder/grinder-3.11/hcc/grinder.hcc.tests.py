@@ -4,6 +4,11 @@
 # AUTHOR:  Alex Beyk abeyk@apixio.com
 # DATE:    2014.10.16
 #
+# REVISIONS:
+# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
+# DATE: 2014.10.20
+# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals 
+#
 # PURPOSE:
 #          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
 #          * Login
@@ -50,12 +55,26 @@ PASSWORD         = "thePassword"
 #PASSWORD        = "multiplexor"          # Simulate No Opportunities
 CODE_OPPS        = 1 # 0 means Do NOT code Opps, 1 means code Opps
 CODE_OPPS_ACTION = 1 # 0 means Do NOT Accept or Reject Doc, 1 means Accept Doc, 2 means Reject Doc, 3 means Skip Opp
-CODE_OPPS_MAX    = 2 # Number of Opps to Code
+CODE_OPPS_MAX    = 1 # Number of Opps to Code
 VIEW_HISTORY     = 1 # 0 means Do NOT select View History, 1 means select View History
-VIEW_HISTORY_MAX = 2 # Number of View History Reports to View
+VIEW_HISTORY_MAX = 1 # Number of View History Reports to View
 QA_REPORT        = 1 # 0 means Do NOT select QA Report, 1 means select QA Report
-QA_REPORT_MAX    = 2 # Number of QA Reports to View
+QA_REPORT_MAX    = 1 # Number of QA Reports to View
 LOGOUT           = 1 # 0 means Do NOT select Logout, 1 means Logout
+
+ok = 200
+created = 201
+accepted = 202
+nocontent = 204
+movedperm = 301
+redirect = 302
+forbidden = 403
+intserveror = 500
+servunavail = 503
+
+FAILED = 0
+SUCCEEDED = 0
+RETRIED = 0
 
 # MAIN FUNCTIONS ####################################################################################################
 
@@ -85,6 +104,7 @@ def code():
     response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
     opportunity = JSONValue.parse(response.getText())
     patient_details = response.getText()
+    IncrementTestResultsTotals(response.statusCode)
     if opportunity == None:
       log("ERROR : Login Failed or No More Opportunities For This Coder")
       return 1
@@ -124,6 +144,7 @@ def code():
       test_counter = test_counter + 1
       doc_request = create_request(Test(testCode + test_counter, "Get scorable document"),[NVPair("Referer", URL + "/"),NVPair("Host", DOMAIN),])
       response = doc_request.GET(URL + "/api/document/" + document_uuid)
+      IncrementTestResultsTotals(response.statusCode)
       test_counter = test_counter + 1
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
@@ -138,6 +159,7 @@ def history():
   result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  IncrementTestResultsTotals(response.statusCode)
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
   response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
@@ -152,6 +174,7 @@ def history():
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z&user=%s" % (now.year, now.month, now.day, USERNAME)
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
+    IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = 200 OK")
     else:
@@ -171,6 +194,7 @@ def report():
   result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  IncrementTestResultsTotals(response.statusCode)
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
   response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
@@ -185,6 +209,7 @@ def report():
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
+    IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = 200 OK")
     else:
@@ -198,6 +223,7 @@ def logout():
   log("-------------------------------------------------------------------------------")
   testCode = 99
   response = create_request(Test(testCode, "Logout")).GET(URL + "/account/logout")
+  IncrementTestResultsTotals(response.statusCode)
   if response.statusCode == 200:
     log("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
   else:
@@ -225,6 +251,15 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return csrftoken
+  
+def IncrementTestResultsTotals(code):
+	global FAILED, SUCCEEDED, RETRIED
+	if (code == ok) or (code == nocontent):
+		SUCCEEDED = SUCCEEDED+1
+	elif code == intserveror:
+		RETRIED = RETRIED+1
+	else:	
+		FAILED = FAILED+1   
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
@@ -273,6 +308,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("predicted_code[code_system]", "The Grinder"),
     NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),))
+    IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -352,6 +388,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("predicted_code[code_system]", "The Grinder"),
     NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),))
+    IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = 200 OK")
     else:
@@ -373,4 +410,12 @@ class TestRunner:
       report()
     if LOGOUT       == 1:
       logout()
+    log("=============================================================================")
+    log("Test execution results summary:")
+    log("=============================================================================")
+    log("RETRIED: %s\t" % RETRIED)
+    log("FAILED: %s\t" % FAILED)
+    log("SUCCEEDED: %s\t" % SUCCEEDED)
+    log("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED))
+    log("=============================================================================")
     log("============================== END GRINDER TEST =============================")
