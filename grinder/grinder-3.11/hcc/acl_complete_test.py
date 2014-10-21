@@ -118,7 +118,8 @@ HCC_USERNAME_POSTFIX = "@apixio.net"
 ACL_CODNG_ORG_PREFIX = "grinderORG"
 ACL_GROUP_PREFIX = "grinderGRP"
 
-CSV_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
+#CSV_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
+CSV_FILE_PATH = "/mnt/automation/grinder/grinder-3.11/examples/"
 CSV_FILE_NAME = "hccusers.csv"
 #=========================================================================================
 
@@ -460,7 +461,6 @@ class TestRunner:
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def WriteToCsvFile():
-			# from Alex /mnt/automation/grinder/grinder-3.11/examples/...
 			file_obj = CSV_FILE_PATH + CSV_FILE_NAME
 			f = open(file_obj, 'w')
 			file_writer=csv.writer(f, delimiter='\t')
