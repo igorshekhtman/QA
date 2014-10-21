@@ -48,6 +48,9 @@
 # NUMBER_OF_ORGS_TO_CREATE - integer (0 through x) - total number of coding orgs to create
 # CODINGORGANIZATION - any organization from CDGORGMAP list below
 # HCCPASSWORD - default password to be assigned to every HCC user
+#
+# CSV_FILE_PATH - path for output csv file (content: environment, username, password)
+# CSV_FILE_PATH - name for output csv file 
 #=========================================================================================
 # Revision 1: 1.0.1
 # Author: Igor Shekhtman ishekhtman@apixio.com 
@@ -104,7 +107,7 @@ VERSION = '1.0.1'
 #ENVIRONMENT = 'Production'
 ENVIRONMENT = 'Staging'
 
-NUMBER_OF_USERS_TO_CREATE = 1
+NUMBER_OF_USERS_TO_CREATE = 5
 NUMBER_OF_ORGS_TO_CREATE = 1
 NUMBER_OF_GRPS_TO_CREATE = 1
 
@@ -114,6 +117,9 @@ HCC_USERNAME_PREFIX = "grinderUSR"
 HCC_USERNAME_POSTFIX = "@apixio.net"
 ACL_CODNG_ORG_PREFIX = "grinderORG"
 ACL_GROUP_PREFIX = "grinderGRP"
+
+CSV_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
+CSV_FILE_NAME = "hccusers.csv"
 #=========================================================================================
 
 #============ Global variable declaration, initialization ================================
@@ -453,6 +459,16 @@ class TestRunner:
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
+		def WriteToCsvFile():
+			# from Alex /mnt/automation/grinder/grinder-3.11/examples/...
+			file_obj = CSV_FILE_PATH + CSV_FILE_NAME
+			f = open(file_obj, 'w')
+			file_writer=csv.writer(f, delimiter='\t')
+			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+				file_writer.writerow ([HCC_URL, str(HCCUSERSLIST[i]), HCC_PASSWORD])
+			#f.write('\n')
+			f.close()				
+#=========================================================================================
 		def ListUserGroupOrg():
 			log ("\n=================================")
 			log ("List of newly created HCC Users:")
@@ -510,6 +526,7 @@ class TestRunner:
 				ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
 				ACLAddMemberToGroup()
 				HCCLogInto()
+			WriteToCsvFile()	
 			ListUserGroupOrg()					
 #=========================================================================================
 #============= MULTIPLE GROUPS ONE CODING ORG MULTIPLE USERS =============================
