@@ -141,6 +141,7 @@ ORGMAP = { \
 	"10000298":"Theresas Hospital", \
 	"10000299":"Erins Hospital", \
 	"10000300":"Erics Hospital", \
+	"10000330":"Wellcare", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
@@ -957,6 +958,10 @@ def errorMessagesRD():
 	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
 	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Event Mapper","summary_event_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
+	
+	
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
