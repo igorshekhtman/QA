@@ -451,7 +451,7 @@ def dataOrchestratorRequests(table):
 	cur.execute("""SELECT count(*) as count, \
 		response_code, endpoint, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s and year=%s\
+		WHERE day=%s and month=%s and year=%s and endpoint IS NOT NULL and endpoint <> " " \
 		GROUP BY org_id, endpoint, status, error, response_code \
 		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
@@ -1026,8 +1026,8 @@ def dataOrchestratorRD():
 	REPORT = REPORT+SUBHDR % "DATA ORCHESTRATOR"
 	COMPONENT_STATUS="PASSED"
 	dataOrchestratorAcls("summary_dataorchestrator_acl"+POSTFIX)
-	#dataOrchestratorLookups("summary_dataorchestrator_lookup"+POSTFIX)
-	#dataOrchestratorRequests("summary_dataorchestrator_request"+POSTFIX)
+	dataOrchestratorLookups("summary_dataorchestrator_lookup"+POSTFIX)
+	dataOrchestratorRequests("summary_dataorchestrator_request"+POSTFIX)
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
@@ -1093,14 +1093,8 @@ def writeReportDetails():
 	if (REPSECTORUN == 7) or (REPSECTORUN == 0):
 		eventsRD()
 	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
-		# currently 09/05/2014 only available for staging env
-		# if ENVIRONMENT == "staging":
-		# now 09/24/2014 available in both staging and production
 		dataOrchestratorRD()
 	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
-		# currently 09/08/2014 only available for staging env
-		# if ENVIRONMENT == "staging":
-		# now 09/24/2014 available in both staging and production
 		userAccountsRD()
 	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
 		bundlerRD()			
