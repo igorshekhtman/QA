@@ -1,4 +1,6 @@
 #=========================================================================================
+#================== ALC_COMPLETE_TEST.PY =================================================
+#=========================================================================================
 #
 # PROGRAM:         acl_complete_test.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
@@ -43,6 +45,9 @@
 #
 #=========================================================================================
 # Global Paramaters descriptions and possible values:
+# These are defined in CSV_CONFIG_FILE_NAME = "ACLConfig.csv", 
+# Which is located in CSV_CONFIG_FILE_PATH folder
+#
 # ENVIRONMENT - "Staging" or "Production"
 # NUMBER_OF_USERS_TO_CREATE - integer (0 through x) - total number of HCC users to create
 # NUMBER_OF_ORGS_TO_CREATE - integer (0 through x) - total number of coding orgs to create
@@ -51,14 +56,16 @@
 #
 # CSV_FILE_PATH - path for output csv file (content: environment, username, password)
 # CSV_FILE_PATH - name for output csv file 
+#
+# MAX_NUM_RETRIES - global limit for number of retries (statuscode = 500)
 #=========================================================================================
 # Revision 1: 1.0.1
 # Author: Igor Shekhtman ishekhtman@apixio.com 
 # Specifics: Introduction of Program Flow Control
 #=========================================================================================
-# Revision 2:
-# Author:
-# Specifics:
+# Revision 2: 1.0.2
+# Author: Igor Shekhtman ishekhtman@apixio.com
+# Specifics: Introduction of external ACLConfig.csv configuration file
 #=========================================================================================
 # Revision 3:
 # Author:
@@ -72,6 +79,7 @@ from org.json.simple import JSONObject, JSONValue
 from jarray import zeros
 import time
 import csv
+import operator
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
@@ -101,36 +109,67 @@ PERIMISSION_TYPES = [ \
 	"viewReportsAnnotatedBy", \
 	"viewAllAnnotations" \
 	]
+#=========================================================================================
 #===================== Program Version ===================================================
-VERSION = '1.0.1'
+#=========================================================================================
+VERSION = '1.0.2'
+#=========================================================================================
 #===================== Global Test Environment Selection =================================
-#ENVIRONMENT = 'Production'
-ENVIRONMENT = 'Staging'
-
-NUMBER_OF_USERS_TO_CREATE = 5
-NUMBER_OF_ORGS_TO_CREATE = 1
-NUMBER_OF_GRPS_TO_CREATE = 1
-
-CODING_ORGANIZATION = "Load Test Coders"
-HCC_PASSWORD = "apixio.123"
-HCC_USERNAME_PREFIX = "grinderUSR"
-HCC_USERNAME_POSTFIX = "@apixio.net"
-ACL_CODNG_ORG_PREFIX = "grinderORG"
-ACL_GROUP_PREFIX = "grinderGRP"
-
-#CSV_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
-CSV_FILE_PATH = "/mnt/automation/grinder/grinder-3.11/examples/"
-CSV_FILE_NAME = "hccusers.csv"
+#=========================================================================================
+CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
+CSV_CONFIG_FILE_NAME = "ACLConfig.csv"
+#=========================================================================================
+#============ Global variable declaration, initialization ================================
+#=========================================================================================
+#
+# Author: Igor Shekhtman ishekhtman@apixio.com
+#
+# Creation Date: 23-Oct-2014
+#
+# Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME" 
+# defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into 
+# a "result" dictionary, which is later parsed one row at a time, filling values for 
+# each of the global variables.
+#
+#
+def ReadConfigurationFile(filename):
+	global ENVIRONMENT, NUMBER_OF_USERS_TO_CREATE
+	global NUMBER_OF_ORGS_TO_CREATE, NUMBER_OF_GRPS_TO_CREATE
+	global CODING_ORGANIZATION, HCC_PASSWORD, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
+	global ACL_CODNG_ORG_PREFIX, ACL_GROUP_PREFIX, CSV_FILE_PATH, CSV_FILE_NAME
+	global CSV_CONFIG_FILE_PATH, CSV_CONFIG_FILE_NAME
+		
+	result={ }
+	csvfile = open(filename, 'rb')
+	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+	for row in reader:
+		if len(row) != 2:
+			raise csv.Error("Too many fields on row with contents: "+str(row))
+		result[row[0]] = row[1]
+	ENVIRONMENT=result["ENVIRONMENT"]
+	NUMBER_OF_USERS_TO_CREATE = int(result["NUMBER_OF_USERS_TO_CREATE"])
+	NUMBER_OF_ORGS_TO_CREATE = int(result["NUMBER_OF_ORGS_TO_CREATE"])
+	NUMBER_OF_GRPS_TO_CREATE = int(result["NUMBER_OF_GRPS_TO_CREATE"])
+	CODING_ORGANIZATION = result["CODING_ORGANIZATION"]
+	HCC_PASSWORD = result["HCC_PASSWORD"]
+	HCC_USERNAME_PREFIX = result["HCC_USERNAME_PREFIX"]
+	HCC_USERNAME_POSTFIX = result["HCC_USERNAME_POSTFIX"]
+	ACL_CODNG_ORG_PREFIX = result["ACL_CODNG_ORG_PREFIX"]
+	ACL_GROUP_PREFIX = result["ACL_GROUP_PREFIX"]
+	CSV_FILE_PATH = result["CSV_FILE_PATH"]
+	CSV_FILE_NAME = result["CSV_FILE_NAME"]
+	return result    	
 #=========================================================================================
 
-#============ Global variable declaration, initialization ================================
+ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+
 
 if (ENVIRONMENT == "Production"):
 	aclpostfix = "-prd"
 	hccpostfix = ""
 else:
 	aclpostfix = "-stg"
-	hccpostfix = "stage"
+	hccpostfix = "stage2"
 	
 	
 ok = 200
@@ -162,9 +201,12 @@ ACLGROUPNAME = ""
 HCCUSERSLIST = [0]
 HCCORGLIST = [0]
 HCCGRPLIST = [0]
+HCCGRPEMISSIONS = [0]
+
 FAILED = 0
 SUCCEEDED = 0
 RETRIED = 0
+MAX_NUM_RETRIES = 5
 
 
 
@@ -208,8 +250,8 @@ def get_new_hcc_user():
 	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
 	hccusernumber = str(int(time.time()))
 	hccusername = HCC_USERNAME_PREFIX + hccusernumber + HCC_USERNAME_POSTFIX
-	return hccusername	
-
+	return hccusername
+	
 
 class TestRunner:
     def __call__(self):
@@ -258,7 +300,7 @@ class TestRunner:
 				log ("Status Code = [%s]\t\t" % statuscode)
 				IncrementTestResultsTotals(statuscode)	
 #=========================================================================================
-		def ACLCreateNewUser():
+		def ACLCreateNewUser(retries):
 			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
 			log ("\nACL Create New User...")
 			login = create_request(Test(1100, 'ACL Create new user'),[
@@ -274,9 +316,10 @@ class TestRunner:
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)
 			IncrementTestResultsTotals(statuscode)
-			if statuscode == 500:
+			if (statuscode == 500) and (retries <= MAX_NUM_RETRIES):
 				log (">>> Failure occured: username already exists <<<")
-				exit()
+				retries = retries + 1
+				ACLCreateNewUser(retries)				
 #=========================================================================================
 		def ACLActivateNewUser():
 			global USR_UUID, TOKEN, ACL_URL
@@ -376,13 +419,30 @@ class TestRunner:
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
+			global HCCGRPEMISSIONS
 			log ("\nACL Add "+per_type+" Group Permission...")
 			login = create_request(Test(1900, 'ACL add '+per_type+' permission'),[
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.POST(ACL_URL+"/access/permission/"+ \
 				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+			statuscode = result.statusCode	
+			log ("Status Code = [%s]\t\t" % statuscode)
+			IncrementTestResultsTotals(statuscode)
+			if (statuscode == ok) or (statuscode == nocontent):
+				if per_type == "canAnnotate":
+					HCCGRPEMISSIONS[0] = "1"
+				elif per_type == "viewDocuments":
+					HCCGRPEMISSIONS.append(1)
+					HCCGRPEMISSIONS[1] = "1"
+				elif per_type == "viewReportsAnnotatedFor":
+					HCCGRPEMISSIONS.append(2)
+					HCCGRPEMISSIONS[2] = "1"
+				elif per_type == "viewReportsAnnotatedBy":
+					HCCGRPEMISSIONS.append(3)
+					HCCGRPEMISSIONS[3] = "1"
+				elif per_type == "viewAllAnnotations":
+					HCCGRPEMISSIONS.append(4)
+					HCCGRPEMISSIONS[4] = "1"
 #=========================================================================================
 		def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
 			log ("\nACL Del "+per_type+" Group Permission...")
@@ -463,9 +523,17 @@ class TestRunner:
 		def WriteToCsvFile():
 			file_obj = CSV_FILE_PATH + CSV_FILE_NAME
 			f = open(file_obj, 'w')
-			file_writer=csv.writer(f, delimiter='\t')
+			file_writer=csv.writer(f, delimiter=',')
+			# write headers row
+			file_writer.writerow (["Status", "Environment", "UserName", "Password", \
+				"CodingOrg", "Group", "canAnnotate", "viewDocuments", \
+				"viewReportsAnnotatedFor", "viewReportsAnnotatedBy", \
+				"viewAllAnnotations"])
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				file_writer.writerow ([HCC_URL, str(HCCUSERSLIST[i]), HCC_PASSWORD])
+				file_writer.writerow (["1", HCC_DOMAIN, str(HCCUSERSLIST[i]), \
+					HCC_PASSWORD, HCCORGLIST[0], HCCGRPLIST[0], HCCGRPEMISSIONS[0], \
+					HCCGRPEMISSIONS[1], HCCGRPEMISSIONS[2], \
+					HCCGRPEMISSIONS[3], HCCGRPEMISSIONS[4]])
 			#f.write('\n')
 			f.close()				
 #=========================================================================================
@@ -499,6 +567,7 @@ class TestRunner:
 #=========================================================================================
 		def TestFlowControlOne():
 			global HCCUSERSLIST, PERIMISSION_TYPES
+			#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 			PrintGlobalParamaterSettings()
 			ACLObtainAuthorization()
 			ACLCreateNewCodingOrg()
@@ -514,7 +583,7 @@ class TestRunner:
 				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
 			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				ACLCreateNewUser()
+				ACLCreateNewUser(0)
 				HCCUSERSLIST.append(i)
 				HCCUSERSLIST[i] = HCCUSERNAME
 				ACLActivateNewUser()
@@ -541,7 +610,7 @@ class TestRunner:
 				HCCGRPLIST[i] = ACLGROUPNAME
 				
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				ACLCreateNewUser()
+				ACLCreateNewUser(0)
 				ACLActivateNewUser()
 				ACLSetPassword()
 				ACLCreateNewCodingOrg()
@@ -565,7 +634,7 @@ class TestRunner:
 				HCCORGLIST[i] = CODING_ORGANIZATION			
 			
 			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				ACLCreateNewUser()
+				ACLCreateNewUser(0)
 				ACLActivateNewUser()
 				ACLSetPassword()
 				ACLAssignCodingOrg()
@@ -585,6 +654,8 @@ class TestRunner:
 		#TestFlowControlTwo()
 		
 		#TestFlowControlThree()
+
+		#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))		
 		
 #=========================================================================================
 		
