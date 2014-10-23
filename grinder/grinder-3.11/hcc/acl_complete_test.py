@@ -114,12 +114,12 @@ PERIMISSION_TYPES = [ \
 #=========================================================================================
 VERSION = '1.0.2'
 #=========================================================================================
-#===================== Global Test Environment Selection =================================
+#===================== Initialization of the ACLConfig file ==============================
 #=========================================================================================
 CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
 CSV_CONFIG_FILE_NAME = "ACLConfig.csv"
 #=========================================================================================
-#============ Global variable declaration, initialization ================================
+#================== Global variable declaration, initialization ==========================
 #=========================================================================================
 #
 # Author: Igor Shekhtman ishekhtman@apixio.com
@@ -137,7 +137,8 @@ def ReadConfigurationFile(filename):
 	global NUMBER_OF_ORGS_TO_CREATE, NUMBER_OF_GRPS_TO_CREATE
 	global CODING_ORGANIZATION, HCC_PASSWORD, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
 	global ACL_CODNG_ORG_PREFIX, ACL_GROUP_PREFIX, CSV_FILE_PATH, CSV_FILE_NAME
-	global CSV_CONFIG_FILE_PATH, CSV_CONFIG_FILE_NAME
+	global CSV_CONFIG_FILE_PATH, CSV_CONFIG_FILE_NAME, PROTOCOL, ACLUSERNAME, ACLPASSWORD
+	global MAX_NUM_RETRIES, TEST_FLOW_CONTROL
 		
 	result={ }
 	csvfile = open(filename, 'rb')
@@ -158,11 +159,16 @@ def ReadConfigurationFile(filename):
 	ACL_GROUP_PREFIX = result["ACL_GROUP_PREFIX"]
 	CSV_FILE_PATH = result["CSV_FILE_PATH"]
 	CSV_FILE_NAME = result["CSV_FILE_NAME"]
+	PROTOCOL = result["PROTOCOL"]
+	ACLUSERNAME = result["ACLUSERNAME"]
+	ACLPASSWORD = result["ACLPASSWORD"]
+	MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
+	TEST_FLOW_CONTROL = int(result["TEST_FLOW_CONTROL"])
 	return result    	
 #=========================================================================================
-
+#================= Global Variable Initialization Section ================================
+#=========================================================================================
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
-
 
 if (ENVIRONMENT == "Production"):
 	aclpostfix = "-prd"
@@ -170,7 +176,6 @@ if (ENVIRONMENT == "Production"):
 else:
 	aclpostfix = "-stg"
 	hccpostfix = "stage2"
-	
 	
 ok = 200
 created = 201
@@ -182,34 +187,22 @@ forbidden = 403
 intserveror = 500
 servunavail = 503
 
-PROTOCOL = "https://"
-
 ACL_DOMAIN = "acladmin" +aclpostfix+ ".apixio.com"
 ACL_URL = PROTOCOL + ACL_DOMAIN
 
 HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
 HCC_URL = PROTOCOL + HCC_DOMAIN
 
-ACLUSERNAME = "root@api.apixio.com"
-ACLPASSWORD = "thePassword"
-USR_UUID = "U_318893fc-9c56-45be-aea3-ddb1994d2d7f"
-ORG_UUID = CDGORGMAP[CODING_ORGANIZATION]
-GRP_UUID = "G_f2def4d2-92bf-40d0-8f05-2b3a57f0770a"
-TOKEN = ""
-HCCUSERNAME = ""
-ACLGROUPNAME = ""
 HCCUSERSLIST = [0]
 HCCORGLIST = [0]
 HCCGRPLIST = [0]
 HCCGRPEMISSIONS = [0]
-
 FAILED = 0
 SUCCEEDED = 0
 RETRIED = 0
-MAX_NUM_RETRIES = 5
-
-
-
+#=========================================================================================
+#===================== Helper Functions ==================================================
+#=========================================================================================
 def create_request(test, headers=None):
     request = HTTPRequest()
     if headers:
@@ -218,7 +211,7 @@ def create_request(test, headers=None):
     test.record(request)
     #print "request = [%s]" % request
     return request
-
+#=========================================================================================    
 def get_session(thread_context):
     cookies = CookieModule.listAllCookies(thread_context)
     session = ''
@@ -228,7 +221,7 @@ def get_session(thread_context):
             session = cookie.getValue()
             #print "cookie = [%s]" % cookie
     return session
-    
+#=========================================================================================    
 def get_csrf_token(thread_context):
     cookies = CookieModule.listAllCookies(thread_context)
     csrftoken = ''
@@ -236,50 +229,93 @@ def get_csrf_token(thread_context):
         if cookie.getName() == 'csrftoken':
             csrftoken = cookie.getValue()
     return csrftoken    
-    
+#=========================================================================================    
 def print_all_cookies(thread_context):
     cookies = CookieModule.listAllCookies(thread_context)
     print "cookies = [%s]" % cookies
     return cookies    
-    
+#=========================================================================================    
 def log(text):
     grinder.logger.info(text)
     print(text)
-    
+#=========================================================================================    
 def get_new_hcc_user():
 	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
 	hccusernumber = str(int(time.time()))
 	hccusername = HCC_USERNAME_PREFIX + hccusernumber + HCC_USERNAME_POSTFIX
 	return hccusername
-	
-
+#=========================================================================================
+def PrintGlobalParamaterSettings():
+	log ("\nVersion: \t\t\t"+VERSION)
+	log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
+	log ("ACL URL: \t\t\t"+ACL_URL)
+	log ("HCC URL: \t\t\t"+HCC_URL)
+	log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
+	log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
+	log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
+	log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
+	log ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
+#=========================================================================================
+def IncrementTestResultsTotals(code):
+	global FAILED, SUCCEEDED, RETRIED
+	if (code == ok) or (code == nocontent):
+		SUCCEEDED = SUCCEEDED+1
+	elif code == intserveror:
+		RETRIED = RETRIED+1
+	else:	
+		FAILED = FAILED+1 
+#=========================================================================================							
+def WriteToCsvFile():
+	file_obj = CSV_FILE_PATH + CSV_FILE_NAME
+	f = open(file_obj, 'w')
+	file_writer=csv.writer(f, delimiter=',')
+	# write headers row
+	file_writer.writerow (["Status", "Environment", "UserName", "Password", \
+		"CodingOrg", "Group", "canAnnotate", "viewDocuments", \
+		"viewReportsAnnotatedFor", "viewReportsAnnotatedBy", \
+		"viewAllAnnotations"])
+	for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+		file_writer.writerow (["1", HCC_DOMAIN, str(HCCUSERSLIST[i]), \
+			HCC_PASSWORD, HCCORGLIST[0], HCCGRPLIST[0], HCCGRPEMISSIONS[0], \
+			HCCGRPEMISSIONS[1], HCCGRPEMISSIONS[2], \
+			HCCGRPEMISSIONS[3], HCCGRPEMISSIONS[4]])
+	#f.write('\n')
+	f.close()	
+#=========================================================================================	
+def ListUserGroupOrg():
+	log ("\n=================================")
+	log ("List of newly created HCC Users:")
+	log ("=================================")
+	for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+		log (HCCUSERSLIST[i])
+	log ("=================================")
+	log ("List of newly created HCC Orgs:")
+	log ("=================================")
+	for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+		log (HCCORGLIST[i])
+	log ("=================================")
+	log ("List of newly created HCC Groups:")
+	log ("=================================")
+	for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+		log (HCCGRPLIST[i])	
+	log ("=================================")
+	log ("Test execution results summary:")
+	log ("=================================")	
+	log ("RETRIED: %s\t" % RETRIED)			
+	log ("FAILED: %s\t" % FAILED)
+	log ("SUCCEEDED: %s\t" % SUCCEEDED)
+	log ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
+	log ("=================================")	
+	log ("\nThe End...")			
+#=========================================================================================
+#===================== Main Functions ====================================================
+#=========================================================================================	
 class TestRunner:
     def __call__(self):
 		log ("\n\nStarting ACL-Admin New User Creation...\n")
 		thread_context = HTTPPluginControl.getThreadHTTPClientContext()
 		control = HTTPPluginControl.getConnectionDefaults()
 		control.setFollowRedirects(1)
-		
-#=========================================================================================
-		def PrintGlobalParamaterSettings():
-			log ("\nVersion: \t\t\t"+VERSION)
-			log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
-			log ("ACL URL: \t\t\t"+ACL_URL)
-			log ("HCC URL: \t\t\t"+HCC_URL)
-			log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
-			log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
-			log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
-			log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
-			log ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
-#=========================================================================================
-		def IncrementTestResultsTotals(code):
-			global FAILED, SUCCEEDED, RETRIED
-			if (code == ok) or (code == nocontent):
-				SUCCEEDED = SUCCEEDED+1
-			elif code == intserveror:
-				RETRIED = RETRIED+1
-			else:	
-				FAILED = FAILED+1 
 #=========================================================================================
 		def ACLObtainAuthorization():
 			global TOKEN, ACL_URL
@@ -296,6 +332,9 @@ class TestRunner:
 					NVPair('email', ACLUSERNAME),
 					NVPair('password', ACLPASSWORD),))
 				TOKEN = get_session(thread_context)
+				log ("ACL Username: %s" % ACLUSERNAME)
+				log ("ACL Password: %s" % ACLPASSWORD)
+				log ("ACL Token: %s" % TOKEN)
 				statuscode = result.statusCode
 				log ("Status Code = [%s]\t\t" % statuscode)
 				IncrementTestResultsTotals(statuscode)	
@@ -313,6 +352,9 @@ class TestRunner:
 			if userjson is not None:
 				USR_UUID = userjson.get("id")
 				#log ("User UUID: " + USR_UUID)
+			log ("HCC Username: %s" % HCCUSERNAME)
+			log ("HCC User UUID: %s" % USR_UUID)
+			log ("ACL Token: %s" % TOKEN)	
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)
 			IncrementTestResultsTotals(statuscode)
@@ -330,6 +372,8 @@ class TestRunner:
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID, data, (
 				NVPair('session', TOKEN),))
+			log ("HCC User UUID: %s" % USR_UUID)
+			log ("ACL TOKEN: %s" % TOKEN) 	
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -342,23 +386,26 @@ class TestRunner:
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.DELETE(ACL_URL+"/access/user/"+uuid, (
 				NVPair('session', TOKEN),))
+			log ("HCC User UUID: %s" % uuid)
+			log ("ACL TOKEN: %s" % TOKEN) 
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)					
 #=========================================================================================
 		def ACLSetPassword():
 			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
 			log ("\nACL Assign New User Password...")		
-			#log ("User UUID: " + USR_UUID)
-			#log ("Password: " + HCC_PASSWORD)
 			headers = [
     	        NVPair('Origin', ACL_URL),
     	        NVPair('Referer', ACL_URL+'/admin/'),
     	        NVPair('session', TOKEN),]
 			login = create_request(Test(1300, 'ACL Set Password'),headers)
 			#PUT(uri, data, headers)
-			data = str.encode("password=apixio.123")
+			data = str.encode("password=%s" % HCC_PASSWORD)
 			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
 				data, headers)
+			log ("HCC Password: %s" % HCC_PASSWORD)
+			log ("HCC User UUID: %s" % USR_UUID)
+			log ("ACL TOKEN: %s" % TOKEN) 				
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -379,10 +426,10 @@ class TestRunner:
 				NVPair('session', TOKEN),))				
 			userjson = JSONValue.parse(result.getText())
 			if userjson is not None:
-				ORG_UUID = userjson.get("id")
-				#log ("Coding Org UUID: " + ORG_UUID)
-				#log ("Coding Org Name: " + coname)
-	
+				ORG_UUID = userjson.get("id")				
+			log ("Coding Org Name: " + coname)
+			log ("Coding Org UUID: " + ORG_UUID)
+			log ("ACL TOKEN: %s" % TOKEN)			
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -402,8 +449,9 @@ class TestRunner:
 			grpjson = JSONValue.parse(result.getText())
 			if grpjson is not None:
 				GRP_UUID = grpjson.get("id").get("id")
-				log ("Group UUID: " + GRP_UUID)
-				log ("Group Name: " + gname)			
+			log ("Group Name: " + gname)	
+			log ("Group UUID: " + GRP_UUID)
+			log ("ACL TOKEN: %s" % TOKEN)						
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -414,7 +462,9 @@ class TestRunner:
     	        NVPair('Referer', ACL_URL+'/admin/'),
         	])
 			result = login.DELETE(ACL_URL+"/access/group/"+group_uuid, (
-				NVPair('session', TOKEN),))							
+				NVPair('session', TOKEN),))			
+			log ("Group UUID: " + group_uuid)
+			log ("ACL TOKEN: %s" % TOKEN)				
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -425,6 +475,10 @@ class TestRunner:
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.POST(ACL_URL+"/access/permission/"+ \
 				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
+			log ("Group UUID: %s" % group_uuid)
+			log ("Org UUID: %s" % org_uuid)
+			log ("Permission Type: %s" % per_type)		
+			log ("ACL TOKEN: %s" % TOKEN)					
 			statuscode = result.statusCode	
 			log ("Status Code = [%s]\t\t" % statuscode)
 			IncrementTestResultsTotals(statuscode)
@@ -449,7 +503,11 @@ class TestRunner:
 			login = create_request(Test(1950, 'ACL del '+per_type+' permission'),[
 				NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login.DELETE(ACL_URL+"/access/permission/"+ \
-				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
+				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))			
+			log ("Group UUID: %s" % group_uuid)
+			log ("Org UUID: %s" % org_uuid)
+			log ("Permission Type: %s" % per_type)		
+			log ("ACL TOKEN: %s" % TOKEN)				
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)			
 #=========================================================================================
@@ -463,18 +521,22 @@ class TestRunner:
 			result = login. \
 				POST(ACL_URL+"/access/groupMembership/"+GRP_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
+			log ("ACL Group UUID: %s" % GRP_UUID)
+			log ("HCC User UUID: %s" % USR_UUID)		
+			log ("ACL TOKEN: %s" % TOKEN)						
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
 		def ACLDelMemberFromGroup(group_uuid, usr_uuid):
 			log ("\nACL Del Member from Group...")	
-			log ("User UUID: " + usr_uuid)
-			log ("Group UUID: " + group_uuid)
 			login = create_request(Test(1650, 'ACL Del Member from Group'),[
 	   	         NVPair('Referer', ACL_URL+'/admin/'),])
 			result = login. \
 				DELETE(ACL_URL+"/access/groupMembership/"+group_uuid+"/"+usr_uuid, (
 				NVPair('session', TOKEN),))
+			log ("HCC User UUID: " + usr_uuid)
+			log ("ACL Group UUID: " + group_uuid)				
+			log ("ACL TOKEN: %s" % TOKEN)			
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -489,6 +551,9 @@ class TestRunner:
 			result = login. \
 				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
 				NVPair('session', TOKEN),))
+			log ("HCC User UUID: %s" % USR_UUID)
+			log ("ACL Org UUID: %s" % ORG_UUID)				
+			log ("ACL TOKEN: %s" % TOKEN)								
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
 #=========================================================================================
@@ -515,53 +580,11 @@ class TestRunner:
 				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
 				NVPair('username', HCCUSERNAME),
 				NVPair('password', HCC_PASSWORD),))
-			#log (HCCUSERNAME)
-			#log (HCC_PASSWORD)	
+			log ("HCC Username: %s" % HCCUSERNAME)
+			log ("HCC Password: %s" % HCC_PASSWORD)	
+			log ("HCC Token: %s" % get_csrf_token(thread_context))
 			log ("Status Code = [%s]\t\t" % result.statusCode)
 			IncrementTestResultsTotals(result.statusCode)
-#=========================================================================================
-		def WriteToCsvFile():
-			file_obj = CSV_FILE_PATH + CSV_FILE_NAME
-			f = open(file_obj, 'w')
-			file_writer=csv.writer(f, delimiter=',')
-			# write headers row
-			file_writer.writerow (["Status", "Environment", "UserName", "Password", \
-				"CodingOrg", "Group", "canAnnotate", "viewDocuments", \
-				"viewReportsAnnotatedFor", "viewReportsAnnotatedBy", \
-				"viewAllAnnotations"])
-			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				file_writer.writerow (["1", HCC_DOMAIN, str(HCCUSERSLIST[i]), \
-					HCC_PASSWORD, HCCORGLIST[0], HCCGRPLIST[0], HCCGRPEMISSIONS[0], \
-					HCCGRPEMISSIONS[1], HCCGRPEMISSIONS[2], \
-					HCCGRPEMISSIONS[3], HCCGRPEMISSIONS[4]])
-			#f.write('\n')
-			f.close()				
-#=========================================================================================
-		def ListUserGroupOrg():
-			log ("\n=================================")
-			log ("List of newly created HCC Users:")
-			log ("=================================")
-			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
-				log (HCCUSERSLIST[i])
-			log ("=================================")
-			log ("List of newly created HCC Orgs:")
-			log ("=================================")
-			for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
-				log (HCCORGLIST[i])
-			log ("=================================")
-			log ("List of newly created HCC Groups:")
-			log ("=================================")
-			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
-				log (HCCGRPLIST[i])	
-			log ("=================================")
-			log ("Test execution results summary:")
-			log ("=================================")	
-			log ("RETRIED: %s\t" % RETRIED)			
-			log ("FAILED: %s\t" % FAILED)
-			log ("SUCCEEDED: %s\t" % SUCCEEDED)
-			log ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
-			log ("=================================")	
-			log ("\nThe End...")						
 #=========================================================================================
 #============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
 #=========================================================================================
@@ -648,15 +671,18 @@ class TestRunner:
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-		
-		TestFlowControlOne()
-		
-		#TestFlowControlTwo()
-		
-		#TestFlowControlThree()
-
-		#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))		
-		
+		if TEST_FLOW_CONTROL == 1:		
+			TestFlowControlOne()
+		elif TEST_FLOW_CONTROL == 2:
+			TestFlowControlTwo()
+		elif TEST_FLOW_CONTROL == 3:
+			TestFlowControlThree()
+		else:
+			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			log (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")
+			log (">>>>>>>>>>> SPECIFIC TEST FLOW NUMBER MUST BE SELECTED <<<<<<<<<<<<<<<")
+			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			log ("\n")
 #=========================================================================================
 		
 		
