@@ -1,6 +1,6 @@
 ENVIRONMENT=Staging
 DOMAIN=hcc.apixio.com
-URL=https://hcc.apixio.com
+URL=https://hccstage2.apixio.com
 USERNAME=root@api.apixio.com
 PASSWORD=thePassword
 CODE_OPPS=1

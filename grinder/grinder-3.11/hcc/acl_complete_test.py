@@ -133,13 +133,6 @@ CSV_CONFIG_FILE_NAME = "ACLConfig.csv"
 #
 #
 def ReadConfigurationFile(filename):
-	global ENVIRONMENT, NUMBER_OF_USERS_TO_CREATE
-	global NUMBER_OF_ORGS_TO_CREATE, NUMBER_OF_GRPS_TO_CREATE
-	global CODING_ORGANIZATION, HCC_PASSWORD, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
-	global ACL_CODNG_ORG_PREFIX, ACL_GROUP_PREFIX, CSV_FILE_PATH, CSV_FILE_NAME
-	global CSV_CONFIG_FILE_PATH, CSV_CONFIG_FILE_NAME, PROTOCOL, ACLUSERNAME, ACLPASSWORD
-	global MAX_NUM_RETRIES, TEST_FLOW_CONTROL
-		
 	result={ }
 	csvfile = open(filename, 'rb')
 	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
@@ -147,23 +140,7 @@ def ReadConfigurationFile(filename):
 		if len(row) != 2:
 			raise csv.Error("Too many fields on row with contents: "+str(row))
 		result[row[0]] = row[1]
-	ENVIRONMENT=result["ENVIRONMENT"]
-	NUMBER_OF_USERS_TO_CREATE = int(result["NUMBER_OF_USERS_TO_CREATE"])
-	NUMBER_OF_ORGS_TO_CREATE = int(result["NUMBER_OF_ORGS_TO_CREATE"])
-	NUMBER_OF_GRPS_TO_CREATE = int(result["NUMBER_OF_GRPS_TO_CREATE"])
-	CODING_ORGANIZATION = result["CODING_ORGANIZATION"]
-	HCC_PASSWORD = result["HCC_PASSWORD"]
-	HCC_USERNAME_PREFIX = result["HCC_USERNAME_PREFIX"]
-	HCC_USERNAME_POSTFIX = result["HCC_USERNAME_POSTFIX"]
-	ACL_CODNG_ORG_PREFIX = result["ACL_CODNG_ORG_PREFIX"]
-	ACL_GROUP_PREFIX = result["ACL_GROUP_PREFIX"]
-	CSV_FILE_PATH = result["CSV_FILE_PATH"]
-	CSV_FILE_NAME = result["CSV_FILE_NAME"]
-	PROTOCOL = result["PROTOCOL"]
-	ACLUSERNAME = result["ACLUSERNAME"]
-	ACLPASSWORD = result["ACLPASSWORD"]
-	MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
-	TEST_FLOW_CONTROL = int(result["TEST_FLOW_CONTROL"])
+	globals().update(result)
 	return result    	
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
@@ -171,7 +148,7 @@ def ReadConfigurationFile(filename):
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
 if (ENVIRONMENT == "Production"):
-	aclpostfix = "-prd"
+	aclpostfix = ""
 	hccpostfix = ""
 else:
 	aclpostfix = "-stg"
@@ -274,7 +251,7 @@ def WriteToCsvFile():
 		"CodingOrg", "Group", "canAnnotate", "viewDocuments", \
 		"viewReportsAnnotatedFor", "viewReportsAnnotatedBy", \
 		"viewAllAnnotations"])
-	for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 		file_writer.writerow (["1", HCC_DOMAIN, str(HCCUSERSLIST[i]), \
 			HCC_PASSWORD, HCCORGLIST[0], HCCGRPLIST[0], HCCGRPEMISSIONS[0], \
 			HCCGRPEMISSIONS[1], HCCGRPEMISSIONS[2], \
@@ -286,17 +263,17 @@ def ListUserGroupOrg():
 	log ("\n=================================")
 	log ("List of newly created HCC Users:")
 	log ("=================================")
-	for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 		log (HCCUSERSLIST[i])
 	log ("=================================")
 	log ("List of newly created HCC Orgs:")
 	log ("=================================")
-	for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
 		log (HCCORGLIST[i])
 	log ("=================================")
 	log ("List of newly created HCC Groups:")
 	log ("=================================")
-	for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
 		log (HCCGRPLIST[i])	
 	log ("=================================")
 	log ("Test execution results summary:")
@@ -358,7 +335,7 @@ class TestRunner:
 			statuscode = result.statusCode
 			log ("Status Code = [%s]\t\t" % statuscode)
 			IncrementTestResultsTotals(statuscode)
-			if (statuscode == 500) and (retries <= MAX_NUM_RETRIES):
+			if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
 				log (">>> Failure occured: username already exists <<<")
 				retries = retries + 1
 				ACLCreateNewUser(retries)				
@@ -605,7 +582,7 @@ class TestRunner:
 				ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
 				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
 			
-			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 				ACLCreateNewUser(0)
 				HCCUSERSLIST.append(i)
 				HCCUSERSLIST[i] = HCCUSERNAME
@@ -626,13 +603,13 @@ class TestRunner:
 		def TestFlowControlTwo():
 			global HCCGRPLIST, HCCUSERSLIST
 			PrintGlobalParamaterSettings()
-			for i in range (0, NUMBER_OF_GRPS_TO_CREATE):
+			for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
 				ACLObtainAuthorization()
 				ACLCreateNewGroup()
 				HCCGRPLIST.append(i)
 				HCCGRPLIST[i] = ACLGROUPNAME
 				
-			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 				ACLCreateNewUser(0)
 				ACLActivateNewUser()
 				ACLSetPassword()
@@ -650,13 +627,13 @@ class TestRunner:
 		def TestFlowControlThree():	
 			global HCCORGLIST, HCCUSERSLIST
 			PrintGlobalParamaterSettings()
-			for i in range (0, NUMBER_OF_ORGS_TO_CREATE):
+			for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
 				ACLObtainAuthorization()
 				ACLCreateNewCodingOrg()
 				HCCORGLIST.append(i)
 				HCCORGLIST[i] = CODING_ORGANIZATION			
 			
-			for i in range (0, NUMBER_OF_USERS_TO_CREATE):
+			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 				ACLCreateNewUser(0)
 				ACLActivateNewUser()
 				ACLSetPassword()
@@ -671,11 +648,11 @@ class TestRunner:
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-		if TEST_FLOW_CONTROL == 1:		
+		if TEST_FLOW_CONTROL == "1":		
 			TestFlowControlOne()
-		elif TEST_FLOW_CONTROL == 2:
+		elif TEST_FLOW_CONTROL == "2":
 			TestFlowControlTwo()
-		elif TEST_FLOW_CONTROL == 3:
+		elif TEST_FLOW_CONTROL == "3":
 			TestFlowControlThree()
 		else:
 			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
