@@ -86,9 +86,8 @@ def ReadConfigurationFile(filename):
 	csvfile = open(filename, 'rb')
 	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
 	for row in reader:
-		if len(row) != 2:
-			raise csv.Error("Too many fields on row with contents: "+str(row))
-		result[row[0]] = row[1]
+		if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):	
+			result[row[0]] = row[1]
 	globals().update(result)
 	MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
 	return result    	

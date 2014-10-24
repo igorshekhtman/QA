@@ -137,9 +137,8 @@ def ReadConfigurationFile(filename):
 	csvfile = open(filename, 'rb')
 	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
 	for row in reader:
-		if len(row) != 2:
-			raise csv.Error("Too many fields on row with contents: "+str(row))
-		result[row[0]] = row[1]
+		if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):	
+			result[row[0]] = row[1]
 	globals().update(result)
 	return result    	
 #=========================================================================================
@@ -567,7 +566,6 @@ class TestRunner:
 #=========================================================================================
 		def TestFlowControlOne():
 			global HCCUSERSLIST, PERIMISSION_TYPES
-			#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 			PrintGlobalParamaterSettings()
 			ACLObtainAuthorization()
 			ACLCreateNewCodingOrg()
@@ -644,7 +642,27 @@ class TestRunner:
 				HCCLogInto()
 				HCCUSERSLIST.append(i)
 				HCCUSERSLIST[i] = HCCUSERNAME
-			ListUserGroupOrg()						
+			ListUserGroupOrg()	
+#=========================================================================================
+#============= SIMPLE CREATE ONLY ONE USER, ORG, GROUP ===================================
+#=========================================================================================
+		def TestFlowControlFour():
+			global HCCUSERSLIST, HCCORGLIST, HCCGRPLIST
+			PrintGlobalParamaterSettings()
+			ACLObtainAuthorization()
+			ACLCreateNewCodingOrg()
+			HCCORGLIST[0] = CODING_ORGANIZATION
+			ACLCreateNewGroup()
+			HCCGRPLIST[0] = ACLGROUPNAME
+			ACLCreateNewUser(0)
+			HCCUSERSLIST[0] = HCCUSERNAME
+			ACLActivateNewUser()
+			ACLSetPassword()
+			ACLAssignCodingOrg()
+			ACLAddMemberToGroup()
+			HCCLogInto()
+			#WriteToCsvFile()	
+			ListUserGroupOrg()															
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -654,6 +672,8 @@ class TestRunner:
 			TestFlowControlTwo()
 		elif TEST_FLOW_CONTROL == "3":
 			TestFlowControlThree()
+		elif TEST_FLOW_CONTROL == "4":
+			TestFlowControlFour()
 		else:
 			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 			log (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")

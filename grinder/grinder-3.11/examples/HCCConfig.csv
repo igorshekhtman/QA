@@ -1,14 +1,22 @@
+######################################
 ENVIRONMENT=Staging
+# ENVIRONMENT=Production
+######################################
 DOMAIN=hcc.apixio.com
 URL=https://hcc.apixio.com
 USERNAME=root@api.apixio.com
 PASSWORD=thePassword
+######################################
 CODE_OPPS=1
 CODE_OPPS_ACTION=1
 CODE_OPPS_MAX=3
+######################################
 VIEW_HISTORY=1
 VIEW_HISTORY_MAX=3
+######################################
 QA_REPORT=1
 QA_REPORT_MAX=5
+######################################
 LOGOUT=1
 MAX_NUM_RETRIES=5
+######################################
