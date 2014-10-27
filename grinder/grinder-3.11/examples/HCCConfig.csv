@@ -5,19 +5,26 @@ ENVIRONMENT=Staging
 DOMAIN=hccstage2.apixio.com
 URL=https://hccstage2.apixio.com
 ######################################
-USERNAME=root@api.apixio.com
-PASSWORD=thePassword
+# USERNAME=root@api.apixio.com
+# PASSWORD=thePassword
+USERNAME=grinderusr1414166341@apixio.net
+PASSWORD=apixio.123
 ######################################
+#### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
 CODE_OPPS=1
+#### 0 = VIEW OPPS, 1 = VIEW + ACCEPT OPPS, 2 = VIEW + REJECT OPPS, 3 = VIEW + SKIP OPPS
 CODE_OPPS_ACTION=1
 CODE_OPPS_MAX=1
 ######################################
+#### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1
 VIEW_HISTORY_MAX=1
 ######################################
+#### 0 = DO NOT VIEW QA REPORT, 1 = VIEW QA REPORT
 QA_REPORT=1
 QA_REPORT_MAX=1
 ######################################
+#### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
 MAX_NUM_RETRIES=1
