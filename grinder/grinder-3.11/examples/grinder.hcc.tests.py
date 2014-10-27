@@ -2,12 +2,13 @@
 #
 # PROGRAM: grinder.py
 # AUTHOR:  Alex Beyk abeyk@apixio.com
-# DATE:    2014.10.16
+# DATE:    2014.10.16 Initial Version
+# DATE:    2014.10.27 Updated Org ID to Patient Org ID
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 # DATE: 2014.10.20
-# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals 
+# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
 #
 # PURPOSE:
 #          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
@@ -62,8 +63,9 @@ import operator
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
-CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
+# CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
+CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -73,43 +75,28 @@ CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
 #
 # Creation Date: 23-Oct-2014
 #
-# Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME" 
-# defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into 
-# a "result" dictionary, which is later parsed one row at a time, filling values for 
+# Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME"
+# defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into
+# a "result" dictionary, which is later parsed one row at a time, filling values for
 # each of the global variables.
 #
 #
 def ReadConfigurationFile(filename):
-	global ENVIRONMENT, MAX_NUM_RETRIES
-	global DOMAIN, URL, USERNAME, PASSWORD, CODE_OPPS, CODE_OPPS_ACTION, CODE_OPPS_MAX
-	global VIEW_HISTORY, VIEW_HISTORY_MAX, QA_REPORT, QA_REPORT_MAX, LOGOUT 
-		
-	result={ }
-	csvfile = open(filename, 'rb')
-	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
-	for row in reader:
-		if len(row) != 2:
-			raise csv.Error("Too many fields on row with contents: "+str(row))
-		result[row[0]] = row[1]
-	print result
-	ENVIRONMENT = result["ENVIRONMENT"]
-	MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
-	DOMAIN = result["DOMAIN"]
-	URL = result["URL"]
-	USERNAME = result["USERNAME"] 
-	PASSWORD = result["PASSWORD"]
-	CODE_OPPS = int(result["CODE_OPPS"])
-	CODE_OPPS_ACTION = int(result["CODE_OPPS_ACTION"])
-	CODE_OPPS_MAX = int(result["CODE_OPPS_MAX"])
-	VIEW_HISTORY = int(result["VIEW_HISTORY"])
-	VIEW_HISTORY_MAX = int(result["VIEW_HISTORY_MAX"])
-	QA_REPORT = int(result["QA_REPORT"])
-	QA_REPORT_MAX = int(result["QA_REPORT_MAX"])
-	LOGOUT = int(result["LOGOUT"])
-	return result    	
+  global MAX_NUM_RETRIES
+
+  result={ }
+  csvfile = open(filename, 'rb')
+  reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+  for row in reader:
+    if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
+      result[row[0]] = row[1]
+  globals().update(result)
+  MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
+  return result
 ##########################################################################################
 
-ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+ReadConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 
 ok = 200
 created = 201
@@ -129,13 +116,13 @@ RETRIED = 0
 
 def code():
   log("-------------------------------------------------------------------------------")
-  if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
+  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     action = "Do NOT Accept or Reject Doc"
-  elif CODE_OPPS_ACTION == 1: # Accept Doc
+  elif CODE_OPPS_ACTION == "1": # Accept Doc
     action = "Accept Docs"
-  elif CODE_OPPS_ACTION == 2: # Reject Doc
+  elif CODE_OPPS_ACTION == "2": # Reject Doc
     action = "Reject Docs"
-  elif CODE_OPPS_ACTION == 3: # Skip Opp
+  elif CODE_OPPS_ACTION == "3": # Skip Opp
     action = "Skip Opp"
   else:
     action = "Unknown"
@@ -148,7 +135,7 @@ def code():
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
   coding_opp_current = 1
-  for coding_opp_current in range(1, (CODE_OPPS_MAX+1)):
+  for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
     response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
     opportunity = JSONValue.parse(response.getText())
@@ -161,26 +148,26 @@ def code():
     patient_uuid = opportunity.get("patient_uuid")
     scorables = opportunity.get("scorables")
     log("-------------------------------------------------------------------------------")
-    log("PATIENT OPP %d OF %d" % (coding_opp_current, CODE_OPPS_MAX))
+    log("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     test_counter = 0
     doc_no_current = 0
     doc_no_max = len(scorables)
     for scorable in scorables:
-      org_id          = ""
+      patient_org_id  = ""
       finding_id      = ""
       document_uuid   = ""
       document_title  = ""
       date_of_service = ""
       doc_no_current = doc_no_current + 1
-      org_id = scorable.get("org_id")
+      patient_org_id = scorable.get("patient_org_id")
       finding_id = scorable.get("id")
       document_uuid = scorable.get("document_uuid")
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
-      log("PATIENT DOC %d OF %d\n* ORG ID           = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      log("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
       if patient_uuid    == "":
         log("WARNING : PATIENT UUID is Empty")
-      if org_id          == "":
+      if patient_org_id  == "":
         log("WARNING : ORG ID is Empty")
       if finding_id      == "":
         log("WARNING : FINDING ID is Empty")
@@ -217,9 +204,9 @@ def history():
   if opportunity == None:
     log("ERROR : Login Failed or No More Opportunities For This Coder")
     return 1
-  for view_history_count in range(1, (VIEW_HISTORY_MAX+1)):
+  for view_history_count in range(1, (int(VIEW_HISTORY_MAX)+1)):
     log("-------------------------------------------------------------------------------")
-    log("Report %d OF %d" % (view_history_count, VIEW_HISTORY_MAX))
+    log("Report %d OF %d" % (view_history_count, int(VIEW_HISTORY_MAX)))
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z&user=%s" % (now.year, now.month, now.day, USERNAME)
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
@@ -252,9 +239,9 @@ def report():
   if opportunity == None:
     log("ERROR : Login Failed or No More Opportunities For This Coder")
     return 1
-  for qa_report_count in range(1, (QA_REPORT_MAX+1)):
+  for qa_report_count in range(1, (int(QA_REPORT_MAX)+1)):
     log("-------------------------------------------------------------------------------")
-    log("Report %d OF %d" % (qa_report_count, QA_REPORT_MAX))
+    log("Report %d OF %d" % (qa_report_count, int(QA_REPORT_MAX)))
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
@@ -300,20 +287,20 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return csrftoken
-  
+
 def IncrementTestResultsTotals(code):
-	global FAILED, SUCCEEDED, RETRIED
-	if (code == ok) or (code == nocontent):
-		SUCCEEDED = SUCCEEDED+1
-	elif code == intserveror:
-		RETRIED = RETRIED+1
-	else:	
-		FAILED = FAILED+1   
+  global FAILED, SUCCEEDED, RETRIED
+  if (code == ok) or (code == nocontent):
+    SUCCEEDED = SUCCEEDED+1
+  elif code == intserveror:
+    RETRIED = RETRIED+1
+  else:
+    FAILED = FAILED+1
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
-  if CODE_OPPS_ACTION == 0: # Do NOT Accept or Reject Doc
+  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     log("* CODER ACTION = Do NOT Accept or Reject Doc")
-  elif CODE_OPPS_ACTION == 1: # Accept Doc
+  elif CODE_OPPS_ACTION == "1": # Accept Doc
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
     response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -332,7 +319,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("provider[id]","1992754832"),
     NVPair("provider[type]","Hospital Outpatient Setting"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -362,7 +349,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-  elif CODE_OPPS_ACTION == 2: # Reject Doc
+  elif CODE_OPPS_ACTION == "2": # Reject Doc
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
     response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -374,7 +361,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("flag_for_review","true"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -403,7 +390,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-  elif CODE_OPPS_ACTION == 3: # Skip Opp
+  elif CODE_OPPS_ACTION == "3": # Skip Opp
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
     response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -412,7 +399,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("result","skipped"),
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -451,13 +438,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 class TestRunner:
   def __call__(self):
     log("============================= START GRINDER TEST ============================")
-    if CODE_OPPS    == 1:
+    if CODE_OPPS    == "1":
       code()
-    if VIEW_HISTORY == 1:
+    if VIEW_HISTORY == "1":
       history()
-    if QA_REPORT    == 1:
+    if QA_REPORT    == "1":
       report()
-    if LOGOUT       == 1:
+    if LOGOUT       == "1":
       logout()
     log("=============================================================================")
     log("Test execution results summary:")
@@ -470,3 +457,5 @@ class TestRunner:
     log("============================== END GRINDER TEST =============================")
     log("=============================================================================")
     log("\n")
+
+
