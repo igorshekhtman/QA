@@ -150,6 +150,7 @@ ORGMAP = { \
 	"372":"MMG", \
 	"377":"org0434", \
 	"367":"org0420", \
+	"362":"DO Load Test Org", \
 	"331":"Hill Physicians Medical Group", \
 	"243":"org0233", \
 	"genManifest":"genManifest", \
