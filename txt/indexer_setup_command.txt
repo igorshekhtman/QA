@@ -1,3 +1,14 @@
+
+========================== List of Apixio Applications Specific DNS Names =========================
+
+https://sites.google.com/a/apixio.com/devops/architecture/dns-names
+
+Its been deployed already. You can check the current version by hitting the /util/version endpoint. The result its this:
+version=1.1.1-SNAPSHOT
+compiledWithJavaVersion=1.7
+compiledWithScalaVersion=2.10.4
+buildDate=Thu Oct 23 21:27:15 UTC 2014
+
 ===================== NEW UTILITY TO ACCESS HIVE LOGS =============================================
 HUE
 
