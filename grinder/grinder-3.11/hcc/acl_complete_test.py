@@ -145,13 +145,6 @@ def ReadConfigurationFile(filename):
 #================= Global Variable Initialization Section ================================
 #=========================================================================================
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
-
-if (ENVIRONMENT == "Production"):
-	aclpostfix = ""
-	hccpostfix = ""
-else:
-	aclpostfix = "-stg"
-	hccpostfix = "stage2"
 	
 ok = 200
 created = 201
@@ -162,12 +155,6 @@ redirect = 302
 forbidden = 403
 intserveror = 500
 servunavail = 503
-
-ACL_DOMAIN = "acladmin" +aclpostfix+ ".apixio.com"
-ACL_URL = PROTOCOL + ACL_DOMAIN
-
-HCC_DOMAIN = "hcc" +hccpostfix+ ".apixio.com"
-HCC_URL = PROTOCOL + HCC_DOMAIN
 
 HCCUSERSLIST = [0]
 HCCORGLIST = [0]
