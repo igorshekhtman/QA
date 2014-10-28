@@ -2,12 +2,13 @@
 #
 # PROGRAM: grinder.py
 # AUTHOR:  Alex Beyk abeyk@apixio.com
-# DATE:    2014.10.16
+# DATE:    2014.10.16 Initial Version
+# DATE:    2014.10.27 Updated Org ID to Patient Org ID
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 # DATE: 2014.10.20
-# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals 
+# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
 #
 # PURPOSE:
 #          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
@@ -62,8 +63,9 @@ import operator
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
-CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
+# CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
+CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -73,27 +75,28 @@ CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
 #
 # Creation Date: 23-Oct-2014
 #
-# Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME" 
-# defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into 
-# a "result" dictionary, which is later parsed one row at a time, filling values for 
+# Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME"
+# defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into
+# a "result" dictionary, which is later parsed one row at a time, filling values for
 # each of the global variables.
 #
 #
 def ReadConfigurationFile(filename):
-	global MAX_NUM_RETRIES 
-		
-	result={ }
-	csvfile = open(filename, 'rb')
-	reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
-	for row in reader:
-		if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):	
-			result[row[0]] = row[1]
-	globals().update(result)
-	MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
-	return result    	
+  global MAX_NUM_RETRIES
+
+  result={ }
+  csvfile = open(filename, 'rb')
+  reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+  for row in reader:
+    if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
+      result[row[0]] = row[1]
+  globals().update(result)
+  MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
+  return result
 ##########################################################################################
 
-ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+ReadConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 
 ok = 200
 created = 201
@@ -150,21 +153,21 @@ def code():
     doc_no_current = 0
     doc_no_max = len(scorables)
     for scorable in scorables:
-      org_id          = ""
+      patient_org_id  = ""
       finding_id      = ""
       document_uuid   = ""
       document_title  = ""
       date_of_service = ""
       doc_no_current = doc_no_current + 1
-      org_id = scorable.get("org_id")
+      patient_org_id = scorable.get("patient_org_id")
       finding_id = scorable.get("id")
       document_uuid = scorable.get("document_uuid")
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
-      log("PATIENT DOC %d OF %d\n* ORG ID           = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      log("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
       if patient_uuid    == "":
         log("WARNING : PATIENT UUID is Empty")
-      if org_id          == "":
+      if patient_org_id  == "":
         log("WARNING : ORG ID is Empty")
       if finding_id      == "":
         log("WARNING : FINDING ID is Empty")
@@ -284,15 +287,15 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return csrftoken
-  
+
 def IncrementTestResultsTotals(code):
-	global FAILED, SUCCEEDED, RETRIED
-	if (code == ok) or (code == nocontent):
-		SUCCEEDED = SUCCEEDED+1
-	elif code == intserveror:
-		RETRIED = RETRIED+1
-	else:	
-		FAILED = FAILED+1   
+  global FAILED, SUCCEEDED, RETRIED
+  if (code == ok) or (code == nocontent):
+    SUCCEEDED = SUCCEEDED+1
+  elif code == intserveror:
+    RETRIED = RETRIED+1
+  else:
+    FAILED = FAILED+1
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
@@ -316,7 +319,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("provider[id]","1992754832"),
     NVPair("provider[type]","Hospital Outpatient Setting"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -358,7 +361,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("flag_for_review","true"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -396,7 +399,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("result","skipped"),
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("org_id",str(scorable.get("org_id"))),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
