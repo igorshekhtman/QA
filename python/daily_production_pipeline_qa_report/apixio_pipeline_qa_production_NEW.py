@@ -581,16 +581,15 @@ def bundlerDocuments(table):
 	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
 
 	
-	cur.execute("""SELECT count(distinct doc_id) as count, \
-		event_batch_id, org_id \
+	cur.execute("""SELECT count(distinct doc_id) as count, org_id \
 		FROM %s \
 		WHERE day=%s and month=%s and year=%s \
-		GROUP BY org_id, event_batch_id \
+		GROUP BY org_id \
 		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Document count:</td><td>Event Batch ID:</td><td>Org(ID):</td></tr>"
+	REPORT = REPORT+"<tr><td>Document count:</td><td>Org(ID):</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -601,12 +600,12 @@ def bundlerDocuments(table):
 		#else:
 		#	BG_COLOR="#FFFFFF"
 		BG_COLOR="#FFFFFF"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='3'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='2'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 
