@@ -2,11 +2,11 @@
 ENVIRONMENT=Staging
 # ENVIRONMENT=Production
 ########################################
-ACL_DOMAIN=acladmin.apixio.com
+#ACL_DOMAIN=acladmin.apixio.com
 #ACL_URL=https://acladmin.apixio.com
 ACL_URL=https://acladmin-stg.apixio.com
 ########################################
-HCC_DOMAIN=hccstage2.apixio.com
+#HCC_DOMAIN=hccstage2.apixio.com
 #HCC_URL=https://hcc.apixio.com
 HCC_URL=https://hccstage2.apixio.com
 ########################################
