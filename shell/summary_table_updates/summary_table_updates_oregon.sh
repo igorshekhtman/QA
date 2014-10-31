@@ -1,73 +1,36 @@
 #! /bin/sh
 
-#=========================================== Assigning default variable values =====================================
+#====================== checking for user provided args =======================================
 
 export TZ=America/Los_Angeles
 
-daysBack=1
-daysBack=$1
 dateRange="";
 
 if [ -z $1 ]; then
-	echo ">>> Days back not provided, assigning value of 1"
-	echo ">>> "
-	daysBack=1
-fi
+echo ">>> dateRange not provided, using current date"
+
 curDay=$(date +%d);
 curMonth=$(date +%m);
-scurDay=$(date +%d);
-scurMonth=$(date +%m);
+curYear=$(date +%Y);
 
 
 echo "Current day: $curDay"
 echo "Current month: $curMonth"
+echo "Current year: $curYear"
 echo " "
 
 
+#=============== adjust date range of the report ==============================================
 
-#======== obtain day and month for previous from current day and month ===========================================
+dateRange="${dateRange:-(month='$curMonth' and day='$curDay' and year='$curYear')}";
 
-#for (( c=1; c<=$daysBack; c++ ))
-#do
-#	curDay=$(($curDay-1))
-#	if [ "$curDay" == "0" ];
-#	then
-#		curMonth=$(($curMonth - 1))
-#		if [ "$curMonth" == "0" ];
-#		then
-#			curMonth=12
-#		fi
-#
-#		if [ "$curMonth" == "4" ] || [ "$curMonth" == "6" ] || [ "$curMonth" == "9" ] || [ "$curMonth" == "11" ];
-#		then
-#			curDay=30
-#		else 
-#			if [ "$curMonth" == "2" ];
-#			then
-#				curDay=28
-#			else
-#				curDay=31
-#			fi
-#		fi
-#	fi
-#
-#	if [ "$dateRange" == "" ];
-#	then
-#		dateRange="(month=$curMonth and day=$curDay)"
-#	else
-#		dateRange="$dateRange or (month=$curMonth and day=$curDay)"
-#	fi
-#done
+else
+echo ">>> dateRange provided by user
+"
 
-#============ adjust day and month of the report =================================================================
+dateRange="${dateRange:-($1)}";
 
-#============ Overwrite day,month and dateRange values ======
-#============================================================
-
-day=$scurDay
-month=$scurMonth
-dateRange="${dateRange:-(month='$curMonth' and day='$curDay')}";
-# dateRange="(month=$curMonth and day=30)"
+fi
 
 
 #===========================================================
