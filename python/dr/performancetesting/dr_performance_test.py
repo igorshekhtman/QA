@@ -437,7 +437,7 @@ def startDrService():
 def connectToHive():
 	global cur, conn
 	print ("Connecing to Hive ...\n")
-	conn = pyhs2.connect(host='10.196.47.205', \
+	conn = pyhs2.connect(host='54.191.226.61', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
@@ -805,7 +805,8 @@ def archiveReport():
 	global ENVIRONMENT, REPORT, PIPELINE_MODULE, MONTH_FMN
 	print ("Archiving report ...\n")
 	BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
-	REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
+	#REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/html/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
 	# ------------- Create new folder if one does not exist already -------------------------------
 	if not os.path.exists(BACKUPREPORTFOLDER):
 		os.makedirs(BACKUPREPORTFOLDER)
@@ -817,7 +818,8 @@ def archiveReport():
 	REPORTFILENAME=str(DAY)+".html"
 	REPORTXTSTRING="DR Performance Report ("+ENVIRONMENT.lower()+") - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME=PIPELINE_MODULE.lower()+"_reports.txt"
-	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+	#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
 	print (REPORTFOLDER)
 	print (REPORTFILENAME)
 	print (REPORTXTSTRING)

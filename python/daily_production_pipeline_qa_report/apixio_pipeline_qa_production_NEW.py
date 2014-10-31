@@ -141,6 +141,7 @@ ORGMAP = { \
 	"10000298":"Theresas Hospital", \
 	"10000299":"Erins Hospital", \
 	"10000300":"Erics Hospital", \
+	"10000330":"Wellcare", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
@@ -149,6 +150,7 @@ ORGMAP = { \
 	"372":"MMG", \
 	"377":"org0434", \
 	"367":"org0420", \
+	"362":"DO Load Test Org", \
 	"331":"Hill Physicians Medical Group", \
 	"243":"org0233", \
 	"genManifest":"genManifest", \
@@ -234,9 +236,15 @@ def identifyReportDayandMonth():
 				else:
 					CURDAY=31
 
-	DAY = CURDAY
-	MONTH = CURMONTH
-	MONTH_FMN=calendar.month_name[MONTH]
+	DAY = "\"%s\"" % (CURDAY)
+	if (CURDAY < 10):
+		DAY = "\"0%s\"" % (CURDAY)
+	MONTH = "\"%s\"" % (CURMONTH)
+	if (CURMONTH < 10):
+		MONTH = "\"0%s\"" % (CURMONTH)
+	DAY = str(CURDAY)
+	MONTH = str(CURMONTH)	
+	MONTH_FMN = calendar.month_name[CURMONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
@@ -298,9 +306,9 @@ def obtainFailedJobs(table):
 	cur.execute("""SELECT activity, hadoop_job_id, batch_id, org_id, time \
 		FROM %s \
 		WHERE \
-		day=%s and month=%s and \
+		day=%s and month=%s and year=%s and \
 		status = 'error' \
-		ORDER BY org_id ASC""" % (table, DAY, MONTH))
+		ORDER BY org_id ASC""" % (table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
@@ -338,10 +346,10 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		WHERE \
 		%s is not null and \
 		status = 'error' and \
-		day=%s and month=%s \
+		day=%s and month=%s and year=%s \
 		GROUP BY org_id, \
 		if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 			
 	ROW = 0
 	for i in cur.fetch():
@@ -374,9 +382,9 @@ def dataOrchestratorAcls(table):
 	cur.execute("""SELECT count(*) as count, \
 		permission, auth_status, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, permission, auth_status, status, error \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -409,9 +417,9 @@ def dataOrchestratorLookups(table):
 	cur.execute("""SELECT count(*) as count, \
 		endpoint, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY org_id, endpoint, status, error \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -444,9 +452,9 @@ def dataOrchestratorRequests(table):
 	cur.execute("""SELECT count(*) as count, \
 		response_code, endpoint, status, error, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s and endpoint IS NOT NULL and endpoint <> " " \
 		GROUP BY org_id, endpoint, status, error, response_code \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -462,9 +470,9 @@ def dataOrchestratorRequests(table):
 			BG_COLOR="#FFFFFF"
 
 		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -479,9 +487,9 @@ def userAccountsRequests(table):
 	cur.execute("""SELECT count(*) as count, \
 		email, response_code, status, error \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY email, response_code, status, error \
-		ORDER BY status, count DESC""" %(table, DAY, MONTH))
+		ORDER BY status, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -511,9 +519,9 @@ def bundlerSequence(table):
 	cur.execute("""SELECT count(*) as count, \
 		pattern, memory_total_bytes, status \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY pattern, status, memory_total_bytes \
-		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		ORDER BY status, count ASC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -543,9 +551,9 @@ def bundlerHistorical(table):
 	cur.execute("""SELECT count(*) as count, \
 		low, high, status, millis, memory_total_bytes \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY low, high, status, millis, memory_total_bytes \
-		ORDER BY status, count ASC""" %(table, DAY, MONTH))
+		ORDER BY status, count ASC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -573,16 +581,15 @@ def bundlerDocuments(table):
 	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
 
 	
-	cur.execute("""SELECT count(distinct doc_id) as count, \
-		event_batch_id, org_id \
+	cur.execute("""SELECT count(distinct doc_id) as count, org_id \
 		FROM %s \
-		WHERE day=%s and month=%s \
-		GROUP BY org_id, event_batch_id \
-		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		WHERE day=%s and month=%s and year=%s \
+		GROUP BY org_id \
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Document count:</td><td>Event Batch ID:</td><td>Org(ID):</td></tr>"
+	REPORT = REPORT+"<tr><td>Document count:</td><td>Org(ID):</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
@@ -593,12 +600,12 @@ def bundlerDocuments(table):
 		#else:
 		#	BG_COLOR="#FFFFFF"
 		BG_COLOR="#FFFFFF"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		if str(i[1]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='3'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='2'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 
@@ -614,11 +621,11 @@ def eventAMR(table):
 		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message) as message, \
 		org_id, status \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, \
 		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message), \
 		status \
-		ORDER BY org_id, count DESC""" %(table, DAY, MONTH))
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -663,9 +670,9 @@ def careOptimizerErrors(table):
 	cur.execute("""SELECT error_message, min(time) as first_occurence, \
 		max(time) as last_occurence, count(*) as count \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY error_message \
-		ORDER BY count DESC""" %(table, DAY, MONTH))
+		ORDER BY count DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -707,9 +714,9 @@ def careOptimizerLoad(table):
 		min(patient_cache_size) as min_patient_cache, \
 		max(patient_cache_size) as max_patient_cache \
 		FROM %s \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s\
 		GROUP BY org_id \
-		ORDER BY max_load_time_seconds DESC""" %(table, DAY, MONTH))
+		ORDER BY max_load_time_seconds DESC""" %(table, DAY, MONTH, YEAR))
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
@@ -726,14 +733,14 @@ def careOptimizerLoad(table):
 			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td>"
 		else:
 			REPORT = REPORT + "<td>"+str(i[1])+" ("+str(i[1])+")</td>"
-		REPORT = REPORT+"<td>"+str(round(i[2],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[3],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[4],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[5],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[6],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[7],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[8],1))+"</td>"
-		REPORT = REPORT+"<td>"+str(round(i[9],1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[2]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[3]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[4]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[5]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[6]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[7]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[8]),1))+"</td>"
+		REPORT = REPORT+"<td>"+str(round(float(i[9]),1))+"</td>"
 		REPORT = REPORT+"<td>"+str(i[10])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[11])+"</td></tr>"
 	if (ROW == 0):
@@ -760,9 +767,9 @@ def careOptimizerSearch(table):
 		min(time) as first_access, \
 		max(time) as last_access \
 		FROM %s  \
-		WHERE day=%s and month=%s \
+		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id, split(username, "_")[1] \
-		ORDER BY max_time DESC""" %(table, DAY, MONTH))
+		ORDER BY max_time DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -807,8 +814,8 @@ def summaryLogstrafficTotals(table):
 	cur.execute("""SELECT app_name, \
 		discarded, infos, events, errors, total \
 		FROM %s  \
-		WHERE day=%s and month=%s \
-		ORDER BY total DESC""" %(table, DAY, MONTH))
+		WHERE day=%s and month=%s and year=%s \
+		ORDER BY total DESC""" %(table, DAY, MONTH, YEAR))
 
 
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
@@ -843,9 +850,9 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		FROM %s \
 		WHERE \
 		%s is not null and \
-		day=%s and month=%s \
+		day=%s and month=%s and year=%s \
 		GROUP BY org_id, status \
-		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH))
+		ORDER BY org_id ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	REPORT = REPORT+"<tr><td>Activity:</td><td>Doc Count:</td><td>Status:</td><td>Organization:</td></tr>"	
@@ -888,13 +895,13 @@ def jobSummary(table):
 		org_id \
 		FROM %s \
 		WHERE \
-		day=%s and month=%s and \
+		day=%s and month=%s and year=%s and \
 		status is not null and \
 		status <> 'start' \
 		GROUP BY status, \
 		activity, \
 		org_id \
-		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH))
+		ORDER BY org_id, activity ASC""" % (table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	REPORT = REPORT+"<tr><td>Count:</td><td>Status:</td><td>Activity:</td><td>Organization:</td></tr>"		
@@ -951,6 +958,10 @@ def errorMessagesRD():
 	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
 	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Event Mapper","summary_event_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
+	
+	
 		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
@@ -1082,14 +1093,8 @@ def writeReportDetails():
 	if (REPSECTORUN == 7) or (REPSECTORUN == 0):
 		eventsRD()
 	if (REPSECTORUN == 8) or (REPSECTORUN == 0):
-		# currently 09/05/2014 only available for staging env
-		# if ENVIRONMENT == "staging":
-		# now 09/24/2014 available in both staging and production
 		dataOrchestratorRD()
 	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
-		# currently 09/08/2014 only available for staging env
-		# if ENVIRONMENT == "staging":
-		# now 09/24/2014 available in both staging and production
 		userAccountsRD()
 	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
 		bundlerRD()			
@@ -1114,8 +1119,8 @@ def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -1124,10 +1129,13 @@ def archiveReport():
 			os.makedirs(REPORTFOLDER)
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
-		REPORTFILENAME=str(DAY)+".html"
-		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTFILENAME=str(CURDAY)+".html"
+		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="reports.txt"
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+		# Old location 
+		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+		# New location 
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)

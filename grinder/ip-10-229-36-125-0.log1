@@ -1,0 +1,27 @@
+2014-09-30 23:38:31,647 INFO  ip-10-229-36-125-0 : The Grinder version 3.11
+2014-09-30 23:38:31,655 INFO  ip-10-229-36-125-0 : Java(TM) SE Runtime Environment 1.7.0_65-b17: Java HotSpot(TM) 64-Bit Server VM (24.65-b04, mixed mode) on Linux amd64 2.6.32-431.29.2.el6.centos.plus.x86_64
+2014-09-30 23:38:31,660 INFO  ip-10-229-36-125-0 : time zone is UTC (+0000)
+2014-09-30 23:38:32,175 INFO  ip-10-229-36-125-0 : worker process 0
+2014-09-30 23:38:32,389 INFO  ip-10-229-36-125-0 : instrumentation agents: byte code transforming instrumenter for Jython 2.5; byte code transforming instrumenter for Java
+2014-09-30 23:38:37,271 INFO  ip-10-229-36-125-0 : running "grinder-3.11/grinder.py" using Jython 2.5.3 (2.5:c56500f08d34+, Aug 13 2012, 14:54:35) 
+[Java HotSpot(TM) 64-Bit Server VM (Oracle Corporation)]
+2014-09-30 23:38:37,559 INFO  ip-10-229-36-125-0 thread-0: starting, will do 1 run
+2014-09-30 23:38:37,559 INFO  ip-10-229-36-125-0 : start time is 1412120317559 ms since Epoch
+2014-09-30 23:38:37,574 INFO  ip-10-229-36-125-0 thread-0 [ run-0 ]: Hello World
+2014-09-30 23:38:37,575 INFO  ip-10-229-36-125-0 thread-0: finished 1 run
+2014-09-30 23:38:37,622 INFO  ip-10-229-36-125-0 : elapsed time is 62 ms
+2014-09-30 23:38:37,622 INFO  ip-10-229-36-125-0 : Final statistics for this process:
+2014-09-30 23:38:37,664 INFO  ip-10-229-36-125-0 : 
+             Tests        Errors       Mean Test    Test Time    TPS          
+                                       Time (ms)    Standard                  
+                                                    Deviation                 
+                                                    (ms)                      
+
+
+Totals       0            0            -            0.00         0.00         
+
+  Tests resulting in error only contribute to the Errors column.          
+  Statistics for individual tests can be found in the data file, including
+  (possibly incomplete) statistics for erroneous tests. Composite tests   
+  are marked with () and not included in the totals.                      
+

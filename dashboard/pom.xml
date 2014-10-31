@@ -3,8 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>apixio</groupId>
 	<artifactId>hive-query-web</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>apixio-hive-query-web</name>
+    <packaging>pom</packaging>
+    <version>0.0.1-SNAPSHOT</version>
+    <modules>
+        <module>../../utilities/organization-reporter</module>
+    </modules>
+    <name>apixio-hive-query-web</name>
 
     <properties>
         <!-- repository location -->
@@ -29,6 +33,12 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
     </properties>
+    <repositories>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
 
     <distributionManagement>
 
@@ -47,16 +57,16 @@
 
     </distributionManagement>
 
-	<dependencies>	
+	<dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2</version>
+        </dependency>
 		<dependency>
 			<groupId>apixio</groupId>
 			<artifactId>apixio-model</artifactId>
 			<version>1.1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.yammer.dropwizard</groupId>
@@ -78,71 +88,48 @@
 			<artifactId>commons-logging-api</artifactId>
 			<version>1.0.4</version>
 		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-jdbc</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-builtins</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-cli</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-common</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-contrib</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-exec</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-hbase-handler</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-hwi</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-metastore</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-pdk</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-serde</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-service</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
-		<dependency>
-			<groupId>hive</groupId>
-			<artifactId>hive-shims</artifactId>
-			<version>0.10.0.21</version>
-		</dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
+        <version>0.12.0-cdh5.1.3</version>
+            <exclusions>	<!-- Exclude Commons Logging in favor of SLF4j -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+    </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.3.0-cdh5.1.3</version>
+            <exclusions>	<!-- Exclude Commons Logging in favor of SLF4j -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>

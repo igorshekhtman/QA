@@ -1,4 +1,20 @@
 
+========================== List of Apixio Applications Specific DNS Names =========================
+
+https://sites.google.com/a/apixio.com/devops/architecture/dns-names
+
+Its been deployed already. You can check the current version by hitting the /util/version endpoint. The result its this:
+version=1.1.1-SNAPSHOT
+compiledWithJavaVersion=1.7
+compiledWithScalaVersion=2.10.4
+buildDate=Thu Oct 23 21:27:15 UTC 2014
+
+===================== NEW UTILITY TO ACCESS HIVE LOGS =============================================
+HUE
+
+http://54.69.201.228:8888/
+username: igor/apixio123
+===================================================================================================
 /mnt/gatling_2_0_0_RC5/bin
 
 <shift>:q - exit from the editor
@@ -25,7 +41,9 @@ cp -av /usr/lib/apx-reporting/html/assets/reports/* /mnt/reports
 /usr/lib/apx-reporting/assets/reports/production/pipeline/2014/10 - old
 
 
-================================================================================================
+=========================== GRINDER FUNCTIONS LIST =================================================
+
+http://grinder.sourceforge.net/g3/script-javadoc/index-all.html
 
 [10/1/14, 10:58:18 AM] Alex Beyk: To edit the server name:
 [10/1/14, 10:58:31 AM] Alex Beyk:   vi /etc/hosts
@@ -85,6 +103,9 @@ Look at the @Path annotations
 /Patient
 @Path("patient/")
 @Path("{uuid}/demographics")
+
+@Path("{uuid}/externalIds")
+
 @Path("{uuid}/summary/{type}")
 @Path("{uuid}/summary/{type}/{key}")
 @Path("{uuid}/apo")

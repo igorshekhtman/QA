@@ -812,6 +812,27 @@ FROM production_logs_useraccount_epoch
 WHERE get_json_object(line, '$.app.user_account.request') is not null
 and ($dateRange);
 
+insert overwrite table summary_tokenizer_request partition (year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.user_account.request.userId') as user_xuuid,
+get_json_object(line, '$.app.user_account.request.parameters') as parameters,
+get_json_object(line, '$.app.user_account.request.status') as status, 
+get_json_object(line, '$.app.user_account.request.error') as error, 
+get_json_object(line, '$.app.user_account.request.failureReason') as failure_reason,
+get_json_object(line, '$.app.user_account.request.code') as response_code,
+get_json_object(line, '$.app.user_account.request.method') as method,
+get_json_object(line, '$.app.user_account.request.endpoint') as endpoint,
+get_json_object(line, '$.app.user_account.request.millis') as response_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM production_logs_tokenizer_epoch
+WHERE get_json_object(line, '$.app.user_account.request') is not null
+and ($dateRange);
+
 
 insert overwrite table summary_loader_upload partition (year, month, day, org_id)
 SELECT
@@ -1589,6 +1610,27 @@ substr(get_json_object(line, '$.datestamp'),0,4) as year,
 month,
 day
 FROM staging_logs_useraccount_epoch
+WHERE get_json_object(line, '$.app.user_account.request') is not null
+and ($dateRange);
+
+insert overwrite table summary_tokenizer_request_staging partition (year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.hostname') as hostname,
+get_json_object(line, '$.client') as client,
+get_json_object(line, '$.app.user_account.request.userId') as user_xuuid,
+get_json_object(line, '$.app.user_account.request.parameters') as parameters,
+get_json_object(line, '$.app.user_account.request.status') as status, 
+get_json_object(line, '$.app.user_account.request.error') as error, 
+get_json_object(line, '$.app.user_account.request.failureReason') as failure_reason,
+get_json_object(line, '$.app.user_account.request.code') as response_code,
+get_json_object(line, '$.app.user_account.request.method') as method,
+get_json_object(line, '$.app.user_account.request.endpoint') as endpoint,
+get_json_object(line, '$.app.user_account.request.millis') as response_time,
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month,
+day
+FROM staging_logs_tokenizer_epoch
 WHERE get_json_object(line, '$.app.user_account.request') is not null
 and ($dateRange);
 
