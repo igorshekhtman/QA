@@ -1,37 +1,40 @@
 #! /bin/sh
 
-#=========================================== Assigning default variable values =====================================
+#====================== checking for user provided args =======================================
 
 export TZ=America/Los_Angeles
 
-daysBack=1
-daysBack=$1
 dateRange="";
 
 if [ -z $1 ]; then
-	echo ">>> Days back not provided, assigning value of 1"
-	echo ">>> "
-	daysBack=1
-fi
+echo ">>> dateRange not provided, using current date"
+
 curDay=$(date +%d);
 curMonth=$(date +%m);
-scurDay=$(date +%d);
-scurMonth=$(date +%m);
-scurYear=$(date +%Y);
+curYear=$(date +%Y);
+
 
 echo "Current day: $curDay"
 echo "Current month: $curMonth"
+echo "Current year: $curYear"
 echo " "
 
-#============ adjust day and month of the report =================================================================
 
-#============ Overwrite day,month and dateRange values ======
-#============================================================
+#=============== adjust date range of the report ==============================================
 
-day=$scurDay
-month=$scurMonth
-year=$scurYear
-dateRange="(month='$curMonth' and day='$curDay' and year=$year)"
+dateRange="${dateRange:-(month='$curMonth' and day='$curDay' and year='$curYear')}";
+
+else
+echo ">>> dateRange provided by user
+"
+
+dateRange="${dateRange:-($1)}";
+
+fi
+
+
+#===========================================================
+#===========================================================
 
 echo "Updating partitioned log traffic summary table with date range: $dateRange"
 echo " "
