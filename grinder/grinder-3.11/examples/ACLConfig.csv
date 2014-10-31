@@ -4,11 +4,11 @@ ENVIRONMENT=Staging
 ########################################
 #ACL_DOMAIN=acladmin.apixio.com
 #ACL_URL=https://acladmin.apixio.com
-ACL_URL=https://acladmin-stg.apixio.com
+ACL_URL=https://acladmin.apixio.com
 ########################################
 #HCC_DOMAIN=hccstage2.apixio.com
 #HCC_URL=https://hcc.apixio.com
-HCC_URL=https://hccstage2.apixio.com
+HCC_URL=https://hcc2.apixio.com
 ########################################
 NUMBER_OF_USERS_TO_CREATE=5
 NUMBER_OF_ORGS_TO_CREATE=1
