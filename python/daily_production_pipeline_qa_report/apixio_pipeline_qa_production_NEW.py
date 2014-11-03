@@ -142,6 +142,8 @@ ORGMAP = { \
 	"10000299":"Erins Hospital", \
 	"10000300":"Erics Hospital", \
 	"10000330":"Wellcare", \
+	"10000332":"Health Plus", \
+	"10000327":"Well Point", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
