@@ -63,9 +63,10 @@ import operator
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
+# CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
+CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
 # CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
-CSV_CONFIG_FILE_NAME = "hccconfig.csv"
+CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
