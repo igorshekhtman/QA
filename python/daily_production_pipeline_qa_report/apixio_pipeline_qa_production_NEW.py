@@ -62,7 +62,7 @@ MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
 DAYSBACK=1
-# DAYSBACK=1
+#DAYSBACK=5
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
@@ -242,8 +242,8 @@ def identifyReportDayandMonth():
 	MONTH = "\"%s\"" % (CURMONTH)
 	if (CURMONTH < 10):
 		MONTH = "\"0%s\"" % (CURMONTH)
-	DAY = str(CURDAY)
-	MONTH = str(CURMONTH)	
+	#DAY = str(CURDAY)
+	#MONTH = str(CURMONTH)	
 	MONTH_FMN = calendar.month_name[CURMONTH]
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
@@ -345,7 +345,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		FROM %s \
 		WHERE \
 		%s is not null and \
-		status = 'error' and \
+		status != 'success' and \
 		day=%s and month=%s and year=%s \
 		GROUP BY org_id, \
 		if(error_message like '/mnt%%','No space left on device', error_message) \
@@ -400,9 +400,9 @@ def dataOrchestratorAcls(table):
 			BG_COLOR="#FFFFFF"
 
 		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -428,16 +428,16 @@ def dataOrchestratorLookups(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		if str(i[3]) == "error":
+		if str(i[2]) == "error":
 			COMPONENT_STATUS="FAILED"
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
 
 		if str(i[4]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
 		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -957,8 +957,8 @@ def errorMessagesRD():
 	obtainErrors("Parser","summary_parser"+POSTFIX, "doc_id")
 	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
 	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
-	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_uuid")
-	obtainErrors("Event Mapper","summary_event_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_key")
+	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
 	
 	
