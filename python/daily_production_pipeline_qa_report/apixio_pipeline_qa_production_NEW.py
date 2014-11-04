@@ -17,6 +17,7 @@ import smtplib
 import string
 from datetime import datetime
 import datetime as DT
+import MySQLdb
 
 os.system('clear')
 
@@ -174,7 +175,7 @@ def checkEnvironmentandReceivers():
 	# Arg1 - environment
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
-	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -189,6 +190,8 @@ def checkEnvironmentandReceivers():
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT = "production"
 		POSTFIX = ""
+		MYSQLDOM = "10.198.2.97"
+		MYSQPW = "J3llyF1sh!"
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
@@ -196,6 +199,8 @@ def checkEnvironmentandReceivers():
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT = "staging"
 		POSTFIX = "_staging"
+		MYSQLDOM = "mysqltest-stg1.apixio.net"
+		MYSQPW = "M8ng0St33n!"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -285,6 +290,27 @@ def connectToHive():
 	cur = conn.cursor()
 	print ("Connection to Hive established ...\n")
 
+def connectToMySQL():
+	print ("Connecing to MySQL ...\n")
+	global ms_cur, ms_conn
+	#print MYSQLDOM
+	ms_conn = MySQLdb.connect(host=MYSQLDOM, \
+		user='qa', \
+		passwd=MYSQPW, \
+		db='apixiomain')		
+	ms_cur = ms_conn.cursor() 
+	print ("Connection to MySQL established ...\n")
+	
+def getOrgName(id):
+	global ms_cur, ms_conn
+	ms_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+	for row in ms_cur.fetchall():
+		orgname = str(row[0])
+		break
+	else:	
+		orgname = id
+	#print orgname	
+	return (orgname)
 
 def setHiveParameters():
 	hadoopqueuename="hive"
@@ -325,10 +351,12 @@ def obtainFailedJobs(table):
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		if str(i[3]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[3])+" ("+str(i[3])+")</td>"
+		#if str(i[3]) in ORGMAP:
+		#	REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td>"
+		#else:
+		#	REPORT = REPORT + "<td>"+str(i[3])+" ("+str(i[3])+")</td>"
+		REPORT = REPORT + "<td>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td>"
+		#getOrgName(str(i[2]))
 		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -360,10 +388,11 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		print i
 		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td>"
 		REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td>"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT + "<td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
-		else:
-			REPORT = REPORT + "<td bgcolor='#FFFF00'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
+		#if str(i[1]) in ORGMAP:
+		#	REPORT = REPORT + "<td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT + "<td bgcolor='#FFFF00'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
+		REPORT = REPORT + "<td bgcolor='#FFFF00'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr>"
 		REPORT = REPORT+"<tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -402,10 +431,12 @@ def dataOrchestratorAcls(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+		#if str(i[5]) in ORGMAP:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
+		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -437,10 +468,12 @@ def dataOrchestratorLookups(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[4]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
+		#if str(i[4]) in ORGMAP:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[4]))+" ("+str(i[4])+")</td></tr>"
+		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -472,10 +505,12 @@ def dataOrchestratorRequests(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+		#if str(i[5]) in ORGMAP:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
+		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -603,10 +638,12 @@ def bundlerDocuments(table):
 		#else:
 		#	BG_COLOR="#FFFFFF"
 		BG_COLOR="#FFFFFF"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
+		#if str(i[1]) in ORGMAP:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr>"
+		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='2'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -642,10 +679,12 @@ def eventAMR(table):
 		else:
 			COMPONENT_STATUS="FAILED"
 			BG_COLOR="#FFFF00"
-		if str(i[2]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+		#if str(i[2]) in ORGMAP:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+		#else:
+		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[2]))+" ("+str(i[2])+")</td></tr>"
+		#getOrgName(str(i[1]))
 		BG_COLOR="#FFFFFF"	
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
@@ -732,10 +771,12 @@ def careOptimizerLoad(table):
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td>"+str(i[0])+"</td>"
-		if str(i[1]) in ORGMAP:
-			REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td>"
-		else:
-			REPORT = REPORT + "<td>"+str(i[1])+" ("+str(i[1])+")</td>"
+		#if str(i[1]) in ORGMAP:
+		#	REPORT = REPORT + "<td>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td>"
+		#else:
+		#	REPORT = REPORT + "<td>"+str(i[1])+" ("+str(i[1])+")</td>"
+		REPORT = REPORT + "<td>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td>"
+		#getOrgName(str(i[1]))
 		REPORT = REPORT+"<td>"+str(round(float(i[2]),1))+"</td>"
 		REPORT = REPORT+"<td>"+str(round(float(i[3]),1))+"</td>"
 		REPORT = REPORT+"<td>"+str(round(float(i[4]),1))+"</td>"
@@ -787,10 +828,12 @@ def careOptimizerSearch(table):
 		print i
 		FORMATEDTIME1 = DT.datetime.strptime(str(i[9])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
 		FORMATEDTIME2 = DT.datetime.strptime(str(i[10])[:-5], "%Y-%m-%dT%H:%M:%S").strftime('%b %d %I:%M %p')
-		if str(i[0]) in ORGMAP:
-			REPORT = REPORT + "<tr><td>"+ORGMAP[str(i[0])]+" ("+str(i[0])+")</td>"
-		else:
-			REPORT = REPORT + "<tr><td>"+str(i[0])+" ("+str(i[0])+")</td>"
+		#if str(i[0]) in ORGMAP:
+		#	REPORT = REPORT + "<tr><td>"+ORGMAP[str(i[0])]+" ("+str(i[0])+")</td>"
+		#else:
+		#	REPORT = REPORT + "<tr><td>"+str(i[0])+" ("+str(i[0])+")</td>"
+		REPORT = REPORT + "<tr><td>"+getOrgName(str(i[1]))+" ("+str(i[0])+")</td>"
+		#getOrgName(str(i[1]))
 		REPORT = REPORT+"<td>"+str(i[1])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[2])+"</td>"
 		REPORT = REPORT+"<td>"+str(i[3])+"</td>"
@@ -866,18 +909,21 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		if str(i[1]) == "error":
 			REPORT = REPORT+"<tr><td width='50%' bgcolor='#FFFF00'>"+activity+"</td><td width='10%' bgcolor='#FFFF00'>"+str(i[0])+"</td>"
 			REPORT = REPORT+"<td width='10%' bgcolor='#FFFF00'>"+str(i[1])+"</td>"
-			if str(i[2]) in ORGMAP:
-				REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
-			else:
-				REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			#if str(i[2]) in ORGMAP:
+			#	REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+			#else:
+			#	REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+getOrgName(str(i[2]))+" ("+str(i[2])+")</td></tr>"
+			#getOrgName(10000289)
 			COMPONENT_STATUS="FAILED"
 		else:
 			REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td>"
 			REPORT = REPORT+"<td width='10%'>"+str(i[1])+"</td>"
-			if str(i[2]) in ORGMAP:
-				REPORT = REPORT+"<td width='20%'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
-			else:
-				REPORT = REPORT+"<td width='20%'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			#if str(i[2]) in ORGMAP:
+			#	REPORT = REPORT+"<td width='20%'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
+			#else:
+			#	REPORT = REPORT+"<td width='20%'>"+str(i[2])+" ("+str(i[2])+")</td></tr>"
+			REPORT = REPORT+"<td width='20%'>"+getOrgName(str(i[2]))+" ("+str(i[2])+")</td></tr>"
 
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
@@ -917,18 +963,22 @@ def jobSummary(table):
 			failedjobs = failedjobs + int(i[0])
 			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[2])+"</td>"
-			if str(i[3]) in ORGMAP: 
-				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
-			else:
-				REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+			#if str(i[3]) in ORGMAP: 
+			#	REPORT = REPORT+"<td bgcolor='#FFFF00'>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
+			#else:
+			#	REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td></tr>"
+			#getOrgName(str(i[1]))
 			COMPONENT_STATUS="FAILED"
 		else:
 			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
-			if str(i[3]) in ORGMAP: 
-				REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
-			else:
-				REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+			#if str(i[3]) in ORGMAP: 
+			#	REPORT = REPORT+"<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td></tr>"
+			#else:
+			#	REPORT = REPORT+"<td>"+str(i[3])+" ("+str(i[3])+")</td></tr>"
+			REPORT = REPORT+"<td>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td></tr>"
+			#getOrgName(str(i[1]))
 	REPORT = REPORT+"<tr><td colspan='4' align='left' bgcolor='#D0D0D0'><b> \
 		"+str(jobs)+"</b> - Total number of Jobs processed, out of which <font color='#DF1000'><b>"+str(failedjobs)+" failed</b></font> and <font color='#00A303'><b>"+str(jobs-failedjobs)+" succeeded</b></font> \
 		</font></td></tr>"
@@ -1106,6 +1156,11 @@ def closeHiveConnection():
 	global cur, conn
 	cur.close()
 	conn.close()
+	
+def closeMySQLConnection():
+	global ms_cur, ms_conn
+	ms_cur.close()
+	ms_conn.close()
 		
 
 def writeReportFooter():
@@ -1174,6 +1229,12 @@ identifyReportDayandMonth()
 
 writeReportHeader()	
 
+connectToMySQL()
+
+#getOrgName(10000289)
+
+#getOrgName(963)
+
 connectToHive()
 
 setHiveParameters()
@@ -1181,6 +1242,8 @@ setHiveParameters()
 writeReportDetails()
 
 closeHiveConnection()
+
+closeMySQLConnection()
 
 writeReportFooter()
 
