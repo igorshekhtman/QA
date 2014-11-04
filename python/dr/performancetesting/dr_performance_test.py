@@ -44,6 +44,15 @@ MONTH=strftime("%m", gmtime())
 YEAR=strftime("%Y", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 
+QDAY = "\"%s\"" % (DAY)
+QMONTH = "\"%s\"" % (MONTH)
+if (DAY < 10):
+	QDAY = "\"0%s\"" % (DAY)
+	QMONTH = "\"%s\"" % (MONTH)
+if (MONTH < 10):
+	QMONTH = "\"0%s\"" % (MONTH)
+	
+
 UPLOAD_URL=""
 STOP_URL=""
 START_URL=""
@@ -465,7 +474,7 @@ def closeHiveConnection():
 
 	
 def runHiveQueries ():
-	global REPORT, cur, conn, DAY, MONTH, BATCH
+	global REPORT, cur, conn, DAY, MONTH, BATCH, QDAY, QMONTH 
 	global OVERALL_KB_SEC, UDB, UDM, OVERALL_DOCS_SEC, UDC, DOCUMENTCOUNTER
 	print ("Running %s Hive queries ... \n") % (PIPELINE_MODULE)	
 	if PIPELINE_MODULE == "DR":
@@ -508,7 +517,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.upload.document.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, DAY, MONTH, BATCH))
+			GROUP BY get_json_object(line, '$.upload.document.status')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			UDB = i[2]
 			UDM = i[28]
@@ -565,7 +574,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.archive.afs.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, DAY, MONTH, BATCH))
+			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -598,7 +607,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, DAY, MONTH, BATCH))
+			GROUP BY get_json_object(line, '$.seqfile.file.document.status')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -627,7 +636,7 @@ def runHiveQueries ():
 			WHERE \
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
-			get_json_object(line, '$.seqfile.directory.start.batchid') = '%s'""" %(hive_table, DAY, MONTH, BATCH))
+			get_json_object(line, '$.seqfile.directory.start.batchid') = '%s'""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -660,7 +669,7 @@ def runHiveQueries ():
 			get_json_object(line, '$.level') = 'EVENT' and \
 			day=%s and month=%s and \
 			get_json_object(line, '$.seqfile.directory.add.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.seqfile.directory.add.status')""" %(hive_table, DAY, MONTH, BATCH))
+			GROUP BY get_json_object(line, '$.seqfile.directory.add.status')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -694,7 +703,7 @@ def runHiveQueries ():
 			day=%s and month=%s and \
 			get_json_object(line, '$.seqfile.file.close.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.seqfile.file.close.apxfiles.count'), \
-			get_json_object(line, '$.seqfile.file.close.status')""" %(hive_table, DAY, MONTH, BATCH))
+			get_json_object(line, '$.seqfile.file.close.status')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -728,7 +737,7 @@ def runHiveQueries ():
 			day=%s and month=%s and \
 			get_json_object(line, '$.submit.post.batchid') = '%s' \
 			GROUP BY get_json_object(line, '$.submit.post.status'), \
-			get_json_object(line, '$.submit.post.apxfiles.count')""" %(hive_table, DAY, MONTH, BATCH))
+			get_json_object(line, '$.submit.post.apxfiles.count')""" %(hive_table, QDAY, QMONTH, BATCH))
 		for i in cur.fetch():
 			REPORT = REPORT+"<table border='1' cellspacing='0' cellpadding='2'>"
 			REPORT = REPORT+"<tr><td># OF DOCS:</td><td>STATUS:</td><td>AV. DOC SIZE:</td></tr>"
@@ -751,6 +760,8 @@ def runHiveQueries ():
 		print ("Summary performance report ...\n")
 		UDK = (UDB / 1024)
 		UDS = (UDM / 1000)
+		if UDS == 0:
+			UDS = 1
 		OVERALL_KB_SEC=(UDK / UDS)
 		OVERALL_DOCS_SEC=(UDC / UDS)
 		REPORT = REPORT+SUBHDR % ("Summary Doc-Reciever Performance Test Results")
