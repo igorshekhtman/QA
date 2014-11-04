@@ -1,3 +1,7 @@
+========================== MY SQL prod and stage =================================================
+
+: hcc-mysql-prd2-new.apixio.net and
+: hcc-mysql-stg2.apixio.net
 
 ========================= HCC CODERS DASHBOARD ====================================================
 
