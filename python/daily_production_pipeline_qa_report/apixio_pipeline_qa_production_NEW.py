@@ -125,7 +125,7 @@ ORGMAP = { \
 	"10000278":"Hill Physicians", \
 	"10000318":"Cambia", \
 	"10000320":"Health Net", \
-	"10000331":"Hill Physicians Medical Group", \
+	"10000331":"UAM", \
 	"10000367":"org0420", \
 	"10000306":"batmed1", \
 	"10000279":"Production Test Org", \
@@ -431,11 +431,11 @@ def dataOrchestratorAcls(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		#if str(i[5]) in ORGMAP:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
-		#else:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
-		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
+		if str(i[5]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
+		#REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
 		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
@@ -468,11 +468,11 @@ def dataOrchestratorLookups(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		#if str(i[4]) in ORGMAP:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
-		#else:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
-		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[4]))+" ("+str(i[4])+")</td></tr>"
+		if str(i[4]) in ORGMAP:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
+		else:
+			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
+		#REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[4]))+" ("+str(i[4])+")</td></tr>"
 		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
@@ -1230,10 +1230,6 @@ identifyReportDayandMonth()
 writeReportHeader()	
 
 connectToMySQL()
-
-#getOrgName(10000289)
-
-#getOrgName(963)
 
 connectToHive()
 
