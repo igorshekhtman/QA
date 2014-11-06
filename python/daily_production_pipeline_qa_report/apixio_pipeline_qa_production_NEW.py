@@ -146,6 +146,7 @@ ORGMAP = { \
 	"10000332":"Health Plus", \
 	"10000327":"Well Point", \
 	"10000334":"Health Net", \
+	"10000296":"Lous Hospital", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
@@ -272,7 +273,7 @@ def writeReportHeader ():
 	REPORT = REPORT + """Content-type: text/html\n"""
 	REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
 
-	REPORT = REPORT + """<h1>Apixio %s Pipeline QA Report</h1>\n""" % (ENVIRONMENT)
+	REPORT = REPORT + """<h1>Apixio Daily Pipeline QA Report</h1>\n"""
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
