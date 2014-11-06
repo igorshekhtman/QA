@@ -88,6 +88,12 @@ USERNAME="N/A"
 UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
+#===== MySQL Authentication============
+STDOM = "mysqltest-stg1.apixio.net" 
+STPW = "M8ng0St33n!"
+PRDOM = "10.198.2.97"
+PRPW = "J3llyF1sh!"
+#======================================
 
 #================================================================================================
 #=== ORGID - ORGNAME MAP ========================================================================
@@ -294,24 +300,37 @@ def connectToHive():
 
 def connectToMySQL():
 	print ("Connecing to MySQL ...\n")
-	global ms_cur, ms_conn
-	#print MYSQLDOM
-	ms_conn = MySQLdb.connect(host=MYSQLDOM, \
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_conn = MySQLdb.connect(host=STDOM, \
 		user='qa', \
-		passwd=MYSQPW, \
+		passwd=STPW, \
 		db='apixiomain')		
-	ms_cur = ms_conn.cursor() 
+	mss_cur = mss_conn.cursor() 
+	msp_conn = MySQLdb.connect(host=PRDOM, \
+		user='qa', \
+		passwd=PRPW, \
+		db='apixiomain')		
+	msp_cur = msp_conn.cursor()
 	print ("Connection to MySQL established ...\n")
 	
 def getOrgName(id):
-	global ms_cur, ms_conn
-	ms_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
-	for row in ms_cur.fetchall():
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+	for row in mss_cur.fetchall():
 		orgname = str(row[0])
-		break
+		env = "Staging"
+		break	
 	else:	
-		orgname = id
-	#print orgname	
+		msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+		for row in msp_cur.fetchall():
+			orgname = str(row[0])
+			env = "Production"
+			break
+		else:
+			orgname = id
+			env = "N/A"	
+	#print env+" Orgname: "+orgname
+	#print ""
 	return (orgname)
 
 def setHiveParameters():
@@ -1160,9 +1179,11 @@ def closeHiveConnection():
 	conn.close()
 	
 def closeMySQLConnection():
-	global ms_cur, ms_conn
-	ms_cur.close()
-	ms_conn.close()
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_cur.close()
+	mss_conn.close()
+	msp_cur.close()
+	msp_conn.close()
 		
 
 def writeReportFooter():
