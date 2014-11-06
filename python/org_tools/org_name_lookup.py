@@ -309,23 +309,21 @@ def getOrgName(id):
 	global mss_cur, mss_conn, msp_cur, msp_conn
 	mss_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
 	for row in mss_cur.fetchall():
-		orgnames = str(row[0])
-		break
+		orgname = str(row[0])
+		env = "Staging"
+		break	
 	else:	
-		orgnames = id
-	
-	msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
-	for row in msp_cur.fetchall():
-		orgnamep = str(row[0])
-		break
-	else:	
-		orgnamep = id	
-	
-	print "Staging Orgname: "+orgnames
+		msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+		for row in msp_cur.fetchall():
+			orgname = str(row[0])
+			env = "Production"
+			break
+		else:
+			orgname = id
+			env = "N/A"	
+	print env+" Orgname: "+orgname
 	print ""
-	print "Production Orgname: "+orgnamep	
-	print ""
-	return (orgnames, orgnamep)
+	return (orgname)
 
 def setHiveParameters():
 	hadoopqueuename="hive"
