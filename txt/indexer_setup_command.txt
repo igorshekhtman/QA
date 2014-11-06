@@ -1295,24 +1295,32 @@ password : thePassword
 
 # CD C:\_Pipline\Indexer\V30
 # CD C:\_Pipeline\Indexer\V30
+# cd /Users/ishekhtman/Documents/indexer/V30
+
+#=============== MAC BOOK PRO ===================
 cd /Users/ishekhtman/Documents/indexer/V30
+#================================================
 
 
 # java -cp apixio-indexer-3.0.0-SNAPSHOT.jar com.apixio.indexer.util.Setup
 # java -jar apixio-indexer-3.1.0.jar
-java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
 
+#================================================================
+java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
+#================================================================
 
 User: apxdemot463
 
 pw: H....4x2x (you know what it is)
 
-key: V01_8p1x1o1825sanmateocalifornia9440
+staging key: V01_8p1x1o1825sanmateocalifornia9440
 
 production key: V01_dWbZtN56Hnwez6jR5Tfjx25bdfj8GVJt
 
+#============================================================
 RUN INDEXER:
 java -jar apixio-indexer-3.1.0.jar
+#============================================================
 
 
 PRODUCTION:
