@@ -1034,6 +1034,7 @@ def errorMessagesRD():
 	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_key")
 	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
 	
 	
 		
