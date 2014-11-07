@@ -545,28 +545,28 @@ def userAccountsRequests(table):
 	print ("Running USER ACCOUNTS query - retrieve %s ...\n") % (QUERY_DESC)
 
 	cur.execute("""SELECT count(*) as count, \
-		email, response_code, status, error \
+		email, response_code, endpoint, status, error \
 		FROM %s \
 		WHERE day=%s and month=%s and year=%s\
-		GROUP BY email, response_code, status, error \
+		GROUP BY email, response_code, endpoint, status, error \
 		ORDER BY status, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
-	REPORT = REPORT+"<tr><td>Count:</td><td>Email:</td><td>Respose Code:</td><td>Status:</td><td>Error:</td></tr>"
+	REPORT = REPORT+"<tr><td>Count:</td><td>Email:</td><td>Respose Code:</td><td>Endpoint:</td><td>Status:</td><td>Error:</td></tr>"
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		if str(i[3]) == "error":
+		if str(i[4]) == "error":
 			COMPONENT_STATUS="FAILED"
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
 
-		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td></tr>"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+"</td></tr>"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
 def bundlerSequence(table):
