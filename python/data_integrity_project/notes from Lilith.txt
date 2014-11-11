@@ -1,0 +1,158 @@
+[11/7/14, 10:06:00 AM] Lilith Schneider - Apixio: hold on I'll link you to our existing docs
+[11/7/14, 10:06:41 AM] Lilith Schneider - Apixio: https://sites.google.com/a/apixio.com/pipeline/home/cassandra-data-model
+https://sites.google.com/a/apixio.com/pipeline/home/cassandra-data-model/data-access-objects
+
+[11/7/14, 10:08:09 AM] Lilith Schneider - Apixio: like "select * from some_table_name limit 100;"
+[11/7/14, 10:08:17 AM] Lilith Schneider - Apixio: I have never used that
+[11/7/14, 10:08:57 AM] Lilith Schneider - Apixio: one cqlsh feature I use a lot is blobAsAscii
+[11/7/14, 10:09:01 AM] Lilith Schneider - Apixio: if datastax does that
+[11/7/14, 10:09:08 AM] Igor Shekhtman: ok, i’ll do some research on that, just through you already had something in place other than sqlsh
+[11/7/14, 10:09:08 AM] Lilith Schneider - Apixio: then its probably just as good
+[11/7/14, 10:10:55 AM] Lilith Schneider - Apixio: example of how i use blobAsAscii
+[11/7/14, 10:10:56 AM] Lilith Schneider - Apixio: cqlsh> use apixio ;
+cqlsh:apixio> select * from apx_cflink_new limit 3;
+
+ rowkey                                       | col               | d
+----------------------------------------------+-------------------+--------------------------------------------------------------------------------------
+ docuuid_a665f664-efed-40a2-9560-2ee950a79377 | organdpatientuuid | 0x3337325f5f63323839616434322d653961352d343736612d616437322d643135316239323761326637
+ docuuid_1e2a662b-f2fb-40e0-bda1-5a68b55e5547 | organdpatientuuid | 0x3337325f5f36613738616461352d353031312d343364382d613365622d396436623533633330663136
+ docuuid_a7d5b805-3a0a-49c1-b266-9953fa1aab2a | organdpatientuuid | 0x3337325f5f63396134643138322d363161632d343537642d393133612d653562373961623466616137
+
+(3 rows)
+
+cqlsh:apixio> select rowkey,col,blobAsAscii(d) from apx_cflink_new limit 3;
+
+ rowkey                                       | col               | blobAsAscii(d)
+----------------------------------------------+-------------------+-------------------------------------------
+ docuuid_a665f664-efed-40a2-9560-2ee950a79377 | organdpatientuuid | 372__c289ad42-e9a5-476a-ad72-d151b927a2f7
+ docuuid_1e2a662b-f2fb-40e0-bda1-5a68b55e5547 | organdpatientuuid | 372__6a78ada5-5011-43d8-a3eb-9d6b53c30f16
+ docuuid_a7d5b805-3a0a-49c1-b266-9953fa1aab2a | organdpatientuuid | 372__c9a4d182-61ac-457d-913a-e5b79ab4faa7
+
+(3 rows)
+[11/7/14, 10:12:09 AM] Lilith Schneider - Apixio: any column values (d) that we have as unencrypted text will show as hex numbers unless you explicitly say ascii
+[11/7/14, 10:13:50 AM] Lilith Schneider - Apixio: oh and another reason I'm not sure you can use python is that we encrypt all of our APOs in cassandra, so you will need our decryption method in the common library
+
+[11/7/14, 10:33:22 AM] Lilith Schneider - Apixio: if you really want to use python
+[11/7/14, 10:33:31 AM] Lilith Schneider - Apixio: you could use the data orchestrator endpoints
+[11/7/14, 10:33:37 AM] Lilith Schneider - Apixio: the ones ending in /apo
+[11/7/14, 10:33:53 AM] Lilith Schneider - Apixio: to get unencrypted JSON patient objects
+
+
+https://github.com/tomekkup/helenos
+
+[11/7/14, 9:50:26 AM] Bryan Praditkul - Apixio Ops: pip install python-cassandra
+[11/7/14, 9:50:34 AM] Bryan Praditkul - Apixio Ops: pip is the python package installer.
+
+
+http://datastax.github.io/python-driver/index.html
+
+http://datastax.github.io/python-driver/security.html
+
+[11/10/14, 1:48:25 PM]: https://sites.google.com/a/apixio.com/pipeline/home/cassandra-data-model
+https://sites.google.com/a/apixio.com/pipeline/home/cassandra-data-model/data-access-objects
+[11/10/14, 1:48:36 PM] : also I've restarted the coordinator on staging
+[11/10/14, 1:48:51 PM] : if you want to run a sanity test
+[11/10/14, 1:49:10 PM] : ok, good, i take it staging HDFS is back then
+[11/10/14, 1:49:22 PM] : yes
+[11/10/14, 1:49:40 PM] : let me run a sanity test, i’ll let you know
+[11/10/14, 1:50:00 PM] : ok thanks
+[11/10/14, 1:52:30 PM] : might need to get job tracker url from alex if the old one doesn't work...
+[11/10/14, 1:56:30 PM] : ok
+[11/10/14, 1:58:03 PM] : it is the same
+[11/10/14, 1:58:08 PM] : how convenient :)
+[11/10/14, 1:58:59 PM] : oh good
+[11/10/14, 2:09:50 PM] : Lilith, do we have anywhere simple graphical representation of our ‘apixio’ Cassandra keyspace?  What I need is a complete list of all table names, it’s field names etc
+[11/10/14, 2:19:27 PM] : I need list of all column families
+[11/10/14, 2:20:09 PM] : for each org we create a set of column families
+[11/10/14, 2:20:36 PM] : in the documents I sent you
+[11/10/14, 2:20:50 PM] : we have described the types of rows in each table
+[11/10/14, 2:21:39 PM] : can you maybe provide me with a list of simple queries for each available table and purpose of each table, unless it is self explanatory
+[11/10/14, 2:21:59 PM] : well
+[11/10/14, 2:22:01 PM] : first off
+[11/10/14, 2:22:12 PM] : please ignore the summaryXXX tables
+[11/10/14, 2:22:18 PM] : because we are not currently using them
+[11/10/14, 2:22:23 PM] : ok
+[11/10/14, 2:22:52 PM] : also the workXXX tables are for temporary work that vram has implemented that allows us to lock patient uuids while persisting new patients
+[11/10/14, 2:23:28 PM] : so the main ones we care about are cfXXX, traceXXX, eventXXX and the link table which is now apx_cflink_new
+[11/10/14, 2:23:59 PM] : ok
+[11/10/14, 2:24:03 PM] : trace as you can guess contains document trace objects
+[11/10/14, 2:24:15 PM] : yes
+[11/10/14, 2:24:35 PM] : XXX is org ID ?
+[11/10/14, 2:24:42 PM] : yes
+[11/10/14, 2:24:54 PM] : and ofcourse the names of the tables can be arbitrary
+[11/10/14, 2:24:55 PM] : ok
+[11/10/14, 2:25:05 PM] : right now we are creating them in care optimizer
+[11/10/14, 2:25:24 PM] : you can list all tables and see that the migrated orgs have
+[11/10/14, 2:25:30 PM] : cfXXX_new
+[11/10/14, 2:25:36 PM] : or something like that
+[11/10/14, 2:25:51 PM] : the one in use will be the one specified in the mysql org properties map
+[11/10/14, 2:26:07 PM] : select rowkey,col,blobAsAscii(d) from trace10000291 where rowkey='docuuid_5809b65a-5609-4877-88ef-39164b2b050c';
+[11/10/14, 2:26:08 PM] : ok
+[11/10/14, 2:26:14 PM] : this is an example trace query
+[11/10/14, 2:27:17 PM] : ok, so basically org_properties table in mysql will contain full set of cassandra table names for any one existing org
+[11/10/14, 2:27:18 PM] : sorry its for production I was doing to QA for vishnu
+[11/10/14, 2:27:27 PM] : yes exactly
+[11/10/14, 2:27:45 PM] : i got it
+[11/10/14, 2:28:01 PM] : tables names are clear now, thank you
+[11/10/14, 2:28:05 PM] : so on the cooridnator box /mnt/home/apxqueue/org_tools/orgPropsTool.sh
+[11/10/14, 2:28:10 PM] : you can use to see the org properites
+[11/10/14, 2:28:45 PM] :  sh orgPropsTool.sh 370
+...
+[OrgProperties: Id=1240; ldapOrgId=370; propertyName=patient_datastore_folder; propertyValue=cf370; status=active]
+[OrgProperties: Id=1241; ldapOrgId=370; propertyName=trace_datastore_folder; propertyValue=trace370; status=active]
+[OrgProperties: Id=1242; ldapOrgId=370; propertyName=event_datastore_folder; propertyValue=event370; status=active]
+[OrgProperties: Id=1243; ldapOrgId=370; propertyName=summary_datastore_folder; propertyValue=summary370; status=active]
+[OrgProperties: Id=1244; ldapOrgId=370; propertyName=afs_datastore_folder; propertyValue=buck370; status=active]
+[OrgProperties: Id=1245; ldapOrgId=370; propertyName=work_datastore_folder; propertyValue=work370; status=active]
+[OrgProperties: Id=1246; ldapOrgId=370; propertyName=primary_assign_authority; propertyValue=RANDOM_UUID; status=active]
+[11/10/14, 2:29:05 PM] : what about all fields for each table, where can i find that info ?
+[11/10/14, 2:30:04 PM] : i guess i can just run a query on each table and obtain it that way
+[11/10/14, 2:31:42 PM] : that info is in the documents
+[11/10/14, 2:32:10 PM] : essentially there is a rowkey and columns
+[11/10/14, 2:32:19 PM] : there can be any number of columns for one rowkey
+[11/10/14, 2:32:35 PM] : we call the column names 'col'
+[11/10/14, 2:32:44 PM] : and the column values 'd'
+[11/10/14, 2:33:07 PM] : so the only other thing in the trace table you need to know is
+[11/10/14, 2:33:07 PM] :  select rowkey,col,blobAsAscii(d) from trace370 where rowkey='rk_docid_58a3eafad0cb1ee5f2a9dbae31f1b3dc74935e73';
+
+ rowkey                                            | col                                                        | blobAsAscii(d)
+---------------------------------------------------+------------------------------------------------------------+----------------
+ rk_docid_58a3eafad0cb1ee5f2a9dbae31f1b3dc74935e73 | docuuid_aa7354d8-d803-4ada-91bf-878051350104_1413162004744 |              x
+[11/10/14, 2:33:17 PM] : the rowkeys starting with 'rk_'
+[11/10/14, 2:33:32 PM] : point to a 'docuuid_' key
+[11/10/14, 2:33:42 PM] : and then you can use that key to get the trace
+[11/10/14, 2:33:57 PM] : this is so you can find the trace not just from the docuuid but also from docid or dochash
+[11/10/14, 2:36:09 PM] : ok, now it is all becoming more clear
+[11/10/14, 2:36:21 PM] : yes, trace is a good place to start because it is more simple
+[11/10/14, 2:36:56 PM] : next you can look at the case of an apo in the patient column family
+[11/10/14, 2:37:15 PM] : the actual apo goes in the row with a 'part_' prefixed rowkey
+[11/10/14, 2:37:48 PM] : the patient uuid points to that part key
+[11/10/14, 2:40:01 PM] : cqlsh:apixio> select rowkey,col,blobAsAscii(d) from cf370 where rowkey='pat_47d8b262-d514-49fd-9de1-4b5369d6fa2c';
+
+ rowkey                                   | col                                           | blobAsAscii(d)
+------------------------------------------+-----------------------------------------------+----------------
+ pat_47d8b262-d514-49fd-9de1-4b5369d6fa2c | part_3621799d25cd6c3f0ea848a63a55c946bc362d19 |  1415149309810
+
+(1 rows)
+
+cqlsh:apixio> select rowkey,col from cf370 where rowkey='part_3621799d25cd6c3f0ea848a63a55c946bc362d19';
+
+ rowkey                                        | col
+-----------------------------------------------+------------------------------------------------------------
+ part_3621799d25cd6c3f0ea848a63a55c946bc362d19 | doc_67478e40d087833d1acaa21be02d2322fddb7b11_1415149289198
+
+(1 rows)
+
+cqlsh:apixio> select rowkey,col,blobAsAscii(d) from cf370 where rowkey='rk_part_3621799d25cd6c3f0ea848a63a55c946bc362d19';
+
+ rowkey                                           | col                                      | blobAsAscii(d)
+--------------------------------------------------+------------------------------------------+----------------
+ rk_part_3621799d25cd6c3f0ea848a63a55c946bc362d19 | pat_47d8b262-d514-49fd-9de1-4b5369d6fa2c |  1415149309810
+[11/10/14, 2:40:38 PM] : the 'd' value in that second query is an encrypted APO so I left it out for readability
+[11/10/14, 2:40:39 PM] : ok, thank you for the explanation, Lilith.  I now have something to work with …
+[11/10/14, 2:40:43 PM] : ok
+[11/10/14, 2:41:21 PM] : the patient column family also had document 'rk_' (reverse keys) and 'partdoc_' rows
+[11/10/14, 2:43:31 PM] : on a diff subj, i just ran sanity test on staging and same error
+[11/10/14, 2:43:39 PM] : a good exercise might be to create a blank org and upload just one or two documents
+[11/10/14, 2:43:42 PM] : see what happens
+
