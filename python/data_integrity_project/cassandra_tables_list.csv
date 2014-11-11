@@ -1,0 +1,8 @@
+org_properties_id,ldap_org_id,property_name,property_value,status
+1319,381,patient_datastore_folder,cf381,active
+1320,381,trace_datastore_folder,trace381,active
+1321,381,event_datastore_folder,event381,active
+1322,381,summary_datastore_folder,summary381,active
+1323,381,afs_datastore_folder,buck381,active
+1324,381,work_datastore_folder,work381,active
+1325,381,primary_assign_authority,PATIENT_ID_1,active

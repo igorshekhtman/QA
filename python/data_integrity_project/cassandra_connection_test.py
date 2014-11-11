@@ -23,11 +23,12 @@ session.set_keyspace('apixio')
 results = session.execute("""SELECT * FROM apixio.cf381 WHERE rowkey='pat_f5bd251e-750b-4a01-9246-fcd90167f81c';""")
 
 for row in results:
-    print str(row)
+	print "\n"
+    print "\n" + str(row) 
 
 
 # show tables;
 
 cluster.shutdown()
 
-print "The End ..."
+print "\nThe End ..."
