@@ -152,6 +152,7 @@ sh addWorkCFAndPrimaryAssignAuth.sh 370 "RANDOM_UUID" staging
 
 sh addWorkCFAndPrimaryAssignAuth.sh 377 "Prosperity Health Care" staging
 
+sh addWorkCFAndPrimaryAssignAuth.sh 382 "PATIENT_ID_1" staging
 
 ============================ NAS - BACKUP - WHITEPANTS ===========================================
 
