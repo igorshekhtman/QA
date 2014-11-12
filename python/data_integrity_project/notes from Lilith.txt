@@ -152,7 +152,6 @@ cqlsh:apixio> select rowkey,col,blobAsAscii(d) from cf370 where rowkey='rk_part_
 [11/10/14, 2:40:39 PM] : ok, thank you for the explanation, Lilith.  I now have something to work with …
 [11/10/14, 2:40:43 PM] : ok
 [11/10/14, 2:41:21 PM] : the patient column family also had document 'rk_' (reverse keys) and 'partdoc_' rows
-[11/10/14, 2:43:31 PM] : on a diff subj, i just ran sanity test on staging and same error
 [11/10/14, 2:43:39 PM] : a good exercise might be to create a blank org and upload just one or two documents
 [11/10/14, 2:43:42 PM] : see what happens
 
