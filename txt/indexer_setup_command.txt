@@ -1,3 +1,17 @@
+============================ LOGS FINDING COMMAND WITH COLOR ====================================
+
+tailfe | grep "accept_finding" --color 
+
+tailfe | grep "reject_finding" --color
+
+tail -f /var/log/apx-hcc/apx-hcc.log
+
+
+============================ HCC Available Opportunities per specific user ======================
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=grinderusr1414104464@apixio.net&organizations=any
+
+
 ========================== MY SQL prod and stage =================================================
 
 : hcc-mysql-prd2-new.apixio.net and
