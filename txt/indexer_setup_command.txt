@@ -1,3 +1,10 @@
+============================ DAN’S UPLOADER ===================================================
+
+For one patient only:
+java -cp loader.jar -Dthreads=1 -Dconfig=/Users/ishekhtman/Documents/loader/temp/config.xml com.apixio.loader.PatientLoader
+
+
+
 ============================ LOGS FINDING COMMAND WITH COLOR ====================================
 
 tailfe | grep "accept_finding" --color 
