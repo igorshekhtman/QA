@@ -35,6 +35,7 @@ os.system('clear')
 #  8 - dataOrchestratorRD()
 #  9 - userAccountsRD()
 # 10 - bundlerRD()
+# 11 - loaderRD()
 REPSECTORUN=0
 
 # Email reports to eng@apixio.com and archive report html file:
@@ -641,14 +642,11 @@ def bundlerDocuments(table):
 	#print (table)
 	QUERY_DESC="""Bundler Document(s) summary"""
 	print ("Running BUNDLER query - retrieve %s ...\n") % (QUERY_DESC)
-
-	
 	cur.execute("""SELECT count(distinct doc_id) as count, org_id \
 		FROM %s \
 		WHERE day=%s and month=%s and year=%s \
 		GROUP BY org_id \
 		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
-		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
 	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
 	REPORT = REPORT+"<tr><td>Document count:</td><td>Org(ID):</td></tr>"
@@ -656,21 +654,40 @@ def bundlerDocuments(table):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		#if str(i[3]) == "error":
-		#	COMPONENT_STATUS="FAILED"
-		#	BG_COLOR="#FFFF00"
-		#else:
-		#	BG_COLOR="#FFFFFF"
 		BG_COLOR="#FFFFFF"
-		#if str(i[1]) in ORGMAP:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
-		#else:
-		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
 		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr>"
-		#getOrgName(str(i[1]))
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='2'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+		
+def loaderSummary(table):
+	global REPORT, cur, conn
+	global DAY, MONTH, COMPONENT_STATUS
+	QUERY_DESC="""Loader Document(s) summary"""
+	print ("Running LOADER query - retrieve %s ...\n") % (QUERY_DESC)
+	cur.execute("""SELECT count(distinct uuid) as count, batch_name, user, success, attempts, org_id \
+		FROM %s \
+		WHERE day=%s and month=%s and year=%s \
+		GROUP BY batch_name, user, success, attempts, org_id \
+		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))	
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
+	REPORT = REPORT+"<table border='1' cellpadding='1' cellspacing='0' width='800'>"
+	REPORT = REPORT+"<tr><td>Document count:</td><td>Batch name:</td><td>User:</td><td>Success:</td><td>Attempts:</td><td>Org(ID):</td></tr>"
+	ROW = 0
+	for i in cur.fetch():
+		ROW = ROW + 1
+		print i
+		if str(i[3]) == "True" and str(i[4]) == "1":
+			BG_COLOR="#FFFFFF"
+		else:
+			COMPONENT_STATUS="FAILED"
+			BG_COLOR="#FFFF00"
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td>"
+		REPORT = REPORT+"<td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td>"
+		REPORT = REPORT+"<td bgcolor='"+BG_COLOR+"'>"+str(i[4])+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
+	if (ROW == 0):
+		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
+	REPORT = REPORT+"</table><br>"	
 
 
 def eventAMR(table):
@@ -1131,9 +1148,19 @@ def bundlerRD():
 	COMPONENT_STATUS="PASSED"
 	bundlerSequence("summary_bundler_sequence"+POSTFIX)
 	bundlerHistorical("summary_bundler_historical"+POSTFIX)
-	bundlerDocuments("summary_bundler_document"+POSTFIX)
+	bundlerDocuments("summary_bundler_document"+POSTFIX)	
+	if (COMPONENT_STATUS=="PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"	
 	
-		
+def loaderRD():
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	REPORT = REPORT+SUBHDR % "LOADER"
+	COMPONENT_STATUS="PASSED"
+	print "Loader Report"
+	loaderSummary("summary_loader_upload"+POSTFIX)	
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
@@ -1175,7 +1202,9 @@ def writeReportDetails():
 	if (REPSECTORUN == 9) or (REPSECTORUN == 0):
 		userAccountsRD()
 	if (REPSECTORUN == 10) or (REPSECTORUN == 0):
-		bundlerRD()			
+		bundlerRD()
+	if (REPSECTORUN == 11) or (REPSECTORUN == 0):
+		loaderRD()					
 
 def closeHiveConnection():
 	global cur, conn
