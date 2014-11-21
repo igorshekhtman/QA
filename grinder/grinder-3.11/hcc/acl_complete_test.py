@@ -246,11 +246,13 @@ def WriteToCsvFile():
 	f.close()	
 #=========================================================================================	
 def ListUserGroupOrg():
-	log ("\n=================================")
-	log ("List of newly created HCC Users:")
-	log ("=================================")
-	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-		log (HCCUSERSLIST[i])
+	log ("\n")
+	if int(NUMBER_OF_USERS_TO_CREATE) > 0:
+		log ("=================================")
+		log ("List of newly created HCC Users:")
+		log ("=================================")
+		for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
+			log (HCCUSERSLIST[i])
 	log ("=================================")
 	log ("List of newly created HCC Orgs:")
 	log ("=================================")
@@ -649,7 +651,25 @@ class TestRunner:
 			ACLAddMemberToGroup()
 			HCCLogInto()
 			#WriteToCsvFile()	
-			ListUserGroupOrg()															
+			ListUserGroupOrg()		
+#=========================================================================================
+#============= STRESSING ADD DELETE PERMISSIONS ==========================================
+#=========================================================================================
+		def TestFlowControlFive():
+			global HCCUSERSLIST, PERIMISSION_TYPES
+			PrintGlobalParamaterSettings()
+			ACLObtainAuthorization()
+			ACLCreateNewCodingOrg()
+			HCCORGLIST[0] = CODING_ORGANIZATION
+			ACLCreateNewGroup()
+			HCCGRPLIST[0] = ACLGROUPNAME
+
+			for i in range(0, 100):
+				for permission in PERIMISSION_TYPES:
+					ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+					ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+			#WriteToCsvFile()	
+			ListUserGroupOrg()																	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -661,6 +681,8 @@ class TestRunner:
 			TestFlowControlThree()
 		elif TEST_FLOW_CONTROL == "4":
 			TestFlowControlFour()
+		elif TEST_FLOW_CONTROL == "5":
+			TestFlowControlFive()			
 		else:
 			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 			log (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")
