@@ -1,3 +1,11 @@
+====================== DNS, SERVERS, ENVIRONMENTS, LISTS, NAMES ==============================
+
+HCC Environments:
+https://sites.google.com/a/apixio.com/devops/architecture/hcc-endpoints
+
+Apixio DevOps:
+https://sites.google.com/a/apixio.com/devops/
+
 ============================ DAN’S UPLOADER ===================================================
 
 For one patient only:
