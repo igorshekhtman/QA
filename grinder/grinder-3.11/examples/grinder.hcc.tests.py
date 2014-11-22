@@ -4,6 +4,7 @@
 # AUTHOR:  Alex Beyk abeyk@apixio.com
 # DATE:    2014.10.16 Initial Version
 # DATE:    2014.10.27 Updated Org ID to Patient Org ID
+# DATE:    2014.11.21 Updated patient_org_id and document_load_time
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
@@ -63,8 +64,8 @@ import operator
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
-# CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
+#CSV_CONFIG_FILE_PATH = "/mnt/automation/grinder/grinder5-file-store/incoming/"
+CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
 CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 
 ##########################################################################################
@@ -180,6 +181,7 @@ def code():
       test_counter = test_counter + 1
       doc_request = create_request(Test(testCode + test_counter, "Get scorable document"),[NVPair("Referer", URL + "/"),NVPair("Host", DOMAIN),])
       response = doc_request.GET(URL + "/api/document/" + document_uuid)
+# *AB*      log (str(response))
       IncrementTestResultsTotals(response.statusCode)
       test_counter = test_counter + 1
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
@@ -319,12 +321,12 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("provider[id]","1992754832"),
     NVPair("provider[type]","Hospital Outpatient Setting"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
     NVPair("get_id",str(opportunity.get("get_id"))),
     NVPair("patient_uuid",opportunity.get("patient_uuid")),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("hcc[code]",str(opportunity.get("hcc"))),
     NVPair("hcc[model_run]",opportunity.get("model_run")),
     NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
@@ -337,13 +339,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("list_position",str(doc_no_current)),
     NVPair("list_length",str(doc_no_max)),
     NVPair("document_date",scorable.get("date_of_service")),
-    NVPair("snippets",str(scorable.get("snippets"))),
     NVPair("predicted_code[code_system_name]", "The Grinder"),
     NVPair("predicted_code[code]", "The Grinder"),
     NVPair("predicted_code[display_name]", "The Grinder"),
     NVPair("predicted_code[code_system]", "The Grinder"),
     NVPair("predicted_code[code_system_version]", "The Grinder"),
-    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    NVPair("page_load_time",str(1000 * int(time.time()))),
+    NVPair("document_load_time",str(1000 * int(time.time()))),))
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
@@ -361,12 +363,12 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("flag_for_review","true"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
     NVPair("get_id",str(opportunity.get("get_id"))),
     NVPair("patient_uuid",opportunity.get("patient_uuid")),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("hcc[code]",str(opportunity.get("hcc"))),
     NVPair("hcc[model_run]",opportunity.get("model_run")),
     NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
@@ -385,7 +387,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("predicted_code[display_name]", "The Grinder"),
     NVPair("predicted_code[code_system]", "The Grinder"),
     NVPair("predicted_code[code_system_version]", "The Grinder"),
-    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    NVPair("page_load_time",str(1000 * int(time.time()))),
+    NVPair("document_load_time",str(1000 * int(time.time()))),))
     if response.statusCode == 200:
       log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -399,7 +402,6 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("result","skipped"),
     NVPair("date_of_service",scorable.get("date_of_service")),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
@@ -414,6 +416,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
     NVPair("finding_id",str(finding_id)),
     NVPair("document_uuid", scorable.get("document_uuid")),
+    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
     NVPair("list_position",str(doc_no_current)),
     NVPair("list_length",str(doc_no_max)),
     NVPair("document_date",scorable.get("date_of_service")),
@@ -423,7 +426,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("predicted_code[display_name]", "The Grinder"),
     NVPair("predicted_code[code_system]", "The Grinder"),
     NVPair("predicted_code[code_system_version]", "The Grinder"),
-    NVPair("page_load_time",str(1000 * int(time.time()))),))
+    NVPair("page_load_time",str(1000 * int(time.time()))),
+    NVPair("document_load_time",str(1000 * int(time.time()))),))
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = 200 OK")
@@ -457,5 +461,3 @@ class TestRunner:
     log("============================== END GRINDER TEST =============================")
     log("=============================================================================")
     log("\n")
-
-
