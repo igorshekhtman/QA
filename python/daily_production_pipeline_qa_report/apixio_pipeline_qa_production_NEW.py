@@ -157,6 +157,7 @@ ORGMAP = { \
 	"10000303":"Marks Organization", \
 	"10000302":"Jamess Organization", \
 	"10000335":"Wellpoint Feasibility2", \
+	"10000328":"Highmark", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
