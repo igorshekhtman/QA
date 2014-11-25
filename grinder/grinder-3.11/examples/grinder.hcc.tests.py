@@ -74,6 +74,7 @@ import datetime
 import csv
 import operator
 import random
+import re
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -228,9 +229,9 @@ def history():
     return 1
   for view_history_count in range(1, (int(VIEW_HISTORY_MAX)+1)):
     log("-------------------------------------------------------------------------------")
-    log("Report %d OF %d" % (view_history_count, int(VIEW_HISTORY_MAX)))
-    now = datetime.datetime.now()
-    report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z&user=%s" % (now.year, now.month, now.day, USERNAME)
+    log("Report %d OF %d" % (view_history_count, int(VIEW_HISTORY_MAX)))  
+    now = datetime.datetime.now()    
+    report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
@@ -252,6 +253,7 @@ def report():
   result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
+  
   IncrementTestResultsTotals(response.statusCode)
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
@@ -410,6 +412,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("predicted_code[code_system_version]", "The Grinder"),
     NVPair("page_load_time",str(1000 * int(time.time()))),
     NVPair("document_load_time",str(1000 * int(time.time()))),))
+    IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
       log("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
