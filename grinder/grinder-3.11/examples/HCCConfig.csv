@@ -1,20 +1,29 @@
 ######################################
-# ENVIRONMENT=Production
-ENVIRONMENT=Staging
+ENVIRONMENT=Production
+#ENVIRONMENT=Staging
 ######################################
 DOMAIN=hccstage2.apixio.com
 URL=https://hccstage2.apixio.com
+#DOMAIN=hcc2.apixio.com
+#URL=https://hcc2.apixio.com
 ######################################
 # USERNAME=root@api.apixio.com
 # PASSWORD=thePassword
-USERNAME=grinderusr1414166341@apixio.net
+USERNAME=grinderUSR1416591626@apixio.net
+#USERNAME=grinderUSR1414708621@apixio.net
 PASSWORD=apixio.123
+#grinderUSR1416591626@apixio.net
+#grinderUSR1416591631@apixio.net
+#grinderUSR1416591636@apixio.net
+#grinderUSR1416591640@apixio.net
+#grinderUSR1416591644@apixio.net
 ######################################
 #### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
 CODE_OPPS=1
 #### 0 = VIEW OPPS, 1 = VIEW + ACCEPT OPPS, 2 = VIEW + REJECT OPPS, 3 = VIEW + SKIP OPPS
 CODE_OPPS_ACTION=1
-CODE_OPPS_MAX=1
+RANDOM_OPPS_ACTION=1
+CODE_OPPS_MAX=5
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1

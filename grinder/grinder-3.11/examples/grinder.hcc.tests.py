@@ -322,7 +322,7 @@ def IncrementTestResultsTotals(code):
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    log("* CODER ACTION = Do NOT Accept or Reject Doc")
+    log("* CODER ACTION     = Do NOT Accept or Reject Doc")
   elif CODE_OPPS_ACTION == "1": # Accept Doc
     finding_id = scorable.get("id")
     annotation = create_request(Test(testname, "Annotate Finding"))
@@ -451,11 +451,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("document_load_time",str(1000 * int(time.time()))),))
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
-      log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = 200 OK")
+      log("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION = Skip Opp\n* HCC RESPONSE = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   else:
-    log("* CODER ACTION = Unknown\n")
+    log("* CODER ACTION     = Unknown\n")
   return 0
 
 # MAIN FUNCTION CALLER ####################################################################################################
