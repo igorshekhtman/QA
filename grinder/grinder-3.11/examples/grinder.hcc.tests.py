@@ -241,6 +241,12 @@ def history():
     view_history_details = response.getText()
     view_history_details_length = len(view_history_details)
     log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
+    if VIEW_HISTORY_PAGINATION == "1":
+    	log ("* CODER ACTION     = Pagination\n")
+    if VIEW_HISTORY_SEARCH == "1":
+    	log ("* CODER ACTION     = Searching\n")
+    if VIEW_HISTORY_FILTER == "1":
+    	log ("* CODER ACTION     = Filtering\n")
   return 0
 
 def report():
@@ -277,6 +283,12 @@ def report():
     qa_report_details = response.getText()
     qa_report_details_length = len(qa_report_details)
     log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)
+    if QA_REPORT_PAGINATION == "1":
+    	log ("* CODER ACTION     = Pagination\n")
+    if QA_REPORT_SEARCH == "1":
+    	log ("* CODER ACTION     = Searching\n")
+    if QA_REPORT_FILTER == "1":
+    	log ("* CODER ACTION     = Filtering\n")    
   return 0
 
 def logout():
