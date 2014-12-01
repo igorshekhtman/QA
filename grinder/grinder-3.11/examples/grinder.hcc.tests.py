@@ -61,6 +61,20 @@
 #            values are 0 for specific and 1 for random
 #
 ####################################################################################################
+#
+# REVISION: 1.0.3
+#
+# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
+#
+# DATE: 01-Dec-2014
+#
+# SPECIFICS: Introduced VIEW_HISTORY_PAGINATION, VIEW_HISTORY_SEARCH, VIEW_HISTORY_FILTER,
+#            VIEW_HISTORY_PAGES_MAX, QA_REPORT_PAGINATION, QA_REPORT_SEARCH, QA_REPORT_FILTER,
+#            QA_REPORT_PAGES_MAX global variables, allowing configuring and testing pagination,
+#            search and filtering of both View History and QA Reports. All global variables are
+#            initialized within HCCConfig.csv configuration file.
+#
+####################################################################################################
 
 # LIBRARIES ########################################################################################
 
