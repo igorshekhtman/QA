@@ -208,7 +208,7 @@ def code():
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
 
-def history():
+def viewHistoryReport():
   log("-------------------------------------------------------------------------------")
   log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
   thread_context = HTTPPluginControl.getThreadHTTPClientContext()
@@ -235,21 +235,62 @@ def history():
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
-      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = 200 OK")
+      log("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION     = View History Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     view_history_details = response.getText()
     view_history_details_length = len(view_history_details)
     log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
+
     if VIEW_HISTORY_PAGINATION == "1":
-    	log ("* CODER ACTION     = Pagination\n")
+    	for page in range (2, int(VIEW_HISTORY_PAGES_MAX)):
+    		testCode = testCode + 1
+    		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
+    		response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
+    		log("-------------------------------------------------------------------------------")
+    		IncrementTestResultsTotals(response.statusCode)
+    		if response.statusCode == 200:
+      			log("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
+    		else:
+      			log("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (page, response))
+    		view_history_details = response.getText()
+    		view_history_details_length = len(view_history_details)
+    		log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
+    	    	
     if VIEW_HISTORY_SEARCH == "1":
-    	log ("* CODER ACTION     = Searching\n")
+    	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John']
+    	for term in terms:
+    		testCode = testCode + 1
+    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
+    		response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
+    		log("-------------------------------------------------------------------------------")
+    		IncrementTestResultsTotals(response.statusCode)
+    		if response.statusCode == 200:
+      			log("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
+    		else: 
+      			log("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (term, response))
+    		view_history_details = response.getText()
+    		view_history_details_length = len(view_history_details)
+    		log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
+    	
     if VIEW_HISTORY_FILTER == "1":
-    	log ("* CODER ACTION     = Filtering\n")
+    	results = ['reject', 'accept', 'all']
+    	for result in results:
+    		testCode = testCode + 1
+    		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
+    		response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
+    		log("-------------------------------------------------------------------------------")
+    		IncrementTestResultsTotals(response.statusCode)
+    		if response.statusCode == 200:
+      			log("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % result)
+    		else: 
+      			log("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (result, response))
+    		view_history_details = response.getText()
+    		view_history_details_length = len(view_history_details)
+    		log("* REPORT PAYLOAD   = %d KBytes" % view_history_details_length)
   return 0
 
-def report():
+def qaReport():
   log("-------------------------------------------------------------------------------")
   log("URL                = %s\nCODER USERNAME     = %s\nCODER PASSWORD     = %s\nCODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
   thread_context = HTTPPluginControl.getThreadHTTPClientContext()
@@ -277,18 +318,68 @@ def report():
     response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     IncrementTestResultsTotals(response.statusCode)
     if response.statusCode == 200:
-      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = 200 OK")
+      log("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
     else:
-      log("* CODER ACTION     = QA Report\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      log("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     qa_report_details = response.getText()
     qa_report_details_length = len(qa_report_details)
     log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)
     if QA_REPORT_PAGINATION == "1":
-    	log ("* CODER ACTION     = Pagination\n")
+    	for page in range (2, int(QA_REPORT_PAGES_MAX)):
+    		testCode = testCode + 1
+    		#Request URL:https://hccstage2.apixio.com/api/report/qa_report?page=1&result=all&start=2014-01-01T08%3A00%3A00.000Z&end=2014-12-02T07%3A59%3A59.999Z&user=grinderusr1416591626%40apixio.net - View History
+    		#Request URL:https://hccstage2.apixio.com/api/report/qa_report?page=1&result=all&start=2014-01-01T08%3A00%3A00.000Z&end=2014-12-02T07%3A59%3A59.999Z - QA
+    		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
+    		response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
+    		log("-------------------------------------------------------------------------------")
+    		IncrementTestResultsTotals(response.statusCode)
+    		if response.statusCode == 200:
+      			log("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
+    		else:
+      			log("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (page, response))
+    		qa_report_details = response.getText()
+    		qa_report_details_length = len(qa_report_details)
+    		log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)    	
+    	
     if QA_REPORT_SEARCH == "1":
-    	log ("* CODER ACTION     = Searching\n")
+    	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John']
+    	for term in terms:
+    		testCode = testCode + 1
+    		#Request URL:https://hccstage2.apixio.com/api/report/qa_report?page=1&result=all&start=2014-01-01T08%3A00%3A00.000Z&end=2014-12-02T07%3A59%3A59.999Z&terms=John
+    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
+    		response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
+    		log("-------------------------------------------------------------------------------")
+    		IncrementTestResultsTotals(response.statusCode)
+    		if response.statusCode == 200:
+      			log("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
+    		else: 
+      			log("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (term, response))
+    		qa_report_details = response.getText()
+    		qa_report_details_length = len(qa_report_details)
+    		log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length) 
+    	
     if QA_REPORT_FILTER == "1":
-    	log ("* CODER ACTION     = Filtering\n")    
+    	results = ['reject', 'accept', 'all']
+    	coders = ['grinderusr1416591626@apixio.net', 'grinderusr1416591631@apixio.net', 'grinderusr1416591636@apixio.net', 'grinderusr1416591640@apixio.net', 'grinderusr1416591644@apixio.net']
+    	for coder in coders:
+    		for result in results:
+    			testCode = testCode + 1
+    			print "coder: " + coder
+    			print "result: " + result
+    			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
+    			response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
+    			log("-------------------------------------------------------------------------------")
+    			IncrementTestResultsTotals(response.statusCode)
+    			if response.statusCode == 200:
+    				print "Passed"
+      				log("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % (result, coder))
+    			else: 
+    				print "Failed"
+      				log("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (result, coder, response))
+    			qa_report_details = response.getText()
+    			qa_report_details_length = len(qa_report_details)
+    			log("* REPORT PAYLOAD   = %d KBytes" % qa_report_details_length)   
+    	
   return 0
 
 def logout():
@@ -328,8 +419,8 @@ def IncrementTestResultsTotals(code):
   global FAILED, SUCCEEDED, RETRIED
   if (code == ok) or (code == nocontent):
     SUCCEEDED = SUCCEEDED+1
-  elif code == intserveror:
-    RETRIED = RETRIED+1
+  #elif code == intserveror:
+  #  RETRIED = RETRIED+1
   else:
     FAILED = FAILED+1
 
@@ -484,9 +575,9 @@ class TestRunner:
     if CODE_OPPS    == "1":
       code()
     if VIEW_HISTORY == "1":
-      history()
+      viewHistoryReport()
     if QA_REPORT    == "1":
-      report()
+      qaReport()
     if LOGOUT       == "1":
       logout()
     log("=============================================================================")
