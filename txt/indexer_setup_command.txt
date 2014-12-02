@@ -21,6 +21,10 @@ tailfe | grep "reject_finding" --color
 
 tail -f /var/log/apx-hcc/apx-hcc.log
 
+tail -f /var/log/apx-opprouter/apx-opprouter-console.log
+
+tail -f /var/log/apx-opprouter/apx-opprouter-console.log 
+
 
 ============================ HCC Available Opportunities per specific user ======================
 
