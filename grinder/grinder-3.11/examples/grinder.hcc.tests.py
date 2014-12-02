@@ -314,9 +314,6 @@ def qaReport():
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
   IncrementTestResultsTotals(response.statusCode)
-  
-  
-  #https://hccstage2.apixio.com/api/report/orgCoders  GET  csrftoken=qh7o1PTSPpFA8tSAHuPgohuaaMrubepb 
 
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
@@ -324,24 +321,35 @@ def qaReport():
   response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
   opportunity = JSONValue.parse(response.getText())
   patient_details = response.getText()
-  #response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
   log("-------------------------------------------------------------------------------")
   IncrementTestResultsTotals(response.statusCode)
   if response.statusCode == 200:
     log("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = 200 OK")
   else: 
-    log("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response.statusCode)
-    #pages = opportunity.get("message")
-  
-  
+    log("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.statusCode, opportunity.get("message")))
   #print response.getText()
   #if opportunity == None:
   #  log("ERROR : Login Failed or No More Opportunities For This Coder")
   #  return 1
   
-  
-  
-  
+  testCode = testCode + 1
+  response = create_request(Test(testCode, "Get orgCoders list")).GET(URL + "/api/report/orgCoders/")
+  coders = JSONValue.parse(response.getText())
+  patient_details = response.getText()
+  #print coders
+  #print patient_details
+  log("-------------------------------------------------------------------------------")
+  IncrementTestResultsTotals(response.statusCode)
+  if response.statusCode == 200:
+    log("* CODER ACTION     = Get orgCoders list")
+    log("* HCC RESPONSE     = 200 OK")
+    i = 0
+    for coder in coders:
+      i = i + 1
+      log ("* CODER-%d          = %s" % (i, coder))      
+  else: 
+    log("* CODER ACTION     = Get orgCoders list\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.statusCode, coders.get("message")))
+    
     
   for qa_report_count in range(1, (int(QA_REPORT_MAX)+1)):
     log("-------------------------------------------------------------------------------")
@@ -388,7 +396,6 @@ def qaReport():
       		 	
     if QA_REPORT_FILTER == "1":
     	results = ['reject', 'accept', 'all']
-    	coders = ['grinderusr1416591626@apixio.net', 'grinderusr1416591631@apixio.net', 'grinderusr1416591636@apixio.net', 'grinderusr1416591640@apixio.net', 'grinderusr1416591644@apixio.net']
     	for coder in coders:
     		for result in results:
     			testCode = testCode + 1
