@@ -320,17 +320,26 @@ def qaReport():
   
   response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
   opportunity = JSONValue.parse(response.getText())
+  if opportunity == None:
+    log("ERROR : Login Failed or No More Opportunities For This Coder")
+    return 1
   patient_details = response.getText()
   log("-------------------------------------------------------------------------------")
   IncrementTestResultsTotals(response.statusCode)
   if response.statusCode == 200:
-    log("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = 200 OK")
+    log("* CODER ACTION     = Get coding opportunity")
+    log("* HCC RESPONSE     = 200 OK")
+    log("* MODEL YEAR       = %s" % opportunity.get("model_year"))
+    log("* HCC DESCR        = %s" % opportunity.get("hcc_description"))
+    log("* PAYMENT YEAR     = %s" % opportunity.get("payment_year"))
+    log("* PAYMENT ID       = %s" % opportunity.get("patient_id"))
+    log("* HCC              = %s" % opportunity.get("hcc"))
+    log("* GET ID           = %s" % opportunity.get("get_id"))
+    log("* LABEL VERSION    = %s" % opportunity.get("label_set_version"))
+    log("* PATIENT UUID     = %s" % opportunity.get("patient_uuid"))
+    log("* MODEL RUN        = %s" % opportunity.get("model_run"))
   else: 
     log("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.statusCode, opportunity.get("message")))
-  #print response.getText()
-  #if opportunity == None:
-  #  log("ERROR : Login Failed or No More Opportunities For This Coder")
-  #  return 1
   
   testCode = testCode + 1
   response = create_request(Test(testCode, "Get orgCoders list")).GET(URL + "/api/report/orgCoders/")
