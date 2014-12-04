@@ -1,4 +1,7 @@
 ######################################
+#### Must match same for grinder.hcc.tests.py script to work
+REVISION=1.0.3
+######################################
 ENVIRONMENT=Production
 #ENVIRONMENT=Staging
 ######################################
@@ -25,11 +28,11 @@ CODE_OPPS_ACTION=1
 #### If RANDOM_OPPS_ACTION flag is set to 1, CODE_OPPS_ACTION will be ignored
 RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
-VO_W=49
-VAO_W=1
-VRO_W=1
-VSO_W=49
-CODE_OPPS_MAX=10
+VOO_W=5
+VAO_W=45
+VRO_W=25
+VSO_W=25
+CODE_OPPS_MAX=5
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1

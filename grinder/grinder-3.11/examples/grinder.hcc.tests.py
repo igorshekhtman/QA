@@ -73,6 +73,9 @@
 #            QA_REPORT_PAGES_MAX global variables, allowing configuring and testing pagination,
 #            search and filtering of both View History and QA Reports. All global variables are
 #            initialized within HCCConfig.csv configuration file.
+#            Introduced VOO_W, VAO_W, VRO_W and VSO_W global variables related to setting specific
+#            weights to random function algorithm, used in selecting specific coder action. These
+#            are pre-defined in HCCConfig.csv configuration file.
 #
 ####################################################################################################
 
@@ -89,7 +92,7 @@ import csv
 import operator
 import random
 import re
-#import numpy.random as nprnd
+import sys, os
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -97,6 +100,7 @@ import re
 #CSV_CONFIG_FILE_PATH = "c:\\!.alex\\!.grinder-3.11\\examples\\"
 CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
 CSV_CONFIG_FILE_NAME = "hccconfig.csv"
+VERSION = "1.0.3"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -112,6 +116,11 @@ CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 # each of the global variables.
 #
 #
+def log(text):
+  grinder.logger.info(text)
+  print(text)
+  return 0
+  
 def ReadConfigurationFile(filename):
   global MAX_NUM_RETRIES
 
@@ -123,6 +132,16 @@ def ReadConfigurationFile(filename):
       result[row[0]] = row[1]
   globals().update(result)
   MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
+  if REVISION <> VERSION:
+  	log ("============================================================================================================")
+  	log ("Version of the HCCConfig.csv file (%s) does not match version of the grinder.hcc.tests.py script (%s)" % (REVISION, VERSION))
+  	log ("============================================================================================================")
+  	sys.exit(1)
+  else:
+  	log ("==============================================================================")
+  	log ("HCCConfig.csv VERSION:               %s" % REVISION)
+  	log ("grinder.hcc.test.py VERSION:         %s" % VERSION)
+  	log ("==============================================================================")
   return result
 ##########################################################################################
 
@@ -141,14 +160,14 @@ intserveror = 500
 servunavail = 503
 
 FAILED = SUCCEEDED = RETRIED = 0
-VO = VAO = VRO = VSO = 0
+VOO = VAO = VRO = VSO = 0
 
 
 # MAIN FUNCTIONS ####################################################################################################
 
 def code():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
-  global VO, VAO, VRO, VSO
+  global VOO, VAO, VRO, VSO
   log("-------------------------------------------------------------------------------")
   if RANDOM_OPPS_ACTION == "1":
     CODE_OPPS_ACTION = str(random.randint(0,3))
@@ -217,24 +236,10 @@ def code():
       test_counter = test_counter + 1
       doc_request = create_request(Test(testCode + test_counter, "Get scorable document"),[NVPair("Referer", URL + "/"),NVPair("Host", DOMAIN),])
       response = doc_request.GET(URL + "/api/document/" + document_uuid)
-# *AB*      log (str(response))
       IncrementTestResultsTotals(response.statusCode)
-      test_counter = test_counter + 1
+      test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
-        weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
-        weight['0'] = int(VO_W)
-        weight['1'] = int(VAO_W)
-        weight['2'] = int(VRO_W)
-        weight['3'] = int(VSO_W)
-        CODE_OPPS_ACTION = random.choice([k for k in weight for dummy in range(weight[k])])
-      if CODE_OPPS_ACTION == "0":
-        VO=VO+1
-      elif CODE_OPPS_ACTION == "1":
-        VAO=VAO+1
-      elif CODE_OPPS_ACTION == "2":
-        VRO=VRO+1
-      elif CODE_OPPS_ACTION == "3":
-        VSO=VSO+1 
+      	CODE_OPPS_ACTION = WeightedRandomCodingAction()
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
 
@@ -276,7 +281,7 @@ def viewHistoryReport():
     	if VIEW_HISTORY_PAGES_MAX == "0":
     		VIEW_HISTORY_PAGES_MAX = pages
     	for page in range (2, int(VIEW_HISTORY_PAGES_MAX)+1):
-    		testCode = testCode + 1
+    		testCode += 1
     		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
     		response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
     		log("-------------------------------------------------------------------------------")
@@ -290,7 +295,7 @@ def viewHistoryReport():
     if VIEW_HISTORY_SEARCH == "1":
     	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
     	for term in terms:
-    		testCode = testCode + 1
+    		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
     		response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
     		log("-------------------------------------------------------------------------------")
@@ -304,7 +309,7 @@ def viewHistoryReport():
     if VIEW_HISTORY_FILTER == "1":
     	results = ['reject', 'accept', 'all']
     	for result in results:
-    		testCode = testCode + 1
+    		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
     		response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
     		log("-------------------------------------------------------------------------------")
@@ -393,7 +398,7 @@ def qaReport():
     	if QA_REPORT_PAGES_MAX == "0":
     		QA_REPORT_PAGES_MAX = pages
     	for page in range (2, int(QA_REPORT_PAGES_MAX)+1):
-    		testCode = testCode + 1
+    		testCode += 1
     		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
     		response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     		log("-------------------------------------------------------------------------------")
@@ -407,7 +412,7 @@ def qaReport():
     if QA_REPORT_SEARCH == "1":
     	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
     	for term in terms:
-    		testCode = testCode + 1
+    		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
     		response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
     		log("-------------------------------------------------------------------------------")
@@ -422,7 +427,7 @@ def qaReport():
     	results = ['reject', 'accept', 'all']
     	for coder in coders:
     		for result in results:
-    			testCode = testCode + 1
+    			testCode += 1
     			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
     			response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
     			log("-------------------------------------------------------------------------------")
@@ -448,6 +453,25 @@ def logout():
 
 # HELPER FUNCTIONS ####################################################################################################
 
+def WeightedRandomCodingAction():
+	global VOO_W, VAO_W, VRO_W, VSO_W
+	global VOO, VAO, VRO, VSO
+	weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
+	weight['0'] = int(VOO_W)
+	weight['1'] = int(VAO_W)
+	weight['2'] = int(VRO_W)
+	weight['3'] = int(VSO_W)
+	action = random.choice([k for k in weight for dummy in range(weight[k])])
+	if action == "0":
+		VOO += 1
+	elif action == "1":
+		VAO += 1
+	elif action == "2":
+		VRO += 1
+	elif action == "3":
+		VSO += 1 
+	return (action)
+
 def pages_payload(details):
 	report_json = JSONValue.parse(details)
     	if report_json is not None:
@@ -458,18 +482,12 @@ def pages_payload(details):
     		payload = 0
 	return (pages, payload)
 
-
-def log(text):
-  grinder.logger.info(text)
-  print(text)
-  return 0
-
 def create_request(test, headers=None):
   request = HTTPRequest()
   if headers:
     request.headers = headers
   test.record(request)
-  return request
+  return (request)
 
 def get_csrf_token(thread_context):
   cookies = CookieModule.listAllCookies(thread_context)
@@ -477,7 +495,7 @@ def get_csrf_token(thread_context):
   for cookie in cookies:
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
-  return csrftoken
+  return (csrftoken)
 
 def IncrementTestResultsTotals(code):
   global FAILED, SUCCEEDED, RETRIED
@@ -648,11 +666,11 @@ class TestRunner:
     log("=============================================================================")
     log("Test execution results summary:")
     log("=============================================================================")
-    log("VIEWED ONLY OPPS:       %s" % VO)
+    log("VIEWED ONLY OPPS:       %s" % VOO)
     log("VIEWED + ACCEPTED OPPS: %s" % VAO)
     log("VIEWED + REJECTED OPPS: %s" % VRO)
     log("VIEWED + SKIPPED OPPS:  %s" % VSO)
-    log("TOTAL OPPS PROCESSED:   %s" % (VO+VAO+VRO+VSO))
+    log("TOTAL OPPS PROCESSED:   %s" % (VOO+VAO+VRO+VSO))
     log("-----------------------------------------------------------------------------")
     log("RETRIED:   %s" % RETRIED)
     log("FAILED:    %s" % FAILED)
