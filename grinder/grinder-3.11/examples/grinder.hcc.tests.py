@@ -19,7 +19,13 @@
 #          * Reject Docs + Opportunities
 #          * Skip   Docs + Opportunities
 #          * View History Report
+#          * Paginate History Report
+#          * Search History Report
+#          * Filter History Report
 #          * View QA Report
+#          * Paginate History Report
+#          * Search QA Report
+#          * Dual Filter History Report
 #          * Logout
 #
 # SETUP:
