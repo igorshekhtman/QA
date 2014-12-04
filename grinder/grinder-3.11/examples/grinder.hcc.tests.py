@@ -89,6 +89,7 @@ import csv
 import operator
 import random
 import re
+#import numpy.random as nprnd
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -139,14 +140,15 @@ notfound = 404
 intserveror = 500
 servunavail = 503
 
-FAILED = 0
-SUCCEEDED = 0
-RETRIED = 0
+FAILED = SUCCEEDED = RETRIED = 0
+VO = VAO = VRO = VSO = 0
+
 
 # MAIN FUNCTIONS ####################################################################################################
 
 def code():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
+  global VO, VAO, VRO, VSO
   log("-------------------------------------------------------------------------------")
   if RANDOM_OPPS_ACTION == "1":
     CODE_OPPS_ACTION = str(random.randint(0,3))
@@ -219,7 +221,20 @@ def code():
       IncrementTestResultsTotals(response.statusCode)
       test_counter = test_counter + 1
       if RANDOM_OPPS_ACTION == "1":
-        CODE_OPPS_ACTION = str(random.randint(0,3)) 
+        weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
+        weight['0'] = int(VO_W)
+        weight['1'] = int(VAO_W)
+        weight['2'] = int(VRO_W)
+        weight['3'] = int(VSO_W)
+        CODE_OPPS_ACTION = random.choice([k for k in weight for dummy in range(weight[k])])
+      if CODE_OPPS_ACTION == "0":
+        VO=VO+1
+      elif CODE_OPPS_ACTION == "1":
+        VAO=VAO+1
+      elif CODE_OPPS_ACTION == "2":
+        VRO=VRO+1
+      elif CODE_OPPS_ACTION == "3":
+        VSO=VSO+1 
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
 
@@ -489,7 +504,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("flag_for_review","true"),
     NVPair("icd9[code_system_name]", opportunity.get("suggested_codes")[0].get("code_system_name")),
     NVPair("icd9[code]", opportunity.get("suggested_codes")[0].get("code")),
-    NVPair("icd9[display_name]", opportunity.get("suggested_codes")[0].get("display_name")),
+    NVPair("icd9[display_name]", opportunity.get("suggested_codes")[0].get("display_name")+" Grinder"),
     NVPair("icd9[code_system]", opportunity.get("suggested_codes")[0].get("code_system")),
     NVPair("icd9[code_system_version]", opportunity.get("suggested_codes")[0].get("code_system_version")),
     NVPair("provider[name]","The Grinder M.D."),
@@ -497,6 +512,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("provider[type]","Hospital Outpatient Setting"),
     NVPair("payment_year",str(opportunity.get("payment_year"))),
     NVPair("orig_date_of_service",scorable.get("date_of_service")),
+    NVPair("page","2015"),
     NVPair("opportunity_hash",opportunity.get("hash")),
     NVPair("rule_hash",opportunity.get("rule_hash")),
     NVPair("get_id",str(opportunity.get("get_id"))),
@@ -505,7 +521,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     NVPair("hcc[code]",str(opportunity.get("hcc"))),
     NVPair("hcc[model_run]",opportunity.get("model_run")),
     NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
-    NVPair("hcc[description]",opportunity.get("hcc_description")+" (Grinder)"),
+    NVPair("hcc[description]",opportunity.get("hcc_description")+" grinder"),
     NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
     NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
     NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
@@ -632,10 +648,16 @@ class TestRunner:
     log("=============================================================================")
     log("Test execution results summary:")
     log("=============================================================================")
-    log("RETRIED: %s\t" % RETRIED)
-    log("FAILED: %s\t" % FAILED)
-    log("SUCCEEDED: %s\t" % SUCCEEDED)
-    log("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED))
+    log("VIEWED ONLY OPPS:       %s" % VO)
+    log("VIEWED + ACCEPTED OPPS: %s" % VAO)
+    log("VIEWED + REJECTED OPPS: %s" % VRO)
+    log("VIEWED + SKIPPED OPPS:  %s" % VSO)
+    log("TOTAL OPPS PROCESSED:   %s" % (VO+VAO+VRO+VSO))
+    log("-----------------------------------------------------------------------------")
+    log("RETRIED:   %s" % RETRIED)
+    log("FAILED:    %s" % FAILED)
+    log("SUCCEEDED: %s" % SUCCEEDED)
+    log("TOTAL:     %s" % (RETRIED+FAILED+SUCCEEDED))
     log("=============================================================================")
     log("============================== END GRINDER TEST =============================")
     log("=============================================================================")

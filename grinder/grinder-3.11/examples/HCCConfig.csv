@@ -24,7 +24,12 @@ CODE_OPPS=1
 CODE_OPPS_ACTION=1
 #### If RANDOM_OPPS_ACTION flag is set to 1, CODE_OPPS_ACTION will be ignored
 RANDOM_OPPS_ACTION=1
-CODE_OPPS_MAX=5
+#### Coder actions weighted by specific percentage, must add up to 100%
+VO_W=49
+VAO_W=1
+VRO_W=1
+VSO_W=49
+CODE_OPPS_MAX=10
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1
