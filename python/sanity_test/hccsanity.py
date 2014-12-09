@@ -228,8 +228,8 @@ def code():
   #print "session id: "+r.cookies["sessionid"]
   token = r.cookies["csrftoken"]
   sessid = r.cookies["sessionid"]
-  print token
-  print sessid
+  print "token: " + token
+  print "sessionid: " + sessid
   #results = json.loads(r.content)
   #print results
   #print r.json()
@@ -255,7 +255,10 @@ def code():
   #r = requests.put(url, data=payload)
   #login = request.put(url, 'Referer': url)
   r = requests.put(url, data=payload, headers=headers) 
-  print token +" "+ USERNAME +" "+ PASSWORD +" "+ url
+  print "token: " + token
+  print "username: " + USERNAME
+  print "password: " + PASSWORD
+  print "url: " + url
   print r.status_code
   #print r.content
   #results = json.loads(r.content)
