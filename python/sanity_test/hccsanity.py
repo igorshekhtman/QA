@@ -234,9 +234,9 @@ def code():
       return 1
     patient_uuid = ""
     patient_uuid = opportunity.get("patient_uuid")
-    print "patient uuid: %s" % patient_uuid
+    #print "patient uuid: %s" % patient_uuid
     scorables = opportunity.get("scorables")
-    print "scorables: %s" % scorables
+    #print "scorables: %s" % scorables
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     test_counter = 0
@@ -293,7 +293,7 @@ def viewHistoryReport():
   result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  IncrementTestResultsTotals(response.statusCode)
+  IncrementTestResultsTotals(response.status_code)
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
   response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
@@ -308,8 +308,8 @@ def viewHistoryReport():
     now = datetime.datetime.now()    
     report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
     response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
-    IncrementTestResultsTotals(response.statusCode)
-    if response.statusCode == 200:
+    IncrementTestResultsTotals(response.status_code)
+    if response.status_code == 200:
       print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
       pages, payload = pages_payload(response.getText())
@@ -324,8 +324,8 @@ def viewHistoryReport():
     		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
     		response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.statusCode)
-    		if response.statusCode == 200:
+    		IncrementTestResultsTotals(response.status_code)
+    		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     		else:
@@ -338,8 +338,8 @@ def viewHistoryReport():
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
     		response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.statusCode)
-    		if response.statusCode == 200:
+    		IncrementTestResultsTotals(response.status_code)
+    		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     		else: 
@@ -352,8 +352,8 @@ def viewHistoryReport():
     		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
     		response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.statusCode)
-    		if response.statusCode == 200:
+    		IncrementTestResultsTotals(response.status_code)
+    		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % result)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     		else: 
@@ -372,7 +372,7 @@ def qaReport():
   result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  IncrementTestResultsTotals(response.statusCode)
+  IncrementTestResultsTotals(response.status_code)
 
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
@@ -384,8 +384,8 @@ def qaReport():
     return 1
   patient_details = response.getText()
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals(response.statusCode)
-  if response.statusCode == 200:
+  IncrementTestResultsTotals(response.status_code)
+  if response.status_code == 200:
     print("* CODER ACTION     = Get coding opportunity")
     print("* HCC RESPONSE     = 200 OK")
     print("* MODEL YEAR       = %s" % opportunity.get("model_year"))
@@ -398,7 +398,7 @@ def qaReport():
     print("* PATIENT UUID     = %s" % opportunity.get("patient_uuid"))
     print("* MODEL RUN        = %s" % opportunity.get("model_run"))
   else: 
-    print("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.statusCode, opportunity.get("message")))
+    print("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.status_code, opportunity.get("message")))
   
   testCode = testCode + 1
   response = create_request(Test(testCode, "Get orgCoders list")).GET(URL + "/api/report/orgCoders/")
@@ -407,8 +407,8 @@ def qaReport():
   #print coders
   #print patient_details
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals(response.statusCode)
-  if response.statusCode == 200:
+  IncrementTestResultsTotals(response.status_code)
+  if response.status_code == 200:
     print("* CODER ACTION     = Get orgCoders list")
     print("* HCC RESPONSE     = 200 OK")
     i = 0
@@ -416,7 +416,7 @@ def qaReport():
       i = i + 1
       log ("* CODER-%d          = %s" % (i, coder))      
   else: 
-    print("* CODER ACTION     = Get orgCoders list\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.statusCode, coders.get("message")))
+    print("* CODER ACTION     = Get orgCoders list\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.status_code, coders.get("message")))
     
     
   for qa_report_count in range(1, (int(QA_REPORT_MAX)+1)):
@@ -425,8 +425,8 @@ def qaReport():
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
-    IncrementTestResultsTotals(response.statusCode)
-    if response.statusCode == 200:
+    IncrementTestResultsTotals(response.status_code)
+    if response.status_code == 200:
       print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
       pages, payload = pages_payload(response.getText()) 
@@ -441,8 +441,8 @@ def qaReport():
     		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
     		response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.statusCode)
-    		if response.statusCode == 200:
+    		IncrementTestResultsTotals(response.status_code)
+    		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     		else:
@@ -455,8 +455,8 @@ def qaReport():
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
     		response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.statusCode)
-    		if response.statusCode == 200:
+    		IncrementTestResultsTotals(response.status_code)
+    		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     		else: 
@@ -470,8 +470,8 @@ def qaReport():
     			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
     			response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
     			print("-------------------------------------------------------------------------------")
-    			IncrementTestResultsTotals(response.statusCode)
-    			if response.statusCode == 200:
+    			IncrementTestResultsTotals(response.status_code)
+    			if response.status_code == 200:
       				print("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % (result, coder))
       				print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response.getText()))
     			else: 
@@ -559,62 +559,19 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   elif CODE_OPPS_ACTION == "1": # Accept Doc
     finding_id = scorable.get("id")
     print "finding_id     = %s" % finding_id
-    #annotation = create_request(Test(testname, "Annotate Finding"))
-    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    #NVPair("user_id", USERNAME),
-    #NVPair("timestamp",str(1000 * int(time.time()))),
-    #NVPair("result","accept"),
-    #NVPair("comment","Comment by The Grinder"),
-    #NVPair("date_of_service",scorable.get("date_of_service")),
-    #NVPair("flag_for_review","true"),
-    #NVPair("icd9[code_system_name]", opportunity.get("suggested_codes")[0].get("code_system_name")),
-    #NVPair("icd9[code]", opportunity.get("suggested_codes")[0].get("code")),
-    #NVPair("icd9[display_name]", opportunity.get("suggested_codes")[0].get("display_name")+" Grinder"),
-    #NVPair("icd9[code_system]", opportunity.get("suggested_codes")[0].get("code_system")),
-    #NVPair("icd9[code_system_version]", opportunity.get("suggested_codes")[0].get("code_system_version")),
-    #NVPair("provider[name]","The Grinder M.D."),
-    #NVPair("provider[id]","1992754832"),
-    #NVPair("provider[type]","Hospital Outpatient Setting"),
-    #NVPair("payment_year",str(opportunity.get("payment_year"))),
-    #NVPair("orig_date_of_service",scorable.get("date_of_service")),
-    #NVPair("page","2015"),
-    #NVPair("opportunity_hash",opportunity.get("hash")),
-    #NVPair("rule_hash",opportunity.get("rule_hash")),
-    #NVPair("get_id",str(opportunity.get("get_id"))),
-    #NVPair("patient_uuid",opportunity.get("patient_uuid")),
-    #NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
-    #NVPair("hcc[code]",str(opportunity.get("hcc"))),
-    #NVPair("hcc[model_run]",opportunity.get("model_run")),
-    #NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
-    #NVPair("hcc[description]",opportunity.get("hcc_description")+" grinder"),
-    #NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
-    #NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
-    #NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
-    #NVPair("finding_id",str(finding_id)),
-    #NVPair("document_uuid", scorable.get("document_uuid")),
-    #NVPair("list_position",str(doc_no_current)),
-    #NVPair("list_length",str(doc_no_max)),
-    #NVPair("document_date",scorable.get("date_of_service")),
-    #NVPair("predicted_code[code_system_name]", "The Grinder"),
-    #NVPair("predicted_code[code]", "The Grinder"),
-    #NVPair("predicted_code[display_name]", "The Grinder"),
-    #NVPair("predicted_code[code_system]", "The Grinder"),
-    #NVPair("predicted_code[code_system_version]", "The Grinder"),
-    #NVPair("page_load_time",str(1000 * int(time.time()))),
-    #NVPair("document_load_time",str(1000 * int(time.time()))),))
     DATA = 	{ \
     		"user_id": USERNAME, \
     		"timestamp": str(1000 * int(time.time())), \
     		"result": "accept", \
-    		"comment": "Comment by The Grinder", \
+    		"comment": "Comment by the SanityTest", \
     		"date_of_service": scorable.get("date_of_service"), \
     		"flag_for_review": "true", \
     		"icd9[code_system_name]": opportunity.get("suggested_codes")[0].get("code_system_name"), \
     		"icd9[code]": opportunity.get("suggested_codes")[0].get("code"), \
-    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" Grinder", \
+    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" SanityTest", \
     		"icd9[code_system]": opportunity.get("suggested_codes")[0].get("code_system"), \
     		"icd9[code_system_version]": opportunity.get("suggested_codes")[0].get("code_system_version"), \
-    		"provider[name]": "The Grinder M.D.", \
+    		"provider[name]": "The SanityTest M.D.", \
     		"provider[id]": "1992754832", \
     		"provider[type]": "Hospital Outpatient Setting", \
     		"payment_year": str(opportunity.get("payment_year")), \
@@ -637,11 +594,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"list_position": str(doc_no_current), \
     		"list_length": str(doc_no_max), \
     		"document_date": scorable.get("date_of_service"), \
-    		"predicted_code[code_system_name]": "The Grinder", \
-    		"predicted_code[code]": "The Grinder", \
-    		"predicted_code[display_name]": "The Grinder", \
-    		"predicted_code[code_system]": "The Grinder", \
-    		"predicted_code[code_system_version]": "The Grinder", \
+    		"predicted_code[code_system_name]": "The SanityTest", \
+    		"predicted_code[code]": "The SanityTest", \
+    		"predicted_code[display_name]": "The SanityTest", \
+    		"predicted_code[code_system]": "The SanityTest", \
+    		"predicted_code[code_system_version]": "The SanityTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
@@ -655,84 +612,92 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   elif CODE_OPPS_ACTION == "2": # Reject Doc
     finding_id = scorable.get("id")
-    annotation = create_request(Test(testname, "Annotate Finding"))
-    response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    NVPair("user_id", USERNAME),
-    NVPair("timestamp",str(1000 * int(time.time()))),
-    NVPair("result","reject"),
-    NVPair("reject_reason","Additional documentation needed to Accept the document for this HCC"),
-    NVPair("comment","Comment by The Grinder"),
-    NVPair("date_of_service",scorable.get("date_of_service")),
-    NVPair("flag_for_review","true"),
-    NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("orig_date_of_service",scorable.get("date_of_service")),
-    NVPair("opportunity_hash",opportunity.get("hash")),
-    NVPair("rule_hash",opportunity.get("rule_hash")),
-    NVPair("get_id",str(opportunity.get("get_id"))),
-    NVPair("patient_uuid",opportunity.get("patient_uuid")),
-    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
-    NVPair("hcc[code]",str(opportunity.get("hcc"))),
-    NVPair("hcc[model_run]",opportunity.get("model_run")),
-    NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
-    NVPair("hcc[description]",opportunity.get("hcc_description")),
-    NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
-    NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
-    NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
-    NVPair("finding_id",str(finding_id)),
-    NVPair("document_uuid", scorable.get("document_uuid")),
-    NVPair("list_position",str(doc_no_current)),
-    NVPair("list_length",str(doc_no_max)),
-    NVPair("document_date",scorable.get("date_of_service")),
-    NVPair("snippets",str(scorable.get("snippets"))),
-    NVPair("predicted_code[code_system_name]", "The Grinder"),
-    NVPair("predicted_code[code]", "The Grinder"),
-    NVPair("predicted_code[display_name]", "The Grinder"),
-    NVPair("predicted_code[code_system]", "The Grinder"),
-    NVPair("predicted_code[code_system_version]", "The Grinder"),
-    NVPair("page_load_time",str(1000 * int(time.time()))),
-    NVPair("document_load_time",str(1000 * int(time.time()))),))
-    IncrementTestResultsTotals(response.statusCode)
-    if response.statusCode == 200:
+    #annotation = create_request(Test(testname, "Annotate Finding"))
+    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    print "finding_id     = %s" % finding_id
+    DATA = 	{ \
+    		"user_id": USERNAME, \
+    		"timestamp": str(1000 * int(time.time())), \
+    		"result": "reject", \
+    		"reject_reason": "Additional documentation needed to Accept the document for this HCC", \
+    		"comment": "Comment by The SanityTest", \
+    		"date_of_service": scorable.get("date_of_service"), \
+    		"flag_for_review": "true", \
+    		"payment_year": str(opportunity.get("payment_year")), \
+    		"orig_date_of_service": scorable.get("date_of_service"), \
+    		"opportunity_hash": opportunity.get("hash"), \
+    		"rule_hash": opportunity.get("rule_hash"), \
+    		"get_id": str(opportunity.get("get_id")), \
+    		"patient_uuid": opportunity.get("patient_uuid"), \
+    		"patient_org_id": str(scorable.get("patient_org_id")), \
+    		"hcc[code]": str(opportunity.get("hcc")), \
+    		"hcc[model_run]": opportunity.get("model_run"), \
+    		"hcc[model_year]": str(opportunity.get("model_year")), \
+    		"hcc[description]": opportunity.get("hcc_description"), \
+    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
+    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
+    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
+    		"finding_id": str(finding_id), \
+    		"document_uuid":  scorable.get("document_uuid"), \
+    		"list_position": str(doc_no_current), \
+    		"list_length": str(doc_no_max), \
+    		"document_date": scorable.get("date_of_service"), \
+    		"snippets": str(scorable.get("snippets")), \
+    		"predicted_code[code_system_name]": "The SanityTest", \
+    		"predicted_code[code]": "The SanityTest", \
+    		"predicted_code[display_name]": "The SanityTest", \
+    		"predicted_code[code_system]": "The SanityTest", \
+    		"predicted_code[code_system_version]": "The SanityTest", \
+    		"page_load_time": str(1000 * int(time.time())), \
+    		"document_load_time": str(1000 * int(time.time())) \
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    IncrementTestResultsTotals(response.status_code)
+    if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   elif CODE_OPPS_ACTION == "3": # Skip Opp
     finding_id = scorable.get("id")
-    annotation = create_request(Test(testname, "Annotate Finding"))
-    response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    NVPair("user_id", USERNAME),
-    NVPair("timestamp",str(1000 * int(time.time()))),
-    NVPair("result","skipped"),
-    NVPair("date_of_service",scorable.get("date_of_service")),
-    NVPair("payment_year",str(opportunity.get("payment_year"))),
-    NVPair("orig_date_of_service",scorable.get("date_of_service")),
-    NVPair("opportunity_hash",opportunity.get("hash")),
-    NVPair("rule_hash",opportunity.get("rule_hash")),
-    NVPair("get_id",str(opportunity.get("get_id"))),
-    NVPair("patient_uuid",opportunity.get("patient_uuid")),
-    NVPair("hcc[code]",str(opportunity.get("hcc"))),
-    NVPair("hcc[model_run]",opportunity.get("model_run")),
-    NVPair("hcc[model_year]",str(opportunity.get("model_year"))),
-    NVPair("hcc[description]",opportunity.get("hcc_description") + " (Grinder)"),
-    NVPair("hcc[label_set_version]",opportunity.get("label_set_version")),
-    NVPair("hcc[mapping_version]",str(opportunity.get("model_year")) + " " + opportunity.get("model_run")),
-    NVPair("hcc[code_system]",str(opportunity.get("model_year")) + "PYFinal"),
-    NVPair("finding_id",str(finding_id)),
-    NVPair("document_uuid", scorable.get("document_uuid")),
-    NVPair("patient_org_id",str(scorable.get("patient_org_id"))),
-    NVPair("list_position",str(doc_no_current)),
-    NVPair("list_length",str(doc_no_max)),
-    NVPair("document_date",scorable.get("date_of_service")),
-    NVPair("snippets",str(scorable.get("snippets"))),
-    NVPair("predicted_code[code_system_name]", "The Grinder"),
-    NVPair("predicted_code[code]", "The Grinder"),
-    NVPair("predicted_code[display_name]", "The Grinder"),
-    NVPair("predicted_code[code_system]", "The Grinder"),
-    NVPair("predicted_code[code_system_version]", "The Grinder"),
-    NVPair("page_load_time",str(1000 * int(time.time()))),
-    NVPair("document_load_time",str(1000 * int(time.time()))),))
-    IncrementTestResultsTotals(response.statusCode)
-    if response.statusCode == 200:
+    #annotation = create_request(Test(testname, "Annotate Finding"))
+    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    print "finding_id     = %s" % finding_id
+    DATA = 	{ \
+    		"user_id": USERNAME, \
+    		"timestamp": str(1000 * int(time.time())), \
+    		"result": "skipped", \
+    		"date_of_service": scorable.get("date_of_service"), \
+    		"payment_year": str(opportunity.get("payment_year")), \
+    		"orig_date_of_service": scorable.get("date_of_service"), \
+    		"opportunity_hash": opportunity.get("hash"), \
+    		"rule_hash": opportunity.get("rule_hash"), \
+    		"get_id": str(opportunity.get("get_id")), \
+    		"patient_uuid": opportunity.get("patient_uuid"), \
+    		"hcc[code]": str(opportunity.get("hcc")), \
+    		"hcc[model_run]": opportunity.get("model_run"), \
+    		"hcc[model_year]": str(opportunity.get("model_year")), \
+    		"hcc[description]": opportunity.get("hcc_description") + " (SanityTest)", \
+    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
+    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
+    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
+    		"finding_id": str(finding_id), \
+    		"document_uuid": scorable.get("document_uuid"), \
+    		"patient_org_id": str(scorable.get("patient_org_id")), \
+    		"list_position": str(doc_no_current), \
+    		"list_length": str(doc_no_max), \
+    		"document_date": scorable.get("date_of_service"), \
+    		"snippets": str(scorable.get("snippets")), \
+    		"predicted_code[code_system_name]": "The SanityTest", \
+    		"predicted_code[code]": "The SanityTest", \
+    		"predicted_code[display_name]": "The SanityTest", \
+    		"predicted_code[code_system]": "The SanityTest", \
+    		"predicted_code[code_system_version]": "The SanityTest", \
+    		"page_load_time": str(1000 * int(time.time())), \
+    		"document_load_time": str(1000 * int(time.time())) \
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    IncrementTestResultsTotals(response.status_code)
+    if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
