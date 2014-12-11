@@ -1,18 +1,16 @@
 ####################################################################################################
 #
-# PROGRAM: grinder.py
-# AUTHOR:  Alex Beyk abeyk@apixio.com
-# DATE:    2014.10.16 Initial Version
-# DATE:    2014.10.27 Updated Org ID to Patient Org ID
-# DATE:    2014.11.21 Updated patient_org_id and document_load_time
+# PROGRAM: hccsanity.py
+# AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
+# DATE:    2014.12.10 Initial Version
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
-# DATE: 2014.10.20
+# DATE: 2014.12.11
 # SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
 #
 # PURPOSE:
-#          This program should be executed via "The Grinder" and is meant for testing HCC functionality:
+#          This program should be executed via Python 2.6 and is meant for testing HCC functionality:
 #          * Login
 #          * View   Docs + Opportunities
 #          * Accept Docs + Opportunities
@@ -30,14 +28,13 @@
 #
 # SETUP:
 #          * Assumes a HCC environment is available
-#          * Assumes a Grinder environment is available
-#          * For further details, see http://grinder.sourceforge.net
+#          * Assumes a Python 2.6 environment is available
+#          * From QA server (ec2-54-219-117-239) /mnt/automation/hcc folder enter "python2.6 hccsanity.py"
 #
 # USAGE:
-#          * Ensure Grinder is configured to execute grinder.py (this program)
-#          * Set the global variables, see below
-#          * Run grinder.py (this program)
-#          * Results will be printed on both the Grinder Agent and in Grinder Console log files
+#          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
+#          * Configure global parameters in config.csv located in the same folder
+#          * Results will be printed on Console screen as well as mailed via QA report
 #
 ####################################################################################################
 #
@@ -45,7 +42,7 @@
 #
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 #
-# DATE: 23-Oct-2014
+# DATE: 12-Dec-2014
 #
 # SPECIFICS: Introduced HCCConfig.csv file, which now contains all GLOBAL variables and their
 #            initial values.  Test script read GLOBAL variable values in as a first step. There
@@ -60,7 +57,7 @@
 #
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 #
-# DATE: 25-Nov-2014
+# DATE: 13-Dec-2014
 #
 # SPECIFICS: Introduced RANDOM_OPPS_ACTION=1 or 0 to allow random coder response to either View
 #            Accept Reject or Skip an Opportunity.  It is defined in HCCConfig.csv file.  Possible
@@ -72,7 +69,7 @@
 #
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 #
-# DATE: 01-Dec-2014
+# DATE: 14-Dec-2014
 #
 # SPECIFICS: Introduced VIEW_HISTORY_PAGINATION, VIEW_HISTORY_SEARCH, VIEW_HISTORY_FILTER,
 #            VIEW_HISTORY_PAGES_MAX, QA_REPORT_PAGINATION, QA_REPORT_SEARCH, QA_REPORT_FILTER,
@@ -87,11 +84,10 @@
 
 # LIBRARIES ########################################################################################
 
-#import urllib2
 import requests
-import SimpleHTTPServer
-import SocketServer
-import simplejson
+#import SimpleHTTPServer
+#import SocketServer
+#import simplejson
 import time
 import datetime
 import csv
@@ -104,7 +100,7 @@ import json
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
-CSV_CONFIG_FILE_NAME = "config.csv"
+CSV_CONFIG_FILE_NAME = "hccsanity.csv"
 VERSION = "1.0.3"
 
 ##########################################################################################
