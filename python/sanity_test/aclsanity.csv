@@ -21,11 +21,11 @@ NUMBER_OF_GRPS_TO_CREATE=1
 CODING_ORGANIZATION=Load Test Coders
 ########################################
 HCC_PASSWORD=apixio.123
-HCC_USERNAME_PREFIX=grinderUSR
+HCC_USERNAME_PREFIX=sanityUSR
 HCC_USERNAME_POSTFIX=@apixio.net
 ########################################
-ACL_CODNG_ORG_PREFIX=grinderORG
-ACL_GROUP_PREFIX=grinderGRP
+ACL_CODNG_ORG_PREFIX=sanityORG
+ACL_GROUP_PREFIX=sanityGRP
 ########################################
 CSV_FILE_PATH=/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/
 CSV_FILE_NAME=ACLAdmin.csv

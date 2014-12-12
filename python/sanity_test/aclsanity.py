@@ -71,15 +71,15 @@
 # Author:
 # Specifics:
 #=========================================================================================
-from net.grinder.script.Grinder import grinder
-from net.grinder.script import Test
-from net.grinder.plugin.http import HTTPRequest, HTTPPluginControl
-from HTTPClient import Codecs, Cookie, CookieModule, CookiePolicyHandler, NVPair
-from org.json.simple import JSONObject, JSONValue
-from jarray import zeros
+import requests
 import time
+import datetime
 import csv
 import operator
+import random
+import re
+import sys, os
+import json
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
@@ -99,25 +99,24 @@ CDGORGMAP = { \
 	"Test Org 1000":"UO_45dcce68-47a8-4e0f-9cf4-467476021337", \
 	"Test Org 1000":"UO_1296f532-2605-4e63-9d09-e5e992bd07ea", \
 	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
-	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \	
-}
+	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \
+	}
 
 PERIMISSION_TYPES = [ \
 	"canAnnotate", \
 	"viewDocuments", \
 	"viewReportsAnnotatedFor", \
 	"viewReportsAnnotatedBy", \
-	"viewAllAnnotations" \
+	"viewAllAnnotations", \
+	"canRelease" \
 	]
-#=========================================================================================
-#===================== Program Version ===================================================
-#=========================================================================================
-VERSION = '1.0.2'
+	
 #=========================================================================================
 #===================== Initialization of the ACLConfig file ==============================
 #=========================================================================================
-CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
-CSV_CONFIG_FILE_NAME = "ACLConfig.csv"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
+CSV_CONFIG_FILE_NAME = "aclsanity.csv"
+VERSION = "1.0.3"
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
 #=========================================================================================
@@ -144,7 +143,6 @@ def ReadConfigurationFile(filename):
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
 #=========================================================================================
-ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 	
 ok = 200
 created = 201
@@ -198,9 +196,9 @@ def print_all_cookies(thread_context):
     print "cookies = [%s]" % cookies
     return cookies    
 #=========================================================================================    
-def log(text):
-    grinder.logger.info(text)
-    print(text)
+#def log(text):
+#    grinder.logger.info(text)
+#    print(text)
 #=========================================================================================    
 def get_new_hcc_user():
 	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
@@ -209,15 +207,15 @@ def get_new_hcc_user():
 	return hccusername
 #=========================================================================================
 def PrintGlobalParamaterSettings():
-	log ("\nVersion: \t\t\t"+VERSION)
-	log ("\nEnvironment: \t\t\t"+ENVIRONMENT)
-	log ("ACL URL: \t\t\t"+ACL_URL)
-	log ("HCC URL: \t\t\t"+HCC_URL)
-	log ("ACL Admin User Name: \t\t"+ACLUSERNAME)
-	log ("Coding Organization: \t\t"+CODING_ORGANIZATION)
-	log ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
-	log ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
-	log ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
+	print ("\nVersion: \t\t\t"+VERSION)
+	print ("\nEnvironment: \t\t\t"+ENVIRONMENT)
+	print ("ACL URL: \t\t\t"+ACL_URL)
+	print ("HCC URL: \t\t\t"+HCC_URL)
+	print ("ACL Admin User Name: \t\t"+ACLUSERNAME)
+	print ("Coding Organization: \t\t"+CODING_ORGANIZATION)
+	print ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
+	print ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
+	print ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
 #=========================================================================================
 def IncrementTestResultsTotals(code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -246,449 +244,450 @@ def WriteToCsvFile():
 	f.close()	
 #=========================================================================================	
 def ListUserGroupOrg():
-	log ("\n")
+	print ("\n")
 	if int(NUMBER_OF_USERS_TO_CREATE) > 0:
-		log ("=================================")
-		log ("List of newly created HCC Users:")
-		log ("=================================")
+		print ("=================================")
+		print ("List of newly created HCC Users:")
+		print ("=================================")
 		for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-			log (HCCUSERSLIST[i])
-	log ("=================================")
-	log ("List of newly created HCC Orgs:")
-	log ("=================================")
+			print (HCCUSERSLIST[i])
+	print ("=================================")
+	print ("List of newly created HCC Orgs:")
+	print ("=================================")
 	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
-		log (HCCORGLIST[i])
-	log ("=================================")
-	log ("List of newly created HCC Groups:")
-	log ("=================================")
+		print (HCCORGLIST[i])
+	print ("=================================")
+	print ("List of newly created HCC Groups:")
+	print ("=================================")
 	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
-		log (HCCGRPLIST[i])	
-	log ("=================================")
-	log ("Test execution results summary:")
-	log ("=================================")	
-	log ("RETRIED: %s\t" % RETRIED)			
-	log ("FAILED: %s\t" % FAILED)
-	log ("SUCCEEDED: %s\t" % SUCCEEDED)
-	log ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
-	log ("=================================")	
-	log ("\nThe End...")			
+		print (HCCGRPLIST[i])	
+	print ("=================================")
+	print ("Test execution results summary:")
+	print ("=================================")	
+	print ("RETRIED: %s\t" % RETRIED)			
+	print ("FAILED: %s\t" % FAILED)
+	print ("SUCCEEDED: %s\t" % SUCCEEDED)
+	print ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
+	print ("=================================")				
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
-class TestRunner:
-    def __call__(self):
-		log ("\n\nStarting ACL-Admin New User Creation...\n")
-		thread_context = HTTPPluginControl.getThreadHTTPClientContext()
-		control = HTTPPluginControl.getConnectionDefaults()
-		control.setFollowRedirects(1)
+def logInToACL():
+	global TOKEN, ACL_URL, SESSID, DATA, HEADERS
+	print ("\nACL Obtain Authorization...")
+	print ("ACL_URL: " + ACL_URL)
+	statuscode = 500
+	# repeat until successful login is reached
+	while statuscode != 200:
+  		url = ACL_URL+'/auth'
+  		referer = ACL_URL  				
+  		DATA =    {'Referer': referer, 'email': ACLUSERNAME, 'password': ACLPASSWORD} 
+  		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+  		response = requests.post(url, data=DATA, headers=HEADERS) 
+  		SESSID = TOKEN = response.cookies["session"]
+  		#TOKEN = response.cookies["csrftoken"]
+  		print "* Log in user        = "+str(response.status_code)
+		#TOKEN = get_session(thread_context)
+		print ("ACL Username: %s" % ACLUSERNAME)
+		print ("ACL Password: %s" % ACLPASSWORD)
+		print ("ACL Session: %s" % SESSID)
+		print ("ACL Token: %s" % TOKEN)
+		statuscode = response.status_code
+		print ("Status Code = [%s]\t\t" % statuscode)
+		IncrementTestResultsTotals(statuscode)	
 #=========================================================================================
-		def ACLObtainAuthorization():
-			global TOKEN, ACL_URL
-			log ("\nACL Obtain Authorization...")
-			#log ("HOST_URL: " + HOST_URL)
-			statuscode = 500
-			# repeat until successful login is reached
-			while statuscode != 200:
-				login = create_request(Test(1000, 'ACL Log in admin'),[
-            		NVPair('Referer', ACL_URL+'/'),
-        		])
-				result = login.POST(ACL_URL+"/auth", (
-					NVPair('session', get_session(thread_context)),
-					NVPair('email', ACLUSERNAME),
-					NVPair('password', ACLPASSWORD),))
-				TOKEN = get_session(thread_context)
-				log ("ACL Username: %s" % ACLUSERNAME)
-				log ("ACL Password: %s" % ACLPASSWORD)
-				log ("ACL Token: %s" % TOKEN)
-				statuscode = result.statusCode
-				log ("Status Code = [%s]\t\t" % statuscode)
-				IncrementTestResultsTotals(statuscode)	
+def ACLCreateNewUser(retries):
+	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
+	print ("\nACL Create New User...")
+	HCCUSERNAME = get_new_hcc_user()	
+	url = ACL_URL+'/access/user'
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'email': HCCUSERNAME, 'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	userjson = response.json()
+	if userjson is not None:
+		USR_UUID = userjson.get("id")
+		#print ("User UUID: " + USR_UUID)
+	print ("HCC Username: %s" % HCCUSERNAME)
+	print ("HCC User UUID: %s" % USR_UUID)
+	print ("ACL Token: %s" % TOKEN)	
+	statuscode = response.status_code
+	print ("Status Code = [%s]\t\t" % statuscode)
+	IncrementTestResultsTotals(statuscode)
+	if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
+		print (">>> Failure occured: username already exists <<<")
+		retries = retries + 1
+		ACLCreateNewUser(retries)				
 #=========================================================================================
-		def ACLCreateNewUser(retries):
-			global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
-			log ("\nACL Create New User...")
-			login = create_request(Test(1100, 'ACL Create new user'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),])
-			HCCUSERNAME = get_new_hcc_user()
-			result = login.POST(ACL_URL+"/access/user", (
-				NVPair('email', HCCUSERNAME),
-				NVPair('session', TOKEN),))
-			userjson = JSONValue.parse(result.getText())
-			if userjson is not None:
-				USR_UUID = userjson.get("id")
-				#log ("User UUID: " + USR_UUID)
-			log ("HCC Username: %s" % HCCUSERNAME)
-			log ("HCC User UUID: %s" % USR_UUID)
-			log ("ACL Token: %s" % TOKEN)	
-			statuscode = result.statusCode
-			log ("Status Code = [%s]\t\t" % statuscode)
-			IncrementTestResultsTotals(statuscode)
-			if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
-				log (">>> Failure occured: username already exists <<<")
-				retries = retries + 1
-				ACLCreateNewUser(retries)				
+def ACLActivateNewUser():
+	global USR_UUID, TOKEN, ACL_URL
+	print ("\nACL Activate New User...")	
+	#print ("User UUID: " + USR_UUID)
+	url = ACL_URL+'/access/user/'+USR_UUID
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.put(url, data=DATA, headers=HEADERS) 
+	print ("HCC User UUID: %s" % USR_UUID)
+	print ("ACL TOKEN: %s" % TOKEN) 	
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLActivateNewUser():
-			global USR_UUID, TOKEN, ACL_URL
-			log ("\nACL Activate New User...")	
-			#log ("User UUID: " + USR_UUID)
-			data = str.encode("session="+str(TOKEN))
-			login = create_request(Test(1200, 'ACL Activate new user'),[
-				NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID, data, (
-				NVPair('session', TOKEN),))
-			log ("HCC User UUID: %s" % USR_UUID)
-			log ("ACL TOKEN: %s" % TOKEN) 	
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLDectivateUser(uuid):
+	global USR_UUID, TOKEN, ACL_URL
+	print ("\nACL Deactivate User...")	
+	#print ("User UUID: " + USR_UUID)
+	url = ACL_URL+'/access/user/'+uuid
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print ("HCC User UUID: %s" % uuid)
+	print ("ACL TOKEN: %s" % TOKEN) 
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)					
 #=========================================================================================
-		def ACLDectivateUser(uuid):
-			global USR_UUID, TOKEN, ACL_URL
-			log ("\nACL Deactivate User...")	
-			#log ("User UUID: " + USR_UUID)
-			#data = str.encode("session="+str(TOKEN))
-			login = create_request(Test(1250, 'ACL Deactivate user'),[
-				NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login.DELETE(ACL_URL+"/access/user/"+uuid, (
-				NVPair('session', TOKEN),))
-			log ("HCC User UUID: %s" % uuid)
-			log ("ACL TOKEN: %s" % TOKEN) 
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)					
+def ACLSetPassword():
+	global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
+	print ("\nACL Assign New User Password...")	
+	url = ACL_URL+'/access/user/'+USR_UUID+'/password'
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'password': HCC_PASSWORD}
+	HEADERS = { 'Origin': ACL_URL, 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.put(url, data=DATA, headers=HEADERS) 
+	print ("HCC Password: %s" % HCC_PASSWORD)
+	print ("HCC User UUID: %s" % USR_UUID)
+	print ("ACL TOKEN: %s" % TOKEN) 				
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLSetPassword():
-			global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
-			log ("\nACL Assign New User Password...")		
-			headers = [
-    	        NVPair('Origin', ACL_URL),
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-    	        NVPair('session', TOKEN),]
-			login = create_request(Test(1300, 'ACL Set Password'),headers)
-			#PUT(uri, data, headers)
-			data = str.encode("password=%s" % HCC_PASSWORD)
-			result = login.PUT(ACL_URL+"/access/user/"+USR_UUID+"/password", 
-				data, headers)
-			log ("HCC Password: %s" % HCC_PASSWORD)
-			log ("HCC User UUID: %s" % USR_UUID)
-			log ("ACL TOKEN: %s" % TOKEN) 				
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLCreateNewCodingOrg():
+	global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
+	print ("\nACL Create New Coding Org...")
+	conumber = str(int(time.time()))
+	coname = ACL_CODNG_ORG_PREFIX + conumber
+	CODING_ORGANIZATION = coname									
+	#print ("Coding Org Name: "+coname)		
+	url = ACL_URL+'/access/userOrganization'
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'name': coname, 'key': conumber, 'description': coname}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	userjson = response.json()
+	if userjson is not None:
+		ORG_UUID = userjson.get("id")				
+	print ("Coding Org Name: " + coname)
+	print ("Coding Org UUID: " + ORG_UUID)
+	print ("ACL TOKEN: %s" % TOKEN)			
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLCreateNewCodingOrg():
-			global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
-			log ("\nACL Create New Coding Org...")
-			conumber = str(int(time.time()))
-			coname = ACL_CODNG_ORG_PREFIX + conumber
-			CODING_ORGANIZATION = coname									
-			#log ("Coding Org Name: "+coname)		
-			login = create_request(Test(1400, 'ACL Create new coding org'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-			result = login.POST(ACL_URL+"/access/userOrganization", (
-				NVPair('name', coname),
-				NVPair('key', conumber),
-				NVPair('description', coname),
-				NVPair('session', TOKEN),))				
-			userjson = JSONValue.parse(result.getText())
-			if userjson is not None:
-				ORG_UUID = userjson.get("id")				
-			log ("Coding Org Name: " + coname)
-			log ("Coding Org UUID: " + ORG_UUID)
-			log ("ACL TOKEN: %s" % TOKEN)			
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLCreateNewGroup():
+	global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
+	print ("\nACL Create New Group...")
+	gnumber = str(int(time.time()))
+	gname = ACL_GROUP_PREFIX + gnumber
+	ACLGROUPNAME = gname									
+	#print ("Group Name: "+gname)
+	url = ACL_URL+'/access/group'
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'name': gname}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	grpjson = response.json()
+	if grpjson is not None:
+		GRP_UUID = grpjson.get("id").get("id")
+	print ("Group Name: " + gname)	
+	print ("Group UUID: " + GRP_UUID)
+	print ("ACL TOKEN: %s" % TOKEN)						
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLCreateNewGroup():
-			global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
-			log ("\nACL Create New Group...")
-			gnumber = str(int(time.time()))
-			gname = ACL_GROUP_PREFIX + gnumber
-			ACLGROUPNAME = gname									
-			#log ("Group Name: "+gname)		
-			login = create_request(Test(1500, 'ACL Create new group'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-			result = login.POST(ACL_URL+"/access/group", (
-				NVPair('name', gname),
-				NVPair('session', TOKEN),))				
-			grpjson = JSONValue.parse(result.getText())
-			if grpjson is not None:
-				GRP_UUID = grpjson.get("id").get("id")
-			log ("Group Name: " + gname)	
-			log ("Group UUID: " + GRP_UUID)
-			log ("ACL TOKEN: %s" % TOKEN)						
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLDeleteExistingGroup(group_uuid):									
+	global ACL_URL, TOKEN
+	print ("\nACL Delete Existing Group...")
+	url = ACL_URL+'/access/group/'+group_uuid
+  	referer = ACL_URL+'/admin/'  				
+	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
+  	response = requests.delete(url, data=DATA, headers=HEADERS) 			
+	print ("Group UUID: " + group_uuid)
+	print ("ACL TOKEN: %s" % TOKEN)				
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLDeleteExistingGroup(group_uuid):									
-			global ACL_URL, TOKEN
-			log ("\nACL Delete Existing Group...")		
-			login = create_request(Test(1800, 'ACL Delete existing group'),[
-    	        NVPair('Referer', ACL_URL+'/admin/'),
-        	])
-			result = login.DELETE(ACL_URL+"/access/group/"+group_uuid, (
-				NVPair('session', TOKEN),))			
-			log ("Group UUID: " + group_uuid)
-			log ("ACL TOKEN: %s" % TOKEN)				
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
+	global HCCGRPEMISSIONS
+	print ("\nACL Add "+per_type+" Group Permission...")
+	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	#grpjson = response.json()
+	print ("Group UUID: %s" % group_uuid)
+	print ("Org UUID: %s" % org_uuid)
+	print ("Permission Type: %s" % per_type)		
+	print ("ACL TOKEN: %s" % TOKEN)					
+	statuscode = response.status_code	
+	print ("Status Code = [%s]\t\t" % statuscode)
+	IncrementTestResultsTotals(statuscode)
+	if (statuscode == ok) or (statuscode == nocontent):
+		if per_type == "canAnnotate":
+			HCCGRPEMISSIONS[0] = "1"
+		elif per_type == "viewDocuments":
+			HCCGRPEMISSIONS.append(1)
+			HCCGRPEMISSIONS[1] = "1"
+		elif per_type == "viewReportsAnnotatedFor":
+			HCCGRPEMISSIONS.append(2)
+			HCCGRPEMISSIONS[2] = "1"
+		elif per_type == "viewReportsAnnotatedBy":
+			HCCGRPEMISSIONS.append(3)
+			HCCGRPEMISSIONS[3] = "1"
+		elif per_type == "viewAllAnnotations":
+			HCCGRPEMISSIONS.append(4)
+			HCCGRPEMISSIONS[4] = "1"
+		elif per_type == "canRelease":
+			HCCGRPEMISSIONS.append(5)
+			HCCGRPEMISSIONS[5] = "1"	
 #=========================================================================================
-		def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
-			global HCCGRPEMISSIONS
-			log ("\nACL Add "+per_type+" Group Permission...")
-			login = create_request(Test(1900, 'ACL add '+per_type+' permission'),[
-				NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login.POST(ACL_URL+"/access/permission/"+ \
-				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))
-			log ("Group UUID: %s" % group_uuid)
-			log ("Org UUID: %s" % org_uuid)
-			log ("Permission Type: %s" % per_type)		
-			log ("ACL TOKEN: %s" % TOKEN)					
-			statuscode = result.statusCode	
-			log ("Status Code = [%s]\t\t" % statuscode)
-			IncrementTestResultsTotals(statuscode)
-			if (statuscode == ok) or (statuscode == nocontent):
-				if per_type == "canAnnotate":
-					HCCGRPEMISSIONS[0] = "1"
-				elif per_type == "viewDocuments":
-					HCCGRPEMISSIONS.append(1)
-					HCCGRPEMISSIONS[1] = "1"
-				elif per_type == "viewReportsAnnotatedFor":
-					HCCGRPEMISSIONS.append(2)
-					HCCGRPEMISSIONS[2] = "1"
-				elif per_type == "viewReportsAnnotatedBy":
-					HCCGRPEMISSIONS.append(3)
-					HCCGRPEMISSIONS[3] = "1"
-				elif per_type == "viewAllAnnotations":
-					HCCGRPEMISSIONS.append(4)
-					HCCGRPEMISSIONS[4] = "1"
+def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
+	print ("\nACL Del "+per_type+" Group Permission...")
+	#login = create_request(Test(1950, 'ACL del '+per_type+' permission'),[ \
+	#	NVPair('Referer', ACL_URL+'/admin/'),])
+	#result = login.DELETE(ACL_URL+"/access/permission/"+ \
+	#	group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))			
+	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
+  	referer = ACL_URL+'/admin/'  				
+	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
+  	response = requests.delete(url, data=DATA, headers=HEADERS) 		
+	print ("Group UUID: %s" % group_uuid)
+	print ("Org UUID: %s" % org_uuid)
+	print ("Permission Type: %s" % per_type)		
+	print ("ACL TOKEN: %s" % TOKEN)				
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)			
 #=========================================================================================
-		def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
-			log ("\nACL Del "+per_type+" Group Permission...")
-			login = create_request(Test(1950, 'ACL del '+per_type+' permission'),[
-				NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login.DELETE(ACL_URL+"/access/permission/"+ \
-				group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))			
-			log ("Group UUID: %s" % group_uuid)
-			log ("Org UUID: %s" % org_uuid)
-			log ("Permission Type: %s" % per_type)		
-			log ("ACL TOKEN: %s" % TOKEN)				
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)			
+def ACLAddMemberToGroup():
+	global USR_UUID, GRP_UUID, ACL_URL
+	print ("\nACL Add Member to Group...")	
+	print ("User UUID: " + USR_UUID)
+	print ("Group UUID: " + GRP_UUID)
+	url = ACL_URL+'/access/groupMembership/'+GRP_UUID+'/'+USR_UUID
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	print ("ACL Group UUID: %s" % GRP_UUID)
+	print ("HCC User UUID: %s" % USR_UUID)		
+	print ("ACL TOKEN: %s" % TOKEN)						
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLAddMemberToGroup():
-			global USR_UUID, GRP_UUID, ACL_URL
-			log ("\nACL Add Member to Group...")	
-			log ("User UUID: " + USR_UUID)
-			log ("Group UUID: " + GRP_UUID)
-			login = create_request(Test(1600, 'ACL Add Member to Group'),[
-	   	         NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login. \
-				POST(ACL_URL+"/access/groupMembership/"+GRP_UUID+"/"+USR_UUID, (
-				NVPair('session', TOKEN),))
-			log ("ACL Group UUID: %s" % GRP_UUID)
-			log ("HCC User UUID: %s" % USR_UUID)		
-			log ("ACL TOKEN: %s" % TOKEN)						
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLDelMemberFromGroup(group_uuid, usr_uuid):
+	print ("\nACL Del Member from Group...")	
+	url = ACL_URL+'/access/groupMembership/'+group_uuid+'/'+usr_uuid
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.delete(url, data=DATA, headers=HEADERS) 	
+	print ("HCC User UUID: " + usr_uuid)
+	print ("ACL Group UUID: " + group_uuid)				
+	print ("ACL TOKEN: %s" % TOKEN)			
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-		def ACLDelMemberFromGroup(group_uuid, usr_uuid):
-			log ("\nACL Del Member from Group...")	
-			login = create_request(Test(1650, 'ACL Del Member from Group'),[
-	   	         NVPair('Referer', ACL_URL+'/admin/'),])
-			result = login. \
-				DELETE(ACL_URL+"/access/groupMembership/"+group_uuid+"/"+usr_uuid, (
-				NVPair('session', TOKEN),))
-			log ("HCC User UUID: " + usr_uuid)
-			log ("ACL Group UUID: " + group_uuid)				
-			log ("ACL TOKEN: %s" % TOKEN)			
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def ACLAssignCodingOrg():
+	global USR_UUID, ORG_UUID, ACL_URL
+	print ("\nACL Assign Coding Organization...")	
+	#print ("User UUID: " + USR_UUID)
+	#print ("Org UUID: " + ORG_UUID)
+	url = ACL_URL+'/access/userOrganization/'+ORG_UUID+'/'+USR_UUID
+  	referer = ACL_URL+'/admin/'  				
+  	DATA = {'session': TOKEN}
+	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 	
+	print ("HCC User UUID: %s" % USR_UUID)
+	print ("ACL Org UUID: %s" % ORG_UUID)				
+	print ("ACL TOKEN: %s" % TOKEN)								
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
- 		def ACLAssignCodingOrg():
- 			global USR_UUID, ORG_UUID, ACL_URL
-			log ("\nACL Assign Coding Organization...")	
-			#log ("User UUID: " + USR_UUID)
-			#log ("Org UUID: " + ORG_UUID)
-			login = create_request(Test(1700, 'ACL Add Coding Organization'),[
-	   	         NVPair('Referer', ACL_URL+'/admin/'),
-	        ])
-			result = login. \
-				POST(ACL_URL+"/access/userOrganization/"+ORG_UUID+"/"+USR_UUID, (
-				NVPair('session', TOKEN),))
-			log ("HCC User UUID: %s" % USR_UUID)
-			log ("ACL Org UUID: %s" % ORG_UUID)				
-			log ("ACL TOKEN: %s" % TOKEN)								
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
-#=========================================================================================
-		def HCCLogInto():
-			global HCCUSERNAME, HCC_PASSWORD, HCC_URL
-			HCC_HOST_DOMAIN = 'hccstage.apixio.com'
-			HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-			log ("\nHCC Connecting to host...")
-			result = create_request(Test(2000, 'HCC Connect to host')) \
-				.GET(HCC_URL + '/')
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)		
-			log ("\nHCC Detecting login page...")
-			result = create_request(Test(2100, 'HCC Get login page')) \
-				.GET(HCC_URL + '/account/login/?next=/')
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
-			# Create login request. Referer appears to be necessary
-			login = create_request(Test(2200, 'HCC Log in user'),[
-				NVPair('Referer', HCC_URL + '/account/login/?next=/'),
-			])
-			log ("\nLogging in to HCC Front End...")
-			result = login.POST(HCC_URL + '/account/login/?next=/', (
-				NVPair('csrfmiddlewaretoken', get_csrf_token(thread_context)),
-				NVPair('username', HCCUSERNAME),
-				NVPair('password', HCC_PASSWORD),))
-			log ("HCC Username: %s" % HCCUSERNAME)
-			log ("HCC Password: %s" % HCC_PASSWORD)	
-			log ("HCC Token: %s" % get_csrf_token(thread_context))
-			log ("Status Code = [%s]\t\t" % result.statusCode)
-			IncrementTestResultsTotals(result.statusCode)
+def logInToHCC(): 
+	global TOKEN, SESSID, DATA, HEADERS
+	global HCCUSERNAME, HCC_PASSWORD, HCC_URL
+	global HCC_TOKEN, HCC_SESSID
+	HCC_HOST_DOMAIN = 'hccstage.apixio.com'
+	HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
+	response = requests.get(HCC_URL+'/')
+	print "* Connect to host    = "+str(response.status_code)
+	url = referer = HCC_URL+'/account/login/?next=/'
+	response = requests.get(url)
+	print "* Login page         = "+str(response.status_code)
+	HCC_TOKEN = response.cookies["csrftoken"]
+	HCC_SESSID = response.cookies["sessionid"]
+	DATA =    {'csrfmiddlewaretoken': HCC_TOKEN, 'username': HCCUSERNAME, 'password': HCC_PASSWORD } 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
+				'Cookie': 'csrftoken='+HCC_TOKEN+'; sessionid='+HCC_SESSID+' ', \
+				'Referer': referer}			
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+	print "* Log in user        = "+str(response.status_code)
+	print ("HCC Username: %s" % HCCUSERNAME)
+	print ("HCC Password: %s" % HCC_PASSWORD)
+	print ("HCC Token: %s" % HCC_TOKEN)
+	print ("HCC Session ID: %s" % HCC_SESSID)
+	print ("Status Code = [%s]\t\t" % response.status_code)
+	IncrementTestResultsTotals(response.status_code)	
 #=========================================================================================
 #============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
 #=========================================================================================
-		def TestFlowControlOne():
-			global HCCUSERSLIST, PERIMISSION_TYPES
-			PrintGlobalParamaterSettings()
-			ACLObtainAuthorization()
-			ACLCreateNewCodingOrg()
-			HCCORGLIST[0] = CODING_ORGANIZATION
-			ACLCreateNewGroup()
-			ACLDeleteExistingGroup(GRP_UUID)
-			ACLCreateNewGroup()
-			HCCGRPLIST[0] = ACLGROUPNAME
+def TestFlowControlOne():
+	global HCCUSERSLIST, PERIMISSION_TYPES
+	PrintGlobalParamaterSettings()
+	logInToACL()
+	ACLCreateNewCodingOrg()
+	HCCORGLIST[0] = CODING_ORGANIZATION
+	ACLCreateNewGroup()
+	ACLDeleteExistingGroup(GRP_UUID)
+	ACLCreateNewGroup()
+	HCCGRPLIST[0] = ACLGROUPNAME
+		
+	for permission in PERIMISSION_TYPES:
+		ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+		ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+		ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
 			
-			for permission in PERIMISSION_TYPES:
-				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-				ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-				ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-			
-			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-				ACLCreateNewUser(0)
-				HCCUSERSLIST.append(i)
-				HCCUSERSLIST[i] = HCCUSERNAME
-				ACLActivateNewUser()
-				ACLDectivateUser(USR_UUID)
-				ACLActivateNewUser()
-				ACLSetPassword()
-				ACLAssignCodingOrg()
-				ACLAddMemberToGroup()
-				ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
-				ACLAddMemberToGroup()
-				HCCLogInto()
-			WriteToCsvFile()	
-			ListUserGroupOrg()					
+	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
+		ACLCreateNewUser(0)
+		HCCUSERSLIST.append(i)
+		HCCUSERSLIST[i] = HCCUSERNAME
+		ACLActivateNewUser()
+		ACLDectivateUser(USR_UUID)
+		ACLActivateNewUser()
+		ACLSetPassword()
+		ACLAssignCodingOrg()
+		ACLAddMemberToGroup()
+		ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
+		ACLAddMemberToGroup()
+		logInToHCC()
+	#WriteToCsvFile()	
+	ListUserGroupOrg()					
 #=========================================================================================
 #============= MULTIPLE GROUPS ONE CODING ORG MULTIPLE USERS =============================
 #=========================================================================================
-		def TestFlowControlTwo():
-			global HCCGRPLIST, HCCUSERSLIST
-			PrintGlobalParamaterSettings()
-			for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
-				ACLObtainAuthorization()
-				ACLCreateNewGroup()
-				HCCGRPLIST.append(i)
-				HCCGRPLIST[i] = ACLGROUPNAME
+def TestFlowControlTwo():
+	global HCCGRPLIST, HCCUSERSLIST
+	PrintGlobalParamaterSettings()
+	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
+		logInToACL()
+		ACLCreateNewGroup()
+		HCCGRPLIST.append(i)
+		HCCGRPLIST[i] = ACLGROUPNAME
 				
-			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-				ACLCreateNewUser(0)
-				ACLActivateNewUser()
-				ACLSetPassword()
-				ACLCreateNewCodingOrg()
-				HCCORGLIST[0] = CODING_ORGANIZATION
-				ACLAssignCodingOrg()
-				ACLAddMemberToGroup()
-				HCCLogInto()
-				HCCUSERSLIST.append(i)
-				HCCUSERSLIST[i] = HCCUSERNAME
-			ListUserGroupOrg()			
+	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
+		ACLCreateNewUser(0)
+		ACLActivateNewUser()
+		ACLSetPassword()
+		ACLCreateNewCodingOrg()
+		HCCORGLIST[0] = CODING_ORGANIZATION
+		ACLAssignCodingOrg()
+		ACLAddMemberToGroup()
+		logInToHCC()
+		HCCUSERSLIST.append(i)
+		HCCUSERSLIST[i] = HCCUSERNAME
+	ListUserGroupOrg()			
 #=========================================================================================
 #============= ONE GROUP MULTIPLE CODING ORGS MULTIPLE USERS =============================
 #=========================================================================================
-		def TestFlowControlThree():	
-			global HCCORGLIST, HCCUSERSLIST
-			PrintGlobalParamaterSettings()
-			for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
-				ACLObtainAuthorization()
-				ACLCreateNewCodingOrg()
-				HCCORGLIST.append(i)
-				HCCORGLIST[i] = CODING_ORGANIZATION			
+def TestFlowControlThree():	
+	global HCCORGLIST, HCCUSERSLIST
+	PrintGlobalParamaterSettings()
+	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
+		logInToACL()
+		ACLCreateNewCodingOrg()
+		HCCORGLIST.append(i)
+		HCCORGLIST[i] = CODING_ORGANIZATION			
 			
-			for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-				ACLCreateNewUser(0)
-				ACLActivateNewUser()
-				ACLSetPassword()
-				ACLAssignCodingOrg()
-				ACLCreateNewGroup()
-				HCCGRPLIST[0] = ACLGROUPNAME
-				ACLAddMemberToGroup()
-				HCCLogInto()
-				HCCUSERSLIST.append(i)
-				HCCUSERSLIST[i] = HCCUSERNAME
-			ListUserGroupOrg()	
+	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
+		ACLCreateNewUser(0)
+		ACLActivateNewUser()
+		ACLSetPassword()
+		ACLAssignCodingOrg()
+		ACLCreateNewGroup()
+		HCCGRPLIST[0] = ACLGROUPNAME
+		ACLAddMemberToGroup()
+		logInToHCC()
+		HCCUSERSLIST.append(i)
+		HCCUSERSLIST[i] = HCCUSERNAME
+	ListUserGroupOrg()	
 #=========================================================================================
 #============= SIMPLE CREATE ONLY ONE USER, ORG, GROUP ===================================
 #=========================================================================================
-		def TestFlowControlFour():
-			global HCCUSERSLIST, HCCORGLIST, HCCGRPLIST
-			PrintGlobalParamaterSettings()
-			ACLObtainAuthorization()
-			ACLCreateNewCodingOrg()
-			HCCORGLIST[0] = CODING_ORGANIZATION
-			ACLCreateNewGroup()
-			HCCGRPLIST[0] = ACLGROUPNAME
-			ACLCreateNewUser(0)
-			HCCUSERSLIST[0] = HCCUSERNAME
-			ACLActivateNewUser()
-			ACLSetPassword()
-			ACLAssignCodingOrg()
-			ACLAddMemberToGroup()
-			HCCLogInto()
-			#WriteToCsvFile()	
-			ListUserGroupOrg()		
+def TestFlowControlFour():
+	global HCCUSERSLIST, HCCORGLIST, HCCGRPLIST
+	PrintGlobalParamaterSettings()
+	logInToACL()
+	ACLCreateNewCodingOrg()
+	HCCORGLIST[0] = CODING_ORGANIZATION
+	ACLCreateNewGroup()
+	HCCGRPLIST[0] = ACLGROUPNAME
+	ACLCreateNewUser(0)
+	HCCUSERSLIST[0] = HCCUSERNAME
+	ACLActivateNewUser()
+	ACLSetPassword()
+	ACLAssignCodingOrg()
+	ACLAddMemberToGroup()
+	logInToHCC()
+	#WriteToCsvFile()	
+	ListUserGroupOrg()		
 #=========================================================================================
 #============= STRESSING ADD DELETE PERMISSIONS ==========================================
 #=========================================================================================
-		def TestFlowControlFive():
-			global HCCUSERSLIST, PERIMISSION_TYPES
-			PrintGlobalParamaterSettings()
-			ACLObtainAuthorization()
-			ACLCreateNewCodingOrg()
-			HCCORGLIST[0] = CODING_ORGANIZATION
-			ACLCreateNewGroup()
-			HCCGRPLIST[0] = ACLGROUPNAME
+def TestFlowControlFive():
+	global HCCUSERSLIST, PERIMISSION_TYPES
+	PrintGlobalParamaterSettings()
+	logInToACL()
+	ACLCreateNewCodingOrg()
+	HCCORGLIST[0] = CODING_ORGANIZATION
+	ACLCreateNewGroup()
+	HCCGRPLIST[0] = ACLGROUPNAME
 
-			for i in range(0, 100):
-				for permission in PERIMISSION_TYPES:
-					ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-					ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-			#WriteToCsvFile()	
-			ListUserGroupOrg()																	
+	for i in range(0, 100):
+		for permission in PERIMISSION_TYPES:
+			ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+			ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+	#WriteToCsvFile()	
+	ListUserGroupOrg()																	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-		if TEST_FLOW_CONTROL == "1":		
-			TestFlowControlOne()
-		elif TEST_FLOW_CONTROL == "2":
-			TestFlowControlTwo()
-		elif TEST_FLOW_CONTROL == "3":
-			TestFlowControlThree()
-		elif TEST_FLOW_CONTROL == "4":
-			TestFlowControlFour()
-		elif TEST_FLOW_CONTROL == "5":
-			TestFlowControlFive()			
-		else:
-			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			log (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")
-			log (">>>>>>>>>>> SPECIFIC TEST FLOW NUMBER MUST BE SELECTED <<<<<<<<<<<<<<<")
-			log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			log ("\n")
+os.system('clear')
+
+print ("\n\nStarting ACL-Admin New User Creation...\n")
+
+ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+
+if TEST_FLOW_CONTROL == "1":		
+	TestFlowControlOne()
+elif TEST_FLOW_CONTROL == "2":
+	TestFlowControlTwo()
+elif TEST_FLOW_CONTROL == "3":
+	TestFlowControlThree()
+elif TEST_FLOW_CONTROL == "4":
+	TestFlowControlFour()
+elif TEST_FLOW_CONTROL == "5":
+	TestFlowControlFive()			
+else:
+	print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	print (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")
+	print (">>>>>>>>>>> SPECIFIC TEST FLOW NUMBER MUST BE SELECTED <<<<<<<<<<<<<<<")
+	print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	print ("\n")	
+print ("\n\n=================================")	
+print ("==== End of ACL Sanity Test =====")
+print ("=================================")
 #=========================================================================================
 		
 		
