@@ -196,10 +196,6 @@ def print_all_cookies(thread_context):
     print "cookies = [%s]" % cookies
     return cookies    
 #=========================================================================================    
-#def log(text):
-#    grinder.logger.info(text)
-#    print(text)
-#=========================================================================================    
 def get_new_hcc_user():
 	global HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
 	hccusernumber = str(int(time.time()))
@@ -207,15 +203,16 @@ def get_new_hcc_user():
 	return hccusername
 #=========================================================================================
 def PrintGlobalParamaterSettings():
-	print ("\nVersion: \t\t\t"+VERSION)
-	print ("\nEnvironment: \t\t\t"+ENVIRONMENT)
-	print ("ACL URL: \t\t\t"+ACL_URL)
-	print ("HCC URL: \t\t\t"+HCC_URL)
-	print ("ACL Admin User Name: \t\t"+ACLUSERNAME)
-	print ("Coding Organization: \t\t"+CODING_ORGANIZATION)
-	print ("HCC Users to Create: \t\t"+str(NUMBER_OF_USERS_TO_CREATE))
-	print ("HCC Orgs to Create: \t\t"+str(NUMBER_OF_ORGS_TO_CREATE))
-	print ("HCC Groups to Create: \t\t"+str(NUMBER_OF_GRPS_TO_CREATE))
+	print ("\n")
+	print ("* Version                = %s"%VERSION)
+	print ("* Environment            = %s"%ENVIRONMENT)
+	print ("* ACL URL                = %s"%ACL_URL)
+	print ("* HCC URL                = %s"%HCC_URL)
+	print ("* ACL Admin User Name    = %s"%ACLUSERNAME)
+	print ("* Coding Organization    = %s"%CODING_ORGANIZATION)
+	print ("* HCC Users to Create    = %s"%str(NUMBER_OF_USERS_TO_CREATE))
+	print ("* HCC Orgs to Create     = %s"%str(NUMBER_OF_ORGS_TO_CREATE))
+	print ("* HCC Groups to Create   = %s"%str(NUMBER_OF_GRPS_TO_CREATE))
 #=========================================================================================
 def IncrementTestResultsTotals(code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -264,18 +261,20 @@ def ListUserGroupOrg():
 	print ("=================================")
 	print ("Test execution results summary:")
 	print ("=================================")	
-	print ("RETRIED: %s\t" % RETRIED)			
-	print ("FAILED: %s\t" % FAILED)
-	print ("SUCCEEDED: %s\t" % SUCCEEDED)
-	print ("TOTAL: %s\t" % (RETRIED+FAILED+SUCCEEDED)) 							
+	print ("* RETRIED:    = %s" % RETRIED)			
+	print ("* FAILED:     = %s" % FAILED)
+	print ("* SUCCEEDED:  = %s" % SUCCEEDED)
+	print ("* TOTAL:      = %s" % (RETRIED+FAILED+SUCCEEDED)) 							
 	print ("=================================")				
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
 def logInToACL():
 	global TOKEN, ACL_URL, SESSID, DATA, HEADERS
-	print ("\nACL Obtain Authorization...")
-	print ("ACL_URL: " + ACL_URL)
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - OBTAIN AUTHORIZATION <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* ACL URL                = %s" % ACL_URL)
 	statuscode = 500
 	# repeat until successful login is reached
 	while statuscode != 200:
@@ -285,20 +284,20 @@ def logInToACL():
   		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
   		response = requests.post(url, data=DATA, headers=HEADERS) 
   		SESSID = TOKEN = response.cookies["session"]
-  		#TOKEN = response.cookies["csrftoken"]
-  		print "* Log in user        = "+str(response.status_code)
-		#TOKEN = get_session(thread_context)
-		print ("ACL Username: %s" % ACLUSERNAME)
-		print ("ACL Password: %s" % ACLPASSWORD)
-		print ("ACL Session: %s" % SESSID)
-		print ("ACL Token: %s" % TOKEN)
+  		print ("* LOG IN USER            = %s" % response.status_code)
+		print ("* ACL USERNAME           = %s" % ACLUSERNAME)
+		print ("* ACL PASSWORD           = %s" % ACLPASSWORD)
+		print ("* ACL SESSION ID         = %s" % SESSID)
+		print ("* ACL TOKEN              = %s" % TOKEN)
 		statuscode = response.status_code
-		print ("Status Code = [%s]\t\t" % statuscode)
+		print ("* STATUS CODE            = %s" % statuscode)
 		IncrementTestResultsTotals(statuscode)	
 #=========================================================================================
 def ACLCreateNewUser(retries):
 	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
-	print ("\nACL Create New User...")
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - CREATE NEW USER <<<")
+	print ("----------------------------------------------------------------------------")
 	HCCUSERNAME = get_new_hcc_user()	
 	url = ACL_URL+'/access/user'
   	referer = ACL_URL+'/admin/'  				
@@ -308,12 +307,12 @@ def ACLCreateNewUser(retries):
 	userjson = response.json()
 	if userjson is not None:
 		USR_UUID = userjson.get("id")
-		#print ("User UUID: " + USR_UUID)
-	print ("HCC Username: %s" % HCCUSERNAME)
-	print ("HCC User UUID: %s" % USR_UUID)
-	print ("ACL Token: %s" % TOKEN)	
+		#print ("User UUID: " + USR_UUID)	
+	print ("* HCC USERNAME           = %s" % HCCUSERNAME)
+	print ("* HCC USER UUID          = %s" % USR_UUID)
+	print ("* ACL TOKEN:             = %s" % TOKEN)	
 	statuscode = response.status_code
-	print ("Status Code = [%s]\t\t" % statuscode)
+	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals(statuscode)
 	if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
 		print (">>> Failure occured: username already exists <<<")
@@ -322,49 +321,57 @@ def ACLCreateNewUser(retries):
 #=========================================================================================
 def ACLActivateNewUser():
 	global USR_UUID, TOKEN, ACL_URL
-	print ("\nACL Activate New User...")	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Activate New User <<<")
+	print ("----------------------------------------------------------------------------")	
 	#print ("User UUID: " + USR_UUID)
 	url = ACL_URL+'/access/user/'+USR_UUID
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.put(url, data=DATA, headers=HEADERS) 
-	print ("HCC User UUID: %s" % USR_UUID)
-	print ("ACL TOKEN: %s" % TOKEN) 	
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* HCC USER UUID          = %s" % USR_UUID)
+	print ("* ACL TOKEN              = %s" % TOKEN) 	
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLDectivateUser(uuid):
 	global USR_UUID, TOKEN, ACL_URL
-	print ("\nACL Deactivate User...")	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Deactivate User <<<")
+	print ("----------------------------------------------------------------------------")		
 	#print ("User UUID: " + USR_UUID)
 	url = ACL_URL+'/access/user/'+uuid
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.delete(url, data=DATA, headers=HEADERS)	
-	print ("HCC User UUID: %s" % uuid)
-	print ("ACL TOKEN: %s" % TOKEN) 
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* HCC USER UUID          = %s" % uuid)
+	print ("* ACL TOKEN              = %s" % TOKEN) 
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)					
 #=========================================================================================
 def ACLSetPassword():
 	global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
-	print ("\nACL Assign New User Password...")	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Assign New User Password <<<")
+	print ("----------------------------------------------------------------------------")		
 	url = ACL_URL+'/access/user/'+USR_UUID+'/password'
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'password': HCC_PASSWORD}
 	HEADERS = { 'Origin': ACL_URL, 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.put(url, data=DATA, headers=HEADERS) 
-	print ("HCC Password: %s" % HCC_PASSWORD)
-	print ("HCC User UUID: %s" % USR_UUID)
-	print ("ACL TOKEN: %s" % TOKEN) 				
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* HCC PASSWORD           = %s" % HCC_PASSWORD)
+	print ("* HCC User UUID          = %s" % USR_UUID)
+	print ("* ACL TOKEN              = %s" % TOKEN) 				
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLCreateNewCodingOrg():
 	global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
-	print ("\nACL Create New Coding Org...")
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Create New Coding Org <<<")
+	print ("----------------------------------------------------------------------------")		
 	conumber = str(int(time.time()))
 	coname = ACL_CODNG_ORG_PREFIX + conumber
 	CODING_ORGANIZATION = coname									
@@ -377,15 +384,17 @@ def ACLCreateNewCodingOrg():
 	userjson = response.json()
 	if userjson is not None:
 		ORG_UUID = userjson.get("id")				
-	print ("Coding Org Name: " + coname)
-	print ("Coding Org UUID: " + ORG_UUID)
-	print ("ACL TOKEN: %s" % TOKEN)			
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* CODING ORG NAME        = %s" % coname)
+	print ("* CODING ORG UUID        = %s" % ORG_UUID)
+	print ("* ACL TOKEN              = %s" % TOKEN)			
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLCreateNewGroup():
 	global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
-	print ("\nACL Create New Group...")
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Create New Group <<<")
+	print ("----------------------------------------------------------------------------")		
 	gnumber = str(int(time.time()))
 	gname = ACL_GROUP_PREFIX + gnumber
 	ACLGROUPNAME = gname									
@@ -398,40 +407,44 @@ def ACLCreateNewGroup():
 	grpjson = response.json()
 	if grpjson is not None:
 		GRP_UUID = grpjson.get("id").get("id")
-	print ("Group Name: " + gname)	
-	print ("Group UUID: " + GRP_UUID)
-	print ("ACL TOKEN: %s" % TOKEN)						
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* GROUP NAME             = %s" % gname)	
+	print ("* GROUP UUID             = %s" % GRP_UUID)
+	print ("* ACL TOKEN              = %s" % TOKEN)						
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLDeleteExistingGroup(group_uuid):									
 	global ACL_URL, TOKEN
-	print ("\nACL Delete Existing Group...")
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Delete Existing Group <<<")
+	print ("----------------------------------------------------------------------------")		
 	url = ACL_URL+'/access/group/'+group_uuid
   	referer = ACL_URL+'/admin/'  				
 	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
   	response = requests.delete(url, data=DATA, headers=HEADERS) 			
-	print ("Group UUID: " + group_uuid)
-	print ("ACL TOKEN: %s" % TOKEN)				
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* GROUP UUID             = %s" % group_uuid)
+	print ("* ACL TOKEN              = %s" % TOKEN)				
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
 	global HCCGRPEMISSIONS
-	print ("\nACL Add "+per_type+" Group Permission...")
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Add "+per_type+" Group Permission <<<")
+	print ("----------------------------------------------------------------------------")	
 	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
 	#grpjson = response.json()
-	print ("Group UUID: %s" % group_uuid)
-	print ("Org UUID: %s" % org_uuid)
-	print ("Permission Type: %s" % per_type)		
-	print ("ACL TOKEN: %s" % TOKEN)					
+	print ("* GROUP UUID             = %s" % group_uuid)
+	print ("* ORG UUID               = %s" % org_uuid)
+	print ("* PERMISSION TYPE        = %s" % per_type)		
+	print ("* ACL TOKEN              = %s" % TOKEN)					
 	statuscode = response.status_code	
-	print ("Status Code = [%s]\t\t" % statuscode)
+	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals(statuscode)
 	if (statuscode == ok) or (statuscode == nocontent):
 		if per_type == "canAnnotate":
@@ -453,55 +466,60 @@ def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
 			HCCGRPEMISSIONS[5] = "1"	
 #=========================================================================================
 def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
-	print ("\nACL Del "+per_type+" Group Permission...")
-	#login = create_request(Test(1950, 'ACL del '+per_type+' permission'),[ \
-	#	NVPair('Referer', ACL_URL+'/admin/'),])
-	#result = login.DELETE(ACL_URL+"/access/permission/"+ \
-	#	group_uuid+"/"+org_uuid+"/"+per_type, (NVPair('session', TOKEN),))			
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Del "+per_type+" Group Permission <<<")
+	print ("----------------------------------------------------------------------------")	
+		
 	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
   	referer = ACL_URL+'/admin/'  				
 	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
   	response = requests.delete(url, data=DATA, headers=HEADERS) 		
-	print ("Group UUID: %s" % group_uuid)
-	print ("Org UUID: %s" % org_uuid)
-	print ("Permission Type: %s" % per_type)		
-	print ("ACL TOKEN: %s" % TOKEN)				
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* GROUP UUID             = %s" % group_uuid)
+	print ("* ORG UUID:              = %s" % org_uuid)
+	print ("* PERMISSION TYPE        = %s" % per_type)		
+	print ("* ACL TOKEN              = %s" % TOKEN)				
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)			
 #=========================================================================================
 def ACLAddMemberToGroup():
 	global USR_UUID, GRP_UUID, ACL_URL
-	print ("\nACL Add Member to Group...")	
-	print ("User UUID: " + USR_UUID)
-	print ("Group UUID: " + GRP_UUID)
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Add Member to Group <<<")
+	print ("----------------------------------------------------------------------------")		
+	print ("* USER UUID              = %s" % USR_UUID)
+	print ("* GROUP UUID             = %s" % GRP_UUID)
 	url = ACL_URL+'/access/groupMembership/'+GRP_UUID+'/'+USR_UUID
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
-	print ("ACL Group UUID: %s" % GRP_UUID)
-	print ("HCC User UUID: %s" % USR_UUID)		
-	print ("ACL TOKEN: %s" % TOKEN)						
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* ACL GROUP UUID         = %s" % GRP_UUID)
+	print ("* HCC USER UUID          = %s" % USR_UUID)		
+	print ("* ACL TOKEN              = %s" % TOKEN)						
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
-def ACLDelMemberFromGroup(group_uuid, usr_uuid):
-	print ("\nACL Del Member from Group...")	
+def ACLDelMemberFromGroup(group_uuid, usr_uuid):	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Del Member from Group <<<")
+	print ("----------------------------------------------------------------------------")		
 	url = ACL_URL+'/access/groupMembership/'+group_uuid+'/'+usr_uuid
   	referer = ACL_URL+'/admin/'  				
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.delete(url, data=DATA, headers=HEADERS) 	
-	print ("HCC User UUID: " + usr_uuid)
-	print ("ACL Group UUID: " + group_uuid)				
-	print ("ACL TOKEN: %s" % TOKEN)			
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* HCC USER UUID:         = %s" % usr_uuid)
+	print ("* ACL GROUP UUID:        = %s" % group_uuid)				
+	print ("* ACL TOKEN:             = %s" % TOKEN)			
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def ACLAssignCodingOrg():
 	global USR_UUID, ORG_UUID, ACL_URL
-	print ("\nACL Assign Coding Organization...")	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - Assign Coding Organization <<<")
+	print ("----------------------------------------------------------------------------")			
 	#print ("User UUID: " + USR_UUID)
 	#print ("Org UUID: " + ORG_UUID)
 	url = ACL_URL+'/access/userOrganization/'+ORG_UUID+'/'+USR_UUID
@@ -509,10 +527,10 @@ def ACLAssignCodingOrg():
   	DATA = {'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.post(url, data=DATA, headers=HEADERS) 	
-	print ("HCC User UUID: %s" % USR_UUID)
-	print ("ACL Org UUID: %s" % ORG_UUID)				
-	print ("ACL TOKEN: %s" % TOKEN)								
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("* HCC USER UUID          = %s" % USR_UUID)
+	print ("* ACL ORG UUID           = %s" % ORG_UUID)				
+	print ("* ACL TOKEN              = %s" % TOKEN)								
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)
 #=========================================================================================
 def logInToHCC(): 
@@ -522,10 +540,16 @@ def logInToHCC():
 	HCC_HOST_DOMAIN = 'hccstage.apixio.com'
 	HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
 	response = requests.get(HCC_URL+'/')
-	print "* Connect to host    = "+str(response.status_code)
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> HCC - CONNECT TO HOST <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* RESPONSE CODE          = %s" % response.status_code)
 	url = referer = HCC_URL+'/account/login/?next=/'
 	response = requests.get(url)
-	print "* Login page         = "+str(response.status_code)
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> HCC - LOGIN PAGE <<<")
+	print ("----------------------------------------------------------------------------")	
+	print ("* RESPONSE CODE          = %s" % response.status_code)
 	HCC_TOKEN = response.cookies["csrftoken"]
 	HCC_SESSID = response.cookies["sessionid"]
 	DATA =    {'csrfmiddlewaretoken': HCC_TOKEN, 'username': HCCUSERNAME, 'password': HCC_PASSWORD } 
@@ -533,12 +557,15 @@ def logInToHCC():
 				'Cookie': 'csrftoken='+HCC_TOKEN+'; sessionid='+HCC_SESSID+' ', \
 				'Referer': referer}			
 	response = requests.post(url, data=DATA, headers=HEADERS) 
-	print "* Log in user        = "+str(response.status_code)
-	print ("HCC Username: %s" % HCCUSERNAME)
-	print ("HCC Password: %s" % HCC_PASSWORD)
-	print ("HCC Token: %s" % HCC_TOKEN)
-	print ("HCC Session ID: %s" % HCC_SESSID)
-	print ("Status Code = [%s]\t\t" % response.status_code)
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> HCC - LOGIN USER <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* RESPONSE CODE          = %s" % response.status_code)
+	print ("* HCC Username           = %s" % HCCUSERNAME)
+	print ("* HCC Password           = %s" % HCC_PASSWORD)
+	print ("* HCC Token              = %s" % HCC_TOKEN)
+	print ("* HCC Session ID         = %s" % HCC_SESSID)
+	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)	
 #=========================================================================================
 #============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
@@ -685,7 +712,6 @@ else:
 	print (">>>>>>>>>>> SPECIFIC TEST FLOW NUMBER MUST BE SELECTED <<<<<<<<<<<<<<<")
 	print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	print ("\n")	
-print ("\n\n=================================")	
 print ("==== End of ACL Sanity Test =====")
 print ("=================================")
 #=========================================================================================
