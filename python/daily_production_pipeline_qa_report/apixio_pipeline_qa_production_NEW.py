@@ -158,6 +158,11 @@ ORGMAP = { \
 	"10000302":"Jamess Organization", \
 	"10000335":"Wellpoint Feasibility2", \
 	"10000328":"Highmark", \
+	"10000336":"NTSP", \
+	"10000337":"Network Health HCC", \
+	"10000338":"Network Health Feasibility", \
+	"10000339":"Healthnow Feasibility", \
+	"10000340":"Healthnow", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
