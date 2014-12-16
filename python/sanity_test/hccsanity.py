@@ -30,10 +30,11 @@
 #          * Assumes a HCC environment is available
 #          * Assumes a Python 2.6 environment is available
 #          * From QA server (ec2-54-219-117-239) /mnt/automation/hcc folder enter "python2.6 hccsanity.py"
+#		   * note: hccsanity.csv configuration file must coexist in same folder as hccsanity.py
 #
 # USAGE:
 #          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
-#          * Configure global parameters in config.csv located in the same folder
+#          * Configure global parameters in hccsanity.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
 #
 ####################################################################################################
@@ -47,9 +48,9 @@
 # SPECIFICS: Introduced HCCConfig.csv file, which now contains all GLOBAL variables and their
 #            initial values.  Test script read GLOBAL variable values in as a first step. There
 #            are two GLOBAL variables that need to be updated prior to script execution:
-#            CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
-#            CSV_CONFIG_FILE_NAME = "HCCConfig.csv"
-#            As suggested, they specify location and name of the HCCConfig.csv file
+#            CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
+#            CSV_CONFIG_FILE_NAME = "hccsanity.csv"
+#            As suggested, they specify location and name of the hccsanity.csv file
 #
 ####################################################################################################
 #
@@ -60,7 +61,7 @@
 # DATE: 13-Dec-2014
 #
 # SPECIFICS: Introduced RANDOM_OPPS_ACTION=1 or 0 to allow random coder response to either View
-#            Accept Reject or Skip an Opportunity.  It is defined in HCCConfig.csv file.  Possible
+#            Accept Reject or Skip an Opportunity.  It is defined in hccsanity.csv file.  Possible
 #            values are 0 for specific and 1 for random
 #
 ####################################################################################################
@@ -117,6 +118,20 @@ YEAR=strftime("%Y", gmtime())
 CURDAY=strftime("%d", gmtime())
 CURMONTH=strftime("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
+
+PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;Component: %s</b></font></td></tr></table>"
+
+MODULES = {"login":"0", "coding":"1", "historyreport":"2", "qareport":"3", "logout":"4"}
+FAILED_TOT = [0,1,2,3,4]
+SUCCEEDED_TOT = [0,1,2,3,4]
+RETRIED_TOT = [0,1,2,3,4]
+for i in range (0, 5):
+	FAILED_TOT[i] = 0
+	SUCCEEDED_TOT[i] = 0
+	RETRIED_TOT[i] = 0
+
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -179,6 +194,7 @@ def logInToHCC():
   print "* Connect to host    = "+str(response.status_code)
   url = referer = URL+'/account/login/?next=/'
   response = requests.get(url)
+  IncrementTestResultsTotals("login", response.status_code)
   print "* Login page         = "+str(response.status_code)
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
@@ -187,6 +203,7 @@ def logInToHCC():
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
 			'Referer': referer}			
   response = requests.post(url, data=DATA, headers=HEADERS) 
+  IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
   
   
@@ -216,7 +233,7 @@ def startCoding():
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
     patient_details = response.text
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("coding", response.status_code)
     if opportunity == None:
       print("ERROR : Login Failed or No More Opportunities For This Coder")
       return 1
@@ -260,7 +277,7 @@ def startCoding():
       print "* GET SCRBLE DOC   = %s" % response.status_code
       
       
-      IncrementTestResultsTotals(response.status_code)
+      IncrementTestResultsTotals("coding", response.status_code)
       test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction()
@@ -278,7 +295,7 @@ def historyReport():
   #result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   #login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   #response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  #IncrementTestResultsTotals(response.status_code)
+  #IncrementTestResultsTotals("historyreport", response.status_code)
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
   
@@ -290,7 +307,7 @@ def historyReport():
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("historyreport", response.status_code)
   
   if opportunity == None:
     print("ERROR : Login Failed or No More Opportunities For This Coder")
@@ -305,7 +322,7 @@ def historyReport():
     response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     
     
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("historyreport", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -322,7 +339,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.status_code)
+    		IncrementTestResultsTotals("historyreport", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -337,7 +354,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.status_code)
+    		IncrementTestResultsTotals("historyreport", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -352,7 +369,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.status_code)
+    		IncrementTestResultsTotals("historyreport", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % result)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -373,7 +390,7 @@ def qaReport():
   #result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
   #login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
   #response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  #IncrementTestResultsTotals(response.status_code)
+  #IncrementTestResultsTotals("qareport", response.status_code)
 
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
@@ -385,14 +402,14 @@ def qaReport():
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("qareport", response.status_code)
     
   if opportunity == None:
     print("ERROR : Login Failed or No More Opportunities For This Coder")
     return 1
   patient_details = response.text
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("qareport", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Get coding opportunity")
     print("* HCC RESPONSE     = 200 OK")
@@ -413,13 +430,13 @@ def qaReport():
   print "* GET CODERS LIST  = %s" % response.status_code
   coders = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("qareport", response.status_code)
   
   
   #print coders
   #print patient_details
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("qareport", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Get orgCoders list")
     print("* HCC RESPONSE     = 200 OK")
@@ -439,7 +456,7 @@ def qaReport():
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     #response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("qareport", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -456,7 +473,7 @@ def qaReport():
     		#response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.status_code)
+    		IncrementTestResultsTotals("qareport", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -471,7 +488,7 @@ def qaReport():
     		#response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals(response.status_code)
+    		IncrementTestResultsTotals("qareport", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -487,7 +504,7 @@ def qaReport():
     			#response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
     			response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     			print("-------------------------------------------------------------------------------")
-    			IncrementTestResultsTotals(response.status_code)
+    			IncrementTestResultsTotals("qareport", response.status_code)
     			if response.status_code == 200:
       				print("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % (result, coder))
       				print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -501,7 +518,7 @@ def logout():
   testCode = 99
   response = requests.get(URL + "/account/logout")    
   print "* LOGOUT           = "+str(response.status_code)  
-  IncrementTestResultsTotals(response.status_code)
+  IncrementTestResultsTotals("logout", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
   else:
@@ -610,15 +627,38 @@ def writeReportHeader ():
 	REPORT = REPORT + """HCC user name: <b>%s</b><br>\n""" % (USERNAME)
 	REPORT = REPORT + """HCC app url: <b>%s</b><br>\n""" % (URL)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
+	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
 	
-def writeReportFooter():
-	print ("Write report footer ...\n")
+def writeReportDetails(module):	
 	global REPORT
+	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+	
+	REPORT = REPORT + SUBHDR % module
+	COMPONENT_STATUS="PASSED"
+	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
+	REPORT = REPORT + "<table><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr></table>"
+	REPORT = REPORT + "<table><tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr></table>"
+	REPORT = REPORT + "<table><tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
+	if FAILED_TOT[int(MODULES[module])] > 0:
+		COMPONENT_STATUS == "FAILED"
+	if (COMPONENT_STATUS == "PASSED"):
+		REPORT = REPORT+PASSED
+	else:
+		REPORT = REPORT+FAILED
+	REPORT = REPORT+"<br><br>"
+	print ("Completed failed jobs query ... \n")
+		
+	
+def writeReportFooter():
+	global REPORT
+	print ("Write report footer ...\n")
+	#REPORT = REPORT+"</td></tr></table>"
 	REPORT = REPORT+"<table>"
 	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
 	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
+	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
 
 
@@ -696,18 +736,21 @@ def get_csrf_token(thread_context):
       csrftoken = cookie.getValue()
   return (csrftoken)
 
-def IncrementTestResultsTotals(code):
-  global FAILED, SUCCEEDED, RETRIED
-  if (code == ok) or (code == nocontent):
-    SUCCEEDED = SUCCEEDED+1
-  #elif code == intserveror:
-  #  RETRIED = RETRIED+1
-  else:
-    FAILED = FAILED+1
+def IncrementTestResultsTotals(module, code):
+	global FAILED, SUCCEEDED, RETRIED
+	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+	if (code == ok) or (code == nocontent):
+		SUCCEEDED = SUCCEEDED+1
+		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
+	#elif code == intserveror:
+	#	RETRIED = RETRIED+1
+	else:
+		FAILED = FAILED+1
+		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
     
 def log(text):
 	global REPORT
-	REPORT = REPORT + text + "<br>"
+	#REPORT = REPORT + text + "<br>"
 	print(text)
 	return 0    
 
@@ -764,7 +807,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("coding", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -811,7 +854,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("coding", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -855,7 +898,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals(response.status_code)
+    IncrementTestResultsTotals("coding", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
@@ -876,23 +919,23 @@ writeReportHeader()
 
 logInToHCC()
 
-# writeReportDetails("login")
+writeReportDetails("login")
 
 startCoding()
 
-# writeReportDetails("coding")
+writeReportDetails("coding")
 
 historyReport()
 
-# writeReportDetails("historyreport)
+writeReportDetails("historyreport")
 
 qaReport()
 
-# writeReportDetails("qareport")
+writeReportDetails("qareport")
 
 logout()
 
-# writeReportDetails("logout")
+writeReportDetails("logout")
 
 printResultsSummary()
 
