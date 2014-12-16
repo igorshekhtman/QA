@@ -85,9 +85,6 @@
 # LIBRARIES ########################################################################################
 
 import requests
-#import SimpleHTTPServer
-#import SocketServer
-#import simplejson
 import time
 import datetime
 import csv
@@ -96,12 +93,30 @@ import random
 import re
 import sys, os
 import json
+import smtplib
+from time import gmtime, strftime, localtime
+import calendar
 
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
 CSV_CONFIG_FILE_NAME = "hccsanity.csv"
 VERSION = "1.0.3"
+# Email reports to eng@apixio.com and archive report html file:
+# 0 - False
+# 1 - True
+DEBUG_MODE=bool(0)
+REPORT = ""
+REPORT_TYPE = "HCC Sanity Test"
+SENDER="donotreply@apixio.com"
+CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DAY=strftime("%d", gmtime())
+MONTH=strftime("%m", gmtime())
+MONTH_FMN=strftime("%B", gmtime())
+YEAR=strftime("%Y", gmtime())
+CURDAY=strftime("%d", gmtime())
+CURMONTH=strftime("%m", gmtime())
+CURYEAR=strftime("%Y", gmtime())
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -136,8 +151,8 @@ def readConfigurationFile(filename):
   	sys.exit(1)
   else:
   	print ("==============================================================================")
-  	print ("HCCConfig.csv VERSION:               %s" % REVISION)
-  	print ("grinder.hcc.test.py VERSION:         %s" % VERSION)
+  	print ("hccsanity.csv VERSION:        %s" % REVISION)
+  	print ("hccsanity.py VERSION:         %s" % VERSION)
   	print ("==============================================================================")
   return result
 ##########################################################################################
@@ -513,6 +528,148 @@ def WeightedRandomCodingAction():
 	elif action == "3":
 		VSO += 1 
 	return (action)
+	
+def printResultsSummary():
+	log("=============================================================================")
+	log("Test execution results summary:")
+	log("=============================================================================")
+	log("* VIEWED ONLY OPPS:       %s" % VOO)
+	log("* VIEWED + ACCEPTED OPPS: %s" % VAO)
+	log("* VIEWED + REJECTED OPPS: %s" % VRO)
+	log("* VIEWED + SKIPPED OPPS:  %s" % VSO)
+	log("* TOTAL OPPS PROCESSED:   %s" % (VOO+VAO+VRO+VSO))
+	log("=============================================================================")
+	log("* RETRIED:   %s" % RETRIED)
+	log("* FAILED:    %s" % FAILED)
+	log("* SUCCEEDED: %s" % SUCCEEDED)
+	log("* TOTAL:     %s" % (RETRIED+FAILED+SUCCEEDED))
+	log("=============================================================================")
+	log("=============================================================================")
+	log("=============================================================================")	
+	
+def checkEnvironmentandReceivers():
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	# Arg1 - environment
+	# Arg2 - report recepient
+	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	print ("Setting environment ...\n")
+	if len(sys.argv) < 2:
+		ENVIRONMENT="staging"
+	else:
+		ENVIRONMENT=str(sys.argv[1])
+
+	if (ENVIRONMENT.upper() == "PRODUCTION"):
+		USERNAME="apxdemot0138"
+		ORGID="10000279"
+		PASSWORD="Hadoop.4522"
+		HOST="https://dr.apixio.com:8443"
+		ENVIRONMENT = "production"
+		POSTFIX = ""
+		MYSQLDOM = "10.198.2.97"
+		MYSQPW = "J3llyF1sh!"
+	else:
+		USERNAME="grinderUSR1416591626@apixio.net"
+		ORGID="190"
+		PASSWORD="apixio.123"
+		HOST="https://testdr.apixio.com:8443"
+		ENVIRONMENT = "staging"
+		POSTFIX = "_staging"
+		MYSQLDOM = "mysqltest-stg1.apixio.net"
+		MYSQPW = "M8ng0St33n!"
+	
+	if (len(sys.argv) > 2):
+		RECEIVERS=str(sys.argv[2])
+		RECEIVERS2=str(sys.argv[3])
+		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
+	elif ((len(sys.argv) < 3) or DEBUG_MODE):
+		RECEIVERS="ishekhtman@apixio.com"
+		RECEIVERS2="ishekhtman@apixio.com"
+		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+				
+	# overwite any previous ENVIRONMENT settings
+	#ENVIRONMENT = "Production"
+	print ("Version %s\n") % VERSION
+	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
+	print ("Completed setting of enviroment and report receivers ...\n")	
+
+def writeReportHeader ():
+	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
+	print ("Begin writing report header ...\n")
+	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	REPORT = REPORT + HTML_RECEIVERS
+	REPORT = REPORT + """MIME-Version: 1.0\n"""
+	REPORT = REPORT + """Content-type: text/html\n"""
+	REPORT = REPORT + """Subject: HCC %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+
+	REPORT = REPORT + """<h1>Apixio HCC Sanity Test Report</h1>\n"""
+	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
+	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
+	REPORT = REPORT + """HCC user name: <b>%s</b><br>\n""" % (USERNAME)
+	REPORT = REPORT + """HCC app url: <b>%s</b><br>\n""" % (URL)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
+	print ("End writing report header ...\n")
+	
+def writeReportFooter():
+	print ("Write report footer ...\n")
+	global REPORT
+	REPORT = REPORT+"<table>"
+	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT = REPORT+"</table>"
+	print ("Finished writing report ...\n")
+
+
+def archiveReport():
+	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
+	if not DEBUG_MODE:
+		print ("Archiving report ...\n")
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/hccsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/hccsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		# ------------- Create new folder if one does not exist already -------------------------------
+		if not os.path.exists(BACKUPREPORTFOLDER):
+			os.makedirs(BACKUPREPORTFOLDER)
+			os.chmod(BACKUPREPORTFOLDER, 0777)	
+		if not os.path.exists(REPORTFOLDER):
+			os.makedirs(REPORTFOLDER)
+			os.chmod(REPORTFOLDER, 0777)
+		# ---------------------------------------------------------------------------------------------
+		REPORTFILENAME=str(CURDAY)+".html"
+		REPORTXTSTRING="HCC Sanity "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/hccsanity/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTFILENAME="hcc_sanity_reports_"+ENVIRONMENT.lower()+".txt"
+		# Old location 
+		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+		# New location 
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+		os.chdir(BACKUPREPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTXTFILEFOLDER)
+		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+		REPORTFILETXT.write(REPORTXTSTRING)
+		REPORTFILETXT.close()
+		os.chdir("/mnt/automation/hcc")
+		print ("Finished archiving report ... \n")
+
+
+def emailReport():
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	print ("Emailing report ...\n")
+	s=smtplib.SMTP()
+	s.connect("smtp.gmail.com",587)
+	s.starttls()
+	s.login("donotreply@apixio.com", "apx.mail47")	        
+	s.sendmail(SENDER, RECEIVERS, REPORT)	
+	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
+
 
 def pages_payload(details):
 	report_json = details.json()
@@ -547,6 +704,12 @@ def IncrementTestResultsTotals(code):
   #  RETRIED = RETRIED+1
   else:
     FAILED = FAILED+1
+    
+def log(text):
+	global REPORT
+	REPORT = REPORT + text + "<br>"
+	print(text)
+	return 0    
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
@@ -707,40 +870,34 @@ os.system('clear')
 
 readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 
+checkEnvironmentandReceivers()
+
+writeReportHeader()	
+
 logInToHCC()
+
+# writeReportDetails("login")
 
 startCoding()
 
+# writeReportDetails("coding")
+
 historyReport()
+
+# writeReportDetails("historyreport)
 
 qaReport()
 
+# writeReportDetails("qareport")
+
 logout()
 
+# writeReportDetails("logout")
 
-#print("========================== START HCC SANITY TEST ============================")
-#if CODE_OPPS    == "1":
-#	startCoding()
-#if VIEW_HISTORY == "1":
-#	historyReport()
-#if QA_REPORT    == "1":
-#	qaReport()
-#if LOGOUT       == "1":
-#	logout()
-print("=============================================================================")
-print("Test execution results summary:")
-print("=============================================================================")
-print("* VIEWED ONLY OPPS:       %s" % VOO)
-print("* VIEWED + ACCEPTED OPPS: %s" % VAO)
-print("* VIEWED + REJECTED OPPS: %s" % VRO)
-print("* VIEWED + SKIPPED OPPS:  %s" % VSO)
-print("* TOTAL OPPS PROCESSED:   %s" % (VOO+VAO+VRO+VSO))
-print("-----------------------------------------------------------------------------")
-print("* RETRIED:   %s" % RETRIED)
-print("* FAILED:    %s" % FAILED)
-print("* SUCCEEDED: %s" % SUCCEEDED)
-print("* TOTAL:     %s" % (RETRIED+FAILED+SUCCEEDED))
-print("=============================================================================")
-print("============================== END SANITY TEST ==============================")
-print("=============================================================================")
-print("\n")
+printResultsSummary()
+
+writeReportFooter()
+
+archiveReport()
+
+emailReport()
