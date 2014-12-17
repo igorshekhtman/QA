@@ -45,7 +45,7 @@
 #
 # DATE: 12-Dec-2014
 #
-# SPECIFICS: Introduced HCCConfig.csv file, which now contains all GLOBAL variables and their
+# SPECIFICS: Introduced hccsanity.csv file, which now contains all GLOBAL variables and their
 #            initial values.  Test script read GLOBAL variable values in as a first step. There
 #            are two GLOBAL variables that need to be updated prior to script execution:
 #            CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
@@ -121,24 +121,24 @@ CURYEAR=strftime("%Y", gmtime())
 
 PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;Component: %s</b></font></td></tr></table>"
+SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 MODULES = {	"login":"0", \
-			"coding-opp-check":"1", \
-			"coding-scrble-doc-check":"2", \
-			"coding-view-only":"3", \
-			"coding-view-accept":"4", \
-			"coding-view-reject":"5", \
-			"coding-view-skip":"6", \
-			"historyreport-opp-check":"7", \
-			"historyreport-paginate":"8", \
-			"historyreport-search":"9", \
-			"historyreport-filter":"10", \
-			"qareport-coders-list":"11", \
-			"qareport-opp-check":"12", \
-			"qareport-paginate":"13", \
-			"qareport-search":"14", \
-			"qareport-filter":"15", \
+			"coding opportunity check":"1", \
+			"coding scorable document check":"2", \
+			"coding view only":"3", \
+			"coding view and accept":"4", \
+			"coding view and reject":"5", \
+			"coding view and skip":"6", \
+			"history report opportunity check":"7", \
+			"history report pagination":"8", \
+			"history report searching":"9", \
+			"history report filtering":"10", \
+			"qa report coder list check":"11", \
+			"qa report opportunity check":"12", \
+			"qa report pagination":"13", \
+			"qa report searching":"14", \
+			"qa report filtering":"15", \
 			"logout":"16" \
 			}
 FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
@@ -250,7 +250,7 @@ def startCoding():
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
     patient_details = response.text
-    IncrementTestResultsTotals("coding-opp-check", response.status_code)
+    IncrementTestResultsTotals("coding opportunity check", response.status_code)
     if opportunity == None:
       print("ERROR : Login Failed or No More Opportunities For This Coder")
       return 1
@@ -294,7 +294,7 @@ def startCoding():
       print "* GET SCRBLE DOC   = %s" % response.status_code
       
       
-      IncrementTestResultsTotals("coding-scrble-doc-check", response.status_code)
+      IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction()
@@ -305,26 +305,14 @@ def historyReport():
   global VIEW_HISTORY_PAGES_MAX
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
-  #thread_context = HTTPPluginControl.getThreadHTTPClientContext()
-  #control = HTTPPluginControl.getConnectionDefaults()
-  #control.setFollowRedirects(1)
-  #result = create_request(Test(1, "Connect to host")).GET(URL + "/")
-  #result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
-  #login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
-  #response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  #IncrementTestResultsTotals("historyreport", response.status_code)
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
-  
-  #response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
-  #opportunity = JSONValue.parse(response.getText())
-  #patient_details = response.getText()
   
   response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals("historyreport-opp-check", response.status_code)
+  IncrementTestResultsTotals("history report opportunity check", response.status_code)
   
   if opportunity == None:
     print("ERROR : Login Failed or No More Opportunities For This Coder")
@@ -339,7 +327,7 @@ def historyReport():
     response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     
     
-    IncrementTestResultsTotals("historyreport-paginate", response.status_code)
+    IncrementTestResultsTotals("history report pagination", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -356,7 +344,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("historyreport-paginate", response.status_code)
+    		IncrementTestResultsTotals("history report pagination", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -371,7 +359,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("historyreport-search", response.status_code)
+    		IncrementTestResultsTotals("history report searching", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -386,7 +374,7 @@ def historyReport():
     		#response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("historyreport-filter", response.status_code)
+    		IncrementTestResultsTotals("history report filtering", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % result)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -400,33 +388,21 @@ def qaReport():
   global DATA, HEADERS, TOKEN, SESSID
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
-  #thread_context = HTTPPluginControl.getThreadHTTPClientContext()
-  #control = HTTPPluginControl.getConnectionDefaults()
-  #control.setFollowRedirects(1)
-  #result = create_request(Test(1, "Connect to host")).GET(URL + "/")
-  #result = create_request(Test(2, "Get login page")).GET(URL + "/account/login/?next=/")
-  #login = create_request(Test(3, "Log in user"),[NVPair("Referer", URL + "/account/login/?next=/"),])
-  #response = login.POST(URL + "/account/login/?next=/", (NVPair("csrfmiddlewaretoken", get_csrf_token(thread_context)), NVPair("username", USERNAME), NVPair("password", PASSWORD),))
-  #IncrementTestResultsTotals("qareport", response.status_code)
 
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
-  
-  #response = create_request(Test(testCode, "Get coding opportunity")).GET(URL + "/api/coding-opportunity/")
-  #opportunity = JSONValue.parse(response.getText())
   
   response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals("qareport-opp-check", response.status_code)
+  IncrementTestResultsTotals("qa report opportunity check", response.status_code)
     
   if opportunity == None:
     print("ERROR : Login Failed or No More Opportunities For This Coder")
     return 1
   patient_details = response.text
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals("qareport-paginate", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Get coding opportunity")
     print("* HCC RESPONSE     = 200 OK")
@@ -447,13 +423,11 @@ def qaReport():
   print "* GET CODERS LIST  = %s" % response.status_code
   coders = response.json()
   patient_details = response.text
-  IncrementTestResultsTotals("qareport-coders-list", response.status_code)
+  IncrementTestResultsTotals("qa report coder list check", response.status_code)
   
   
-  #print coders
-  #print patient_details
   print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals("qareport-paginate", response.status_code)
+  IncrementTestResultsTotals("qa report pagination", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Get orgCoders list")
     print("* HCC RESPONSE     = 200 OK")
@@ -473,7 +447,7 @@ def qaReport():
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     #response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    IncrementTestResultsTotals("qareport-paginate", response.status_code)
+    IncrementTestResultsTotals("qa report pagination", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
       print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -490,7 +464,7 @@ def qaReport():
     		#response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("qareport-paginate", response.status_code)
+    		IncrementTestResultsTotals("qa report pagination", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -505,7 +479,7 @@ def qaReport():
     		#response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("qareport-search", response.status_code)
+    		IncrementTestResultsTotals("qa report searching", response.status_code)
     		if response.status_code == 200:
       			print("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
       			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -521,7 +495,7 @@ def qaReport():
     			#response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
     			response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     			print("-------------------------------------------------------------------------------")
-    			IncrementTestResultsTotals("qareport-filter", response.status_code)
+    			IncrementTestResultsTotals("qa report filtering", response.status_code)
     			if response.status_code == 200:
       				print("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % (result, coder))
       				print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
@@ -595,23 +569,13 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT=str(sys.argv[1])
 
 	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		USERNAME="apxdemot0138"
-		ORGID="10000279"
-		PASSWORD="Hadoop.4522"
-		HOST="https://dr.apixio.com:8443"
+		#USERNAME="apxdemot0138"
+		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
-		POSTFIX = ""
-		MYSQLDOM = "10.198.2.97"
-		MYSQPW = "J3llyF1sh!"
 	else:
-		USERNAME="grinderUSR1416591626@apixio.net"
-		ORGID="190"
-		PASSWORD="apixio.123"
-		HOST="https://testdr.apixio.com:8443"
+		#USERNAME="grinderUSR1416591626@apixio.net"
+		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
-		POSTFIX = "_staging"
-		MYSQLDOM = "mysqltest-stg1.apixio.net"
-		MYSQPW = "M8ng0St33n!"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -651,7 +615,7 @@ def writeReportDetails(module):
 	global REPORT
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
 	
-	REPORT = REPORT + SUBHDR % module
+	REPORT = REPORT + SUBHDR % module.upper()
 	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
 	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
@@ -771,7 +735,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
-    IncrementTestResultsTotals("coding-view-only", 200)
+    IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": # Accept Doc
     finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
@@ -821,7 +785,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
-    IncrementTestResultsTotals("coding-view-accept", response.status_code)
+    IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -868,7 +832,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals("coding-view-reject", response.status_code)
+    IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
@@ -912,7 +876,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals("coding-view-skip", response.status_code)
+    IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
@@ -937,27 +901,27 @@ writeReportDetails("login")
 
 startCoding()
 
-writeReportDetails("coding-opp-check")
-writeReportDetails("coding-scrble-doc-check")
-writeReportDetails("coding-view-only")
-writeReportDetails("coding-view-accept")
-writeReportDetails("coding-view-reject")
-writeReportDetails("coding-view-skip")
+writeReportDetails("coding opportunity check")
+writeReportDetails("coding scorable document check")
+writeReportDetails("coding view only")
+writeReportDetails("coding view and accept")
+writeReportDetails("coding view and reject")
+writeReportDetails("coding view and skip")
 
 historyReport()
 
-writeReportDetails("historyreport-opp-check")
-writeReportDetails("historyreport-paginate")
-writeReportDetails("historyreport-search")
-writeReportDetails("historyreport-filter")
+writeReportDetails("history report opportunity check")
+writeReportDetails("history report pagination")
+writeReportDetails("history report searching")
+writeReportDetails("history report filtering")
 
 qaReport()
 
-writeReportDetails("qareport-coders-list")
-writeReportDetails("qareport-opp-check")
-writeReportDetails("qareport-paginate")
-writeReportDetails("qareport-search")
-writeReportDetails("qareport-filter")
+writeReportDetails("qa report coder list check")
+writeReportDetails("qa report opportunity check")
+writeReportDetails("qa report pagination")
+writeReportDetails("qa report searching")
+writeReportDetails("qa report filtering")
 
 logout()
 
