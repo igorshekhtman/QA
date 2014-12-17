@@ -661,14 +661,17 @@ def archiveReport():
 		# New location 
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
 		os.chdir(BACKUPREPORTFOLDER)
+		os.chmod("*", 0777)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTFOLDER)
+		os.chmod("*", 0777)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
+		os.chmod("*", 0777)
 		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 		REPORTFILETXT.write(REPORTXTSTRING)
 		REPORTFILETXT.close()
