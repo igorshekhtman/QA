@@ -1,3 +1,9 @@
 {"k":"0000000080","o":"0000000185","v":"001"}
 {"_id":27,"_uid":27,"_dt":1418877456861,"_s":"e4e75a7249c89589de2af315b471e457"}
 {"msg":"This is a sample dynamic announcement if you are an admin user, you can add announcements here.","by":"Reza Alemy","at":"2014-12-18T04:37:36.825Z","_id":{"$wrap":"$oid","v":27}}
+{"k":"0000000080","o":"0000000116","v":"001"}
+{"_id":28,"_uid":28,"_dt":1418924585318,"_s":"3862fb97ac3f53baf72a7478d6ac73d9"}
+{"msg":"This is a new Announcement","by":"Reza Alemy","at":"2014-12-18T17:43:05.293Z","_id":{"$wrap":"$oid","v":28}}
+{"k":"0000000051","o":"0000000000","v":"001"}
+{"_id":27,"_uid":28,"_dt":1418924596262,"_a":"del"}
+
