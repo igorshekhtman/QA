@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+var app = require('../app');
+var https=require('https');
+var fs=require('fs');
+var path=require('path');
+var config=require('../config');
+var credentials={
+  key:fs.readFileSync(path.resolve(__dirname,'../server.key'))
+  ,cert:fs.readFileSync(path.resolve(__dirname,'../server.crt'))};
+app.set('port', process.env.PORT || config.appPort || 3000);
+var httpsServer=https.createServer(credentials,app);
+
+var server=httpsServer.listen(app.get('port'), function() {
+  console.log('Express server listening on port ' + server.address().port);
+});
