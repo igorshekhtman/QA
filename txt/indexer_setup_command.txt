@@ -25,6 +25,8 @@ tail -f /var/log/apx-opprouter/apx-opprouter-console.log
 
 tail -f /var/log/apx-opprouter/apx-opprouter-console.log 
 
+tail -f /var/log/apx-hcc/apx-hcc-error.log
+
 
 ============================ HCC Available Opportunities per specific user ======================
 
