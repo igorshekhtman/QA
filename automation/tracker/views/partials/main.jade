@@ -1,0 +1,20 @@
+extends ../angular.jade
+block content
+    include title
+    div(tab-nav="mainTabs")
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='home'", ng-controller='home')
+        include home
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='env'", ng-controller='env')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='envSetup'", ng-controller='envSetup')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='testCases'", ng-controller='testCases')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='run'", ng-controller='run')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='runStatus'", ng-controller='runStatus')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='reports'", ng-controller='reports')
+        h1 {{title}}
+    div.limitHeight-lg(ng-if="mainTabs.activeTab=='jira'", ng-controller='Jira')
+        h1 {{title}}

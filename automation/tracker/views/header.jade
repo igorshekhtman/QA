@@ -1,0 +1,28 @@
+
+div.alert.alert-danger(ng-if="restServiceError",ng-bind-html="restServiceError")
+div.navbar.navbar-default(role="navigation")
+    img.logo(src='images/logo.png')
+    ul.nav.navbar-nav.pull-right
+        include menus
+        li.dropdown
+            a.dropdown-toggle(href="javascript:void(0)",data-toggle="dropdown")
+                =user.displayName
+                span.caret
+            ul.dropdown-menu(role="menu")
+                li
+                    a(href='/logout', ng-click="showAbout=true")
+                        | Log out
+                li.divider
+        li.dropdown
+            a.dropdown-toggle(href="javascript:void(0)",data-toggle="dropdown")
+                | Help
+                span.caret
+            ul.dropdown-menu(role="menu")
+                li
+                    a(href='javascript:void(0);', ng-click="showAbout=true")
+                        ='About '+app.official
+                li.divider
+                li
+                    a(href='javascript:void(0);', ng-click="showConfig()")
+                        | Preferences
+div(about-page="showAbout",app-name=app.official ,build-string="{{buildString}}")

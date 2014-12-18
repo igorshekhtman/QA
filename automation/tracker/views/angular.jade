@@ -1,0 +1,23 @@
+doctype html
+html
+    head(lang='en')
+        meta(charset='UTF-8')
+        title= title
+        link(rel='icon',type='image/x-icon', href='/favicon.ico')
+        link(rel='stylesheet', href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap.min.css')
+        link(rel='stylesheet', href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap-theme.min.css')
+        link(rel='stylesheet', href='/stylesheets/apixio_angular.css')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js')
+    body(ng-app=app.name)
+        div#spinner
+            img(src='/images/spinner.gif')
+        div.container(ng-controller='topLevel')
+            include header
+            block content
+        script(src='//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular.min.js')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-sanitize.min.js')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.2/ui-bootstrap-tpls.min.js')
+        script(src='/javascripts/apixio_reusable_angular.js')
+        script(src='/javascripts/'+app.name.toLowerCase()+'.app.js')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/bootstrap.min.js')

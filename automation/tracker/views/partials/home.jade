@@ -1,0 +1,38 @@
+div.col-md-6(style="padding:20px;")
+    div.panel.panel-info
+        div.panel-heading
+            span.panel-title
+                |Announcements
+            if user.profile.role=='admin'
+                span.glyphicon.glyphicon-plus.pull-right(style="cursor:pointer;", ng-click="newAnnouncement=' '")
+            div(ng-show="newAnnouncement")
+                input(type="text",ng-model="newAnnouncement",style="width:100%;")
+                button.button.btn-info.pull-right(ng-click="saveAnnouncement('"+user.displayName+"')") Save
+                button.button.btn-warning.pull-right(ng-click="newAnnouncement=''") Cancel
+                div.clearfix
+        div.panel-body.limitHeight-lg
+            div(ng-repeat="announcement in Announcements")
+                |{{announcement.msg}}
+                if user.profile.role=='admin'
+                    span.glyphicon.glyphicon-remove.text-danger.delete-item(ng-click="deleteAnnouncement(announcement._id)")
+                div.clearfix
+                    span.pull-right by&nbsp;
+                        small {{announcement.by}}&nbsp;
+                        | at&nbsp;
+                        small {{announcement.at}}
+if user.profile.role=='admin'
+    div.col-md-6(style="padding:20px;")
+        div.panel.panel-info
+            div.panel-heading
+                span.panel-title
+                    | Admin Users
+                span.glyphicon.glyphicon-plus.pull-right(style="cursor:pointer",ng-click="newAdminUser=' '")
+                div(ng-show="newAdminUser")
+                    input(type="text",ng-model="newAdminUser",style="width:100%;")
+                    button.button.btn-info.pull-right(ng-click="saveAdminUser('" + user.displayName + "')") Save
+                    button.button.btn-warning.pull-right(ng-click="newAdminUser") Cancel
+                    div.clearfix
+            div.panel-body.limitHeight-lg
+                    div(ng-repeat="adminUser in adminUsers")
+                        | {{adminUser.email}}
+                        span.glyphicon.glyphicon-remove.text-danger.delete-item(ng-click="deleteAdminUser(adminUser._id)")
