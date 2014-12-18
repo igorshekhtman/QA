@@ -1,8 +1,8 @@
 #=========================================================================================
-#================== ALC_COMPLETE_TEST.PY =================================================
+#========================== aclsanity.py =================================================
 #=========================================================================================
 #
-# PROGRAM:         acl_complete_test.py
+# PROGRAM:         aclsanity.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    15-Oct-2014
 # INITIAL VERSION: 1.0.0
@@ -45,7 +45,7 @@
 #
 #=========================================================================================
 # Global Paramaters descriptions and possible values:
-# These are defined in CSV_CONFIG_FILE_NAME = "ACLConfig.csv", 
+# These are defined in CSV_CONFIG_FILE_NAME = "aclsanity.csv", 
 # Which is located in CSV_CONFIG_FILE_PATH folder
 #
 # ENVIRONMENT - "Staging" or "Production"
@@ -80,6 +80,9 @@ import random
 import re
 import sys, os
 import json
+import smtplib
+from time import gmtime, strftime, localtime
+import calendar
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
@@ -117,6 +120,50 @@ PERIMISSION_TYPES = [ \
 CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
 CSV_CONFIG_FILE_NAME = "aclsanity.csv"
 VERSION = "1.0.3"
+
+DEBUG_MODE=bool(0)
+REPORT = ""
+REPORT_TYPE = "HCC Sanity Test"
+SENDER="donotreply@apixio.com"
+CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DAY=strftime("%d", gmtime())
+MONTH=strftime("%m", gmtime())
+MONTH_FMN=strftime("%B", gmtime())
+YEAR=strftime("%Y", gmtime())
+CURDAY=strftime("%d", gmtime())
+CURMONTH=strftime("%m", gmtime())
+CURYEAR=strftime("%Y", gmtime())
+
+PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
+
+MODULES = {	"login":"0", \
+			"create new coding organization":"1", \
+			"create and delete new group":"2", \
+			"add and delete group permissions":"3", \
+			"add delete activate assign new user":"4", \
+			"log into hcc":"5", \
+			"coding view and skip":"6", \
+			"history report opportunity check":"7", \
+			"history report pagination":"8", \
+			"history report searching":"9", \
+			"history report filtering":"10", \
+			"qa report coder list check":"11", \
+			"qa report opportunity check":"12", \
+			"qa report pagination":"13", \
+			"qa report searching":"14", \
+			"qa report filtering":"15", \
+			"logout":"16" \
+			}
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+for i in range (0, 17):
+	FAILED_TOT[i] = 0
+	SUCCEEDED_TOT[i] = 0
+	RETRIED_TOT[i] = 0
+
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
 #=========================================================================================
@@ -265,7 +312,149 @@ def ListUserGroupOrg():
 	print ("* FAILED:     = %s" % FAILED)
 	print ("* SUCCEEDED:  = %s" % SUCCEEDED)
 	print ("* TOTAL:      = %s" % (RETRIED+FAILED+SUCCEEDED)) 							
-	print ("=================================")				
+	print ("=================================")		
+
+#=========================================================================================	
+	
+def checkEnvironmentandReceivers():
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	# Arg1 - environment
+	# Arg2 - report recepient
+	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
+	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	# Environment for SanityTest is passed as a paramater. Staging is a default value
+	print ("Setting environment ...\n")
+	if len(sys.argv) < 2:
+		ENVIRONMENT="staging"
+	else:
+		ENVIRONMENT=str(sys.argv[1])
+
+	if (ENVIRONMENT.upper() == "PRODUCTION"):
+		#USERNAME="apxdemot0138"
+		#PASSWORD="Hadoop.4522"
+		ENVIRONMENT = "production"
+	else:
+		#USERNAME="grinderUSR1416591626@apixio.net"
+		#PASSWORD="apixio.123"
+		ENVIRONMENT = "staging"
+	
+	if (len(sys.argv) > 2):
+		RECEIVERS=str(sys.argv[2])
+		RECEIVERS2=str(sys.argv[3])
+		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
+	elif ((len(sys.argv) < 3) or DEBUG_MODE):
+		RECEIVERS="ishekhtman@apixio.com"
+		RECEIVERS2="abeyk@apixio.com"
+		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+				
+	# overwite any previous ENVIRONMENT settings
+	#ENVIRONMENT = "Production"
+	print ("Version %s\n") % VERSION
+	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
+	print ("Completed setting of enviroment and report receivers ...\n")		
+
+#=========================================================================================	
+	
+def writeReportHeader ():
+	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
+	print ("Begin writing report header ...\n")
+	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	REPORT = REPORT + HTML_RECEIVERS
+	REPORT = REPORT + """MIME-Version: 1.0\n"""
+	REPORT = REPORT + """Content-type: text/html\n"""
+	REPORT = REPORT + """Subject: ACL %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+
+	REPORT = REPORT + """<h1>Apixio ACL Sanity Test Report</h1>\n"""
+	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
+	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
+	REPORT = REPORT + """ACL user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
+	REPORT = REPORT + """ACL app url: <b>%s</b><br>\n""" % (ACL_URL)
+	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
+	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
+	print ("End writing report header ...\n")
+
+#=========================================================================================	
+	
+def writeReportDetails(module):	
+	global REPORT
+	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+	
+	REPORT = REPORT + SUBHDR % module.upper()
+	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
+	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
+	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
+	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
+	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
+		REPORT = REPORT+FAILED
+	else:
+		REPORT = REPORT+PASSED
+	print ("Completed writeReportDetails ... \n")
+
+#=========================================================================================			
+	
+def writeReportFooter():
+	global REPORT
+	print ("Write report footer ...\n")
+	#REPORT = REPORT+"</td></tr></table>"
+	REPORT = REPORT+"<table>"
+	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT = REPORT+"</table>"
+	REPORT = REPORT+"</td></tr></table>"
+	print ("Finished writing report ...\n")
+
+#=========================================================================================	
+
+def archiveReport():
+	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
+	if not DEBUG_MODE:
+		print ("Archiving report ...\n")
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		# ------------- Create new folder if one does not exist already -------------------------------
+		if not os.path.exists(BACKUPREPORTFOLDER):
+			os.makedirs(BACKUPREPORTFOLDER)
+			os.chmod(BACKUPREPORTFOLDER, 0777)	
+		if not os.path.exists(REPORTFOLDER):
+			os.makedirs(REPORTFOLDER)
+			os.chmod(REPORTFOLDER, 0777)
+		# ---------------------------------------------------------------------------------------------
+		REPORTFILENAME=str(CURDAY)+".html"
+		REPORTXTSTRING="ACL Sanity "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTFILENAME="acl_sanity_reports_"+ENVIRONMENT.lower()+".txt"
+		# Old location 
+		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+		# New location 
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+		os.chdir(BACKUPREPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTFOLDER)
+		REPORTFILE = open(REPORTFILENAME, 'w')
+		REPORTFILE.write(REPORT)
+		REPORTFILE.close()
+		os.chdir(REPORTXTFILEFOLDER)
+		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+		REPORTFILETXT.write(REPORTXTSTRING)
+		REPORTFILETXT.close()
+		os.chdir("/mnt/automation/hcc")
+		print ("Finished archiving report ... \n")
+
+#=========================================================================================	
+
+def emailReport():
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	print ("Emailing report ...\n")
+	s=smtplib.SMTP()
+	s.connect("smtp.gmail.com",587)
+	s.starttls()
+	s.login("donotreply@apixio.com", "apx.mail47")	        
+	s.sendmail(SENDER, RECEIVERS, REPORT)	
+	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
+			
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
@@ -567,126 +756,7 @@ def logInToHCC():
 	print ("* HCC Session ID         = %s" % HCC_SESSID)
 	print ("* STATUS CODE            = %s" % response.status_code)
 	IncrementTestResultsTotals(response.status_code)	
-#=========================================================================================
-#============= ONE GROUP ONE CODING ORG MULTIPLE USERS ===================================
-#=========================================================================================
-def TestFlowControlOne():
-	global HCCUSERSLIST, PERIMISSION_TYPES
-	PrintGlobalParamaterSettings()
-	logInToACL()
-	ACLCreateNewCodingOrg()
-	HCCORGLIST[0] = CODING_ORGANIZATION
-	ACLCreateNewGroup()
-	ACLDeleteExistingGroup(GRP_UUID)
-	ACLCreateNewGroup()
-	HCCGRPLIST[0] = ACLGROUPNAME
-		
-	for permission in PERIMISSION_TYPES:
-		ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-		ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-		ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-			
-	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-		ACLCreateNewUser(0)
-		HCCUSERSLIST.append(i)
-		HCCUSERSLIST[i] = HCCUSERNAME
-		ACLActivateNewUser()
-		ACLDectivateUser(USR_UUID)
-		ACLActivateNewUser()
-		ACLSetPassword()
-		ACLAssignCodingOrg()
-		ACLAddMemberToGroup()
-		ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
-		ACLAddMemberToGroup()
-		logInToHCC()
-	#WriteToCsvFile()	
-	ListUserGroupOrg()					
-#=========================================================================================
-#============= MULTIPLE GROUPS ONE CODING ORG MULTIPLE USERS =============================
-#=========================================================================================
-def TestFlowControlTwo():
-	global HCCGRPLIST, HCCUSERSLIST
-	PrintGlobalParamaterSettings()
-	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
-		logInToACL()
-		ACLCreateNewGroup()
-		HCCGRPLIST.append(i)
-		HCCGRPLIST[i] = ACLGROUPNAME
 				
-	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-		ACLCreateNewUser(0)
-		ACLActivateNewUser()
-		ACLSetPassword()
-		ACLCreateNewCodingOrg()
-		HCCORGLIST[0] = CODING_ORGANIZATION
-		ACLAssignCodingOrg()
-		ACLAddMemberToGroup()
-		logInToHCC()
-		HCCUSERSLIST.append(i)
-		HCCUSERSLIST[i] = HCCUSERNAME
-	ListUserGroupOrg()			
-#=========================================================================================
-#============= ONE GROUP MULTIPLE CODING ORGS MULTIPLE USERS =============================
-#=========================================================================================
-def TestFlowControlThree():	
-	global HCCORGLIST, HCCUSERSLIST
-	PrintGlobalParamaterSettings()
-	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
-		logInToACL()
-		ACLCreateNewCodingOrg()
-		HCCORGLIST.append(i)
-		HCCORGLIST[i] = CODING_ORGANIZATION			
-			
-	for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-		ACLCreateNewUser(0)
-		ACLActivateNewUser()
-		ACLSetPassword()
-		ACLAssignCodingOrg()
-		ACLCreateNewGroup()
-		HCCGRPLIST[0] = ACLGROUPNAME
-		ACLAddMemberToGroup()
-		logInToHCC()
-		HCCUSERSLIST.append(i)
-		HCCUSERSLIST[i] = HCCUSERNAME
-	ListUserGroupOrg()	
-#=========================================================================================
-#============= SIMPLE CREATE ONLY ONE USER, ORG, GROUP ===================================
-#=========================================================================================
-def TestFlowControlFour():
-	global HCCUSERSLIST, HCCORGLIST, HCCGRPLIST
-	PrintGlobalParamaterSettings()
-	logInToACL()
-	ACLCreateNewCodingOrg()
-	HCCORGLIST[0] = CODING_ORGANIZATION
-	ACLCreateNewGroup()
-	HCCGRPLIST[0] = ACLGROUPNAME
-	ACLCreateNewUser(0)
-	HCCUSERSLIST[0] = HCCUSERNAME
-	ACLActivateNewUser()
-	ACLSetPassword()
-	ACLAssignCodingOrg()
-	ACLAddMemberToGroup()
-	logInToHCC()
-	#WriteToCsvFile()	
-	ListUserGroupOrg()		
-#=========================================================================================
-#============= STRESSING ADD DELETE PERMISSIONS ==========================================
-#=========================================================================================
-def TestFlowControlFive():
-	global HCCUSERSLIST, PERIMISSION_TYPES
-	PrintGlobalParamaterSettings()
-	logInToACL()
-	ACLCreateNewCodingOrg()
-	HCCORGLIST[0] = CODING_ORGANIZATION
-	ACLCreateNewGroup()
-	HCCGRPLIST[0] = ACLGROUPNAME
-
-	for i in range(0, 100):
-		for permission in PERIMISSION_TYPES:
-			ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-			ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-	#WriteToCsvFile()	
-	ListUserGroupOrg()																	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -696,22 +766,56 @@ print ("\n\nStarting ACL-Admin New User Creation...\n")
 
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
-if TEST_FLOW_CONTROL == "1":		
-	TestFlowControlOne()
-elif TEST_FLOW_CONTROL == "2":
-	TestFlowControlTwo()
-elif TEST_FLOW_CONTROL == "3":
-	TestFlowControlThree()
-elif TEST_FLOW_CONTROL == "4":
-	TestFlowControlFour()
-elif TEST_FLOW_CONTROL == "5":
-	TestFlowControlFive()			
-else:
-	print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	print (">>>>>>>>>>>>>>>>>>> TEST EXECUTION WAS ABORTED <<<<<<<<<<<<<<<<<<<<<<<")
-	print (">>>>>>>>>>> SPECIFIC TEST FLOW NUMBER MUST BE SELECTED <<<<<<<<<<<<<<<")
-	print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	print ("\n")	
+checkEnvironmentandReceivers()
+
+writeReportHeader()
+
+PrintGlobalParamaterSettings()
+
+logInToACL()
+writeReportDetails("login")
+
+# Org related testing
+ACLCreateNewCodingOrg()
+writeReportDetails("create new coding organization")
+
+# Group related testing
+ACLCreateNewGroup()
+ACLDeleteExistingGroup(GRP_UUID)
+ACLCreateNewGroup()
+writeReportDetails("create and delete new group")
+		
+for permission in PERIMISSION_TYPES:
+	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+	ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+writeReportDetails("add and delete group permissions")	
+			
+# User related testing			
+for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
+	ACLCreateNewUser(0)
+	HCCUSERSLIST.append(i)
+	HCCUSERSLIST[i] = HCCUSERNAME
+	ACLActivateNewUser()
+	ACLDectivateUser(USR_UUID)
+	ACLActivateNewUser()
+	ACLSetPassword()
+	ACLAssignCodingOrg()
+	ACLAddMemberToGroup()
+	ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
+	ACLAddMemberToGroup()
+	writeReportDetails("add delete activate assign new user") 	
+	logInToHCC()	
+	writeReportDetails("log into hcc")
+	
+ListUserGroupOrg()
+
+writeReportFooter()
+
+archiveReport()
+
+emailReport()	
+	
 print ("==== End of ACL Sanity Test =====")
 print ("=================================")
 #=========================================================================================
