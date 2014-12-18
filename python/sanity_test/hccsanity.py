@@ -111,6 +111,10 @@ REPORT = ""
 REPORT_TYPE = "HCC Sanity Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+TIME_START=time.time()
+END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DURATION_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
@@ -599,7 +603,7 @@ def writeReportHeader ():
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: HCC %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+	REPORT = REPORT + """Subject: HCC %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 
 	REPORT = REPORT + """<h1>Apixio HCC Sanity Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
@@ -632,7 +636,14 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	#REPORT = REPORT+"</td></tr></table>"
 	REPORT = REPORT+"<table>"
-	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+	TIME_END = time.time()
+	TIME_TAKEN = TIME_END - TIME_START
+	hours, REST = divmod(TIME_TAKEN,3600)
+	minutes, seconds = divmod(REST, 60)
+	REPORT = REPORT+"<tr><td>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
 	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
 	REPORT = REPORT+"</td></tr></table>"
@@ -661,17 +672,14 @@ def archiveReport():
 		# New location 
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
 		os.chdir(BACKUPREPORTFOLDER)
-		os.chmod(BACKUPREPORTFOLDER+"/"+REPORTFILENAME, 0777)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTFOLDER)
-		os.chmod(REPORTFOLDER+"/"+REPORTFILENAME, 0777)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		os.chmod(REPORTXTFILEFOLDER+"/"+REPORTXTFILENAME, 0777)
 		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 		REPORTFILETXT.write(REPORTXTSTRING)
 		REPORTFILETXT.close()
