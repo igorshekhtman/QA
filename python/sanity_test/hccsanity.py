@@ -123,8 +123,8 @@ CURDAY=strftime("%d", gmtime())
 CURMONTH=strftime("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
 
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 MODULES = {	"login":"0", \
@@ -625,9 +625,9 @@ def writeReportDetails(module):
 	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
 	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+FAILED
+		REPORT = REPORT+FAILED_STAT
 	else:
-		REPORT = REPORT+PASSED
+		REPORT = REPORT+PASSED_STAT
 	print ("Completed writeReportDetails ... \n")
 		
 	
