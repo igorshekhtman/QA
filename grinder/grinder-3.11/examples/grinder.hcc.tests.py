@@ -107,6 +107,7 @@ import sys, os
 CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
 CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 VERSION = "1.0.3"
+REVISION = "1.0.3"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -479,14 +480,14 @@ def WeightedRandomCodingAction():
 	return (action)
 
 def pages_payload(details):
-	report_json = JSONValue.parse(details)
-    	if report_json is not None:
-    		pages = report_json.get("pages")
-    		payload = len(details)
-    	else:
-    		pages = 0
-    		payload = 0
-	return (pages, payload)
+  report_json = JSONValue.parse(details)
+  if report_json is not None:
+    pages = report_json.get("pages")
+    payload = len(details)
+  else:
+    pages = 0
+    payload = 0
+  return (pages, payload)
 
 def create_request(test, headers=None):
   request = HTTPRequest()
