@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>Graphite Experiment</title>
+	<script type='text/javascript' src='https://www.google.com/jsapi'></script>
+ 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script>
+		var metric_url = "/graphite/speed?environment=staging&from=-10min&sample=5";
+      	google.load('visualization', '1', {packages:['gauge']});
+        google.setOnLoadCallback(completeSetup);
+		
+		function completeSetup() {
+			updateSpeed();
+			setInterval('updateSpeed()', 5000);			
+		}
+		
+		function updateSpeed()
+		{
+			var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+	        var options = {
+	          width: 400, height: 120,
+	          redFrom: 8, redTo: 10,
+	          yellowFrom:6, yellowTo: 8,
+	          minorTicks: 1, max: 10
+	        };
+
+    			$.get(metric_url, null).done(function( values ) {
+    		        console.log(values);
+    		        var data = google.visualization.arrayToDataTable([['Label', 'Value'],['MB/s', values]]);
+    		        chart.draw(data, options);
+	    	  });
+			
+		}
+
+	</script>
+	
+	</script>
+</head>
+<body >
+	<div id="chart_div"></div>
+	
+	
+</body>
+</html>

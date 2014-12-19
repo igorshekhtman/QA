@@ -1,0 +1,87 @@
+<html>
+  <head>
+		<title>Coordinator Queues</title>
+	 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+		<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	 	<link rel="stylesheet" href="cat.css">
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+			$(function() {
+				$( "#startdate" ).datepicker();
+				$( "#enddate" ).datepicker();
+			});
+      google.load("visualization", "1", {packages:["corechart"]});
+
+      function getChart() {
+		    	var environment = $( "#environment" ).val();
+		    	var startdate = $( "#startdate" ).val();
+		    	var enddate = $( "#enddate" ).val();
+		    	
+      			var url = "/hive/json/" + environment + "/stats";
+		    	var params = "startdate="+startdate+"&enddate="+enddate+"&filterStat=" + $( "#filterStat" ).val();
+     			$.get(url, params).done(function( values ) {
+		    		console.log(values);
+		    		drawChart(values);
+		    	  });
+		    	return false;
+      }
+      
+      function drawChart(values) {
+    	  var data = new google.visualization.DataTable();
+    	  var headers = [];
+    	  data.addColumn('date', 'time');
+    	  for(var i=0;i<values.length;i++){
+    	        var line = values[i];
+    	        var queue = line[$( "#filterStat" ).val()];
+    	        if (headers.length == 0) {
+	    	        for (var key in queue) {
+	    	        	headers.push(key);
+	    	    	  	data.addColumn('number', key);
+	    	        }   	        
+    	  		}
+    	        var array= [];
+    	        console.log(line);
+    	        array.push(new Date(line.time));
+    	        for (var key in queue) {
+    	        	array.push(parseInt(queue[key]));
+    	        }   	
+	            data.addRow(array);
+    	    }
+		
+        var options = {
+          title: 'Coordinator Stats - ' + $( "#filterStat" ).val(),
+
+          isStacked: true,
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <form id="submitRawJson" onsubmit="return false">
+			<p>Environment: 
+				<select id="environment">
+		  			<option value="production">Production</option>
+		  			<option value="staging">Staging</option>
+				</select> 	&nbsp;&nbsp;&nbsp;
+			Stat: 
+				<select id="filterStat">
+		  			<option value="queuedCount">Queue</option>
+		  			<option value="allocated">Allocated</option>
+		  			<option value="running">Running</option>
+		  			<option value="borrowableAvailable">Borrowable Available</option>
+		  			<option value="dedicatedAvailable">Dedicated Available</option>
+				</select> 
+			</p>
+			<p>
+			Start Date: <input type="text" id="startdate"> &nbsp;&nbsp;&nbsp;
+			End Date: <input type="text" id="enddate"> &nbsp;&nbsp;&nbsp;
+			<input type="submit" value="Run Query" onclick="getChart();">
+			</p>
+	</form>
+    <div id="chart_div"></div>
+  </body>
+</html>

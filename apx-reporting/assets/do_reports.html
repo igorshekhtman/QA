@@ -1,0 +1,85 @@
+<html>
+<head>
+	<title>DO Performance Daily Reports</title>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="reportstyle_do.css">
+	<link rel="icon" href="favicon.ico" type="image/x-icon">
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script>
+		$(document).ready(function() {
+			$.ajax({
+				type: "GET",
+				url: "do_reports.txt",
+				dataType: "text",
+				success: function(data) { 
+				    processData(data);
+
+                    $('.controlMonth').change(function() {
+					console.log($(this).val());
+                        processData(data, $(this).val());         
+                    });
+				}
+			 });
+
+		});
+
+		function processData(allText, month) {
+		    var month = month || null;
+
+			var record_num = 2;  // or however many elements there are in each row
+			var allTextLines = allText.split(/\r\n|\n/);
+			var output = [];
+			for (var i=1; i<allTextLines.length; i++) {
+				var data = allTextLines[i].split('\t');
+				if (data.length == 2) {
+					console.log('Adding Select Option');
+					output.push('<option value="'+ data[1] +'">'+ data[0] +'</option>');
+				} else {
+				}
+			}
+			if(month) {
+				    output = output.filter(function(e) {
+                        if(e.indexOf(month) > -1) {
+                            return e;
+                        }
+				    });
+                }
+			
+			$('#controlSelect').html(output.join(''));
+			$('#controlSelect option:last-child').attr('selected', 'selected');
+			loadReport();
+		}
+
+		function loadReport() {
+			var selected_report = $("#controlSelect").val();
+			$("#report").attr("src", selected_report);
+		}
+
+	</script>
+</head>
+<body>
+<div class="title">Data Orchestrator Performance Daily Reports</div>
+<div class="control">
+	<p><a href="https://reports.apixio.com/html/index.htm" alt="Reports home page"><img src="https://reports.apixio.com/html/home-icon-png.jpg" name="Reports home page" title="Reports home page" width="40" height="40"></a> Please select a report:</p>
+	<input class="controlMonth" type="radio" name="month" value="January"> Jan
+	<input class="controlMonth" type="radio" name="month" value="February"> Feb
+	<input class="controlMonth" type="radio" name="month" value="March"> Mar
+	<input class="controlMonth" type="radio" name="month" value="April"> Apr
+	<input class="controlMonth" type="radio" name="month" value="May"> May
+	<input class="controlMonth" type="radio" name="month" value="June"> Jun
+	<input class="controlMonth" type="radio" name="month" value="July"> Jul
+	<input class="controlMonth" type="radio" name="month" value="August"> Aug
+	<input class="controlMonth" type="radio" name="month" value="September"> Sep
+	<input class="controlMonth" type="radio" name="month" value="October"> Oct
+	<input class="controlMonth" type="radio" name="month" value="November"> Nov
+	<input class="controlMonth" type="radio" name="month" value="December"> Dec
+	<br>
+	<select id="controlSelect" onchange='javascript:loadReport()'></select>
+</div>
+<div class="frame">
+	<iframe id="report" scrolling="auto" runat="server" width="100%" height="100%"></iframe>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>Hive Query Test</title>
+<!-- Odometr includes -->
+<link rel="stylesheet" href="https://github.hubspot.com/odometer/themes/odometer-theme-car.css" />
+<link rel="stylesheet" href="https://github.hubspot.com/odometer/themes/odometer-theme-slot.css" />
+<script>
+window.odometerOptions = {
+  			auto: false, // Don't automatically initialize everything with class 'odometer'
+  			selector: '.odometer', // Change the selector used to automatically find things to be animated
+  			format: '(,ddd).dd', // Change how digit groups are formatted, and how many digits are shown after the decimal point
+  			duration: 2000, // Change how long the javascript expects the CSS animation to take
+		};
+</script>
+<script src="https://github.hubspot.com/odometer/odometer.js"></script>
+
+<!-- Extra styles for this example -->
+<style>
+.odometer {
+    font-size: 100px;
+}
+</style>
+<script language="javascript">
+    var xmlhttp;
+    var currentValue = 0;
+    var newValue = 0;
+    var counterInterval = 2000;
+    var serverInterval = 150000;
+    var timeTillUpdate = 0;
+    
+    function init() {
+    document.getElementById("env").value = "production";
+        	
+       // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+       xmlhttp = new XMLHttpRequest();
+       updateNewValue();
+       setInterval(function(){updateNewValue();}, serverInterval);
+       setInterval(function(){updateCounter();},counterInterval);
+    }
+    function updateCounter() {
+    	//var currentValue = document.getElementById("odometer").innerText;
+    	//if (currentValue != null)
+    	//{
+    		console.log("current value: " + currentValue);
+    		var diff = newValue - currentValue;
+    		if (diff > 0)
+    		{
+    			console.log("diff: " + diff);
+    			var remainingIntervals = Math.round(timeTillUpdate / counterInterval);    	
+    			console.log("remainingIntervals: " + remainingIntervals);
+    			var counterUpdateAddition = Math.round(diff / remainingIntervals);    	
+    			console.log("counterUpdateAddition: " + counterUpdateAddition);
+    			currentValue = Number(currentValue) + Number(counterUpdateAddition); 	
+    			console.log("updateValue: " + currentValue);
+    			var odometer =  document.getElementById("odometer");
+    			odometer.innerHTML = "000" + currentValue;
+    		}
+    		timeTillUpdate = timeTillUpdate - counterInterval;
+    		console.log("time to update: " + timeTillUpdate);
+    	//}
+    }
+    function updateNewValue() {
+    timeTillUpdate = serverInterval;
+    env = document.getElementById("env").value;
+    var url = "/hive/document_count/" + env;
+    xmlhttp.open('GET',url,true);
+       xmlhttp.timeout = 300000;
+       xmlhttp.ontimeout = function () { alert("Timed out!!!"); }
+        xmlhttp.send(null);
+        xmlhttp.onreadystatechange = function() {
+
+               var odometer =  document.getElementById("odometer");
+               if (xmlhttp.readyState == 4) {
+                  if ( xmlhttp.status == 200) {
+                       newValue = xmlhttp.responseText;
+                       if (currentValue == 0)
+                       {
+                       		currentValue = newValue;
+    						var odometer = new Odometer({ el: document.getElementById("odometer"), value: 0, theme: 'car' });
+							odometer.render();
+    						odometer.update(currentValue);
+                       }
+                 }
+              }
+        };
+    }    
+  </script>
+</head>
+<font face="arial" size="100px">Documents Uploaded to Pipeline 3.0</font><br/>
+<body onload="init();" style="background:#999;"><div id="odometer" class="odometer">00000</div><br/>
+<select id="env" onchange="updateNewValue()">
+  <option value="production">Production</option>
+  <option value="staging">Staging</option>
+</select> 
+</form>
+</body>
+</html>

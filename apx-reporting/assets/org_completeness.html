@@ -1,0 +1,29 @@
+<html>
+<head>
+<title>Apixio Hive Dashboard</title>
+<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script src="mustache.js"></script>
+<script src="d3.v3.min.js"></script>
+<script src="bullet.js"></script>
+<script src="org_completeness.js"></script>
+<link rel="stylesheet" href="cat.css" type="text/css" />
+<link rel="stylesheet" href="org_completeness.css" type="text/css" />
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="header">
+        <h1>Pipeline Upload Summary &nbsp;<a href="https://reports.apixio.com/html/index.htm" alt="Reports home page"><img src="https://reports.apixio.com/html/home-icon-png.jpg" name="Reports home page" title="Reports home page" width="40" height="40"></a>
+		    <select id="envDropdown" onchange="loadData();" style="width: 200px;">
+			    <option selected="selected" value="production">Production</option>
+			    <option value="staging">Staging</option>
+		    </select>
+		    <select id="orgDropdown" onchange="scrollToOrg();" style="width: 300px; align: right">
+		        <option selected="selected" value="">Select Org</option>
+		    </select>
+        </h1>
+    </div>
+	<div id="orgDetails" class="orgDetails"><script type="text/javascript">loadData();</script></div>
+</body>
+</html>

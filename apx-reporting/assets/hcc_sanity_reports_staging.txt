@@ -1,0 +1,6 @@
+HCC Sanity Staging Report - December 14, 2014	reports/staging/hccsanity/2014/12/14.html
+HCC Sanity Staging Report - December 15, 2014	reports/staging/hccsanity/2014/12/15.html
+HCC Sanity Staging Report - December 16, 2014	reports/staging/hccsanity/2014/12/16.html
+HCC Sanity Staging Report - December 17, 2014	reports/staging/hccsanity/2014/12/17.html
+HCC Sanity Staging Report - December 18, 2014	reports/staging/hccsanity/2014/12/18.html
+HCC Sanity Staging Report - December 19, 2014	reports/staging/hccsanity/2014/12/19.html
