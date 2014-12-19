@@ -10,16 +10,24 @@ URL=https://hccstage2.apixio.com
 #DOMAIN=hcc2.apixio.com
 #URL=https://hcc2.apixio.com
 ######################################
-# USERNAME=root@api.apixio.com
-# PASSWORD=thePassword
-USERNAME=grinderUSR1416591626@apixio.net
+#USERNAME=root@api.apixio.com
+#PASSWORD=thePassword
+#USERNAME=grinderUSR1416591626@apixio.net
+#PASSWORD=apixio.123
 #USERNAME=grinderUSR1414708621@apixio.net
-PASSWORD=apixio.123
-#grinderUSR1416591626@apixio.net
-#grinderUSR1416591631@apixio.net
-#grinderUSR1416591636@apixio.net
-#grinderUSR1416591640@apixio.net
-#grinderUSR1416591644@apixio.net
+#PASSWORD=apixio.123
+#USERNAME=grinderUSR1416591626@apixio.net
+#PASSWORD=apixio.123
+#USERNAME=grinderUSR1416591631@apixio.net
+#PASSWORD=apixio.123
+#USERNAME=grinderUSR1416591636@apixio.net
+#PASSWORD=apixio.123
+#USERNAME=grinderUSR1416591640@apixio.net
+#PASSWORD=apixio.123
+#USERNAME=grinderUSR1416591644@apixio.net
+#PASSWORD=apixio.123
+USERNAME=abeyk@apixio.net
+PASSWORD=multiplexor
 ######################################
 #### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
 CODE_OPPS=1
