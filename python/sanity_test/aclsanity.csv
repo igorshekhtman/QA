@@ -14,7 +14,7 @@ HCC_DOMAIN=hccstage2.apixio.com
 #HCC_URL=https://hcc2.apixio.com
 HCC_URL=https://hccstage2.apixio.com
 ########################################
-NUMBER_OF_USERS_TO_CREATE=1
+NUMBER_OF_USERS_TO_CREATE=3
 NUMBER_OF_ORGS_TO_CREATE=1
 NUMBER_OF_GRPS_TO_CREATE=1
 ########################################
@@ -28,8 +28,10 @@ ACL_CODNG_ORG_PREFIX=sanityORG
 ACL_GROUP_PREFIX=sanityGRP
 ########################################
 PROTOCOL=https://
-ACLUSERNAME=root@api.apixio.com
-ACLPASSWORD=thePassword
+#ACLUSERNAME=root@api.apixio.com
+#ACLPASSWORD=thePassword
+ACLUSERNAME=ishekhtman@apixio.com
+ACLPASSWORD=apixio.123
 ########################################
 MAX_NUM_RETRIES=5
 TEST_FLOW_CONTROL=1

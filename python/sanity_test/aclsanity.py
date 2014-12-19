@@ -123,9 +123,13 @@ VERSION = "1.0.3"
 
 DEBUG_MODE=bool(0)
 REPORT = ""
-REPORT_TYPE = "HCC Sanity Test"
+REPORT_TYPE = "ACL Sanity Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+TIME_START=time.time()
+END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DURATION_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
@@ -134,8 +138,8 @@ CURDAY=strftime("%d", gmtime())
 CURMONTH=strftime("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
 
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 MODULES = {	"login":"0", \
@@ -144,22 +148,27 @@ MODULES = {	"login":"0", \
 			"add and delete group permissions":"3", \
 			"add delete activate assign new user":"4", \
 			"log into hcc":"5", \
-			"coding view and skip":"6", \
-			"history report opportunity check":"7", \
-			"history report pagination":"8", \
-			"history report searching":"9", \
-			"history report filtering":"10", \
-			"qa report coder list check":"11", \
-			"qa report opportunity check":"12", \
-			"qa report pagination":"13", \
-			"qa report searching":"14", \
-			"qa report filtering":"15", \
-			"logout":"16" \
+			"log into acl":"6", \
+			"create new user":"7", \
+			"activate new user":"8", \
+			"deactivate existing user":"9", \
+			"set password":"10", \
+			"create new group":"11", \
+			"delete existing group":"12", \
+			"add group permission":"13", \
+			"delete group permission":"14", \
+			"add coder to a group":"15", \
+			"remove coder from a group":"16", \
+			"assign coding organization":"17", \
+			"connection to hcc host":"18", \
+			"hcc login page":"19", \
+			"hcc user login":"20", \
+			"user/password/group/org creation/deletion/assignment": "21" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-for i in range (0, 17):
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+for i in range (0, 22):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
@@ -261,14 +270,17 @@ def PrintGlobalParamaterSettings():
 	print ("* HCC Orgs to Create     = %s"%str(NUMBER_OF_ORGS_TO_CREATE))
 	print ("* HCC Groups to Create   = %s"%str(NUMBER_OF_GRPS_TO_CREATE))
 #=========================================================================================
-def IncrementTestResultsTotals(code):
+def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
+	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
 	if (code == ok) or (code == nocontent):
 		SUCCEEDED = SUCCEEDED+1
-	elif code == intserveror:
-		RETRIED = RETRIED+1
-	else:	
-		FAILED = FAILED+1 
+		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
+	#elif code == intserveror:
+	#	RETRIED = RETRIED+1
+	else:
+		FAILED = FAILED+1
+		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
 #=========================================================================================							
 def WriteToCsvFile():
 	file_obj = CSV_FILE_PATH + CSV_FILE_NAME
@@ -362,7 +374,7 @@ def writeReportHeader ():
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: ACL %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+	REPORT = REPORT + """Subject: ACL %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 
 	REPORT = REPORT + """<h1>Apixio ACL Sanity Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
@@ -386,9 +398,9 @@ def writeReportDetails(module):
 	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
 	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+FAILED
+		REPORT = REPORT+FAILED_STAT
 	else:
-		REPORT = REPORT+PASSED
+		REPORT = REPORT+PASSED_STAT
 	print ("Completed writeReportDetails ... \n")
 
 #=========================================================================================			
@@ -398,7 +410,14 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	#REPORT = REPORT+"</td></tr></table>"
 	REPORT = REPORT+"<table>"
-	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
+	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+	TIME_END = time.time()
+	TIME_TAKEN = TIME_END - TIME_START
+	hours, REST = divmod(TIME_TAKEN,3600)
+	minutes, seconds = divmod(REST, 60)
+	REPORT = REPORT+"<tr><td>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
 	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
 	REPORT = REPORT+"</td></tr></table>"
@@ -480,7 +499,7 @@ def logInToACL():
 		print ("* ACL TOKEN              = %s" % TOKEN)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals(statuscode)	
+		IncrementTestResultsTotals("log into acl", statuscode)	
 #=========================================================================================
 def ACLCreateNewUser(retries):
 	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
@@ -502,7 +521,7 @@ def ACLCreateNewUser(retries):
 	print ("* ACL TOKEN:             = %s" % TOKEN)	
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
-	IncrementTestResultsTotals(statuscode)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", statuscode)
 	if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
 		print (">>> Failure occured: username already exists <<<")
 		retries = retries + 1
@@ -522,7 +541,7 @@ def ACLActivateNewUser():
 	print ("* HCC USER UUID          = %s" % USR_UUID)
 	print ("* ACL TOKEN              = %s" % TOKEN) 	
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
 #=========================================================================================
 def ACLDectivateUser(uuid):
 	global USR_UUID, TOKEN, ACL_URL
@@ -538,7 +557,7 @@ def ACLDectivateUser(uuid):
 	print ("* HCC USER UUID          = %s" % uuid)
 	print ("* ACL TOKEN              = %s" % TOKEN) 
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)					
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)					
 #=========================================================================================
 def ACLSetPassword():
 	global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
@@ -554,7 +573,7 @@ def ACLSetPassword():
 	print ("* HCC User UUID          = %s" % USR_UUID)
 	print ("* ACL TOKEN              = %s" % TOKEN) 				
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
 #=========================================================================================
 def ACLCreateNewCodingOrg():
 	global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
@@ -577,7 +596,7 @@ def ACLCreateNewCodingOrg():
 	print ("* CODING ORG UUID        = %s" % ORG_UUID)
 	print ("* ACL TOKEN              = %s" % TOKEN)			
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("create new coding organization", response.status_code)
 #=========================================================================================
 def ACLCreateNewGroup():
 	global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
@@ -600,7 +619,7 @@ def ACLCreateNewGroup():
 	print ("* GROUP UUID             = %s" % GRP_UUID)
 	print ("* ACL TOKEN              = %s" % TOKEN)						
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("create and delete new group", response.status_code)
 #=========================================================================================
 def ACLDeleteExistingGroup(group_uuid):									
 	global ACL_URL, TOKEN
@@ -615,7 +634,7 @@ def ACLDeleteExistingGroup(group_uuid):
 	print ("* GROUP UUID             = %s" % group_uuid)
 	print ("* ACL TOKEN              = %s" % TOKEN)				
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("create and delete new group", response.status_code)
 #=========================================================================================
 def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
 	global HCCGRPEMISSIONS
@@ -634,7 +653,7 @@ def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
 	print ("* ACL TOKEN              = %s" % TOKEN)					
 	statuscode = response.status_code	
 	print ("* STATUS CODE            = %s" % statuscode)
-	IncrementTestResultsTotals(statuscode)
+	IncrementTestResultsTotals("add and delete group permissions", statuscode)
 	if (statuscode == ok) or (statuscode == nocontent):
 		if per_type == "canAnnotate":
 			HCCGRPEMISSIONS[0] = "1"
@@ -669,7 +688,7 @@ def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
 	print ("* PERMISSION TYPE        = %s" % per_type)		
 	print ("* ACL TOKEN              = %s" % TOKEN)				
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)			
+	IncrementTestResultsTotals("add and delete group permissions", response.status_code)			
 #=========================================================================================
 def ACLAddMemberToGroup():
 	global USR_UUID, GRP_UUID, ACL_URL
@@ -687,7 +706,7 @@ def ACLAddMemberToGroup():
 	print ("* HCC USER UUID          = %s" % USR_UUID)		
 	print ("* ACL TOKEN              = %s" % TOKEN)						
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
 #=========================================================================================
 def ACLDelMemberFromGroup(group_uuid, usr_uuid):	
 	print ("\n----------------------------------------------------------------------------")
@@ -702,7 +721,7 @@ def ACLDelMemberFromGroup(group_uuid, usr_uuid):
 	print ("* ACL GROUP UUID:        = %s" % group_uuid)				
 	print ("* ACL TOKEN:             = %s" % TOKEN)			
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
 #=========================================================================================
 def ACLAssignCodingOrg():
 	global USR_UUID, ORG_UUID, ACL_URL
@@ -720,7 +739,7 @@ def ACLAssignCodingOrg():
 	print ("* ACL ORG UUID           = %s" % ORG_UUID)				
 	print ("* ACL TOKEN              = %s" % TOKEN)								
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)
+	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
 #=========================================================================================
 def logInToHCC(): 
 	global TOKEN, SESSID, DATA, HEADERS
@@ -729,12 +748,14 @@ def logInToHCC():
 	HCC_HOST_DOMAIN = 'hccstage.apixio.com'
 	HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
 	response = requests.get(HCC_URL+'/')
+	IncrementTestResultsTotals("log into hcc", response.status_code)
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> HCC - CONNECT TO HOST <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* RESPONSE CODE          = %s" % response.status_code)
 	url = referer = HCC_URL+'/account/login/?next=/'
 	response = requests.get(url)
+	IncrementTestResultsTotals("log into hcc", response.status_code)
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> HCC - LOGIN PAGE <<<")
 	print ("----------------------------------------------------------------------------")	
@@ -755,7 +776,7 @@ def logInToHCC():
 	print ("* HCC Token              = %s" % HCC_TOKEN)
 	print ("* HCC Session ID         = %s" % HCC_SESSID)
 	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals(response.status_code)	
+	IncrementTestResultsTotals("log into hcc", response.status_code)	
 				
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
@@ -773,7 +794,7 @@ writeReportHeader()
 PrintGlobalParamaterSettings()
 
 logInToACL()
-writeReportDetails("login")
+writeReportDetails("log into acl")
 
 # Org related testing
 ACLCreateNewCodingOrg()
@@ -804,9 +825,11 @@ for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
 	ACLAddMemberToGroup()
 	ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
 	ACLAddMemberToGroup()
-	writeReportDetails("add delete activate assign new user") 	
 	logInToHCC()	
-	writeReportDetails("log into hcc")
+writeReportDetails("user/password/group/org creation/deletion/assignment")
+
+logInToHCC()
+writeReportDetails("log into hcc")
 	
 ListUserGroupOrg()
 
@@ -819,12 +842,3 @@ emailReport()
 print ("==== End of ACL Sanity Test =====")
 print ("=================================")
 #=========================================================================================
-		
-		
-		
-		
-		
-		
-		
-		       
-            
