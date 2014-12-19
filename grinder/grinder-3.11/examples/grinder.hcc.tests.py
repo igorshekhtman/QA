@@ -107,7 +107,6 @@ import sys, os
 CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Documents/grinder/grinder-3.11/examples/"
 CSV_CONFIG_FILE_NAME = "hccconfig.csv"
 VERSION = "1.0.3"
-REVISION = "1.0.3"
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
