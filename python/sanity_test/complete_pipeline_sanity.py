@@ -20,7 +20,13 @@ os.system('clear')
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ===============================================
 
-TEST_TYPE="SanityTest"
+TEST_TYPE="PipelineSanityTest"
+YEAR=strftime("%Y", gmtime())
+CURMONTH=strftime("%m", gmtime())
+MONTH_FMN=strftime("%B", gmtime())
+CURDAY=strftime("%d", gmtime())
+START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+TIME_START=time.time()
 
 # Environment for SanityTest is passed as a paramater. Staging is a default value
 if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
@@ -39,11 +45,8 @@ else:
 	ENVIRONMENT="Staging"
 #==================================
 
-	
-
 print ("ENVIRONMANT = %s") % ENVIRONMENT
 # time.sleep(15)
-
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 
@@ -52,20 +55,8 @@ BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 
-#BATCHID=strftime("%d%m%Y%H%M%S", gmtime())
-#bad - does not exist in any logs
-#BATCHID = "061918020232"
-#old - missing pipeline logs but not indexer
-#BATCHID="021914020236"
-#good
-#BATCHID="022114020236"
-
-
-
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 TOKEN_URL="%s/auth/token/" % (HOST)
-
-
 
 BATCH=ORGID+"_"+TEST_TYPE+ENVIRONMENT+"_"+BATCHID
 DRBATCH=TEST_TYPE+ENVIRONMENT+"_"+BATCHID
@@ -1047,8 +1038,15 @@ conn.close()
 # ===================================================================================================================================
 
 
-REPORT=REPORT+"<table><tr><td><br>End of %s - %s QA report<br><br></td></tr>" % (BATCH, CUR_TIME)
-REPORT=REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
+END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+REPORT = REPORT+"<table><tr><td><br>Start of %s - <b>%s</b></td></tr>" % (BATCH, START_TIME)
+REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (BATCH, END_TIME)
+TIME_END = time.time()
+TIME_TAKEN = TIME_END - TIME_START
+hours, REST = divmod(TIME_TAKEN,3600)
+minutes, seconds = divmod(REST, 60)
+REPORT = REPORT+"<tr><td>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
+REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr></table>"
 
 
 # CONTENT="Subject: %s<br><br>%s" % (SUBJECT, REPORT)
@@ -1066,3 +1064,38 @@ else:
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
 	print "Report completed, email to %s ...\n" % (RECEIVERS)
 	print ">>>>>>>>>>> Sanity Test Failed <<<<<<<<<<<\n"
+	
+#===================================== ARCHIVE REPORT ===================================================================================
+
+print ("Archiving report ...\n")
+BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
+REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
+# ------------- Create new folder if one does not exist already -------------------------------
+if not os.path.exists(BACKUPREPORTFOLDER):
+	os.makedirs(BACKUPREPORTFOLDER)
+	os.chmod(BACKUPREPORTFOLDER, 0777)	
+if not os.path.exists(REPORTFOLDER):
+	os.makedirs(REPORTFOLDER)
+	os.chmod(REPORTFOLDER, 0777)
+# ---------------------------------------------------------------------------------------------
+REPORTFILENAME=str(CURDAY)+".html"
+REPORTXTSTRING="Pipeline Sanity "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
+REPORTXTFILENAME="pipeline_sanity_reports_"+ENVIRONMENT.lower()+".txt"
+# Old location 
+#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
+# New location 
+REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+os.chdir(BACKUPREPORTFOLDER)
+REPORTFILE = open(REPORTFILENAME, 'w')
+REPORTFILE.write(REPORT)
+REPORTFILE.close()
+os.chdir(REPORTFOLDER)
+REPORTFILE = open(REPORTFILENAME, 'w')
+REPORTFILE.write(REPORT)
+REPORTFILE.close()
+os.chdir(REPORTXTFILEFOLDER)
+REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+REPORTFILETXT.write(REPORTXTSTRING)
+REPORTFILETXT.close()
+os.chdir("/mnt/automation")
+print ("Finished archiving report ... \n")	
