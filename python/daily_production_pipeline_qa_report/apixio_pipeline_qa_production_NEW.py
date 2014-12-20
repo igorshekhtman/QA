@@ -146,6 +146,7 @@ ORGMAP = { \
 	"10000286":"Scripps", \
 	"10000288":"UHS", \
 	"10000291":"HCP of Nevada", \
+	"10000296":"Lous Hospital", \
 	"10000298":"Theresas Hospital", \
 	"10000299":"Erins Hospital", \
 	"10000300":"Erics Hospital", \
