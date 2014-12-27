@@ -56,7 +56,7 @@ fi
 for t in $appNames
 do
 
-/usr/bin/hive --service beeline -u jdbc:hive2://10.0.0.10:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
+/usr/bin/hive --service beeline -u jdbc:hive2://10.0.2.12:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
 #The 2 new hive server addresses are: 10.0.0.10 and 10.0.2.12
 
 
