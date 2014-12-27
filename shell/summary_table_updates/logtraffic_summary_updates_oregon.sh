@@ -56,10 +56,8 @@ fi
 for t in $appNames
 do
 
-#/usr/bin/hive --service beeline -u jdbc:hive2://10.0.0.10:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
-#/usr/bin/hive --service beeline -u jdbc:hive2://54.68.255.18:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
-/usr/bin/hive --service beeline -u jdbc:hive2://54.149.166.25:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
-#The 2 new hive server addresses are: 54.68.255.18 and 54.149.166.25
+/usr/bin/hive --service beeline -u jdbc:hive2://10.0.0.10:10000 -n hive -d org.apache.hive.jdbc.HiveDriver  >> update_summary.log   << EOF
+#The 2 new hive server addresses are: 10.0.0.10 and 10.0.2.12
 
 
 set hive.exec.dynamic.partition=true;
