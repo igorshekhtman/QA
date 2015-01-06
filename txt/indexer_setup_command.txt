@@ -1,3 +1,41 @@
+====================== NEW SERVERS ===========================================================
+New Hive:
+54.149.166.25:10000
+
+
+
+
+qa-prd1
+qa.apixio.com
+54.176.225.214 (external)
+10.250.164.225 (internal)
+
+AWS Large
+2 CPU
+7 GB RAM
+/mnt 30 GB
+/mnt1 30 GB (temp)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       20G  5.9G   13G  32% /
+none            3.6G     0  3.6G   0% /dev/shm
+/dev/xvdc       493G  198M  467G   1% /mnt
+/dev/xvdb        30G  173M   28G   1% /mnt1
+
+
+
+Here are the details for the automation server
+automation-prd1
+automation.apixio.com
+54.193.182.239
+AWS Small
+1 CPUa
+2 GB RAM
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       20G  6.1G   13G  33% /
+none            848M     0  848M   0% /dev/shm
+/dev/xvdb       147G  188M  140G   1% /mnt
+
+
 ====================== DNS, SERVERS, ENVIRONMENTS, LISTS, NAMES ==============================
 
 HCC Environments:

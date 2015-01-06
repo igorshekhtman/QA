@@ -68,6 +68,7 @@ DAYSBACK=1
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
+#CURYEAR="2014"
 DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
@@ -272,6 +273,7 @@ def identifyReportDayandMonth():
 	#DAY = str(CURDAY)
 	#MONTH = str(CURMONTH)	
 	MONTH_FMN = calendar.month_name[CURMONTH]
+	#YEAR="2014"
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
@@ -302,7 +304,7 @@ def writeReportHeader ():
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='54.191.226.61', \
+	conn = pyhs2.connect(host='54.149.166.25', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
@@ -1241,7 +1243,8 @@ def archiveReport():
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
 		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
+		#REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -1256,7 +1259,8 @@ def archiveReport():
 		# Old location 
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		# New location 
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
@@ -1269,7 +1273,7 @@ def archiveReport():
 		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 		REPORTFILETXT.write(REPORTXTSTRING)
 		REPORTFILETXT.close()
-		os.chdir("/mnt/automation")
+		os.chdir("/mnt/automation/python/daily_production_pipeline_qa_report")
 		print ("Finished archiving report ... \n")
 
 
