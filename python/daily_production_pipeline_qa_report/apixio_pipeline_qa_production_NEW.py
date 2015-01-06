@@ -63,12 +63,12 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=1
+DAYSBACK=18
 #DAYSBACK=5
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
-#CURYEAR="2014"
+CURYEAR="2014"
 DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
@@ -273,7 +273,7 @@ def identifyReportDayandMonth():
 	#DAY = str(CURDAY)
 	#MONTH = str(CURMONTH)	
 	MONTH_FMN = calendar.month_name[CURMONTH]
-	#YEAR="2014"
+	YEAR="2014"
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
@@ -1260,7 +1260,8 @@ def archiveReport():
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		# New location 
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting"
+		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting"
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
@@ -1273,7 +1274,7 @@ def archiveReport():
 		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 		REPORTFILETXT.write(REPORTXTSTRING)
 		REPORTFILETXT.close()
-		os.chdir("/mnt/automation/python/daily_production_pipeline_qa_report")
+		os.chdir("/mnt/automation")
 		print ("Finished archiving report ... \n")
 
 
