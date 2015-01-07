@@ -22,6 +22,16 @@ import MySQLdb
 os.system('clear')
 
 #================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
+# Sample call:
+# python2.7 apixio_pipeline_qa_production_NEW.py production eng@apixio.com ops@apixio.com 1 2014
+#
+# Environment for SanityTest is passed as a paramater. Staging is a default value
+# Arg1 - environment
+# Arg2 - report recepient #1
+# Arg3 - report recepient #2
+# Arg4 - DAYSBACK
+# Arg5 - CURYEAR
+
 
 # Specific Report Section to Run:
 #  0 - All
@@ -63,12 +73,12 @@ DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
 MONTH_FMN=strftime("%B", gmtime())
 YEAR=strftime("%Y", gmtime())
-DAYSBACK=18
+DAYSBACK=1
 #DAYSBACK=5
 CURDAY=("%d", gmtime())
 CURMONTH=("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
-CURYEAR="2014"
+#CURYEAR="2014"
 DATERANGE=""
 CURDAY=gmtime().tm_mday
 CURMONTH=gmtime().tm_mon
@@ -193,8 +203,12 @@ ORGMAP = { \
 def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
-	# Arg2 - report recepient
-	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
+	# Arg2 - report recepient #1
+	# Arg3 - report recepient #2
+	# Arg4 - DAYSBACK
+	# Arg5 - CURYEAR
+
+	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS, YEAR, CURYEAR, DAYSBACK
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
@@ -230,8 +244,17 @@ def checkEnvironmentandReceivers():
 		RECEIVERS="ishekhtman@apixio.com"
 		RECEIVERS2="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
-
-				
+	
+	if (len(sys.argv) > 4):
+		DAYSBACK=int(sys.argv[4])
+		
+	if (len(sys.argv) > 5):	
+		CURYEAR=int(sys.argv[5])
+		YEAR=int(sys.argv[5])
+		
+	print "DAYS BACK = %s" % DAYSBACK
+	print "YEAR CURYEAR = %s %s" % (YEAR, CURYEAR)	
+	#quit()		
 	# overwite any previous ENVIRONMENT settings
 	#ENVIRONMENT = "Production"
 	print ("Version 1.0.1\n")
@@ -273,7 +296,7 @@ def identifyReportDayandMonth():
 	#DAY = str(CURDAY)
 	#MONTH = str(CURMONTH)	
 	MONTH_FMN = calendar.month_name[CURMONTH]
-	YEAR="2014"
+	#YEAR="2014"
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
