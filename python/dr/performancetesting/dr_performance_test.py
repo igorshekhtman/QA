@@ -446,7 +446,7 @@ def startDrService():
 def connectToHive():
 	global cur, conn
 	print ("Connecing to Hive ...\n")
-	conn = pyhs2.connect(host='54.191.226.61', \
+	conn = pyhs2.connect(host='54.149.166.25', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
@@ -817,7 +817,7 @@ def archiveReport():
 	print ("Archiving report ...\n")
 	BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
 	#REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
-	REPORTFOLDER="/usr/lib/apx-reporting/html/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
+	REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)
 	# ------------- Create new folder if one does not exist already -------------------------------
 	if not os.path.exists(BACKUPREPORTFOLDER):
 		os.makedirs(BACKUPREPORTFOLDER)
@@ -830,7 +830,7 @@ def archiveReport():
 	REPORTXTSTRING="DR Performance Report ("+ENVIRONMENT.lower()+") - "+str(MONTH_FMN)+" "+str(DAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT.lower()+"/"+PIPELINE_MODULE.lower()+"/"+str(YEAR)+"/"+str(MONTH)+"/"+REPORTFILENAME+"\n"
 	REPORTXTFILENAME=PIPELINE_MODULE.lower()+"_reports.txt"
 	#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+	REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 	print (REPORTFOLDER)
 	print (REPORTFILENAME)
 	print (REPORTXTSTRING)
@@ -848,7 +848,7 @@ def archiveReport():
 	REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 	REPORTFILETXT.write(REPORTXTSTRING)
 	REPORTFILETXT.close()
-	os.chdir("/mnt/automation/dr/performancetesting")
+	os.chdir("/mnt/automation/python/dr/performancetesting")
 	print ("Completed archiving report %s in folder %s ...\n") % (REPORTFILENAME, REPORTFOLDER)
 
 # ===================================================================================================================================
