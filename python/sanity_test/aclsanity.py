@@ -117,7 +117,7 @@ PERIMISSION_TYPES = [ \
 #=========================================================================================
 #===================== Initialization of the ACLConfig file ==============================
 #=========================================================================================
-CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
 CSV_CONFIG_FILE_NAME = "aclsanity.csv"
 VERSION = "1.0.3"
 
