@@ -175,6 +175,8 @@ ORGMAP = { \
 	"10000338":"Network Health Feasibility", \
 	"10000339":"Healthnow Feasibility", \
 	"10000340":"Healthnow", \
+	"10000341":"TestMMG", \
+	"10000342":"Brown Toland HCC", \
 	"190":"Staging Test Org", \
 	"370":"Sanity Test Org", \
 	"315":"Staging DR Perf Test Org", \
