@@ -100,7 +100,7 @@ import calendar
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
 CSV_CONFIG_FILE_NAME = "hccstress.csv"
 VERSION = "1.0.3"
 # Email reports to eng@apixio.com and archive report html file:
@@ -222,7 +222,7 @@ def logInToHCC():
   print "* Login page         = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
-  	quit()
+  	logInToHCC()
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
   DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
@@ -232,6 +232,9 @@ def logInToHCC():
   response = requests.post(url, data=DATA, headers=HEADERS) 
   IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
+  if response.status_code == 500:
+  	print "* Log in user = FAILED QA"
+  	logInToHCC()
   
   
 def startCoding():
@@ -742,6 +745,11 @@ def IncrementTestResultsTotals(module, code):
 	else:
 		FAILED = FAILED+1
 		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
+		RETRIED = RETRIED+1
+		RETRIED_TOT[int(MODULES[module])] = RETRIED_TOT[int(MODULES[module])] + 1
+		if RETRIED > int(MAX_NUM_RETRIES):
+			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
+			quit()
     
 def log(text):
 	global REPORT
@@ -801,13 +809,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "2": # Reject Doc
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
@@ -855,6 +863,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "3": # Skip Opp
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
@@ -899,6 +908,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   else:
     print("* CODER ACTION     = Unknown\n")
   return 0
@@ -910,6 +920,8 @@ os.system('clear')
 readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 
 checkEnvironmentandReceivers()
+
+print "Maximum number of retries is set to = %s" % MAX_NUM_RETRIES
 
 writeReportHeader()	
 

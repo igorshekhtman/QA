@@ -62,5 +62,5 @@ QA_REPORT_PAGES_MAX=5
 #### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
-MAX_NUM_RETRIES=1
+MAX_NUM_RETRIES=10
 ######################################
