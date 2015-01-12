@@ -458,7 +458,7 @@ def archiveReport():
 		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 		REPORTFILETXT.write(REPORTXTSTRING)
 		REPORTFILETXT.close()
-		os.chdir("/mnt/automation/hcc")
+		os.chdir("/mnt/automation/python/sanity_test")
 		print ("Finished archiving report ... \n")
 
 #=========================================================================================	
