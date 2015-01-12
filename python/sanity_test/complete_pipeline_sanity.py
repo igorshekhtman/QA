@@ -281,9 +281,9 @@ if ENVIRONMENT == "Staging":
 
 # ================================ PAUSE FOR UPLOAD TO COMPLETE BEFORE PROCEEDING TO QUERIES ==============================================================================
 
-#PAUSE_LIMIT = 300
+PAUSE_LIMIT = 300
 #Increased for the time being of cluster being 100% occupied ... 10-13-14 Igor
-PAUSE_LIMIT = 600
+#PAUSE_LIMIT = 600
 
 
 # wait for PAUSE_LIMIT seconds
@@ -345,7 +345,7 @@ User name: <b>%s</b><br>
 """ % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
 
 
-conn = pyhs2.connect(host='54.191.226.61',
+conn = pyhs2.connect(host='54.149.166.25',
                    port=10000,
                    authMechanism="PLAIN",
                    user='hive',
@@ -1069,7 +1069,7 @@ else:
 
 print ("Archiving report ...\n")
 BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
-REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
+REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
 # ------------- Create new folder if one does not exist already -------------------------------
 if not os.path.exists(BACKUPREPORTFOLDER):
 	os.makedirs(BACKUPREPORTFOLDER)
@@ -1084,7 +1084,7 @@ REPORTXTFILENAME="pipeline_sanity_reports_"+ENVIRONMENT.lower()+".txt"
 # Old location 
 #REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 # New location 
-REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 os.chdir(BACKUPREPORTFOLDER)
 REPORTFILE = open(REPORTFILENAME, 'w')
 REPORTFILE.write(REPORT)
@@ -1097,5 +1097,5 @@ os.chdir(REPORTXTFILEFOLDER)
 REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 REPORTFILETXT.write(REPORTXTSTRING)
 REPORTFILETXT.close()
-os.chdir("/mnt/automation")
+os.chdir("/mnt/automation/python/sanity_test")
 print ("Finished archiving report ... \n")	
