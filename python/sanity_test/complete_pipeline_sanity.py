@@ -54,6 +54,12 @@ CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 DAY=strftime("%d", gmtime())
 MONTH=strftime("%m", gmtime())
+DAY = "\"%s\"" % (CURDAY)
+if (CURDAY < 10):
+	DAY = "\"0%s\"" % (CURDAY)
+MONTH = "\"%s\"" % (CURMONTH)
+if (CURMONTH < 10):
+	MONTH = "\"0%s\"" % (CURMONTH)
 
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID)
 TOKEN_URL="%s/auth/token/" % (HOST)
