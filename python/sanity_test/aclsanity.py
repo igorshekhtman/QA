@@ -430,7 +430,7 @@ def archiveReport():
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
 		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -445,7 +445,7 @@ def archiveReport():
 		# Old location 
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		# New location 
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
+		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
