@@ -345,10 +345,26 @@ def checkEnvironmentandReceivers():
 		#USERNAME="apxdemot0138"
 		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
+		ACL_DOMAIN="acladmin.apixio.com"
+		ACL_URL="https://acladmin.apixio.com"
+		HCC_DOMAIN="hcc.apixio.com"
+		HCC_URL="https://hcc.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="root@api.apixio.com"
+		ACLPASSWORD="thePassword"
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
+		ACL_DOMAIN="acladmin-stg.apixio.com"
+		ACL_URL="https://acladmin-stg.apixio.com"
+		HCC_DOMAIN="hccstage2.apixio.com"
+		HCC_URL="https://hccstage2.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD="apixio.123"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
