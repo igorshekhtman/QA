@@ -344,7 +344,7 @@ Subject: Pipeline QA Report %s batchID %s - %s
 <h1>Apixio Pipeline QA Report</h1>
 Date & Time: <b>%s</b><br>
 Test type: <b>%s</b><br>
-Enviromnent: <b>%s</b><br>
+Enviromnent: <b><font color='red'>%s</font></b><br>
 OrgID: <b>%s</b><br>
 BatchID: <b>%s</b><br>
 User name: <b>%s</b><br>
