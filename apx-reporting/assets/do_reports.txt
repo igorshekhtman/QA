@@ -125,3 +125,9 @@ DO Performance Report (staging) - December 16, 2014	reports/staging/do/dataorche
 DO Performance Report (staging) - December 17, 2014	reports/staging/do/dataorchestratorsimulation-1418822106916/index.html
 DO Performance Report (staging) - December 18, 2014	reports/staging/do/dataorchestratorsimulation-1418908507055/index.html
 DO Performance Report (staging) - December 19, 2014	reports/staging/do//index.html
+DO Performance Report (staging) - January 08, 2015	reports/staging/do/dataorchestratorsimulation-1420672264790/index.html
+DO Performance Report (staging) - January 08, 2015	reports/staging/do//index.html
+DO Performance Report (staging) - January 09, 2015	reports/staging/do//index.html
+DO Performance Report (staging) - January 10, 2015	reports/staging/do//index.html
+DO Performance Report (staging) - January 11, 2015	reports/staging/do/dataorchestratorsimulation-1420982105832/index.html
+DO Performance Report (staging) - January 12, 2015	reports/staging/do//index.html

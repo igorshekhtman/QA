@@ -516,3 +516,4 @@ Daily Staging Report - December 17, 2014	reports/staging/pipeline/2014/12/17.htm
 Daily Production Report - December 18, 2014	reports/production/pipeline/2014/12/18.html
 Daily Production Report - December 18, 2014	reports/production/pipeline/2014/12/18.html
 Daily Staging Report - December 18, 2014	reports/staging/pipeline/2014/12/18.html
+Daily Production Report - January 19, 2014	reports/production/pipeline/2014/12/19.html
