@@ -11,41 +11,20 @@
 #          This program should be executed via Python2.7 for testing DataOrchestrator functionality:
 #			* Log into DataOrchestrator API
 #			* Obtain and save token
-#			* Create new unique Coding Org(s) and save org_uuid(s)
-#				- Multiple Coding Orgs allowed (NUMBER_OF_ORGS_TO_CREATE) 
-#			* Create new unique HCC user(s) and save user_uuid(s) 
-#				- Multiple HCC Users allowed (NUMBER_OF_USERS_TO_CREATE)
-#			* Create new unique ALC Group and save GRP_UUID
-#				- Multiple ACL Groups are allowed (NUMBER_OF_GRPS_TO_CREATE)
-#			* Activate newly created HCC user
-#			* Deactivate a specific HCC user
-#			* Assign newly created user pre-defined password (HCC_PASSWORD)
-#			* Assign newly created HCC user coding org
-#				- Either pre-defined coding org or newly created coding org
-#			* Assign specific or newly created coding org to a user
-#			* Add list of members to a newly created Group
-#			* Remove specific member(s) from a Group
-#			* Add specific rules to a Group
-#			* Delete specific rules from a Group
-#			* Log into HCC with newly created user/org
-#			* Store each of the newly created users in an array (HCCUSERSLIST[])
-#			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
-#			* Report total number of retries, failures and successes
+#			* Test Patient, Util and Document endpoints
+#
 #
 # SETUP:
-#          * Assumes a ACL and HCC environments are available
-#          * Assumes a Grinder environment is available
-#          * For further details, see http://grinder.sourceforge.net
+#          * Assumes DataOrchestrator environment is available
+#          * Assume  Python2.7 is available
 #
 # USAGE:
-#          * Ensure Grinder is configured to execute acl_complete_test.py
-#          * Set the global variables, see below (Global Test Environment Selection)
-#          * Run acl_complete_test.py
-#          * Results will be printed on Grinder Agent and in Grinder Console log files
+#          * Execute via following command dosanitytest.py staging eng@apixio.com ops@apixio.com
+#		   * Ensure that dosanity.csv file is located in the same folder as dosanity.py script
 #
 #=========================================================================================
 # Global Paramaters descriptions and possible values:
-# These are defined in CSV_CONFIG_FILE_NAME = "aclsanity.csv", 
+# These are defined in CSV_CONFIG_FILE_NAME = "dosanity.csv", 
 # Which is located in CSV_CONFIG_FILE_PATH folder
 #
 # ENVIRONMENT - "Staging" or "Production"
@@ -59,18 +38,6 @@
 #
 # MAX_NUM_RETRIES - global limit for number of retries (statuscode = 500)
 #=========================================================================================
-# Revision 1: 1.0.1
-# Author: Igor Shekhtman ishekhtman@apixio.com 
-# Specifics: Introduction of Program Flow Control
-#=========================================================================================
-# Revision 2: 1.0.2
-# Author: Igor Shekhtman ishekhtman@apixio.com
-# Specifics: Introduction of external ACLConfig.csv configuration file
-#=========================================================================================
-# Revision 3:
-# Author:
-# Specifics:
-#=========================================================================================
 import requests
 import time
 import datetime
@@ -82,40 +49,9 @@ import sys, os
 import json
 import smtplib
 from time import gmtime, strftime, localtime
-import calendar
+import calendar	
 #=========================================================================================
-#=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
-#=========================================================================================
-CDGORGMAP = { \
-	"AE & Associates":"UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", \
-	"Scripps":"UO_609aa5c3-4bff-4aec-a629-1da4f0be144e", \
-	"Coding Org 1":"UO_5c83fcf7-d216-42ca-859d-9908e74049e5", \
-	"Coding Org 2":"UO_c2fee803-b169-4bfb-9e46-137295379b46", \
-	"Coding Org 3":"UO_fb540446-a07d-4e2f-b2a2-6caf1179d455", \
-	"HealthCare Partners":"UO_62eb7683-e42b-4cf4-a7cf-e91dcaf68bbb", \
-	"Apixio Coders":"UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76", \
-	"CCHCA":"UO_6cbe9df5-cdfb-414f-b1f0-f44c7b519bcb", \
-	"Load Test Coders":"UO_149af107-1ef7-49a0-923e-be4b2de174b3", \
-	"org0420":"UO_7c6cf5ea-b35c-4ecf-866f-915f70269d34", \
-	"test Coding org":"UO_ee2a6959-bc38-40c3-813b-d3e7a9cc681b", \
-	"Test Org2":"UO_8f2082b8-5060-4e90-bd6e-3db8f97659a6", \
-	"Test Org 1000":"UO_45dcce68-47a8-4e0f-9cf4-467476021337", \
-	"Test Org 1000":"UO_1296f532-2605-4e63-9d09-e5e992bd07ea", \
-	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
-	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \
-	}
-
-PERIMISSION_TYPES = [ \
-	"canAnnotate", \
-	"viewDocuments", \
-	"viewReportsAnnotatedFor", \
-	"viewReportsAnnotatedBy", \
-	"viewAllAnnotations", \
-	"canRelease" \
-	]
-	
-#=========================================================================================
-#===================== Initialization of the ACLConfig file ==============================
+#===================== Initialization of the DOConfig file ===============================
 #=========================================================================================
 CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
 CSV_CONFIG_FILE_NAME = "dosanity.csv"
@@ -142,33 +78,25 @@ PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font s
 FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
-MODULES = {	"login":"0", \
-			"create new coding organization":"1", \
-			"create and delete new group":"2", \
-			"add and delete group permissions":"3", \
-			"add delete activate assign new user":"4", \
-			"log into hcc":"5", \
-			"log into acl":"6", \
-			"create new user":"7", \
-			"activate new user":"8", \
-			"deactivate existing user":"9", \
-			"set password":"10", \
-			"create new group":"11", \
-			"delete existing group":"12", \
-			"add group permission":"13", \
-			"delete group permission":"14", \
-			"add coder to a group":"15", \
-			"remove coder from a group":"16", \
-			"assign coding organization":"17", \
-			"connection to hcc host":"18", \
-			"hcc login page":"19", \
-			"hcc user login":"20", \
-			"user/password/group/org creation/deletion/assignment": "21" \
+MODULES = {	"obtain authorization":"0", \
+			"exchange token":"1", \
+			"patient demographics":"2", \
+			"patient externalid":"3", \
+			"patient apo":"4", \
+			"util healthcheck":"5", \
+			"util version":"6", \
+			"document text":"7", \
+			"document metagata":"8", \
+			"document file":"9", \
+			"document textco":"10", \
+			"document simplecontent":"11", \
+			"document rawcontent":"12", \
+			"document extractedcontent":"13" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-for i in range (0, 22):
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+for i in range (0, 14):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
@@ -179,7 +107,7 @@ for i in range (0, 22):
 #
 # Author: Igor Shekhtman ishekhtman@apixio.com
 #
-# Creation Date: 23-Oct-2014
+# Creation Date: 13-Jan-2015
 #
 # Description: Global configuration variables are read from "CSV_CONFIG_FILE_NAME" 
 # defined above which is located in "CSV_CONFIG_FILE_PATH".  All values are read into 
@@ -206,6 +134,7 @@ accepted = 202
 nocontent = 204
 movedperm = 301
 redirect = 302
+unauthorized = 401
 forbidden = 403
 intserveror = 500
 servunavail = 503
@@ -262,13 +191,16 @@ def PrintGlobalParamaterSettings():
 	print ("\n")
 	print ("* Version                = %s"%VERSION)
 	print ("* Environment            = %s"%ENVIRONMENT)
-	print ("* ACL URL                = %s"%ACL_URL)
-	print ("* HCC URL                = %s"%HCC_URL)
-	print ("* ACL Admin User Name    = %s"%ACLUSERNAME)
-	print ("* Coding Organization    = %s"%CODING_ORGANIZATION)
-	print ("* HCC Users to Create    = %s"%str(NUMBER_OF_USERS_TO_CREATE))
-	print ("* HCC Orgs to Create     = %s"%str(NUMBER_OF_ORGS_TO_CREATE))
-	print ("* HCC Groups to Create   = %s"%str(NUMBER_OF_GRPS_TO_CREATE))
+	print ("* Username               = %s"%USERNAME)
+	print ("* Password               = %s"%PASSWORD)
+	print ("* Patient UUID           = %s"%PAT_UUID)
+	print ("* Document UUID          = %s"%DOC_UUID)
+	print ("* Authorization URL      = %s"%AUTH_URL)
+	print ("* Token URL              = %s"%TOKEN_URL)
+	print ("* Document URL           = %s"%DOCUMENT_URL)
+	print ("* Patient URL            = %s"%PATIENT_URL)
+	print ("* Event URL              = %s"%EVENT_URL)
+	print ("* Util URL               = %s"%UTIL_URL)
 #=========================================================================================
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -298,42 +230,15 @@ def WriteToCsvFile():
 			HCCGRPEMISSIONS[3], HCCGRPEMISSIONS[4]])
 	#f.write('\n')
 	f.close()	
-#=========================================================================================	
-def ListUserGroupOrg():
-	print ("\n")
-	if int(NUMBER_OF_USERS_TO_CREATE) > 0:
-		print ("=================================")
-		print ("List of newly created HCC Users:")
-		print ("=================================")
-		for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-			print (HCCUSERSLIST[i])
-	print ("=================================")
-	print ("List of newly created HCC Orgs:")
-	print ("=================================")
-	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
-		print (HCCORGLIST[i])
-	print ("=================================")
-	print ("List of newly created HCC Groups:")
-	print ("=================================")
-	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
-		print (HCCGRPLIST[i])	
-	print ("=================================")
-	print ("Test execution results summary:")
-	print ("=================================")	
-	print ("* RETRIED:    = %s" % RETRIED)			
-	print ("* FAILED:     = %s" % FAILED)
-	print ("* SUCCEEDED:  = %s" % SUCCEEDED)
-	print ("* TOTAL:      = %s" % (RETRIED+FAILED+SUCCEEDED)) 							
-	print ("=================================")		
-
-#=========================================================================================	
-	
+#=========================================================================================		
 def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global PAT_UUID, DOC_UUID, AUTH_URL, TOKEN_URL, DOCUMENT_URL, PATIENT_URL, EVENT_URL
+	global UTIL_URL 
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -342,29 +247,29 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT=str(sys.argv[1])
 
 	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
+		USERNAME="apxdemop01@apixio.net"
+		PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
-		ACL_DOMAIN="acladmin.apixio.com"
-		ACL_URL="https://acladmin.apixio.com"
-		HCC_DOMAIN="hcc.apixio.com"
-		HCC_URL="https://hcc.apixio.com"
-		HCC_PASSWORD="apixio.123"
-		PROTOCOL="https://"
-		ACLUSERNAME="root@api.apixio.com"
-		ACLPASSWORD="thePassword"
+		PAT_UUID = "aa5c0726-5e67-451a-a863-cb82b4f01399"
+		DOC_UUID = "ccf9248d-0421-47dd-87cf-fbb4e02a2f94"
+		AUTH_URL = "https://useraccount-prd.apixio.com:7076/auths"
+		TOKEN_URL = "https://tokenizer-prd.apixio.com:7075/tokens"
+		DOCUMENT_URL = "https://dataorchestrator-prd.apixio.com:7085/document"
+		PATIENT_URL = "https://dataorchestrator-prd.apixio.com:7085/patient"
+		EVENT_URL = "https://dataorchestrator-prd.apixio.com:7085/events"
+		UTIL_URL = "https://dataorchestrator-prd.apixio.com:7085/util"
 	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
+		USERNAME="apxdemot01@apixio.net"
+		PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "staging"
-		ACL_DOMAIN="acladmin-stg.apixio.com"
-		ACL_URL="https://acladmin-stg.apixio.com"
-		HCC_DOMAIN="hccstage2.apixio.com"
-		HCC_URL="https://hccstage2.apixio.com"
-		HCC_PASSWORD="apixio.123"
-		PROTOCOL="https://"
-		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
+		PAT_UUID = "897639d6-c4f3-45a3-9568-cd1d5c95ca2d"
+		DOC_UUID = "533c227f-975c-4781-98f4-62a738217204"
+		AUTH_URL = "https://useraccount-stg.apixio.com:7076/auths"
+		TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+		DOCUMENT_URL = "https://dataorchestrator-stg.apixio.com:7085/document"
+		PATIENT_URL = "https://dataorchestrator-stg.apixio.com:7085/patient"
+		EVENT_URL = "https://dataorchestrator-stg.apixio.com:7085/events"
+		UTIL_URL = "https://dataorchestrator-stg.apixio.com:7085/util"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -390,14 +295,14 @@ def writeReportHeader ():
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: ACL %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
+	REPORT = REPORT + """Subject: DataOrchestrator %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 
-	REPORT = REPORT + """<h1>Apixio ACL Sanity Test Report</h1>\n"""
+	REPORT = REPORT + """<h1>Apixio DataOrchestrator Sanity Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """ACL user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
-	REPORT = REPORT + """ACL app url: <b>%s</b><br>\n""" % (ACL_URL)
+	REPORT = REPORT + """DO user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
+	REPORT = REPORT + """DO app url: <b>%s</b><br>\n""" % (ACL_URL)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
@@ -492,30 +397,94 @@ def emailReport():
 			
 #=========================================================================================
 #===================== Main Functions ====================================================
-#=========================================================================================	
-def logInToACL():
-	global TOKEN, ACL_URL, SESSID, DATA, HEADERS
+#=========================================================================================
+
+def obtainAuthorization():
+	global E_TOKEN
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - OBTAIN AUTHORIZATION <<<")
+	print (">>> DataOrchestrator - OBTAIN AUTHORIZATION <<<")
 	print ("----------------------------------------------------------------------------")
-	print ("* ACL URL                = %s" % ACL_URL)
+	print ("* AUTH URL               = %s" % AUTH_URL)
 	statuscode = 500
 	# repeat until successful login is reached
 	while statuscode != 200:
-  		url = ACL_URL+'/auth'
-  		referer = ACL_URL  				
-  		DATA =    {'Referer': referer, 'email': ACLUSERNAME, 'password': ACLPASSWORD} 
+  		url = AUTH_URL
+  		referer = AUTH_URL  				
+  		DATA =    {'Referer': referer, 'email': USERNAME, 'password': PASSWORD} 
   		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
   		response = requests.post(url, data=DATA, headers=HEADERS) 
-  		SESSID = TOKEN = response.cookies["session"]
+  		userjson = response.json()
+  		if userjson is not None:
+  			E_TOKEN = userjson.get("token")
   		print ("* LOG IN USER            = %s" % response.status_code)
-		print ("* ACL USERNAME           = %s" % ACLUSERNAME)
-		print ("* ACL PASSWORD           = %s" % ACLPASSWORD)
-		print ("* ACL SESSION ID         = %s" % SESSID)
-		print ("* ACL TOKEN              = %s" % TOKEN)
+		print ("* USERNAME               = %s" % USERNAME)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals("log into acl", statuscode)	
+		IncrementTestResultsTotals("obtain authorization", statuscode)
+		#quit()
+		
+#=========================================================================================
+
+def exchangeToken():	
+	global I_TOKEN, E_TOKEN
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> DataOrchestrator - EXCHANGE TOKENS <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* TOKEN URL              = %s" % TOKEN_URL)
+	statuscode = 500
+	# repeat until successful login is reached
+	while statuscode != 201:
+  		url = TOKEN_URL
+  		referer = TOKEN_URL  				
+  		DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + E_TOKEN} 
+  		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + E_TOKEN}
+  		response = requests.post(url, data=DATA, headers=HEADERS) 
+  		userjson = response.json()
+  		if userjson is not None:
+  			I_TOKEN = userjson.get("token")
+  		print ("* LOG IN USER            = %s" % response.status_code)
+		print ("* USERNAME               = %s" % USERNAME)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
+		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
+		statuscode = response.status_code
+		print ("* STATUS CODE            = %s" % statuscode)
+		IncrementTestResultsTotals("exchange token", statuscode)
+		#quit()
+	
+#=========================================================================================	
+
+def getPatient(endpoint):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> DataOrchestrator - PATIENT ENDPOINT <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* PATIENT URL 1          = %s" % PATIENT_URL)
+	statuscode = 500
+	# repeat until successful login is reached
+	while statuscode != 200:
+  		url = PATIENT_URL+'/'+PAT_UUID+'/demographics'
+  		referer = PATIENT_URL+'/'+PAT_UUID+'/demographics' 	
+  		print ("* PATIENT URL 2          = %s" % url)			
+  		DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + I_TOKEN} 
+  		HEADERS = {'Authorization': 'Apixio ' + I_TOKEN}
+  		response = requests.get(url, data=DATA, headers=HEADERS) 
+  		#response = requests.get(url, {'Authorization': 'Apixio ' + I_TOKEN})
+  		#userjson = response.json()
+  		#if userjson is not None:
+  		#	I_TOKEN = userjson.get("token")
+  		print ("* LOG IN USER            = %s" % response.status_code)
+		print ("* USERNAME               = %s" % USERNAME)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
+		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
+		print ("* PATIENT UUID           = %s" % PAT_UUID)
+		statuscode = response.status_code
+		print ("* STATUS CODE            = %s" % statuscode)
+		IncrementTestResultsTotals("patient demographics", statuscode)
+		quit()
+
 #=========================================================================================
 def ACLCreateNewUser(retries):
 	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
@@ -799,7 +768,7 @@ def logInToHCC():
 #=========================================================================================
 os.system('clear')
 
-print ("\n\nStarting ACL-Admin New User Creation...\n")
+print ("\n\nStarting Data Orchestrator Sanity Test...\n")
 
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
@@ -809,45 +778,44 @@ writeReportHeader()
 
 PrintGlobalParamaterSettings()
 
-logInToACL()
-writeReportDetails("log into acl")
+obtainAuthorization()
+writeReportDetails("obtain authorization")
 
-# Org related testing
-ACLCreateNewCodingOrg()
-writeReportDetails("create new coding organization")
+exchangeToken()
+writeReportDetails("exchange token")
 
-# Group related testing
-ACLCreateNewGroup()
-ACLDeleteExistingGroup(GRP_UUID)
-ACLCreateNewGroup()
-writeReportDetails("create and delete new group")
-		
-for permission in PERIMISSION_TYPES:
-	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-	ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-writeReportDetails("add and delete group permissions")	
-			
-# User related testing			
-for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-	ACLCreateNewUser(0)
-	HCCUSERSLIST.append(i)
-	HCCUSERSLIST[i] = HCCUSERNAME
-	ACLActivateNewUser()
-	ACLDectivateUser(USR_UUID)
-	ACLActivateNewUser()
-	ACLSetPassword()
-	ACLAssignCodingOrg()
-	ACLAddMemberToGroup()
-	ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
-	ACLAddMemberToGroup()
-	logInToHCC()	
-writeReportDetails("user/password/group/org creation/deletion/assignment")
 
-logInToHCC()
-writeReportDetails("log into hcc")
-	
-ListUserGroupOrg()
+# Patient related DataOrchestrator API endpint testing
+getPatient("demographics")
+writeReportDetails("patient demographics")
+getPatient("externalid")
+writeReportDetails("patient externalid")
+getPatient("apo")
+writeReportDetails("patient apo")
+
+# Util related DataOrchestrator API endpoint testing
+getUtil("healthcheck")
+writeReportDetails("util healthcheck")
+getUtil("version")
+writeReportDetails("util version")
+
+# Document related DataOrchestrator API endpoint testing
+getDocument("text")
+writeReportDetails("document text")
+getDocument("metadata")
+writeReportDetails("document metagata")
+getDocument("file")
+writeReportDetails("document file")
+getDocument("textco")
+writeReportDetails("document textco")
+getDocument("simplecontent")
+writeReportDetails("document simplecontent")
+getDocument("rawcontent")
+writeReportDetails("document rawcontent")
+getDocument("extractedcontent")
+writeReportDetails("document extractedcontent")
+getDocument("apo")
+writeReportDetails("document apo")
 
 writeReportFooter()
 
