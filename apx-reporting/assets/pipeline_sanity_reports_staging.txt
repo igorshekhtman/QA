@@ -8,3 +8,4 @@ Pipeline Sanity Staging Report - January 08, 2015	reports/staging/pipelinesanity
 Pipeline Sanity Staging Report - January 12, 2015	reports/Staging/pipelinesanity/2015/01/12.html
 Pipeline Sanity Staging Report - January 12, 2015	reports/Staging/pipelinesanity/2015/01/12.html
 Pipeline Sanity Staging Report - January 12, 2015	reports/Staging/pipelinesanity/2015/01/12.html
+Pipeline Sanity Staging Report - January 13, 2015	reports/Staging/pipelinesanity/2015/01/13.html

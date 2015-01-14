@@ -166,4 +166,10 @@ DR Performance Report (staging) - December 16, 2014	reports/staging/dr/2014/12/1
 DR Performance Report (staging) - December 17, 2014	reports/staging/dr/2014/12/17.html
 DR Performance Report (staging) - December 18, 2014	reports/staging/dr/2014/12/18.html
 DR Performance Report (staging) - December 19, 2014	reports/staging/dr/2014/12/19.html
-DR Performance Report (staging) - January 07, 2015	reports/staging/dr/2015/01/07.html
+DR Performance Report (staging) - January 08, 2015	reports/staging/dr/2015/01/08.html
+DR Performance Report (staging) - January 09, 2015	reports/staging/dr/2015/01/09.html
+DR Performance Report (staging) - January 10, 2015	reports/staging/dr/2015/01/10.html
+DR Performance Report (staging) - January 11, 2015	reports/staging/dr/2015/01/11.html
+DR Performance Report (staging) - January 12, 2015	reports/staging/dr/2015/01/12.html
+DR Performance Report (staging) - January 13, 2015	reports/staging/dr/2015/01/13.html
+DR Performance Report (staging) - January 14, 2015	reports/staging/dr/2015/01/14.html
