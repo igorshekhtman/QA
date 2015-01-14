@@ -78,20 +78,20 @@ PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font s
 FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
-MODULES = {	"obtain authorization":"0", \
-			"exchange token":"1", \
-			"patient demographics":"2", \
-			"patient externalid":"3", \
-			"patient apo":"4", \
-			"util healthcheck":"5", \
-			"util version":"6", \
-			"document text":"7", \
-			"document metagata":"8", \
-			"document file":"9", \
-			"document textco":"10", \
-			"document simplecontent":"11", \
-			"document rawcontent":"12", \
-			"document extractedcontent":"13" \
+MODULES = {	"obtain internal token":"0", \
+			"patient demographics":"1", \
+			"patient externalIds":"2", \
+			"patient apo":"3", \
+			"util healthcheck":"4", \
+			"util version":"5", \
+			"document text":"6", \
+			"document metadata":"7", \
+			"document file":"8", \
+			"document textContent":"9", \
+			"document simpleContent":"10", \
+			"document rawContent":"11", \
+			"document extractedContent":"12", \
+			"document apo":"13" \
 			}
 FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
 SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
@@ -205,7 +205,7 @@ def PrintGlobalParamaterSettings():
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	if (code == ok) or (code == nocontent):
+	if (code == ok) or (code == nocontent) or (code == created):
 		SUCCEEDED = SUCCEEDED+1
 		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
 	#elif code == intserveror:
@@ -238,7 +238,7 @@ def checkEnvironmentandReceivers():
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
 	global PAT_UUID, DOC_UUID, AUTH_URL, TOKEN_URL, DOCUMENT_URL, PATIENT_URL, EVENT_URL
-	global UTIL_URL 
+	global UTIL_URL, DO_URL, PREFIX
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -258,18 +258,22 @@ def checkEnvironmentandReceivers():
 		PATIENT_URL = "https://dataorchestrator-prd.apixio.com:7085/patient"
 		EVENT_URL = "https://dataorchestrator-prd.apixio.com:7085/events"
 		UTIL_URL = "https://dataorchestrator-prd.apixio.com:7085/util"
+		DO_URL = "https://dataorchestrator-prd.apixio.com:7085"
+		PREFIX = "P_"
 	else:
 		USERNAME="apxdemot01@apixio.net"
 		PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "staging"
-		PAT_UUID = "897639d6-c4f3-45a3-9568-cd1d5c95ca2d"
-		DOC_UUID = "533c227f-975c-4781-98f4-62a738217204"
+		PAT_UUID = "29ccd6d1-da94-4921-8a0f-e33989d4d2b9"
+		DOC_UUID = "b327252e-81a1-4a85-b712-a10d70a204fe"
 		AUTH_URL = "https://useraccount-stg.apixio.com:7076/auths"
 		TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 		DOCUMENT_URL = "https://dataorchestrator-stg.apixio.com:7085/document"
 		PATIENT_URL = "https://dataorchestrator-stg.apixio.com:7085/patient"
 		EVENT_URL = "https://dataorchestrator-stg.apixio.com:7085/events"
 		UTIL_URL = "https://dataorchestrator-stg.apixio.com:7085/util"
+		DO_URL = "https://dataorchestrator-stg.apixio.com:7085"
+		PREFIX = "S_"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -301,8 +305,8 @@ def writeReportHeader ():
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """DO user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
-	REPORT = REPORT + """DO app url: <b>%s</b><br>\n""" % (ACL_URL)
+	REPORT = REPORT + """DataOrch user name: <b>%s</b><br>\n""" % (USERNAME)
+	REPORT = REPORT + """DataOrch app url: <b>%s</b><br>\n""" % (DO_URL)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
@@ -322,7 +326,7 @@ def writeReportDetails(module):
 		REPORT = REPORT+FAILED_STAT
 	else:
 		REPORT = REPORT+PASSED_STAT
-	print ("Completed writeReportDetails ... \n")
+	print ("* REPORT DETAILS         = LOGGED")
 
 #=========================================================================================			
 	
@@ -396,46 +400,35 @@ def emailReport():
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
 			
 #=========================================================================================
-#===================== Main Functions ====================================================
+#===================== Main Test Functions ===============================================
 #=========================================================================================
 
-def obtainAuthorization():
-	global E_TOKEN
+def obtainAuthorizationGetToken():
+	global I_TOKEN, E_TOKEN
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> DataOrchestrator - OBTAIN AUTHORIZATION <<<")
+	print (">>> DataOrchestrator - OBTAIN AUTHORIZATION EXCHANGE TOKENS<<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* AUTH URL               = %s" % AUTH_URL)
-	statuscode = 500
-	# repeat until successful login is reached
-	while statuscode != 200:
-  		url = AUTH_URL
+	print ("* TOKEN URL              = %s" % TOKEN_URL)
+
+	
+	for i in range(1, 6):
+		var_name=PREFIX+"USERNAME_"+str(i)
+		value=globals()[var_name]
+		print ("* USERNAME               = %s" % value)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		url = AUTH_URL
   		referer = AUTH_URL  				
-  		DATA =    {'Referer': referer, 'email': USERNAME, 'password': PASSWORD} 
+  		DATA =    {'Referer': referer, 'email': value, 'password': PASSWORD} 
   		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
   		response = requests.post(url, data=DATA, headers=HEADERS) 
   		userjson = response.json()
   		if userjson is not None:
   			E_TOKEN = userjson.get("token")
-  		print ("* LOG IN USER            = %s" % response.status_code)
-		print ("* USERNAME               = %s" % USERNAME)
-		print ("* PASSWORD               = %s" % PASSWORD)
 		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals("obtain authorization", statuscode)
-		#quit()
-		
-#=========================================================================================
-
-def exchangeToken():	
-	global I_TOKEN, E_TOKEN
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> DataOrchestrator - EXCHANGE TOKENS <<<")
-	print ("----------------------------------------------------------------------------")
-	print ("* TOKEN URL              = %s" % TOKEN_URL)
-	statuscode = 500
-	# repeat until successful login is reached
-	while statuscode != 201:
+		IncrementTestResultsTotals("obtain internal token", statuscode)
   		url = TOKEN_URL
   		referer = TOKEN_URL  				
   		DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + E_TOKEN} 
@@ -444,37 +437,31 @@ def exchangeToken():
   		userjson = response.json()
   		if userjson is not None:
   			I_TOKEN = userjson.get("token")
-  		print ("* LOG IN USER            = %s" % response.status_code)
-		print ("* USERNAME               = %s" % USERNAME)
+		print ("* USERNAME               = %s" % value)
 		print ("* PASSWORD               = %s" % PASSWORD)
 		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
 		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals("exchange token", statuscode)
+		IncrementTestResultsTotals("obtain internal token", statuscode)
 		#quit()
 	
 #=========================================================================================	
 
 def getPatient(endpoint):
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> DataOrchestrator - PATIENT ENDPOINT <<<")
+	print (">>> DataOrchestrator - PATIENT %s ENDPOINT <<<" % str(endpoint).upper())
 	print ("----------------------------------------------------------------------------")
 	print ("* PATIENT URL 1          = %s" % PATIENT_URL)
-	statuscode = 500
-	# repeat until successful login is reached
-	while statuscode != 200:
-  		url = PATIENT_URL+'/'+PAT_UUID+'/demographics'
-  		referer = PATIENT_URL+'/'+PAT_UUID+'/demographics' 	
+	for i in range(1, 6):
+		var_name=PREFIX+"PAT_UUID_"+str(i)
+		value=globals()[var_name]	
+  		url = PATIENT_URL+'/'+value+'/'+str(endpoint)
+  		referer = PATIENT_URL+'/'+value+'/'+str(endpoint)	
   		print ("* PATIENT URL 2          = %s" % url)			
-  		DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + I_TOKEN} 
+  		DATA =    {'Authorization': 'Apixio ' + I_TOKEN} 
   		HEADERS = {'Authorization': 'Apixio ' + I_TOKEN}
   		response = requests.get(url, data=DATA, headers=HEADERS) 
-  		#response = requests.get(url, {'Authorization': 'Apixio ' + I_TOKEN})
-  		#userjson = response.json()
-  		#if userjson is not None:
-  		#	I_TOKEN = userjson.get("token")
-  		print ("* LOG IN USER            = %s" % response.status_code)
 		print ("* USERNAME               = %s" % USERNAME)
 		print ("* PASSWORD               = %s" % PASSWORD)
 		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
@@ -482,287 +469,64 @@ def getPatient(endpoint):
 		print ("* PATIENT UUID           = %s" % PAT_UUID)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals("patient demographics", statuscode)
-		quit()
+		IncrementTestResultsTotals("patient "+str(endpoint), statuscode)
+		#quit()
 
 #=========================================================================================
-def ACLCreateNewUser(retries):
-	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
+
+def getUtil(endpoint):
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - CREATE NEW USER <<<")
+	print (">>> DataOrchestrator - UTIL %s ENDPOINT <<<" % str(endpoint).upper())
 	print ("----------------------------------------------------------------------------")
-	HCCUSERNAME = get_new_hcc_user()	
-	url = ACL_URL+'/access/user'
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'email': HCCUSERNAME, 'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	userjson = response.json()
-	if userjson is not None:
-		USR_UUID = userjson.get("id")
-		#print ("User UUID: " + USR_UUID)	
-	print ("* HCC USERNAME           = %s" % HCCUSERNAME)
-	print ("* HCC USER UUID          = %s" % USR_UUID)
-	print ("* ACL TOKEN:             = %s" % TOKEN)	
+	print ("* UTIL URL 1             = %s" % UTIL_URL)
+	statuscode = 500
+	# repeat until successful login is reached
+	#while statuscode != 200:
+  	url = UTIL_URL+'/'+str(endpoint)
+  	referer = UTIL_URL+'/'+str(endpoint) 	
+  	print ("* UTIL URL 2             = %s" % url)			
+  	DATA =    {'Authorization': 'Apixio ' + I_TOKEN} 
+  	HEADERS = {'Authorization': 'Apixio ' + I_TOKEN}
+  	response = requests.get(url, data=DATA, headers=HEADERS) 
+	print ("* USERNAME               = %s" % USERNAME)
+	print ("* PASSWORD               = %s" % PASSWORD)
+	print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
+	print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
+	#print ("* PATIENT UUID           = %s" % PAT_UUID)
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", statuscode)
-	if (statuscode == 500) and (retries <= int(MAX_NUM_RETRIES)):
-		print (">>> Failure occured: username already exists <<<")
-		retries = retries + 1
-		ACLCreateNewUser(retries)				
-#=========================================================================================
-def ACLActivateNewUser():
-	global USR_UUID, TOKEN, ACL_URL
+	IncrementTestResultsTotals("util "+str(endpoint), statuscode)
+	#quit()
+
+#=========================================================================================	
+	
+def getDocument(endpoint):
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Activate New User <<<")
-	print ("----------------------------------------------------------------------------")	
-	#print ("User UUID: " + USR_UUID)
-	url = ACL_URL+'/access/user/'+USR_UUID
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.put(url, data=DATA, headers=HEADERS) 
-	print ("* HCC USER UUID          = %s" % USR_UUID)
-	print ("* ACL TOKEN              = %s" % TOKEN) 	
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
-#=========================================================================================
-def ACLDectivateUser(uuid):
-	global USR_UUID, TOKEN, ACL_URL
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Deactivate User <<<")
-	print ("----------------------------------------------------------------------------")		
-	#print ("User UUID: " + USR_UUID)
-	url = ACL_URL+'/access/user/'+uuid
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.delete(url, data=DATA, headers=HEADERS)	
-	print ("* HCC USER UUID          = %s" % uuid)
-	print ("* ACL TOKEN              = %s" % TOKEN) 
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)					
-#=========================================================================================
-def ACLSetPassword():
-	global USR_UUID, HCC_PASSWORD, TOKEN, ACL_URL
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Assign New User Password <<<")
-	print ("----------------------------------------------------------------------------")		
-	url = ACL_URL+'/access/user/'+USR_UUID+'/password'
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'password': HCC_PASSWORD}
-	HEADERS = { 'Origin': ACL_URL, 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.put(url, data=DATA, headers=HEADERS) 
-	print ("* HCC PASSWORD           = %s" % HCC_PASSWORD)
-	print ("* HCC User UUID          = %s" % USR_UUID)
-	print ("* ACL TOKEN              = %s" % TOKEN) 				
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
-#=========================================================================================
-def ACLCreateNewCodingOrg():
-	global ACL_URL, TOKEN, ORG_UUID, ACL_CODNG_ORG_PREFIX, CODING_ORGANIZATION
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Create New Coding Org <<<")
-	print ("----------------------------------------------------------------------------")		
-	conumber = str(int(time.time()))
-	coname = ACL_CODNG_ORG_PREFIX + conumber
-	CODING_ORGANIZATION = coname									
-	#print ("Coding Org Name: "+coname)		
-	url = ACL_URL+'/access/userOrganization'
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'name': coname, 'key': conumber, 'description': coname}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	userjson = response.json()
-	if userjson is not None:
-		ORG_UUID = userjson.get("id")				
-	print ("* CODING ORG NAME        = %s" % coname)
-	print ("* CODING ORG UUID        = %s" % ORG_UUID)
-	print ("* ACL TOKEN              = %s" % TOKEN)			
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("create new coding organization", response.status_code)
-#=========================================================================================
-def ACLCreateNewGroup():
-	global ACL_URL, TOKEN, ACL_GROUP_PREFIX, GRP_UUID, ACLGROUPNAME
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Create New Group <<<")
-	print ("----------------------------------------------------------------------------")		
-	gnumber = str(int(time.time()))
-	gname = ACL_GROUP_PREFIX + gnumber
-	ACLGROUPNAME = gname									
-	#print ("Group Name: "+gname)
-	url = ACL_URL+'/access/group'
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'name': gname}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	grpjson = response.json()
-	if grpjson is not None:
-		GRP_UUID = grpjson.get("id").get("id")
-	print ("* GROUP NAME             = %s" % gname)	
-	print ("* GROUP UUID             = %s" % GRP_UUID)
-	print ("* ACL TOKEN              = %s" % TOKEN)						
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("create and delete new group", response.status_code)
-#=========================================================================================
-def ACLDeleteExistingGroup(group_uuid):									
-	global ACL_URL, TOKEN
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Delete Existing Group <<<")
-	print ("----------------------------------------------------------------------------")		
-	url = ACL_URL+'/access/group/'+group_uuid
-  	referer = ACL_URL+'/admin/'  				
-	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
-  	response = requests.delete(url, data=DATA, headers=HEADERS) 			
-	print ("* GROUP UUID             = %s" % group_uuid)
-	print ("* ACL TOKEN              = %s" % TOKEN)				
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("create and delete new group", response.status_code)
-#=========================================================================================
-def ACLAddGroupPermission(per_type, group_uuid, org_uuid):
-	global HCCGRPEMISSIONS
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Add "+per_type+" Group Permission <<<")
-	print ("----------------------------------------------------------------------------")	
-	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	#grpjson = response.json()
-	print ("* GROUP UUID             = %s" % group_uuid)
-	print ("* ORG UUID               = %s" % org_uuid)
-	print ("* PERMISSION TYPE        = %s" % per_type)		
-	print ("* ACL TOKEN              = %s" % TOKEN)					
-	statuscode = response.status_code	
-	print ("* STATUS CODE            = %s" % statuscode)
-	IncrementTestResultsTotals("add and delete group permissions", statuscode)
-	if (statuscode == ok) or (statuscode == nocontent):
-		if per_type == "canAnnotate":
-			HCCGRPEMISSIONS[0] = "1"
-		elif per_type == "viewDocuments":
-			HCCGRPEMISSIONS.append(1)
-			HCCGRPEMISSIONS[1] = "1"
-		elif per_type == "viewReportsAnnotatedFor":
-			HCCGRPEMISSIONS.append(2)
-			HCCGRPEMISSIONS[2] = "1"
-		elif per_type == "viewReportsAnnotatedBy":
-			HCCGRPEMISSIONS.append(3)
-			HCCGRPEMISSIONS[3] = "1"
-		elif per_type == "viewAllAnnotations":
-			HCCGRPEMISSIONS.append(4)
-			HCCGRPEMISSIONS[4] = "1"
-		elif per_type == "canRelease":
-			HCCGRPEMISSIONS.append(5)
-			HCCGRPEMISSIONS[5] = "1"	
-#=========================================================================================
-def ACLDelGroupPermission(per_type, group_uuid, org_uuid):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Del "+per_type+" Group Permission <<<")
-	print ("----------------------------------------------------------------------------")	
-		
-	url = ACL_URL+'/access/permission/'+group_uuid+'/'+org_uuid+'/'+per_type
-  	referer = ACL_URL+'/admin/'  				
-	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer} 
-  	response = requests.delete(url, data=DATA, headers=HEADERS) 		
-	print ("* GROUP UUID             = %s" % group_uuid)
-	print ("* ORG UUID:              = %s" % org_uuid)
-	print ("* PERMISSION TYPE        = %s" % per_type)		
-	print ("* ACL TOKEN              = %s" % TOKEN)				
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("add and delete group permissions", response.status_code)			
-#=========================================================================================
-def ACLAddMemberToGroup():
-	global USR_UUID, GRP_UUID, ACL_URL
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Add Member to Group <<<")
-	print ("----------------------------------------------------------------------------")		
-	print ("* USER UUID              = %s" % USR_UUID)
-	print ("* GROUP UUID             = %s" % GRP_UUID)
-	url = ACL_URL+'/access/groupMembership/'+GRP_UUID+'/'+USR_UUID
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	print ("* ACL GROUP UUID         = %s" % GRP_UUID)
-	print ("* HCC USER UUID          = %s" % USR_UUID)		
-	print ("* ACL TOKEN              = %s" % TOKEN)						
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
-#=========================================================================================
-def ACLDelMemberFromGroup(group_uuid, usr_uuid):	
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Del Member from Group <<<")
-	print ("----------------------------------------------------------------------------")		
-	url = ACL_URL+'/access/groupMembership/'+group_uuid+'/'+usr_uuid
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.delete(url, data=DATA, headers=HEADERS) 	
-	print ("* HCC USER UUID:         = %s" % usr_uuid)
-	print ("* ACL GROUP UUID:        = %s" % group_uuid)				
-	print ("* ACL TOKEN:             = %s" % TOKEN)			
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
-#=========================================================================================
-def ACLAssignCodingOrg():
-	global USR_UUID, ORG_UUID, ACL_URL
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - Assign Coding Organization <<<")
-	print ("----------------------------------------------------------------------------")			
-	#print ("User UUID: " + USR_UUID)
-	#print ("Org UUID: " + ORG_UUID)
-	url = ACL_URL+'/access/userOrganization/'+ORG_UUID+'/'+USR_UUID
-  	referer = ACL_URL+'/admin/'  				
-  	DATA = {'session': TOKEN}
-	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 	
-	print ("* HCC USER UUID          = %s" % USR_UUID)
-	print ("* ACL ORG UUID           = %s" % ORG_UUID)				
-	print ("* ACL TOKEN              = %s" % TOKEN)								
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("user/password/group/org creation/deletion/assignment", response.status_code)
-#=========================================================================================
-def logInToHCC(): 
-	global TOKEN, SESSID, DATA, HEADERS
-	global HCCUSERNAME, HCC_PASSWORD, HCC_URL
-	global HCC_TOKEN, HCC_SESSID
-	HCC_HOST_DOMAIN = 'hccstage.apixio.com'
-	HCC_HOST_URL = 'https://%s' % HCC_HOST_DOMAIN
-	response = requests.get(HCC_URL+'/')
-	IncrementTestResultsTotals("log into hcc", response.status_code)
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> HCC - CONNECT TO HOST <<<")
+	print (">>> DataOrchestrator - DOCUMENT %s ENDPOINT <<<" % str(endpoint).upper())
 	print ("----------------------------------------------------------------------------")
-	print ("* RESPONSE CODE          = %s" % response.status_code)
-	url = referer = HCC_URL+'/account/login/?next=/'
-	response = requests.get(url)
-	IncrementTestResultsTotals("log into hcc", response.status_code)
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> HCC - LOGIN PAGE <<<")
-	print ("----------------------------------------------------------------------------")	
-	print ("* RESPONSE CODE          = %s" % response.status_code)
-	HCC_TOKEN = response.cookies["csrftoken"]
-	HCC_SESSID = response.cookies["sessionid"]
-	DATA =    {'csrfmiddlewaretoken': HCC_TOKEN, 'username': HCCUSERNAME, 'password': HCC_PASSWORD } 
-	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
-				'Cookie': 'csrftoken='+HCC_TOKEN+'; sessionid='+HCC_SESSID+' ', \
-				'Referer': referer}			
-	response = requests.post(url, data=DATA, headers=HEADERS) 
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> HCC - LOGIN USER <<<")
-	print ("----------------------------------------------------------------------------")
-	print ("* RESPONSE CODE          = %s" % response.status_code)
-	print ("* HCC Username           = %s" % HCCUSERNAME)
-	print ("* HCC Password           = %s" % HCC_PASSWORD)
-	print ("* HCC Token              = %s" % HCC_TOKEN)
-	print ("* HCC Session ID         = %s" % HCC_SESSID)
-	print ("* STATUS CODE            = %s" % response.status_code)
-	IncrementTestResultsTotals("log into hcc", response.status_code)	
-				
+	print ("* DOCUMENT URL 1         = %s" % DOCUMENT_URL)
+	for i in range(1, 6):
+		var_name=PREFIX+"DOC_UUID_"+str(i)
+		value=globals()[var_name]	
+		statuscode = 500
+		# repeat until successful login is reached
+		#while statuscode != 200:
+  		url = DOCUMENT_URL+'/'+value+'/'+str(endpoint)
+  		referer = DOCUMENT_URL+'/'+value+'/'+str(endpoint) 	
+  		print ("* DOCUMENT URL 2         = %s" % url)			
+  		DATA =    {'Authorization': 'Apixio ' + I_TOKEN} 
+  		HEADERS = {'Authorization': 'Apixio ' + I_TOKEN}
+  		response = requests.get(url, data=DATA, headers=HEADERS) 
+		print ("* USERNAME               = %s" % USERNAME)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
+		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
+		print ("* DOCUMENT UUID          = %s" % value)
+		statuscode = response.status_code
+		print ("* STATUS CODE            = %s" % statuscode)
+		IncrementTestResultsTotals("document "+str(endpoint), statuscode)
+		#quit()	
+
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -778,18 +542,14 @@ writeReportHeader()
 
 PrintGlobalParamaterSettings()
 
-obtainAuthorization()
-writeReportDetails("obtain authorization")
-
-exchangeToken()
-writeReportDetails("exchange token")
-
+obtainAuthorizationGetToken()
+writeReportDetails("obtain internal token")
 
 # Patient related DataOrchestrator API endpint testing
 getPatient("demographics")
 writeReportDetails("patient demographics")
-getPatient("externalid")
-writeReportDetails("patient externalid")
+getPatient("externalIds")
+writeReportDetails("patient externalIds")
 getPatient("apo")
 writeReportDetails("patient apo")
 
@@ -803,17 +563,17 @@ writeReportDetails("util version")
 getDocument("text")
 writeReportDetails("document text")
 getDocument("metadata")
-writeReportDetails("document metagata")
+writeReportDetails("document metadata")
 getDocument("file")
 writeReportDetails("document file")
-getDocument("textco")
-writeReportDetails("document textco")
-getDocument("simplecontent")
-writeReportDetails("document simplecontent")
-getDocument("rawcontent")
-writeReportDetails("document rawcontent")
-getDocument("extractedcontent")
-writeReportDetails("document extractedcontent")
+getDocument("textContent")
+writeReportDetails("document textContent")
+getDocument("simpleContent")
+writeReportDetails("document simpleContent")
+getDocument("rawContent")
+writeReportDetails("document rawContent")
+getDocument("extractedContent")
+writeReportDetails("document extractedContent")
 getDocument("apo")
 writeReportDetails("document apo")
 
@@ -823,6 +583,6 @@ archiveReport()
 
 emailReport()	
 	
-print ("==== End of DataOrchestrator Sanity Test =====")
-print ("==============================================")
+print ("====================== End of DataOrchestrator Sanity Test ======================")
+print ("=================================================================================")
 #=========================================================================================
