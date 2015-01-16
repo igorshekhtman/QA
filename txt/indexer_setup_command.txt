@@ -1,11 +1,11 @@
 ======================= HCC Check if OPS EXIST ==============================================
 
 https://hcc-opprouter-prd.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=MMG
-[1/15/15, 3:48:37 PM] Alex Beyk - Apixio: To see how many Opps are loaded on Stage:
-[1/15/15, 3:48:54 PM] Alex Beyk - Apixio: ssh hcc-opprouter-stg.apixio.com
-[1/15/15, 3:49:20 PM] Alex Beyk - Apixio: tail -f /var/log/apx-opprouter/apx-opprouter-console.log
-[1/15/15, 3:49:37 PM] Alex Beyk - Apixio: Look for something like:
-[1/15/15, 3:49:41 PM] Alex Beyk - Apixio: 15 Jan 2015 23:47:41,334 INFO  [Router-akka.actor.default-dispatcher-6]: {message=Background Loader: Loaded 40000 opportunities.}
+To see how many Opps are loaded on Stage:
+ssh hcc-opprouter-stg.apixio.com
+tail -f /var/log/apx-opprouter/apx-opprouter-console.log
+Look for something like:
+15 Jan 2015 23:47:41,334 INFO  [Router-akka.actor.default-dispatcher-6]: {message=Background Loader: Loaded 40000 opportunities.}
 
 ====================== NEW SERVERS ===========================================================
 New Hive:

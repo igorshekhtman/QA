@@ -316,8 +316,8 @@ def writeReportHeader ():
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """ACL user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
-	REPORT = REPORT + """ACL app url: <b>%s</b><br>\n""" % (ACL_URL)
+	REPORT = REPORT + """Customer: <b>%s</b><br>\n""" % (CUSTOMER)
+	REPORT = REPORT + """User: <b>%s</b><br>\n""" % (USER)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
