@@ -94,15 +94,19 @@ MODULES = {	"log into rules editor":"0", \
 			"access users tab":"2", \
 			"update opportunity router":"3", \
 			"update cache":"4", \
-			"access rules state":"5" \
+			"access rules state":"5", \
+			"access customers filter":"6", \
+			"pause and resume routing":"7" \
 			}
-FAILED_TOT = [0,1,2,3,4,5]
-SUCCEEDED_TOT = [0,1,2,3,4,5]
-RETRIED_TOT = [0,1,2,3,4,5]
-for i in range (0, 6):
+FAILED_TOT = [0,1,2,3,4,5,6,7]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7]
+RETRIED_TOT = [0,1,2,3,4,5,6,7]
+for i in range (0, 8):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
+	
+SUBTASKS = { "route", "strategy", "user", "filter", "annotator" }
 
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
@@ -282,7 +286,7 @@ def checkEnvironmentandReceivers():
 		PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
 		URL = "http://ruleseditor-stg.apixio.com:8041"
-		CUSTOMER = "Sanity Test Org"
+		CUSTOMER = "O_00000000-0000-0000-0000-000000000370"
 		USER = "sanityusr1421099389@apixio.net"
 		
 	
@@ -337,7 +341,7 @@ def writeReportDetails(module):
 		REPORT = REPORT+FAILED_STAT
 	else:
 		REPORT = REPORT+PASSED_STAT
-	print ("Completed writeReportDetails ... \n")
+	print ("\nCompleted writeReportDetails ... \n")
 
 #=========================================================================================			
 	
@@ -424,7 +428,7 @@ def logInToRulesEditor():
 	referer = URL 				
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.get(url, data=DATA, headers=HEADERS) 
 	#print response.cookies
 	#print response.json()
 	#print response.text
@@ -449,7 +453,7 @@ def customersTab():
 	print ("* CUSTOMER TAB URL       = %s" % url)			
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals("access customers tab", statuscode)	
@@ -467,7 +471,7 @@ def usersTab():
 	print ("* USERS TAB URL          = %s" % url)			
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals("access users tab", statuscode)	
@@ -485,7 +489,7 @@ def updateOpportunityRouter():
 	print ("* UPDATE ROUTER URL      = %s" % url)			
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.post(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals("update opportunity router", statuscode)	
@@ -504,7 +508,7 @@ def updateCache():
 	print ("* UPDATE CACHE URL       = %s" % url)			
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.post(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals("update cache", statuscode)	
@@ -524,10 +528,52 @@ def accessRulesState():
 	print ("* UPDATE CACHE URL       = %s" % url)			
 	DATA =    {'Referer': referer} 
 	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
-	response = requests.get(URL, data=DATA, headers=HEADERS) 
+	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* STATUS CODE            = %s" % statuscode)
 	IncrementTestResultsTotals("access rules state", statuscode)
+
+#=========================================================================================
+def accessCustomer(subtask):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> RULES EDITOR - ACCESS CUSTOMER: %s <<<"%subtask.upper())
+	print ("----------------------------------------------------------------------------")
+	print ("* RULES EDITOR URL       = %s" % URL)
+	#statuscode = 500
+	# repeat until successful login is reached
+	url = URL+"/access/customer/"+CUSTOMER+"/"+subtask
+	referer = URL+"/access/customer/"+CUSTOMER+"/"+subtask
+	print ("* ACCESS CUSTOMER URL    = %s" % url)		
+	DATA =    {'Referer': referer} 
+	HEADERS = {'Connection': 'keep-alive', 'Host': URL}
+	response = requests.get(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	print ("* STATUS CODE            = %s" % statuscode)
+	IncrementTestResultsTotals("access customers filter", statuscode)
+	
+#=========================================================================================	
+def routingPR(subtask):	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> RULES EDITOR - PAUSE AND RESUME ROUTING <<<")
+	print ("----------------------------------------------------------------------------")
+	print ("* RULES EDITOR URL       = %s" % URL)
+	#statuscode = 500
+	# repeat until successful login is reached
+	url = URL+"/access/customer/"+CUSTOMER+"/state/"+subtask
+	referer = "http://ruleseditor-stg.apixio.com:8041/"
+	print ("* ROUTING URL            = %s" % url)		
+	DATA =    {'Referer': referer} 
+	HEADERS = {'Connection': 'keep-alive', \
+				'Content-Length':'0', \
+				'Host':'ruleseditor-stg.apixio.com:8041', \
+				'Origin':'http://ruleseditor-stg.apixio.com:8041', \
+				'Referer':'http://ruleseditor-stg.apixio.com:8041/' }	
+				
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	print ("* STATUS CODE            = %s" % statuscode)
+	IncrementTestResultsTotals("pause and resume routing", statuscode)
+	
 
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
@@ -561,6 +607,14 @@ writeReportDetails("update cache")
 
 accessRulesState()
 writeReportDetails("access rules state")
+
+for subtask in SUBTASKS:
+	accessCustomer(subtask)
+writeReportDetails("access customers filter")
+
+routingPR("pause")
+routingPR("resume")
+writeReportDetails("pause and resume routing")
 
 writeReportFooter()
 
