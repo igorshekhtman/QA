@@ -50,6 +50,7 @@ import json
 import smtplib
 from time import gmtime, strftime, localtime
 import calendar	
+import mmap
 #=========================================================================================
 #===================== Initialization of the DOConfig file ===============================
 #=========================================================================================
@@ -380,9 +381,15 @@ def archiveReport():
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/python/sanity_test")
 		print ("Finished archiving report ... \n")
 

@@ -97,6 +97,7 @@ import json
 import smtplib
 from time import gmtime, strftime, localtime
 import calendar
+import mmap
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -199,6 +200,7 @@ accepted = 202
 nocontent = 204
 movedperm = 301
 redirect = 302
+unauthorized = 401
 forbidden = 403
 notfound = 404
 intserveror = 500
@@ -690,9 +692,15 @@ def archiveReport():
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/hcc")
 		print ("Finished archiving report ... \n")
 
@@ -750,6 +758,9 @@ def IncrementTestResultsTotals(module, code):
 		if RETRIED > int(MAX_NUM_RETRIES):
 			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
 			quit()
+		if (code == unauthorized):
+			logInToHCC()
+			startCoding()
     
 def log(text):
 	global REPORT

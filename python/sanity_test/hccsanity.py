@@ -97,6 +97,7 @@ import json
 import smtplib
 from time import gmtime, strftime, localtime
 import calendar
+import mmap
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -558,13 +559,17 @@ def printResultsSummary():
 	log("=============================================================================")
 	log("=============================================================================")
 	log("=============================================================================")	
+
+#=========================================================================================
 	
 def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
+	# Arg3 - report recepient #2
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global DOMAIN, URL
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -573,13 +578,19 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT=str(sys.argv[1])
 
 	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
-	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
+		DOMAIN="hcc.apixio.com"
+		URL="https://hcc.apixio.com"
+		USERNAME="root@api.apixio.com"
+		PASSWORD="thePassword"
+		#USERNAME="apxdemot0500@apixio.net"
 		#PASSWORD="apixio.123"
+	else:
 		ENVIRONMENT = "staging"
+		DOMAIN="hccstage2.apixio.com"
+		URL="https://hccstage2.apixio.com"
+		USERNAME="sanitytest001@apixio.net"
+		PASSWORD="apixio.123"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -595,6 +606,8 @@ def checkEnvironmentandReceivers():
 	print ("Version %s\n") % VERSION
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")	
+	
+#=========================================================================================	
 
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
@@ -614,6 +627,8 @@ def writeReportHeader ():
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
+
+#=========================================================================================
 	
 def writeReportDetails(module):	
 	global REPORT
@@ -630,6 +645,7 @@ def writeReportDetails(module):
 		REPORT = REPORT+PASSED_STAT
 	print ("Completed writeReportDetails ... \n")
 		
+#=========================================================================================
 	
 def writeReportFooter():
 	global REPORT
@@ -649,6 +665,7 @@ def writeReportFooter():
 	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
 
+#=========================================================================================
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
@@ -680,12 +697,19 @@ def archiveReport():
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/python/sanity_test")
 		print ("Finished archiving report ... \n")
 
+#=========================================================================================
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
@@ -698,6 +722,7 @@ def emailReport():
 	s.sendmail(SENDER, RECEIVERS2, REPORT)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
+#=========================================================================================
 
 def pages_payload(details):
 	report_json = details.json()
@@ -709,12 +734,16 @@ def pages_payload(details):
     		payload = 0
 	return (pages, payload)
 
+#=========================================================================================
+
 def create_request(test, headers=None):
   request = HTTPRequest()
   if headers:
     request.headers = headers
   test.record(request)
   return (request)
+
+#=========================================================================================
 
 def get_csrf_token(thread_context):
   cookies = CookieModule.listAllCookies(thread_context)
@@ -723,6 +752,8 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return (csrftoken)
+
+#=========================================================================================
 
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -735,12 +766,16 @@ def IncrementTestResultsTotals(module, code):
 	else:
 		FAILED = FAILED+1
 		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
+
+#=========================================================================================
     
 def log(text):
 	global REPORT
 	#REPORT = REPORT + text + "<br>"
 	print(text)
 	return 0    
+
+#=========================================================================================
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION

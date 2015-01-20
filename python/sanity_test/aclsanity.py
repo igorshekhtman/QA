@@ -83,6 +83,7 @@ import json
 import smtplib
 from time import gmtime, strftime, localtime
 import calendar
+import mmap
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
@@ -469,11 +470,17 @@ def archiveReport():
 		os.chdir(REPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
 		REPORTFILE.write(REPORT)
-		REPORTFILE.close()
+		REPORTFILE.close()		
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/python/sanity_test")
 		print ("Finished archiving report ... \n")
 

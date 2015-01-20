@@ -18,6 +18,7 @@ import string
 from datetime import datetime
 import datetime as DT
 import MySQLdb
+import mmap
 
 os.system('clear')
 
@@ -1296,10 +1297,16 @@ def archiveReport():
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
-		os.chdir("/mnt/automation")
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
+		os.chdir("/mnt/automation/python/daily_production_pipeline_qa_report")
 		print ("Finished archiving report ... \n")
 
 
