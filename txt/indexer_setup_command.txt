@@ -1,5 +1,7 @@
 ======================= HCC Check if OPS EXIST ==============================================
 
+grep -i "loaded" /var/log/apx-opprouter/apx-opprouter-console.log
+
 https://hcc-opprouter-prd.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=MMG
 To see how many Opps are loaded on Stage:
 ssh hcc-opprouter-stg.apixio.com
