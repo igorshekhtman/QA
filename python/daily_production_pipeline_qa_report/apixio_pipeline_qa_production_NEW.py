@@ -1281,12 +1281,7 @@ def archiveReport():
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(CURDAY)+".html"
 		REPORTXTSTRING="Daily "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/pipeline/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
-		REPORTXTFILENAME="reports.txt"
-		# Old location 
-		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-		# New location 
-		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html"
-		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting"
+		REPORTXTFILENAME="reports_"+ENVIRONMENT.lower()+".txt"		
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
