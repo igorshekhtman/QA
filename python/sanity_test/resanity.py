@@ -60,6 +60,7 @@ import json
 import smtplib
 from time import gmtime, strftime, localtime
 import calendar
+import mmap
 
 #=========================================================================================
 #===================== Initialization of the ACLConfig file ==============================
@@ -278,7 +279,7 @@ def checkEnvironmentandReceivers():
 		PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
 		URL = "http://ruleseditor.apixio.com:80"
-		CUSTOMER = "MMG (10000232)"
+		CUSTOMER = "O_00000000-0000-0000-0000-000010000232"
 		USER = "apxdemot0500@apixio.net"
 
 	else:
@@ -395,9 +396,15 @@ def archiveReport():
 		REPORTFILE.write(REPORT)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
-		REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-		REPORTFILETXT.write(REPORTXTSTRING)
-		REPORTFILETXT.close()
+		f = open(REPORTXTFILENAME)
+		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+		if s.find(REPORTXTSTRING) != -1:
+			print "Report entry found, skipping append ...\n"
+		else:
+			print "Report entry not found, appending new entry ...\n"
+			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
+			REPORTFILETXT.write(REPORTXTSTRING)
+			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/python/sanity_test")
 		print ("Finished archiving report ... \n")
 
@@ -614,7 +621,12 @@ writeReportDetails("access customers filter")
 
 routingPR("pause")
 routingPR("resume")
+routingPR("exclude_hcc")
 writeReportDetails("pause and resume routing")
+
+
+
+
 
 writeReportFooter()
 
@@ -622,6 +634,6 @@ archiveReport()
 
 emailReport()	
 	
-print ("==== End of Rules Editor Sanity Test =====")
-print ("==========================================")
+print ("======================= End of Rules Editor Sanity Test ========================")
+print ("================================================================================")
 #=========================================================================================
