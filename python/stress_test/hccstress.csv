@@ -39,7 +39,7 @@ VOO_W=0
 VAO_W=5
 VRO_W=95
 VSO_W=0
-CODE_OPPS_MAX=300000
+CODE_OPPS_MAX=100000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1
@@ -62,5 +62,5 @@ QA_REPORT_PAGES_MAX=5
 #### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
-MAX_NUM_RETRIES=10
+MAX_NUM_RETRIES=100
 ######################################
