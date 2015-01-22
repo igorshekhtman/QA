@@ -1,8 +1,8 @@
 ####################################################################################################
 #
-# PROGRAM: hccstress.py
+# PROGRAM: opprouteroptimization.py
 # AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
-# DATE:    2014.12.10 Initial Version
+# DATE:    2015.01.22 Initial Version
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
@@ -10,27 +10,19 @@
 # SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
 #
 # PURPOSE:
-#          This program should be executed via Python 2.6 and is meant for testing HCC functionality:
+#          This program should be executed via Python 2.7 and is meant for testing HCC functionality:
 #          * Login
 #          * View   Docs + Opportunities
 #          * Accept Docs + Opportunities
 #          * Reject Docs + Opportunities
 #          * Skip   Docs + Opportunities
-#          * View History Report
-#          * Paginate History Report
-#          * Search History Report
-#          * Filter History Report
-#          * View QA Report
-#          * Paginate History Report
-#          * Search QA Report
-#          * Dual Filter History Report
 #          * Logout
 #
 # SETUP:
 #          * Assumes a HCC environment is available
-#          * Assumes a Python 2.6 environment is available
-#          * From QA server (ec2-54-219-117-239) /mnt/automation/hcc folder enter "python2.6 hccstress.py"
-#		   * note: hccstress.csv configuration file must coexist in same folder as hccstress.py
+#          * Assumes a Python 2.7 environment is available
+#          * From QA2 server (54.176.225.214) /mnt/automation/hcc folder enter "python2.7 opprouteroptimization.py"
+#		   * note: opprouteroptimization.csv configuration file must coexist in same folder as opprouteroptimization.py
 #
 # USAGE:
 #          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
@@ -45,7 +37,7 @@
 #
 # DATE: 12-Dec-2014
 #
-# SPECIFICS: Introduced hccstress.csv file, which now contains all GLOBAL variables and their
+# SPECIFICS: Introduced opprouteroptimization.csv file, which now contains all GLOBAL variables and their
 #            initial values.  Test script read GLOBAL variable values in as a first step. There
 #            are two GLOBAL variables that need to be updated prior to script execution:
 #            CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
@@ -58,28 +50,11 @@
 #
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 #
-# DATE: 13-Dec-2014
+# DATE: 22-Jan-2015
 #
 # SPECIFICS: Introduced RANDOM_OPPS_ACTION=1 or 0 to allow random coder response to either View
 #            Accept Reject or Skip an Opportunity.  It is defined in hccstress.csv file.  Possible
 #            values are 0 for specific and 1 for random
-#
-####################################################################################################
-#
-# REVISION: 1.0.3
-#
-# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
-#
-# DATE: 14-Dec-2014
-#
-# SPECIFICS: Introduced VIEW_HISTORY_PAGINATION, VIEW_HISTORY_SEARCH, VIEW_HISTORY_FILTER,
-#            VIEW_HISTORY_PAGES_MAX, QA_REPORT_PAGINATION, QA_REPORT_SEARCH, QA_REPORT_FILTER,
-#            QA_REPORT_PAGES_MAX global variables, allowing configuring and testing pagination,
-#            search and filtering of both View History and QA Reports. All global variables are
-#            initialized within HCCConfig.csv configuration file.
-#            Introduced VOO_W, VAO_W, VRO_W and VSO_W global variables related to setting specific
-#            weights to random function algorithm, used in selecting specific coder action. These
-#            are pre-defined in HCCConfig.csv configuration file.
 #
 ####################################################################################################
 
@@ -102,14 +77,14 @@ import mmap
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
-CSV_CONFIG_FILE_NAME = "hccstress.csv"
+CSV_CONFIG_FILE_NAME = "opprouteroptimization.csv"
 VERSION = "1.0.3"
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
 DEBUG_MODE=bool(0)
 REPORT = ""
-REPORT_TYPE = "HCC Stress Test"
+REPORT_TYPE = "Opp Router Optimization Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
@@ -614,9 +589,9 @@ def writeReportHeader ():
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: HCC %s stress Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
+	REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 
-	REPORT = REPORT + """<h1>Apixio HCC Stress Test Report</h1>\n"""
+	REPORT = REPORT + """<h1>Apixio Opp Router Optimization Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
@@ -666,8 +641,8 @@ def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/hccstress/"+str(YEAR)+"/"+str(CURMONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/hccstress/"+str(YEAR)+"/"+str(CURMONTH)
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/opprtropt/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/html/assets/reports/"+ENVIRONMENT+"/opprtropt/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -677,8 +652,8 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(CURDAY)+".html"
-		REPORTXTSTRING="HCC Stress "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/hccstress/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
-		REPORTXTFILENAME="hcc_stress_reports_"+ENVIRONMENT.lower()+".txt"
+		REPORTXTSTRING="OppRtrOpt "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/opprtropt/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTFILENAME="opprtropt_reports_"+ENVIRONMENT.lower()+".txt"
 		# Old location 
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		# New location 
