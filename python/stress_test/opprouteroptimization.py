@@ -128,6 +128,11 @@ for i in range (0, 17):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
+	
+TOTAL_OPPS_ACCEPTED = 0
+TOTAL_OPPS_REJECTED = 0
+TOTAL_OPPS_SKIPPED = 0
+TOTAL_OPPS_SERVED = 0
 
 
 ##########################################################################################
@@ -215,7 +220,7 @@ def logInToHCC():
   
   
 def startCoding():
-  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
+  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
   global VOO, VAO, VRO, VSO
   print("-------------------------------------------------------------------------------")
   if RANDOM_OPPS_ACTION == "1":
@@ -251,6 +256,7 @@ def startCoding():
     #print "scorables: %s" % scorables
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
+    TOTAL_OPPS_SERVED = coding_opp_current
     test_counter = 0
     doc_no_current = 0
     doc_no_max = len(scorables)
@@ -597,6 +603,7 @@ def writeReportHeader ():
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """HCC user name: <b>%s</b><br>\n""" % (USERNAME)
 	REPORT = REPORT + """HCC app url: <b>%s</b><br>\n""" % (URL)
+	REPORT = REPORT + """Maximum # of Opps to serve: <b>%s</b><br>\n""" % (CODE_OPPS_MAX)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
@@ -622,6 +629,10 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	#REPORT = REPORT+"</td></tr></table>"
 	REPORT = REPORT+"<table>"
+	REPORT = REPORT+"<tr><td><br>Total number of opps served: %s</td></tr>" % (TOTAL_OPPS_SERVED)
+	REPORT = REPORT+"<tr><td>Total number of opps accepted: %s</td></tr>" % (TOTAL_OPPS_ACCEPTED)
+	REPORT = REPORT+"<tr><td>Total number of opps rejected: %s</td></tr>" % (TOTAL_OPPS_REJECTED)
+	REPORT = REPORT+"<tr><td>Total number of opps skipped: %s</td></tr>" % (TOTAL_OPPS_SKIPPED)
 	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
 	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
@@ -745,10 +756,12 @@ def log(text):
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
+  global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": # Accept Doc
+    TOTAL_OPPS_ACCEPTED = TOTAL_OPPS_ACCEPTED + 1
     finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = 	{ \
@@ -803,6 +816,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
       act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "2": # Reject Doc
+    TOTAL_OPPS_REJECTED = TOTAL_OPPS_REJECTED + 1
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -851,6 +865,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
       act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "3": # Skip Opp
+    TOTAL_OPPS_SKIPPED = TOTAL_OPPS_SKIPPED + 1
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
