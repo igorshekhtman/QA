@@ -629,10 +629,10 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	#REPORT = REPORT+"</td></tr></table>"
 	REPORT = REPORT+"<table>"
-	REPORT = REPORT+"<tr><td><br>Total number of opps served: %s</td></tr>" % (TOTAL_OPPS_SERVED)
-	REPORT = REPORT+"<tr><td>Total number of opps accepted: %s</td></tr>" % (TOTAL_OPPS_ACCEPTED)
-	REPORT = REPORT+"<tr><td>Total number of opps rejected: %s</td></tr>" % (TOTAL_OPPS_REJECTED)
-	REPORT = REPORT+"<tr><td>Total number of opps skipped: %s</td></tr>" % (TOTAL_OPPS_SKIPPED)
+	REPORT = REPORT+"<tr><td><br>Total number of opps served: <b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
+	REPORT = REPORT+"<tr><td>Total number of opps skipped: <b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+	REPORT = REPORT+"<tr><td>Total number of docs accepted: <b>%s</b></td></tr>" % (TOTAL_OPPS_ACCEPTED)
+	REPORT = REPORT+"<tr><td>Total number of docs rejected: <b>%s</b></td></tr>" % (TOTAL_OPPS_REJECTED)
 	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
 	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
