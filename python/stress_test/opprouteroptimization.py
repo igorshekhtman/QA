@@ -139,13 +139,10 @@ TOTAL_OPPS_SERVED = 0
 TOTAL_DOCS_REJECTED = 0
 TOTAL_DOCS_ACCEPTED = 0
 
-MODEL_YEAR = {'2010': 0, '2011': 0, '2012': 0, '2013': 0, '2014': 0, '2015': 0}
-PAYMENT_YEAR = {'2010': 0, '2011': 0, '2012': 0, '2013': 0, '2014': 0, '2015': 0}
-HCC = 	{'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, \
-	    '10': 0, '15': 0, '19': 0, '26': 0, '27': 0, '31': 0, '33': 0, '54': 0, \
-	    '74': 0, '92': 0, '96': 0, '105': 0, '107': 0, \
-	    '108': 0, '109': 0, '177': 0}
-MODEL_RUN = {'Final': 0, "Non-final": 0}
+MODEL_YEAR = {str(key): 0 for key in range(2000, 2040)}
+PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
+HCC = {str(key): 0 for key in range(0, 200)}
+MODEL_RUN = {'Final': 0, 'Non-final': 0}
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -634,10 +631,10 @@ def writeReportFooter():
 	REPORT = REPORT+"<tr><td>Opportunities skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>Documents accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
 	REPORT = REPORT+"<tr><td>Documents rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>model_year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (MODEL_YEAR)
-	REPORT = REPORT+"<tr><td>payment_year:</td><td><b>%s</b></td></tr>" % (PAYMENT_YEAR)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>hcc:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (HCC)
-	REPORT = REPORT+"<tr><td>model_run:</td><td><b>%s</b></td></tr>" % (MODEL_RUN)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>model_year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td>payment_year:</td><td><b>%s</b></td></tr>" % (dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>hcc:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (dict((key, value) for key, value in HCC.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td>model_run:</td><td><b>%s</b></td></tr>" % (dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
 	
