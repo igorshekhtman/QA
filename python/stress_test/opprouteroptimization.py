@@ -26,8 +26,11 @@
 #
 # USAGE:
 #          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
-#          * Configure global parameters in hccstress.csv located in the same folder
+#          * Configure global parameters in opprouteroptimization.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
+#		   *
+#		   * python2.7 opprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
+#		   *
 #
 ####################################################################################################
 #
@@ -41,7 +44,7 @@
 #            initial values.  Test script read GLOBAL variable values in as a first step. There
 #            are two GLOBAL variables that need to be updated prior to script execution:
 #            CSV_CONFIG_FILE_PATH = "/mnt/automation/hcc/"
-#            CSV_CONFIG_FILE_NAME = "hccstress.csv"
+#            CSV_CONFIG_FILE_NAME = "opprouteroptimization.csv"
 #            As suggested, they specify location and name of the hccstress.csv file
 #
 ####################################################################################################
@@ -53,7 +56,7 @@
 # DATE: 22-Jan-2015
 #
 # SPECIFICS: Introduced RANDOM_OPPS_ACTION=1 or 0 to allow random coder response to either View
-#            Accept Reject or Skip an Opportunity.  It is defined in hccstress.csv file.  Possible
+#            Accept Reject or Skip an Opportunity.  It is defined in opprouteroptimization.csv file.  Possible
 #            values are 0 for specific and 1 for random
 #
 ####################################################################################################
@@ -133,7 +136,16 @@ TOTAL_OPPS_ACCEPTED = 0
 TOTAL_OPPS_REJECTED = 0
 TOTAL_OPPS_SKIPPED = 0
 TOTAL_OPPS_SERVED = 0
+TOTAL_DOCS_REJECTED = 0
+TOTAL_DOCS_ACCEPTED = 0
 
+MODEL_YEAR = {'2010': 0, '2011': 0, '2012': 0, '2013': 0, '2014': 0, '2015': 0}
+PAYMENT_YEAR = {'2010': 0, '2011': 0, '2012': 0, '2013': 0, '2014': 0, '2015': 0}
+HCC = 	{'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, \
+	    '10': 0, '15': 0, '19': 0, '26': 0, '27': 0, '31': 0, '33': 0, '54': 0, \
+	    '74': 0, '92': 0, '96': 0, '105': 0, '107': 0, \
+	    '108': 0, '109': 0, '177': 0}
+MODEL_RUN = {'Final': 0, "Non-final": 0}
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -218,10 +230,172 @@ def logInToHCC():
   	print "* Log in user = FAILED QA"
   	logInToHCC()
   
+def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
+  global CODE_OPPS_ACTION
+  global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
+  global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
+  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
+    print("* CODER ACTION     = Do NOT Accept or Reject Doc")
+    IncrementTestResultsTotals("coding view only", 200)
+  elif CODE_OPPS_ACTION == "1": # Accept Doc
+    TOTAL_DOCS_ACCEPTED += 1
+    finding_id = scorable.get("id")
+    print "* FINDING ID       = %s" % finding_id
+    DATA = 	{ \
+    		"user_id": USERNAME, \
+    		"timestamp": str(1000 * int(time.time())), \
+    		"result": "accept", \
+    		"comment": "Comment by the OppRtrOptTest", \
+    		"date_of_service": scorable.get("date_of_service"), \
+    		"flag_for_review": "true", \
+    		"icd9[code_system_name]": opportunity.get("suggested_codes")[0].get("code_system_name"), \
+    		"icd9[code]": opportunity.get("suggested_codes")[0].get("code"), \
+    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" OppRtrOptTest", \
+    		"icd9[code_system]": opportunity.get("suggested_codes")[0].get("code_system"), \
+    		"icd9[code_system_version]": opportunity.get("suggested_codes")[0].get("code_system_version"), \
+    		"provider[name]": "The OppRtrOptTest M.D.", \
+    		"provider[id]": "1992754832", \
+    		"provider[type]": "Hospital Outpatient Setting", \
+    		"payment_year": str(opportunity.get("payment_year")), \
+    		"orig_date_of_service": scorable.get("date_of_service"), \
+    		"page": "2015", \
+    		"opportunity_hash": opportunity.get("hash"), \
+    		"rule_hash": opportunity.get("rule_hash"), \
+    		"get_id": str(opportunity.get("get_id")), \
+    		"patient_uuid": opportunity.get("patient_uuid"), \
+    		"patient_org_id": str(scorable.get("patient_org_id")), \
+    		"hcc[code]": str(opportunity.get("hcc")), \
+    		"hcc[model_run]": opportunity.get("model_run"), \
+    		"hcc[model_year]": str(opportunity.get("model_year")), \
+    		"hcc[description]": opportunity.get("hcc_description")+" grinder", \
+    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
+    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
+    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
+    		"finding_id": str(finding_id), \
+    		"document_uuid": scorable.get("document_uuid"), \
+    		"list_position": str(doc_no_current), \
+    		"list_length": str(doc_no_max), \
+    		"document_date": scorable.get("date_of_service"), \
+    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
+    		"predicted_code[code]": "The OppRtrOptTest", \
+    		"predicted_code[display_name]": "The OppRtrOptTest", \
+    		"predicted_code[code_system]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"page_load_time": str(1000 * int(time.time())), \
+    		"document_load_time": str(1000 * int(time.time())) \
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    print "* ANNOTATE FINDING = %s" % response.status_code
+    IncrementTestResultsTotals("coding view and accept", response.status_code)
+    if response.status_code == 200:
+      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
+    else:
+      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+  elif CODE_OPPS_ACTION == "2": # Reject Doc
+    TOTAL_DOCS_REJECTED += 1
+    finding_id = scorable.get("id")
+    #annotation = create_request(Test(testname, "Annotate Finding"))
+    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    print "* FINDING ID       = %s" % finding_id
+    DATA = 	{ \
+    		"user_id": USERNAME, \
+    		"timestamp": str(1000 * int(time.time())), \
+    		"result": "reject", \
+    		"reject_reason": "Additional documentation needed to Accept the document for this HCC", \
+    		"comment": "Comment by The OppRtrOptTest", \
+    		"date_of_service": scorable.get("date_of_service"), \
+    		"flag_for_review": "true", \
+    		"payment_year": str(opportunity.get("payment_year")), \
+    		"orig_date_of_service": scorable.get("date_of_service"), \
+    		"opportunity_hash": opportunity.get("hash"), \
+    		"rule_hash": opportunity.get("rule_hash"), \
+    		"get_id": str(opportunity.get("get_id")), \
+    		"patient_uuid": opportunity.get("patient_uuid"), \
+    		"patient_org_id": str(scorable.get("patient_org_id")), \
+    		"hcc[code]": str(opportunity.get("hcc")), \
+    		"hcc[model_run]": opportunity.get("model_run"), \
+    		"hcc[model_year]": str(opportunity.get("model_year")), \
+    		"hcc[description]": opportunity.get("hcc_description"), \
+    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
+    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
+    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
+    		"finding_id": str(finding_id), \
+    		"document_uuid":  scorable.get("document_uuid"), \
+    		"list_position": str(doc_no_current), \
+    		"list_length": str(doc_no_max), \
+    		"document_date": scorable.get("date_of_service"), \
+    		"snippets": str(scorable.get("snippets")), \
+    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
+    		"predicted_code[code]": "The OppRtrOptTest", \
+    		"predicted_code[display_name]": "The OppRtrOptTest", \
+    		"predicted_code[code_system]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"page_load_time": str(1000 * int(time.time())), \
+    		"document_load_time": str(1000 * int(time.time())) \
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    IncrementTestResultsTotals("coding view and reject", response.status_code)
+    if response.status_code == 200:
+      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
+    else:
+      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+  elif CODE_OPPS_ACTION == "3": # Skip Opp
+    TOTAL_OPPS_SKIPPED += 1
+    finding_id = scorable.get("id")
+    #annotation = create_request(Test(testname, "Annotate Finding"))
+    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+    print "* FINDING ID       = %s" % finding_id
+    DATA = 	{ \
+    		"user_id": USERNAME, \
+    		"timestamp": str(1000 * int(time.time())), \
+    		"result": "skipped", \
+    		"date_of_service": scorable.get("date_of_service"), \
+    		"payment_year": str(opportunity.get("payment_year")), \
+    		"orig_date_of_service": scorable.get("date_of_service"), \
+    		"opportunity_hash": opportunity.get("hash"), \
+    		"rule_hash": opportunity.get("rule_hash"), \
+    		"get_id": str(opportunity.get("get_id")), \
+    		"patient_uuid": opportunity.get("patient_uuid"), \
+    		"hcc[code]": str(opportunity.get("hcc")), \
+    		"hcc[model_run]": opportunity.get("model_run"), \
+    		"hcc[model_year]": str(opportunity.get("model_year")), \
+    		"hcc[description]": opportunity.get("hcc_description") + " (OppRtrOptTest)", \
+    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
+    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
+    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
+    		"finding_id": str(finding_id), \
+    		"document_uuid": scorable.get("document_uuid"), \
+    		"patient_org_id": str(scorable.get("patient_org_id")), \
+    		"list_position": str(doc_no_current), \
+    		"list_length": str(doc_no_max), \
+    		"document_date": scorable.get("date_of_service"), \
+    		"snippets": str(scorable.get("snippets")), \
+    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
+    		"predicted_code[code]": "The OppRtrOptTest", \
+    		"predicted_code[display_name]": "The OppRtrOptTest", \
+    		"predicted_code[code_system]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"page_load_time": str(1000 * int(time.time())), \
+    		"document_load_time": str(1000 * int(time.time())) \
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    IncrementTestResultsTotals("coding view and skip", response.status_code)
+    if response.status_code == 200:
+      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
+    else:
+      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+  else:
+    print("* CODER ACTION     = Unknown\n")
+  return 0
+
   
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
   global VOO, VAO, VRO, VSO
+  #global model_year, payment_year, hcc, model_run
   print("-------------------------------------------------------------------------------")
   if RANDOM_OPPS_ACTION == "1":
     CODE_OPPS_ACTION = str(random.randint(0,3))
@@ -244,6 +418,19 @@ def startCoding():
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
+
+
+    #print opportunity
+    model_year = opportunity.get("model_year")
+    tallyDetails("model_year", opportunity.get("model_year"))
+    payment_year = opportunity.get("payment_year")
+    tallyDetails("payment_year", opportunity.get("payment_year"))
+    hcc = opportunity.get("hcc")
+    tallyDetails("hcc", opportunity.get("hcc"))
+    model_run = opportunity.get("model_run")
+    tallyDetails("model_run", opportunity.get("model_run"))
+    
+    
     patient_details = response.text
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     if opportunity == None:
@@ -295,210 +482,9 @@ def startCoding():
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction()
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
+      #quit()
   return 0
 
-def historyReport():
-  global VIEW_HISTORY_PAGES_MAX
-  print("-------------------------------------------------------------------------------")
-  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
-  view_history_count = 1
-  testCode = 10 + (1 * view_history_count)
-  
-  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  print "* GET CODNG OPP      = %s" % response.status_code
-  opportunity = response.json()
-  patient_details = response.text
-  IncrementTestResultsTotals("history report opportunity check", response.status_code)
-  
-  if opportunity == None:
-    print("ERROR : Login Failed or No More Opportunities For This Coder")
-    return 1
-  for view_history_count in range(1, (int(VIEW_HISTORY_MAX)+1)):
-    print("-------------------------------------------------------------------------------")
-    print("Report %d OF %d" % (view_history_count, int(VIEW_HISTORY_MAX)))  
-    now = datetime.datetime.now()    
-    report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
-    
-    #response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
-    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    
-    
-    IncrementTestResultsTotals("history report pagination", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
-      print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-      pages, payload = pages_payload(response)
-    else:
-      print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-
-    if VIEW_HISTORY_PAGINATION == "1":
-    	if VIEW_HISTORY_PAGES_MAX == "0":
-    		VIEW_HISTORY_PAGES_MAX = pages
-    	for page in range (2, int(VIEW_HISTORY_PAGES_MAX)+1):
-    		testCode += 1
-    		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
-    		#response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("history report pagination", response.status_code)
-    		if response.status_code == 200:
-      			print("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
-      			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    		else:
-      			print("* CODER ACTION     = History Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (page, response))
-    		  	    	
-    if VIEW_HISTORY_SEARCH == "1":
-    	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
-    	for term in terms:
-    		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
-    		#response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("history report searching", response.status_code)
-    		if response.status_code == 200:
-      			print("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
-      			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    		else: 
-      			print("* CODER ACTION     = History Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (term, response)) 		
-    	
-    if VIEW_HISTORY_FILTER == "1":
-    	results = ['reject', 'accept', 'all']
-    	for result in results:
-    		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
-    		#response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("history report filtering", response.status_code)
-    		if response.status_code == 200:
-      			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % result)
-      			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    		else: 
-      			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (result, response))
-      		
-  return 0
-
-def qaReport():
-  global QA_REPORT_PAGES_MAX
-  global DATA, HEADERS, TOKEN, SESSID
-  print("-------------------------------------------------------------------------------")
-  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
-
-  qa_report_count = 1
-  testCode = 10 + (1 * qa_report_count)
-  
-  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  print "* GET CODNG OPP      = %s" % response.status_code
-  opportunity = response.json()
-  patient_details = response.text
-  IncrementTestResultsTotals("qa report opportunity check", response.status_code)
-    
-  if opportunity == None:
-    print("ERROR : Login Failed or No More Opportunities For This Coder")
-    return 1
-  patient_details = response.text
-  print("-------------------------------------------------------------------------------")
-  if response.status_code == 200:
-    print("* CODER ACTION     = Get coding opportunity")
-    print("* HCC RESPONSE     = 200 OK")
-    print("* MODEL YEAR       = %s" % opportunity.get("model_year"))
-    print("* HCC DESCR        = %s" % opportunity.get("hcc_description"))
-    print("* PAYMENT YEAR     = %s" % opportunity.get("payment_year"))
-    print("* PAYMENT ID       = %s" % opportunity.get("patient_id"))
-    print("* HCC              = %s" % opportunity.get("hcc"))
-    print("* GET ID           = %s" % opportunity.get("get_id"))
-    print("* LABEL VERSION    = %s" % opportunity.get("label_set_version"))
-    print("* PATIENT UUID     = %s" % opportunity.get("patient_uuid"))
-    print("* MODEL RUN        = %s" % opportunity.get("model_run"))
-  else: 
-    print("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.status_code, opportunity.get("message")))
-  
-  testCode = testCode + 1
-  response = requests.get(URL + "/api/report/orgCoders/", data=DATA, headers=HEADERS)
-  print "* GET CODERS LIST  = %s" % response.status_code
-  coders = response.json()
-  patient_details = response.text
-  IncrementTestResultsTotals("qa report coder list check", response.status_code)
-  
-  
-  print("-------------------------------------------------------------------------------")
-  IncrementTestResultsTotals("qa report pagination", response.status_code)
-  if response.status_code == 200:
-    print("* CODER ACTION     = Get orgCoders list")
-    print("* HCC RESPONSE     = 200 OK")
-    i = 0
-    for coder in coders:
-      i = i + 1
-      print ("* CODER-%d          = %s" % (i, coder))      
-  else: 
-    print("* CODER ACTION     = Get orgCoders list\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.status_code, coders.get("message")))
-  #quit()    
-    
-    
-  for qa_report_count in range(1, (int(QA_REPORT_MAX)+1)):
-    print("-------------------------------------------------------------------------------")
-    print("Report %d OF %d" % (qa_report_count, int(QA_REPORT_MAX)))
-    now = datetime.datetime.now()
-    report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
-    #response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
-    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    IncrementTestResultsTotals("qa report pagination", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
-      print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-      pages, payload = pages_payload(response) 
-    else:
-      print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    
-    if QA_REPORT_PAGINATION == "1":
-    	if QA_REPORT_PAGES_MAX == "0":
-    		QA_REPORT_PAGES_MAX = pages
-    	for page in range (2, int(QA_REPORT_PAGES_MAX)+1):
-    		testCode += 1
-    		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
-    		#response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("qa report pagination", response.status_code)
-    		if response.status_code == 200:
-      			print("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = 200 OK" % page)
-      			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    		else:
-      			print("* CODER ACTION     = QA Report Pagination\n* PAGE NUMBER      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (page, response))     		    	
-    	
-    if QA_REPORT_SEARCH == "1":
-    	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
-    	for term in terms:
-    		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
-    		#response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    		print("-------------------------------------------------------------------------------")
-    		IncrementTestResultsTotals("qa report searching", response.status_code)
-    		if response.status_code == 200:
-      			print("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = 200 OK" % term)
-      			print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    		else: 
-      			print("* CODER ACTION     = QA Report Searching\n* SEARCH TERM      = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (term, response))
-      		 	
-    if QA_REPORT_FILTER == "1":
-    	results = ['reject', 'accept', 'all']
-    	for coder in coders:
-    		for result in results:
-    			testCode += 1
-    			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
-    			#response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
-    			response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    			print("-------------------------------------------------------------------------------")
-    			IncrementTestResultsTotals("qa report filtering", response.status_code)
-    			if response.status_code == 200:
-      				print("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = 200 OK" % (result, coder))
-      				print("* PAGES, PAYLOAD   = %d, %d KBytes" % pages_payload(response))
-    			else: 
-      				print("* CODER ACTION     = QA Report Filtering\n* FILTER BY        = [%s]\n* FILTER BY        = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (result, coder, response))
-      			    	
-  return 0
 
 def logout():
   print("-------------------------------------------------------------------------------")
@@ -513,6 +499,21 @@ def logout():
   return 0
 
 # HELPER FUNCTIONS ####################################################################################################
+
+def tallyDetails(item, value):
+	global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
+	if item == "model_year":
+		#print value
+		#print MODEL_YEAR
+		MODEL_YEAR[value] += 1
+	elif item == "payment_year":	
+		PAYMENT_YEAR[value] += 1
+	elif item == "hcc":	
+		HCC[value] += 1
+	elif item == "model_run":	
+		MODEL_RUN[value] += 1
+	return 0
+
 
 def WeightedRandomCodingAction():
 	global VOO_W, VAO_W, VRO_W, VSO_W
@@ -552,12 +553,12 @@ def printResultsSummary():
 	log("=============================================================================")	
 	
 def checkEnvironmentandReceivers():
-	# Environment for stressTest is passed as a paramater. Staging is a default value
+	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	# Environment for stressTest is passed as a paramater. Staging is a default value
+	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
 		ENVIRONMENT="staging"
@@ -627,25 +628,31 @@ def writeReportDetails(module):
 def writeReportFooter():
 	global REPORT
 	print ("Write report footer ...\n")
-	#REPORT = REPORT+"</td></tr></table>"
-	REPORT = REPORT+"<table>"
-	REPORT = REPORT+"<tr><td><br>Total number of opps served: <b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-	REPORT = REPORT+"<tr><td>Total number of opps skipped: <b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-	REPORT = REPORT+"<tr><td>Total number of docs accepted: <b>%s</b></td></tr>" % (TOTAL_OPPS_ACCEPTED)
-	REPORT = REPORT+"<tr><td>Total number of docs rejected: <b>%s</b></td></tr>" % (TOTAL_OPPS_REJECTED)
+	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>Opportunities served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
+	REPORT = REPORT+"<tr><td>Opportunities skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>Documents accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
+	REPORT = REPORT+"<tr><td>Documents rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>model_year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (MODEL_YEAR)
+	REPORT = REPORT+"<tr><td>payment_year:</td><td><b>%s</b></td></tr>" % (PAYMENT_YEAR)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>hcc:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (HCC)
+	REPORT = REPORT+"<tr><td>model_run:</td><td><b>%s</b></td></tr>" % (MODEL_RUN)
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+	
+	
 	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+	REPORT = REPORT+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+	REPORT = REPORT+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
 	TIME_END = time.time()
 	TIME_TAKEN = TIME_END - TIME_START
 	hours, REST = divmod(TIME_TAKEN,3600)
 	minutes, seconds = divmod(REST, 60)
-	REPORT = REPORT+"<tr><td>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT = REPORT+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
+	REPORT = REPORT+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
 	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
-
 
 
 def archiveReport():
@@ -754,165 +761,7 @@ def log(text):
 	print(text)
 	return 0    
 
-def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
-  global CODE_OPPS_ACTION
-  global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
-  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    print("* CODER ACTION     = Do NOT Accept or Reject Doc")
-    IncrementTestResultsTotals("coding view only", 200)
-  elif CODE_OPPS_ACTION == "1": # Accept Doc
-    TOTAL_OPPS_ACCEPTED = TOTAL_OPPS_ACCEPTED + 1
-    finding_id = scorable.get("id")
-    print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "accept", \
-    		"comment": "Comment by the stressTest", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"flag_for_review": "true", \
-    		"icd9[code_system_name]": opportunity.get("suggested_codes")[0].get("code_system_name"), \
-    		"icd9[code]": opportunity.get("suggested_codes")[0].get("code"), \
-    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" stressTest", \
-    		"icd9[code_system]": opportunity.get("suggested_codes")[0].get("code_system"), \
-    		"icd9[code_system_version]": opportunity.get("suggested_codes")[0].get("code_system_version"), \
-    		"provider[name]": "The stressTest M.D.", \
-    		"provider[id]": "1992754832", \
-    		"provider[type]": "Hospital Outpatient Setting", \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"page": "2015", \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description")+" grinder", \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid": scorable.get("document_uuid"), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"predicted_code[code_system_name]": "The stressTest", \
-    		"predicted_code[code]": "The stressTest", \
-    		"predicted_code[display_name]": "The stressTest", \
-    		"predicted_code[code_system]": "The stressTest", \
-    		"predicted_code[code_system_version]": "The stressTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    print "* ANNOTATE FINDING = %s" % response.status_code
-    IncrementTestResultsTotals("coding view and accept", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
-    else:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "2": # Reject Doc
-    TOTAL_OPPS_REJECTED = TOTAL_OPPS_REJECTED + 1
-    finding_id = scorable.get("id")
-    #annotation = create_request(Test(testname, "Annotate Finding"))
-    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "reject", \
-    		"reject_reason": "Additional documentation needed to Accept the document for this HCC", \
-    		"comment": "Comment by The stressTest", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"flag_for_review": "true", \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description"), \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid":  scorable.get("document_uuid"), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The stressTest", \
-    		"predicted_code[code]": "The stressTest", \
-    		"predicted_code[display_name]": "The stressTest", \
-    		"predicted_code[code_system]": "The stressTest", \
-    		"predicted_code[code_system_version]": "The stressTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals("coding view and reject", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
-    else:
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "3": # Skip Opp
-    TOTAL_OPPS_SKIPPED = TOTAL_OPPS_SKIPPED + 1
-    finding_id = scorable.get("id")
-    #annotation = create_request(Test(testname, "Annotate Finding"))
-    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "skipped", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description") + " (stressTest)", \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid": scorable.get("document_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The stressTest", \
-    		"predicted_code[code]": "The stressTest", \
-    		"predicted_code[display_name]": "The stressTest", \
-    		"predicted_code[code_system]": "The stressTest", \
-    		"predicted_code[code_system_version]": "The stressTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    IncrementTestResultsTotals("coding view and skip", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
-    else:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-  else:
-    print("* CODER ACTION     = Unknown\n")
-  return 0
+
 
 # MAIN FUNCTION CALLER ####################################################################################################
 
@@ -939,20 +788,6 @@ writeReportDetails("coding view and accept")
 writeReportDetails("coding view and reject")
 writeReportDetails("coding view and skip")
 
-historyReport()
-
-writeReportDetails("history report opportunity check")
-writeReportDetails("history report pagination")
-writeReportDetails("history report searching")
-writeReportDetails("history report filtering")
-
-qaReport()
-
-writeReportDetails("qa report coder list check")
-writeReportDetails("qa report opportunity check")
-writeReportDetails("qa report pagination")
-writeReportDetails("qa report searching")
-writeReportDetails("qa report filtering")
 
 logout()
 
