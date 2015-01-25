@@ -76,6 +76,7 @@ import smtplib
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+from sortedcontainers import SortedDict
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -143,6 +144,9 @@ MODEL_YEAR = {str(key): 0 for key in range(2000, 2040)}
 PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 HCC = {str(key): 0 for key in range(0, 200)}
 MODEL_RUN = {'Final': 0, 'Non-final': 0}
+COUNT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
+PERCENT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
+
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -392,6 +396,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
   global VOO, VAO, VRO, VSO
+  global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
   #global model_year, payment_year, hcc, model_run
   print("-------------------------------------------------------------------------------")
   if RANDOM_OPPS_ACTION == "1":
@@ -441,6 +446,19 @@ def startCoding():
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     TOTAL_OPPS_SERVED = coding_opp_current
+    
+    
+    if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
+    	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
+    	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
+    	for hcc in TEMP_HCC:
+    		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
+    	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
+    	#quit()
+    	
+    
+    
+    
     test_counter = 0
     doc_no_current = 0
     doc_no_max = len(scorables)
@@ -500,8 +518,6 @@ def logout():
 def tallyDetails(item, value):
 	global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
 	if item == "model_year":
-		#print value
-		#print MODEL_YEAR
 		MODEL_YEAR[value] += 1
 	elif item == "payment_year":	
 		PAYMENT_YEAR[value] += 1
@@ -627,14 +643,23 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>Opportunities served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-	REPORT = REPORT+"<tr><td>Opportunities skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>Documents accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
-	REPORT = REPORT+"<tr><td>Documents rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>model_year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td>payment_year:</td><td><b>%s</b></td></tr>" % (dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8'>hcc:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (dict((key, value) for key, value in HCC.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td>model_run:</td><td><b>%s</b></td></tr>" % (dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
+	REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
+	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td nowrap>Payment year:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in HCC.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC count:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
+	REPORT = REPORT+"<tr><td nowrap>Percent of served:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
+		
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
 	
