@@ -77,6 +77,10 @@ from time import gmtime, strftime, localtime
 import calendar
 import mmap
 from sortedcontainers import SortedDict
+#import matplotlib
+#matplotlib.use('Agg')
+#from pylab import *
+#from decimal import *
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -143,7 +147,7 @@ TOTAL_DOCS_ACCEPTED = 0
 MODEL_YEAR = {str(key): 0 for key in range(2000, 2040)}
 PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 HCC = {str(key): 0 for key in range(0, 200)}
-MODEL_RUN = {'Final': 0, 'Non-final': 0}
+MODEL_RUN = {'Final': 0, 'Initial': 0}
 COUNT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
 PERCENT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
 
@@ -786,6 +790,55 @@ def log(text):
 
 
 # MAIN FUNCTION CALLER ####################################################################################################
+
+############# SAVED CODE ##################
+
+#import matplotlib
+
+#matplotlib.use('Agg')
+#from pylab import *
+#from decimal import *
+
+#def main(my_dict):..
+#    bar_graph(my_dict, graph_title='Custoers')
+#    show_html()
+
+#def bar_graph(name_value_dict, graph_title='', output_name='bargraph.png'):
+#    figure(figsize=(15, 10)) # image dimensions..
+#    title(graph_title, size='x-small')
+
+    # add bars
+ #   for i, key in zip(range(len(name_value_dict)), name_value_dict.keys()):
+ #       barh(i, name_value_dict[key], color='red')
+
+    # axis setup
+ #   yticks(arange(0, len(name_value_dict)),
+ #       [('%s: %d \n' % (name)) for name in
+ #       zip(name_value_dict.keys(), name_value_dict.values())],
+ #       size='small')
+
+# max_value = max(name_value_dict.values())
+#tick_range = arange(0, max_value, (max_value / len(ame_val_dict)))
+#formatter = FixedFormatter([str(x) for x in tick_range])
+# gca().yaxis.set_major_formatter(formatter)
+
+    # gca().yaxis.grid(which='major')
+#    grid(True).
+#    savefig(output_name)
+
+#def show_html():
+    #print "<html><body>"
+#    print "<img src='bargraph.png'>"
+    #print "</body></html>"
+
+#if __name__ == "__main__":
+#    my_dict = {'la' : Decimal('20'), 'cmi' : Decimal(100)}
+#    main(my_dict)
+
+
+
+########## END OF SAVED CODE ###############
+
 
 os.system('clear')
 
