@@ -860,6 +860,29 @@ WHERE get_json_object(line, '$.level') = 'EVENT' and
 get_json_object(line, '$.org_id') is not NULL and
 ($dateRange);
 
+insert overwrite table summary_hcc_error partition (year, month, day)
+SELECT
+get_json_object(line, '$.app.app_user_info.user') as coder,
+get_json_object(line, '$.app.hcc.frontend.login_failure.form_username') as form_username,
+get_json_object(line, '$.app.app_user_info.coding_org_id') as coding_org,
+get_json_object(line, '$.app.app_user_info.session') as session,
+if (get_json_object(line, '$.app.hcc.error_name') is not NULL,
+    get_json_object(line, '$.app.hcc.error_name'),
+    get_json_object(line, '$.app.hcc.event_name')) as error_name,
+get_json_object(line, CONCAT('$.app.hcc.frontend.',
+  if (get_json_object(line, '$.app.hcc.error_name') is not NULL,
+      get_json_object(line, '$.app.hcc.error_name'),
+      get_json_object(line, '$.app.hcc.event_name')), '.message')) as error_message,
+get_json_object(line, '$.source') as source,
+get_json_object(line, '$.client') as client,
+year,
+month,
+day
+FROM production_logs_hcc_epoch
+WHERE
+(get_json_object(line, '$.app.hcc.error_name') is not NULL or
+get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
+($dateRange);
 
 ###################################Staging#########################################################
 ! echo Loading Staging partitions
@@ -1661,6 +1684,30 @@ WHERE get_json_object(line, '$.level') = 'EVENT' and
 get_json_object(line, '$.org_id') is not NULL and
 ($dateRange);
 
+
+insert overwrite table summary_hcc_error_staging partition (year, month, day)
+SELECT
+get_json_object(line, '$.app.app_user_info.user') as coder,
+get_json_object(line, '$.app.hcc.frontend.login_failure.form_username') as form_username,
+get_json_object(line, '$.app.app_user_info.coding_org_id') as coding_org,
+get_json_object(line, '$.app.app_user_info.session') as session,
+if (get_json_object(line, '$.app.hcc.error_name') is not NULL,
+    get_json_object(line, '$.app.hcc.error_name'),
+    get_json_object(line, '$.app.hcc.event_name')) as error_name,
+get_json_object(line, CONCAT('$.app.hcc.frontend.',
+  if (get_json_object(line, '$.app.hcc.error_name') is not NULL,
+      get_json_object(line, '$.app.hcc.error_name'),
+      get_json_object(line, '$.app.hcc.event_name')), '.message')) as error_message,
+get_json_object(line, '$.source') as source,
+get_json_object(line, '$.client') as client,
+year,
+month,
+day
+FROM staging_logs_hcc_epoch
+WHERE
+(get_json_object(line, '$.app.hcc.error_name') is not NULL or
+get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
+($dateRange);
 
 EOF
 
