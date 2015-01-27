@@ -174,6 +174,11 @@ create table summary_loader_upload
 (batch_name string, user string, success boolean, primary_id string, upload_id string, uuid string, size bigint, payload string, attempts int, original_id string, reference string, message string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+/**********************************HCC*********************************************************************************/
+create table summary_hcc_error
+(coder string, form_username string, coding_org string, session string, error_name string, error_message string, source string, client string)
+partitioned by (year STRING, month STRING, day STRING);
+
 /**********************************Log Traffic*********************************************************************************/
 create table summary_logstraffic
 (total int, discarded int, infos int, events int, warnings int, errors int)
