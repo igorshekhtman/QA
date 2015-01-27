@@ -18,11 +18,20 @@ CODE_OPPS_ACTION=1
 #### If RANDOM_OPPS_ACTION flag is set to 1, CODE_OPPS_ACTION will be ignored
 RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
+#### View Only, View Accept, View Reject, View Skip
 VOO_W=0
-VAO_W=5
-VRO_W=95
+VAO_W=0
+VRO_W=100
 VSO_W=0
-CODE_OPPS_MAX=100
+#### 2nd set of weights for targeted HCC Code
+#### View Only, View Accept, View Reject, View Skip
+#### Will be used in the future for Richards provision to 
+#### detect 100% accepts
+VOO_W2=0
+VAO_W2=95
+VRO_W2=5
+VSO_W2=0
+CODE_OPPS_MAX=21
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0

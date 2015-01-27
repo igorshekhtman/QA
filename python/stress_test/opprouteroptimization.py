@@ -32,6 +32,15 @@
 #		   * python2.7 opprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
 #		   *
 #
+# SPECIFIC TEST CASE PROVIDED BY RICHARD:
+#		- Choose an HCC, such as 15-2013-Final-2014. The HCC should not be overly rare. 
+#		- Choose an acceptance probability for that HCC, such as 20%. All other HCCs get probability zero. 
+#		- Reset the database to pristine state using reset script. 
+#		- Start routing. 
+#		- Tally number of serves of the targeted HCC in time buckets of perhaps 100 annotations. 
+#		- Throw random number and apply accept or reject according to the probabilities mentioned above for each opportunity. 
+#		- Observe that the curve slowly rises until saturating.
+#
 ####################################################################################################
 #
 # REVISION: 1.0.1
@@ -68,7 +77,6 @@ import time
 import datetime
 import csv
 import operator
-import random
 import re
 import sys, os
 import json
@@ -77,10 +85,11 @@ from time import gmtime, strftime, localtime
 import calendar
 import mmap
 from sortedcontainers import SortedDict
-#import matplotlib
-#matplotlib.use('Agg')
-#from pylab import *
-#from decimal import *
+import matplotlib
+matplotlib.use('Agg')
+from pylab import *
+from decimal import *
+import random
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -148,12 +157,17 @@ MODEL_YEAR = {str(key): 0 for key in range(2000, 2040)}
 PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 HCC = {str(key): 0 for key in range(0, 200)}
 MODEL_RUN = {'Final': 0, 'Initial': 0}
-COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
-PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
+
+# Buckets of 100 annotations
+#COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
+#PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
+COUNT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
+PERCENT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
-HCC_CODES_TO_ACCEPT = {'27'}
+#HCC_CODES_TO_ACCEPT = {'27'}
+HCC_CODES_TO_ACCEPT = {'131'}
 
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -245,7 +259,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+" - "+str(opportunity.get("model_year"))+" - "+str(opportunity.get("model_run"))+" - "+str(opportunity.get("payment_year"))
+    print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": # Accept Doc
@@ -299,7 +313,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+" - "+str(opportunity.get("model_year"))+" - "+str(opportunity.get("model_run"))+" - "+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -349,7 +363,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+" - "+str(opportunity.get("model_year"))+" - "+str(opportunity.get("model_run"))+" - "+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -396,7 +410,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+" - "+str(opportunity.get("model_year"))+" - "+str(opportunity.get("model_run"))+" - "+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -412,28 +426,19 @@ def startCoding():
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
   #global model_year, payment_year, hcc, model_run
   print("-------------------------------------------------------------------------------")
-  if RANDOM_OPPS_ACTION == "1":
-    CODE_OPPS_ACTION = str(random.randint(0,3))
-    action = "Random Accept/Reject/Skip Doc"    
-  elif CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    action = "Do NOT Accept or Reject Doc"
-  elif CODE_OPPS_ACTION == "1": # Accept Doc
-    action = "Accept Docs"
-  elif CODE_OPPS_ACTION == "2": # Reject Doc
-    action = "Reject Docs"
-  elif CODE_OPPS_ACTION == "3": # Skip Opp
-    action = "Skip Opp"
-  else:
-    action = "Unknown"
-  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, action, CODE_OPPS_MAX))
   print("-------------------------------------------------------------------------------")
-  coding_opp_current = 1
+  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
+  print("-------------------------------------------------------------------------------")
+  print("-------------------------------------------------------------------------------")
+  #coding_opp_current = 1
+  #====================================================
+  # main loop controlling number of OPPS to process
+  #====================================================
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
-
     ######################################################################################         
     model_year = opportunity.get("model_year")
     tallyDetails("model_year", opportunity.get("model_year"))
@@ -443,9 +448,8 @@ def startCoding():
     tallyDetails("hcc", opportunity.get("hcc"))
     model_run = opportunity.get("model_run")
     tallyDetails("model_run", opportunity.get("model_run"))
-    print "* HCC CODE         = %s" % hcc+" - "+model_year+" - "+model_run+" - "+payment_year
+    print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
     ######################################################################################
-        
     patient_details = response.text
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     if opportunity == None:
@@ -544,6 +548,7 @@ def WeightedRandomCodingAction(hcc_code):
 	# 3 - Reject Opportunity
 	#===============================
 	global VOO_W, VAO_W, VRO_W, VSO_W
+	global VOO_W2, VAO_W2, VRO_W2, VSO_W2
 	global VOO, VAO, VRO, VSO
 	weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
 	weight['0'] = int(VOO_W)
@@ -551,9 +556,24 @@ def WeightedRandomCodingAction(hcc_code):
 	weight['2'] = int(VRO_W)
 	weight['3'] = int(VSO_W)
 	action = random.choice([k for k in weight for dummy in range(weight[k])])
+	
+	weight2 = { "0": 0, "1": 0, "2": 0, "3": 0 }
+	weight2['0'] = int(VOO_W2)
+	weight2['1'] = int(VAO_W2)
+	weight2['2'] = int(VRO_W2)
+	weight2['3'] = int(VSO_W2)
+	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
+	
 	if hcc_code in HCC_CODES_TO_ACCEPT:
-		action = "1"
-		VAO += 1
+		if action2 == "0":
+			VOO += 1
+		elif action2 == "1":
+			VAO += 1
+		elif action2 == "2":
+			VRO += 1
+		elif action2 == "3":
+			VSO += 1
+		return (action2)	
 	else:	
 		if action == "0":
 			VOO += 1
@@ -563,8 +583,7 @@ def WeightedRandomCodingAction(hcc_code):
 			VRO += 1
 		elif action == "3":
 			VSO += 1
-			 
-	return (action)
+		return (action)
 	
 def printResultsSummary():
 	log("=============================================================================")
@@ -662,23 +681,28 @@ def writeReportFooter():
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-	REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
-	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(TOTAL_OPPS_SERVED)
+	REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % \
+		(TOTAL_OPPS_SKIPPED)
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(TOTAL_DOCS_ACCEPTED)
+	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % \
+		(TOTAL_DOCS_REJECTED)
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
 		(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td nowrap>Payment year:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in HCC.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC count:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))		
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
+	REPORT = REPORT+"<tr><td nowrap>HCC total:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in HCC.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
 		(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
-	REPORT = REPORT+"<tr><td nowrap>Percent of served:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
-		
+	REPORT = REPORT+"<tr><td nowrap>HCC %% per bucket:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))		
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
 	
@@ -793,8 +817,10 @@ def IncrementTestResultsTotals(module, code):
 			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
 			quit()
 		if (code == unauthorized):
-			logInToHCC()
-			startCoding()
+			print "%s response code received from server.  Test is being terminated" % code
+			quit()
+			#logInToHCC()
+			#startCoding()
     
 def log(text):
 	global REPORT
