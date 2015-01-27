@@ -431,29 +431,36 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
-	cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
-		if (error_message like '/mnt%%','No space left on device', error_message) as message \
-		FROM %s \
-		WHERE \
-		%s is not null and \
-		status != 'success' and \
-		day=%s and month=%s and year=%s \
-		GROUP BY org_id, \
-		if(error_message like '/mnt%%','No space left on device', error_message) \
-		ORDER BY message ASC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
+	
+	if summary_table_name == "summary_hcc_error":
+		cur.execute("""SELECT count(*) as count, error_name, error_message as message \
+			FROM %s \
+			WHERE \
+			day=%s and month=%s and year=%s \
+			GROUP BY error_name, error_message \
+			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))				
+	else:	
+		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
+			if (error_message like '/mnt%%','No space left on device', error_message) as message \
+			FROM %s \
+			WHERE \
+			%s is not null and \
+			status != 'success' and \
+			day=%s and month=%s and year=%s \
+			GROUP BY org_id, \
+			if(error_message like '/mnt%%','No space left on device', error_message) \
+			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 			
 	ROW = 0
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
 		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td>"
-		REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td>"
-		#if str(i[1]) in ORGMAP:
-		#	REPORT = REPORT + "<td bgcolor='#FFFF00'>"+ORGMAP[str(i[1])]+" ("+str(i[1])+")</td></tr>"
-		#else:
-		#	REPORT = REPORT + "<td bgcolor='#FFFF00'>"+str(i[1])+" ("+str(i[1])+")</td></tr>"
-		REPORT = REPORT + "<td bgcolor='#FFFF00'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr>"
-		REPORT = REPORT+"<tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		if summary_table_name == "summary_hcc_error":
+			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		else:
+			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'>There were no "+activity+" "+summary_table_name+" specific errors</td></tr>"
@@ -1090,6 +1097,7 @@ def errorMessagesRD():
 	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
 	obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
+	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")
 	
 	
 		
