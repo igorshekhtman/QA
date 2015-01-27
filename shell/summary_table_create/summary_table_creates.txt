@@ -176,7 +176,7 @@ partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
 /**********************************HCC*********************************************************************************/
 create table summary_hcc_error
-(coder string, form_username string, coding_org string, session string, error_name string, error_message string, source string, client string)
+(coder string, form_username string, coding_org string, session string, error_name string, error_message string, source string, client string, status string)
 partitioned by (year STRING, month STRING, day STRING);
 
 /**********************************Log Traffic*********************************************************************************/
