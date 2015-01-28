@@ -40,7 +40,7 @@ echo "Updating partitioned log traffic summary table with date range: $dateRange
 echo " "
 
 envs="production staging"
-appNames="persistJob json2trace parserJob coordinator ocrJob docreceiver careopt dataCheckAndRecover dataorchestrator useraccount bundler eventJob"
+appNames="persistJob json2trace parserJob coordinator ocrJob docreceiver careopt dataCheckAndRecover dataorchestrator useraccount bundler eventJob hcc"
 
 for env in $envs
 do
