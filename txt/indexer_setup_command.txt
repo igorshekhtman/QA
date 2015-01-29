@@ -1,3 +1,11 @@
+===================== OPP ROUTER STOP AND START SERVICE =====================================
+
+Stage Server: hcc-opprouter-stg.apixio.com
+
+service apx-router stop
+
+service apx-router start
+
 ===================== APIXIO APPS ACCESS ====================================================
 
 https://sites.google.com/a/apixio.com/qa/accounts
