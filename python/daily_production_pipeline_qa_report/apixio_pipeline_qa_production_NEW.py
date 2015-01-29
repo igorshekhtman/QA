@@ -433,11 +433,13 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	
 	if summary_table_name == "summary_hcc_error":
-		cur.execute("""SELECT count(*) as count, error_name, error_message as message \
+		cur.execute("""SELECT count(*) as count, error_name, \
+			if (error_message like '%%401 while submitting%%','Received error: 401 while submitting reject or accept', error_message) as message \
 			FROM %s \
 			WHERE \
 			day=%s and month=%s and year=%s \
-			GROUP BY error_name, error_message \
+			GROUP BY error_name, \
+			if (error_message like '%%401 while submitting%%','Received error: 401 while submitting reject or accept', error_message) \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))				
 	else:	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
