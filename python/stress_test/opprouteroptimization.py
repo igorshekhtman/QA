@@ -164,9 +164,9 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 #COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 #PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 
-START = 10
-STOP = 110
-STEP = 10
+START = 100
+STOP = 1200
+STEP = 100
 
 COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
 PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
@@ -175,8 +175,8 @@ PERCENT_OF_SP_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
-#HCC_CODES_TO_ACCEPT = {'27'}
-HCC_CODES_TO_ACCEPT = {'131'}
+HCC_CODES_TO_ACCEPT = {'27'}
+#HCC_CODES_TO_ACCEPT = {'131'}
 HCC_CODE_TO_ACCEPT = '27'
 #HCC_CODE_TO_ACCEPT = '32'
 ##########################################################################################
@@ -752,7 +752,7 @@ def writeReportFooter():
 		(dict((key, value) for key, value in SORTED_COUNT_OF_SERVED.items() if (value > 0)))	
 	REPORT = REPORT+"<tr><td nowrap>HCC (all) %% per bucket:</td><td><b>%s</b></td></tr>" % \
 		(dict((key, value) for key, value in SORTED_PERCENT_OF_SERVED.items()))	
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC (%s) %% per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
 		(HCC_CODE_TO_ACCEPT, dict((key, value) for key, value in SORTED_PERCENT_OF_SP_HCC_SERVED.items()))			
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
