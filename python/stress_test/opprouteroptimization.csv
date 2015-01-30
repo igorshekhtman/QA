@@ -20,8 +20,8 @@ RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
 #### View Only, View Accept, View Reject, View Skip
 VOO_W=0
-VAO_W=0
-VRO_W=100
+VAO_W=20
+VRO_W=80
 VSO_W=0
 #### 2nd set of weights for targeted HCC Code
 #### View Only, View Accept, View Reject, View Skip
@@ -31,7 +31,7 @@ VOO_W2=0
 VAO_W2=95
 VRO_W2=5
 VSO_W2=0
-CODE_OPPS_MAX=21
+CODE_OPPS_MAX=1000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0

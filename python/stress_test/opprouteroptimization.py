@@ -73,23 +73,24 @@
 # LIBRARIES ########################################################################################
 
 import requests
+from collections import OrderedDict
 import time
 import datetime
 import csv
 import operator
 import re
 import sys, os
+import shutil
 import json
-import smtplib
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
 from sortedcontainers import SortedDict
-import matplotlib
-matplotlib.use('Agg')
 from pylab import *
-from decimal import *
 import random
+import smtplib
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -161,14 +162,23 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 # Buckets of 100 annotations
 #COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 #PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
-COUNT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
-PERCENT_OF_SERVED = {str(key): 0 for key in range(10, 110, 10)}
+
+START = 100
+STOP = 1000
+STEP = 100
+
+
+COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+PERCENT_OF_SP_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+#PERCENT_OF_SP_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
 #HCC_CODES_TO_ACCEPT = {'27'}
 HCC_CODES_TO_ACCEPT = {'131'}
-
+HCC_CODE_TO_ACCEPT = '27'
+#HCC_CODE_TO_ACCEPT = '32'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -463,12 +473,16 @@ def startCoding():
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     TOTAL_OPPS_SERVED = coding_opp_current   
+    
     if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
     	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
     	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
     	for hcc in TEMP_HCC:
     		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
+    		if hcc == HCC_CODE_TO_ACCEPT:
+    			PERCENT_OF_SP_HCC_SERVED[str(TOTAL_OPPS_SERVED)]=(round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2))*STEP
     	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
+    	
     	#quit()    
     test_counter = 0
     doc_no_current = 0
@@ -564,7 +578,8 @@ def WeightedRandomCodingAction(hcc_code):
 	weight2['3'] = int(VSO_W2)
 	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
 	
-	if hcc_code in HCC_CODES_TO_ACCEPT:
+	#if hcc_code in HCC_CODES_TO_ACCEPT:
+	if hcc_code == HCC_CODE_TO_ACCEPT:
 		if action2 == "0":
 			VOO += 1
 		elif action2 == "1":
@@ -643,6 +658,7 @@ def checkEnvironmentandReceivers():
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
+	# REPORT = MIMEMultipart()
 	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
@@ -676,8 +692,31 @@ def writeReportDetails(module):
 	print ("Completed writeReportDetails ... \n")
 		
 	
+def createGraph():
+	global CURDAY, START, STOP
+
+	#x = arange(START, STOP, STEP)
+	#y = sin(2*pi*x)
+	#PERCENT_OF_SP_HCC_SERVED = {'10':0.0, '20':0.0, '30':0.1, '40':0.2, '50':0.3, '50':0.4, '60':0.5, '70':0.5, '80':0.6, '90':0.8, '100':0.9}
+	
+	#SORTED_PERCENT_OF_SP_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_SP_HCC_SERVED.items(), key=lambda t: t[0]))
+	#print SORTED_PERCENT_OF_SP_HCC_SERVED
+	
+	x = SORTED_PERCENT_OF_SP_HCC_SERVED.keys()
+	y = SORTED_PERCENT_OF_SP_HCC_SERVED.values()
+	
+	plot(x, y, color='blue', linestyle='solid', marker='o', markerfacecolor='green', markersize=3)
+
+	xlabel('# of serves per time bucket')
+	ylabel('% of specific HCC-'+str(HCC_CODE_TO_ACCEPT)+' served')
+	title('HCC Opportunity Router Optimization Test')
+	grid(True)
+	savefig(str(CURDAY))
+	show()
+
+
 def writeReportFooter():
-	global REPORT
+	global REPORT, SORTED_PERCENT_OF_SP_HCC_SERVED
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
@@ -697,12 +736,35 @@ def writeReportFooter():
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
 		(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
+	###############################################################################################################
+	# Sort all dictionaries here
+	SORTED_HCC = OrderedDict(sorted(HCC.items(), key=lambda t: t[0]))
+	SORTED_COUNT_OF_SERVED = OrderedDict(sorted(COUNT_OF_SERVED.items(), key=lambda t: t[0]))
+	SORTED_PERCENT_OF_SERVED = OrderedDict(sorted(PERCENT_OF_SERVED.items(), key=lambda t: t[0]))
+	#SORTED_PERCENT_OF_SP_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_SP_HCC_SERVED.items(), key=lambda t: t[0]))
+	SORTED_PERCENT_OF_SP_HCC_SERVED = SortedDict(PERCENT_OF_SP_HCC_SERVED)
+	#print SORTED_PERCENT_OF_SP_HCC_SERVED.items()
+	#quit()
+	###############################################################################################################
 	REPORT = REPORT+"<tr><td nowrap>HCC total:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in HCC.items() if (value > 0)))
+		(dict((key, value) for key, value in SORTED_HCC.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
-	REPORT = REPORT+"<tr><td nowrap>HCC %% per bucket:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))		
+		(dict((key, value) for key, value in SORTED_COUNT_OF_SERVED.items() if (value > 0)))	
+	REPORT = REPORT+"<tr><td nowrap>HCC (all) %% per bucket:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in SORTED_PERCENT_OF_SERVED.items()))	
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC (%s) %% per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(HCC_CODE_TO_ACCEPT, dict((key, value) for key, value in SORTED_PERCENT_OF_SP_HCC_SERVED.items()))			
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+	
+	#print PERCENT_OF_SERVED.items()[0]
+	#print PERCENT_OF_SERVED.keys()[0]
+	#print PERCENT_OF_SERVED.values()[0]
+	#print (PERCENT_OF_SERVED['10'])['27']
+	
+	createGraph()
+	
+	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' alt='HCC Opportunity Router Optimization Test' height='600' width='800'></td></tr>"
+	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
 	
@@ -735,6 +797,7 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(CURDAY)+".html"
+		IMAGEFILENAME=str(CURDAY)+".png" 
 		REPORTXTSTRING="OppRtrOpt "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/opprtropt/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="opprtropt_reports_"+ENVIRONMENT.lower()+".txt"
 		# Old location 
@@ -760,11 +823,21 @@ def archiveReport():
 			REPORTFILETXT.write(REPORTXTSTRING)
 			REPORTFILETXT.close()
 		os.chdir("/mnt/automation/python/stress_test")
+		# Copy graph image files to reports and backup folders
+		shutil.copy(IMAGEFILENAME, REPORTFOLDER)
+		shutil.copy(IMAGEFILENAME, BACKUPREPORTFOLDER)
+		# Delete graph image file from test folder
+		os.remove(IMAGEFILENAME)
 		print ("Finished archiving report ... \n")
 
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	#============================================================================
+	# Embedding image in html email - waiting for future implementation
+	# http://stackoverflow.com/questions/6706891/embedding-image-in-html-email
+	# waiting ...
+	#============================================================================
 	print ("Emailing report ...\n")
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
@@ -772,6 +845,7 @@ def emailReport():
 	s.login("donotreply@apixio.com", "apx.mail47")	        
 	s.sendmail(SENDER, RECEIVERS, REPORT)	
 	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	s.quit()
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
 
@@ -832,54 +906,6 @@ def log(text):
 
 # MAIN FUNCTION CALLER ####################################################################################################
 
-############# SAVED CODE ##################
-
-#import matplotlib
-
-#matplotlib.use('Agg')
-#from pylab import *
-#from decimal import *
-
-#def main(my_dict):..
-#    bar_graph(my_dict, graph_title='Custoers')
-#    show_html()
-
-#def bar_graph(name_value_dict, graph_title='', output_name='bargraph.png'):
-#    figure(figsize=(15, 10)) # image dimensions..
-#    title(graph_title, size='x-small')
-
-    # add bars
- #   for i, key in zip(range(len(name_value_dict)), name_value_dict.keys()):
- #       barh(i, name_value_dict[key], color='red')
-
-    # axis setup
- #   yticks(arange(0, len(name_value_dict)),
- #       [('%s: %d \n' % (name)) for name in
- #       zip(name_value_dict.keys(), name_value_dict.values())],
- #       size='small')
-
-# max_value = max(name_value_dict.values())
-#tick_range = arange(0, max_value, (max_value / len(ame_val_dict)))
-#formatter = FixedFormatter([str(x) for x in tick_range])
-# gca().yaxis.set_major_formatter(formatter)
-
-    # gca().yaxis.grid(which='major')
-#    grid(True).
-#    savefig(output_name)
-
-#def show_html():
-    #print "<html><body>"
-#    print "<img src='bargraph.png'>"
-    #print "</body></html>"
-
-#if __name__ == "__main__":
-#    my_dict = {'la' : Decimal('20'), 'cmi' : Decimal(100)}
-#    main(my_dict)
-
-
-
-########## END OF SAVED CODE ###############
-
 
 os.system('clear')
 
@@ -903,7 +929,6 @@ writeReportDetails("coding view only")
 writeReportDetails("coding view and accept")
 writeReportDetails("coding view and reject")
 writeReportDetails("coding view and skip")
-
 
 logout()
 
