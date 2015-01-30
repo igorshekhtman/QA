@@ -27,11 +27,13 @@ VSO_W=0
 #### View Only, View Accept, View Reject, View Skip
 #### Will be used in the future for Richards provision to 
 #### detect 100% accepts
+#### if a specific HCC is being served
 VOO_W2=0
 VAO_W2=95
 VRO_W2=5
 VSO_W2=0
-CODE_OPPS_MAX=10
+#### Must be divisible by 10
+CODE_OPPS_MAX=1000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0

@@ -102,7 +102,10 @@ VERSION = "1.0.3"
 # 0 - False
 # 1 - True
 DEBUG_MODE=bool(0)
+# HTML report version to archive
 REPORT = ""
+# HTML report version to email
+REPORT_EMAIL = ""
 REPORT_TYPE = "Opp Router Optimization Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
@@ -164,21 +167,16 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 #COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 #PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 
-START = 100
-STOP = 1200
-STEP = 100
 
-COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-PERCENT_OF_SP_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-#PERCENT_OF_SP_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+#PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
 HCC_CODES_TO_ACCEPT = {'27'}
 #HCC_CODES_TO_ACCEPT = {'131'}
-HCC_CODE_TO_ACCEPT = '27'
-#HCC_CODE_TO_ACCEPT = '32'
+
+TARGET_HCC = '27'
+#TARGET_HCC = '32'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -195,7 +193,8 @@ HCC_CODE_TO_ACCEPT = '27'
 #
   
 def readConfigurationFile(filename):
-  global MAX_NUM_RETRIES
+  global MAX_NUM_RETRIES, START, STOP, STEP
+  global COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
 
   result={ }
   csvfile = open(filename, 'rb')
@@ -204,7 +203,17 @@ def readConfigurationFile(filename):
     if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
       result[row[0]] = row[1]
   globals().update(result)
+  
   MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
+  
+  START = (int(CODE_OPPS_MAX)/10)
+  STOP = int(CODE_OPPS_MAX)
+  STEP = (int(CODE_OPPS_MAX)/10)
+  
+  COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  
   if REVISION <> VERSION:
   	print ("============================================================================================================")
   	print ("Version of the hccstress.csv file (%s) does not match version of the hccstress.py script (%s)" % (REVISION, VERSION))
@@ -233,9 +242,9 @@ servunavail = 503
 FAILED = SUCCEEDED = RETRIED = 0
 VOO = VAO = VRO = VSO = 0
 
-#######################################################################################################################
-# MAIN FUNCTIONS ######################################################################################################
-#######################################################################################################################
+###########################################################################################################################################
+# MAIN FUNCTIONS ##########################################################################################################################
+###########################################################################################################################################
  
 def logInToHCC(): 
   global TOKEN, SESSID, DATA, HEADERS
@@ -263,6 +272,8 @@ def logInToHCC():
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
+  	
+###########################################################################################################################################  	
   
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
@@ -429,21 +440,23 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     print("* CODER ACTION     = Unknown\n")
   return 0
 
+###########################################################################################################################################
   
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
   #global model_year, payment_year, hcc, model_run
-  print("-------------------------------------------------------------------------------")
+  #print("-------------------------------------------------------------------------------")
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
   print("-------------------------------------------------------------------------------")
-  print("-------------------------------------------------------------------------------")
+  #print("-------------------------------------------------------------------------------")
   #coding_opp_current = 1
   #====================================================
   # main loop controlling number of OPPS to process
   #====================================================
+  buckets = -1
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
@@ -458,7 +471,17 @@ def startCoding():
     tallyDetails("hcc", opportunity.get("hcc"))
     model_run = opportunity.get("model_run")
     tallyDetails("model_run", opportunity.get("model_run"))
+    print "\n"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "\n"
     print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
+    print "\n"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "\n"
     ######################################################################################
     patient_details = response.text
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
@@ -475,12 +498,13 @@ def startCoding():
     TOTAL_OPPS_SERVED = coding_opp_current   
     
     if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
+    	buckets += 1
     	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
     	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
     	for hcc in TEMP_HCC:
     		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
-    		if hcc == HCC_CODE_TO_ACCEPT:
-    			PERCENT_OF_SP_HCC_SERVED[str(TOTAL_OPPS_SERVED)]=(round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2))*STEP
+    		if hcc == TARGET_HCC:
+    			PERCENT_OF_TARGET_HCC_SERVED[str(TOTAL_OPPS_SERVED)]=round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED-(int(STEP)*buckets)),2)
     	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
     	
     	#quit()    
@@ -523,6 +547,7 @@ def startCoding():
       #quit()
   return 0
 
+###########################################################################################################################################
 
 def logout():
   print("-------------------------------------------------------------------------------")
@@ -536,9 +561,9 @@ def logout():
     print("* CODER ACTION     = Logout\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   return 0
 
-#######################################################################################################################
-# HELPER FUNCTIONS ####################################################################################################
-#######################################################################################################################
+###########################################################################################################################################
+# HELPER FUNCTIONS ########################################################################################################################
+###########################################################################################################################################
 
 def tallyDetails(item, value):
 	global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
@@ -552,6 +577,7 @@ def tallyDetails(item, value):
 		MODEL_RUN[value] += 1
 	return 0
 
+###########################################################################################################################################
 
 def WeightedRandomCodingAction(hcc_code):
 	#===============================
@@ -579,7 +605,7 @@ def WeightedRandomCodingAction(hcc_code):
 	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
 	
 	#if hcc_code in HCC_CODES_TO_ACCEPT:
-	if hcc_code == HCC_CODE_TO_ACCEPT:
+	if hcc_code == TARGET_HCC:
 		if action2 == "0":
 			VOO += 1
 		elif action2 == "1":
@@ -599,6 +625,8 @@ def WeightedRandomCodingAction(hcc_code):
 		elif action == "3":
 			VSO += 1
 		return (action)
+
+###########################################################################################################################################		
 	
 def printResultsSummary():
 	log("=============================================================================")
@@ -617,6 +645,8 @@ def printResultsSummary():
 	log("=============================================================================")
 	log("=============================================================================")
 	log("=============================================================================")	
+
+###########################################################################################################################################
 	
 def checkEnvironmentandReceivers():
 	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
@@ -655,6 +685,8 @@ def checkEnvironmentandReceivers():
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")	
 
+###########################################################################################################################################
+
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
@@ -675,11 +707,12 @@ def writeReportHeader ():
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
+
+###########################################################################################################################################
 	
 def writeReportDetails(module):	
 	global REPORT
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	
 	REPORT = REPORT + SUBHDR_TBL % module.upper()
 	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
 	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
@@ -691,32 +724,38 @@ def writeReportDetails(module):
 		REPORT = REPORT+str(PASSED_TBL)
 	print ("Completed writeReportDetails ... \n")
 		
+###########################################################################################################################################
 	
 def createGraph():
 	global CURDAY, START, STOP
-
 	#x = arange(START, STOP, STEP)
 	#y = sin(2*pi*x)
-	#PERCENT_OF_SP_HCC_SERVED = {'10':0.0, '20':0.0, '30':0.1, '40':0.2, '50':0.3, '50':0.4, '60':0.5, '70':0.5, '80':0.6, '90':0.8, '100':0.9}
+	#PERCENT_OF_TARGET_HCC_SERVED = {'10':0.0, '20':0.0, '30':0.1, '40':0.2, '50':0.3, '50':0.4, '60':0.5, '70':0.5, '80':0.6, '90':0.8, '100':0.9}
+	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0]))
+	#print SORTED_PERCENT_OF_TARGET_HCC_SERVED
 	
-	#SORTED_PERCENT_OF_SP_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_SP_HCC_SERVED.items(), key=lambda t: t[0]))
-	#print SORTED_PERCENT_OF_SP_HCC_SERVED
 	
-	x = SORTED_PERCENT_OF_SP_HCC_SERVED.keys()
-	y = SORTED_PERCENT_OF_SP_HCC_SERVED.values()
+	x = PERCENT_OF_TARGET_HCC_SERVED.keys()
+	y = PERCENT_OF_TARGET_HCC_SERVED.values()
+	
+	#x = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.keys(), key=lambda t: t[0]))
+	#y = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.values(), key=lambda t: t[0]))
+	
+	#x,y = sorted(PERCENT_OF_TARGET_HCC_SERVED.values())
+	#y = sorted(PERCENT_OF_TARGET_HCC_SERVED.values())
 	
 	plot(x, y, color='blue', linestyle='solid', marker='o', markerfacecolor='green', markersize=3)
-
 	xlabel('# of serves per time bucket')
-	ylabel('% of specific HCC-'+str(HCC_CODE_TO_ACCEPT)+' served')
+	ylabel('% of specific HCC-'+str(TARGET_HCC)+' served')
 	title('HCC Opportunity Router Optimization Test')
 	grid(True)
 	savefig(str(CURDAY))
 	show()
 
+###########################################################################################################################################
 
 def writeReportFooter():
-	global REPORT, SORTED_PERCENT_OF_SP_HCC_SERVED
+	global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
@@ -738,22 +777,26 @@ def writeReportFooter():
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
 	###############################################################################################################
 	# Sort all dictionaries here
-	SORTED_HCC = OrderedDict(sorted(HCC.items(), key=lambda t: t[0]))
-	SORTED_COUNT_OF_SERVED = OrderedDict(sorted(COUNT_OF_SERVED.items(), key=lambda t: t[0]))
-	SORTED_PERCENT_OF_SERVED = OrderedDict(sorted(PERCENT_OF_SERVED.items(), key=lambda t: t[0]))
-	#SORTED_PERCENT_OF_SP_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_SP_HCC_SERVED.items(), key=lambda t: t[0]))
-	SORTED_PERCENT_OF_SP_HCC_SERVED = SortedDict(PERCENT_OF_SP_HCC_SERVED)
-	#print SORTED_PERCENT_OF_SP_HCC_SERVED.items()
+	#SORTED_HCC = OrderedDict(sorted(HCC.items(), key=lambda t: t[0]))
+	#SORTED_COUNT_OF_SERVED = OrderedDict(sorted(COUNT_OF_SERVED.items(), key=lambda t: t[0]))
+	#SORTED_PERCENT_OF_SERVED = OrderedDict(sorted(PERCENT_OF_SERVED.items(), key=lambda t: t[0]))
+	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0]))
+	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = SortedDict(PERCENT_OF_TARGET_HCC_SERVED)
+	#print SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()
 	#quit()
 	###############################################################################################################
-	REPORT = REPORT+"<tr><td nowrap>HCC total:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in SORTED_HCC.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in SORTED_COUNT_OF_SERVED.items() if (value > 0)))	
-	REPORT = REPORT+"<tr><td nowrap>HCC (all) %% per bucket:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in SORTED_PERCENT_OF_SERVED.items()))	
+	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in HCC.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
+	REPORT = REPORT+"<tr><td nowrap>HCCs %% per bucket:</td><td><b>%s</b></td></tr>" % \
+		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(HCC_CODE_TO_ACCEPT, dict((key, value) for key, value in SORTED_PERCENT_OF_SP_HCC_SERVED.items()))			
+		(TARGET_HCC, OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0])))
+	
+	#	(TARGET_HCC, SortedDict(PERCENT_OF_TARGET_HCC_SERVED))		
+	#	(TARGET_HCC, dict((key, value) for key, value in SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()))
+	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
 	#print PERCENT_OF_SERVED.items()[0]
@@ -761,26 +804,32 @@ def writeReportFooter():
 	#print PERCENT_OF_SERVED.values()[0]
 	#print (PERCENT_OF_SERVED['10'])['27']
 	
-	createGraph()
-	
-	REPORT = REPORT+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
-	
+	createGraph()	
+	REPORT_EMAIL = REPORT_EMAIL + REPORT	
+	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	
-	
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><hr></td></tr>"
 	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	REPORT = REPORT+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
 	REPORT = REPORT+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
 	TIME_END = time.time()
 	TIME_TAKEN = TIME_END - TIME_START
 	hours, REST = divmod(TIME_TAKEN,3600)
 	minutes, seconds = divmod(REST, 60)
 	REPORT = REPORT+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
 	REPORT = REPORT+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
+	REPORT_EMAIL = REPORT_EMAIL+"</table>"
 	REPORT = REPORT+"</td></tr></table>"
+	REPORT_EMAIL = REPORT_EMAIL+"</td></tr></table>"
 	print ("Finished writing report ...\n")
 
+###########################################################################################################################################
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
@@ -830,13 +879,14 @@ def archiveReport():
 		# os.remove(IMAGEFILENAME)
 		print ("Finished archiving report ... \n")
 
+###########################################################################################################################################
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
 	
 	print ("Emailing report ...\n")
 	message = MIMEMultipart('related')
-	message.attach(MIMEText((REPORT), 'html'))
+	message.attach(MIMEText((REPORT_EMAIL), 'html'))
 	with open(IMAGEFILENAME, 'rb') as image_file:
 		image = MIMEImage(image_file.read())
 	image.add_header('Content-ID', '<picture@example.com>')
@@ -858,6 +908,7 @@ def emailReport():
 	os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
+###########################################################################################################################################
 
 def pages_payload(details):
 	report_json = details.json()
@@ -869,12 +920,16 @@ def pages_payload(details):
     		payload = 0
 	return (pages, payload)
 
+###########################################################################################################################################
+
 def create_request(test, headers=None):
   request = HTTPRequest()
   if headers:
     request.headers = headers
   test.record(request)
   return (request)
+
+###########################################################################################################################################
 
 def get_csrf_token(thread_context):
   cookies = CookieModule.listAllCookies(thread_context)
@@ -883,6 +938,8 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return (csrftoken)
+
+###########################################################################################################################################
 
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -905,6 +962,8 @@ def IncrementTestResultsTotals(module, code):
 			quit()
 			#logInToHCC()
 			#startCoding()
+
+###########################################################################################################################################
     
 def log(text):
 	global REPORT
@@ -912,10 +971,9 @@ def log(text):
 	print(text)
 	return 0    
 
-
-
-# MAIN FUNCTION CALLER ####################################################################################################
-
+###########################################################################################################################################
+# MAIN FUNCTION CALLER ####################################################################################################################
+###########################################################################################################################################
 
 os.system('clear')
 
