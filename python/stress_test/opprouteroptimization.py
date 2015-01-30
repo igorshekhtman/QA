@@ -89,8 +89,9 @@ from sortedcontainers import SortedDict
 from pylab import *
 import random
 import smtplib
-from email.mime.image import MIMEImage
+from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -163,10 +164,9 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 #COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 #PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
 
-START = 100
-STOP = 1000
-STEP = 100
-
+START = 10
+STOP = 110
+STEP = 10
 
 COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
 PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
@@ -659,12 +659,12 @@ def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
 	# REPORT = MIMEMultipart()
-	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	REPORT = REPORT + HTML_RECEIVERS
-	REPORT = REPORT + """MIME-Version: 1.0\n"""
-	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
-
+	#REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	#REPORT = REPORT + HTML_RECEIVERS
+	#REPORT = REPORT + """MIME-Version: 1.0\n"""
+	#REPORT = REPORT + """Content-type: text/html\n"""
+	#REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
+	REPORT = """ """
 	REPORT = REPORT + """<h1>Apixio Opp Router Optimization Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
@@ -763,7 +763,7 @@ def writeReportFooter():
 	
 	createGraph()
 	
-	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' alt='HCC Opportunity Router Optimization Test' height='600' width='800'></td></tr>"
+	REPORT = REPORT+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
 	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
@@ -783,7 +783,7 @@ def writeReportFooter():
 
 
 def archiveReport():
-	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
+	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
 		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/opprtropt/"+str(YEAR)+"/"+str(CURMONTH)
@@ -827,25 +827,35 @@ def archiveReport():
 		shutil.copy(IMAGEFILENAME, REPORTFOLDER)
 		shutil.copy(IMAGEFILENAME, BACKUPREPORTFOLDER)
 		# Delete graph image file from test folder
-		os.remove(IMAGEFILENAME)
+		# os.remove(IMAGEFILENAME)
 		print ("Finished archiving report ... \n")
 
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
-	#============================================================================
-	# Embedding image in html email - waiting for future implementation
-	# http://stackoverflow.com/questions/6706891/embedding-image-in-html-email
-	# waiting ...
-	#============================================================================
+	
 	print ("Emailing report ...\n")
+	message = MIMEMultipart('related')
+	message.attach(MIMEText((REPORT), 'html'))
+	with open(IMAGEFILENAME, 'rb') as image_file:
+		image = MIMEImage(image_file.read())
+	image.add_header('Content-ID', '<picture@example.com>')
+	image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
+	message.attach(image)
+
+	message['From'] = 'Apixio QA <QA@apixio.com>'
+	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+	message['Subject'] = 'OppRouter %s Optimization Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
+	msg_full = message.as_string()
+		
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
 	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, RECEIVERS, REPORT)	
-	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
 	s.quit()
+	# Delete graph image file from stress_test folder
+	os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
 
