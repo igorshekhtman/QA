@@ -163,20 +163,15 @@ PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 HCC = {str(key): 0 for key in range(0, 200)}
 MODEL_RUN = {'Final': 0, 'Initial': 0}
 
-# Buckets of 100 annotations
-#COUNT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
-#PERCENT_OF_SERVED = {str(key): 0 for key in range(100, 1100, 100)}
-
-
-#PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
 HCC_CODES_TO_ACCEPT = {'27'}
 #HCC_CODES_TO_ACCEPT = {'131'}
 
-TARGET_HCC = '27'
-#TARGET_HCC = '32'
+#TARGET_HCC = '27'
+#TARGET_HCC = '177'
+TARGET_HCC = '32'
+#TARGET_HCC = '131'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -510,8 +505,12 @@ def startCoding():
     	#quit()    
     test_counter = 0
     doc_no_current = 0
-    doc_no_max = len(scorables)
-    for scorable in scorables:
+    # adjust to only one doc per opp for this test
+    #doc_no_max = len(scorables)
+    doc_no_max = 1
+    #for (scorable in scorables) and (i<2):
+    for i in range (0,1):
+      scorable = scorables[i]
       patient_org_id  = ""
       finding_id      = ""
       document_uuid   = ""
@@ -524,6 +523,7 @@ def startCoding():
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
       print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      #quit()
       if patient_uuid    == "":
         print("WARNING : PATIENT UUID is Empty")
       if patient_org_id  == "":
@@ -544,7 +544,7 @@ def startCoding():
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction(hcc)
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
-      #quit()
+
   return 0
 
 ###########################################################################################################################################
@@ -726,23 +726,24 @@ def writeReportDetails(module):
 		
 ###########################################################################################################################################
 	
-def createGraph():
+def drawGraph(srcedict):
 	global CURDAY, START, STOP
-	#x = arange(START, STOP, STEP)
-	#y = sin(2*pi*x)
-	#PERCENT_OF_TARGET_HCC_SERVED = {'10':0.0, '20':0.0, '30':0.1, '40':0.2, '50':0.3, '50':0.4, '60':0.5, '70':0.5, '80':0.6, '90':0.8, '100':0.9}
-	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0]))
-	#print SORTED_PERCENT_OF_TARGET_HCC_SERVED
+
 	
+	key = sorted(srcedict.keys())
+	temp = []
+	for i in key:
+		value = srcedict[i]
+		temp.append(value)
 	
-	x = PERCENT_OF_TARGET_HCC_SERVED.keys()
-	y = PERCENT_OF_TARGET_HCC_SERVED.values()
-	
-	#x = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.keys(), key=lambda t: t[0]))
-	#y = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.values(), key=lambda t: t[0]))
-	
-	#x,y = sorted(PERCENT_OF_TARGET_HCC_SERVED.values())
-	#y = sorted(PERCENT_OF_TARGET_HCC_SERVED.values())
+	x = sorted(srcedict.keys())	
+	y = temp
+	z = sorted(srcedict.items())
+		
+	print x
+	print y
+	print z
+	#quit()	
 	
 	plot(x, y, color='blue', linestyle='solid', marker='o', markerfacecolor='green', markersize=3)
 	xlabel('# of serves per time bucket')
@@ -751,6 +752,18 @@ def createGraph():
 	grid(True)
 	savefig(str(CURDAY))
 	show()
+
+###########################################################################################################################################
+
+def convertJsonToTable(srcedict):
+	global REPORT
+	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+	key = sorted(srcedict.keys())
+	for i in key:
+		value = srcedict[i]
+		if (value > 0):
+			REPORT = REPORT+"<tr><td>"+str(i)+"</td><td><b>"+str(value)+"</b></td></tr>"
+	REPORT = REPORT+"</table>"
 
 ###########################################################################################################################################
 
@@ -767,13 +780,21 @@ def writeReportFooter():
 		(TOTAL_DOCS_ACCEPTED)
 	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % \
 		(TOTAL_DOCS_REJECTED)
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))		
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
+		
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+		
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'>"
+	convertJsonToTable(MODEL_YEAR)
+	REPORT = REPORT+"</td></tr>"
+	#	(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td>"
+	convertJsonToTable(MODEL_RUN)
+	REPORT = REPORT+"</td></tr>"
+	#	(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))		
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'>"
+	convertJsonToTable(PAYMENT_YEAR)
+	REPORT = REPORT+"</td></tr>"
+	#	(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
 	###############################################################################################################
 	# Sort all dictionaries here
@@ -785,26 +806,31 @@ def writeReportFooter():
 	#print SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()
 	#quit()
 	###############################################################################################################
-	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in HCC.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
-	REPORT = REPORT+"<tr><td nowrap>HCCs %% per bucket:</td><td><b>%s</b></td></tr>" % \
-		(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(TARGET_HCC, OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0])))
+	#REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
+	#	(dict((key, value) for key, value in HCC.items() if (value > 0)))
+	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
+	convertJsonToTable(HCC)
+	REPORT = REPORT+"</td></tr>"				
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
+	convertJsonToTable(COUNT_OF_SERVED)
+	REPORT = REPORT+"</td></tr>"
+	#	(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
+	REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
+	convertJsonToTable(PERCENT_OF_SERVED)
+	REPORT = REPORT+"</td></tr>"
+	#	(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
+	convertJsonToTable(PERCENT_OF_TARGET_HCC_SERVED)
+	REPORT = REPORT+"</td></tr>"
+	#	(TARGET_HCC, OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0])))
 	
 	#	(TARGET_HCC, SortedDict(PERCENT_OF_TARGET_HCC_SERVED))		
 	#	(TARGET_HCC, dict((key, value) for key, value in SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()))
 	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
-	#print PERCENT_OF_SERVED.items()[0]
-	#print PERCENT_OF_SERVED.keys()[0]
-	#print PERCENT_OF_SERVED.values()[0]
-	#print (PERCENT_OF_SERVED['10'])['27']
-	
-	createGraph()	
+	drawGraph(PERCENT_OF_TARGET_HCC_SERVED)
+		
 	REPORT_EMAIL = REPORT_EMAIL + REPORT	
 	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
 	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"	
