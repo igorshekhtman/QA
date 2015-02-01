@@ -168,10 +168,11 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 HCC_CODES_TO_ACCEPT = {'27'}
 #HCC_CODES_TO_ACCEPT = {'131'}
 
-#TARGET_HCC = '27'
+TARGET_HCC = '27'
 #TARGET_HCC = '177'
-TARGET_HCC = '32'
+#TARGET_HCC = '32'
 #TARGET_HCC = '131'
+#TARGET_HCC = '29'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -498,8 +499,6 @@ def startCoding():
     	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
     	for hcc in TEMP_HCC:
     		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
-    		if hcc == TARGET_HCC:
-    			PERCENT_OF_TARGET_HCC_SERVED[str(TOTAL_OPPS_SERVED)]=round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED-(int(STEP)*buckets)),2)
     	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
     	
     	#quit()    
@@ -728,7 +727,6 @@ def writeReportDetails(module):
 	
 def drawGraph(srcedict):
 	global CURDAY, START, STOP
-
 	
 	key = sorted(srcedict.keys())
 	temp = []
@@ -740,14 +738,13 @@ def drawGraph(srcedict):
 	y = temp
 	z = sorted(srcedict.items())
 		
-	print x
-	print y
-	print z
-	#quit()	
+	#print x
+	#print y
+	#print z
 	
 	plot(x, y, color='blue', linestyle='solid', marker='o', markerfacecolor='green', markersize=3)
 	xlabel('# of serves per time bucket')
-	ylabel('% of specific HCC-'+str(TARGET_HCC)+' served')
+	ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
 	title('HCC Opportunity Router Optimization Test')
 	grid(True)
 	savefig(str(CURDAY))
@@ -767,10 +764,31 @@ def convertJsonToTable(srcedict):
 
 ###########################################################################################################################################
 
+def extractTargetedHccData(targhcc, srcedict):
+	#print targhcc
+	#print srcedict
+	#key = sorted(srcedict.keys())
+	extrdict = {}
+	for k, v in sorted(srcedict.iteritems()):
+		#print k, v
+		if targhcc in v.keys():
+			extrdict.update({k: v[targhcc]})
+		else:
+			extrdict.update({k: 0})	
+			
+	#print extrdict
+	#quit()
+	return (extrdict)
+	
+
+###########################################################################################################################################
 def writeReportFooter():
 	global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+	REPORT = REPORT+"<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % \
+		(TARGET_HCC)
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
 		(TOTAL_OPPS_SERVED)
@@ -781,6 +799,16 @@ def writeReportFooter():
 	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % \
 		(TOTAL_DOCS_REJECTED)
 		
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % \
+		(VAO_W)	
+	REPORT = REPORT+"<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % \
+		(VRO_W)	
+	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"		
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % \
+		(TARGET_HCC, VAO_W2)	
+	REPORT = REPORT+"<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % \
+		(TARGET_HCC, VRO_W2)					
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 		
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'>"
@@ -807,29 +835,21 @@ def writeReportFooter():
 	#quit()
 	###############################################################################################################
 	#REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
-	#	(dict((key, value) for key, value in HCC.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
 	convertJsonToTable(HCC)
 	REPORT = REPORT+"</td></tr>"				
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
 	convertJsonToTable(COUNT_OF_SERVED)
-	REPORT = REPORT+"</td></tr>"
-	#	(dict((key, value) for key, value in COUNT_OF_SERVED.items() if (value > 0)))	
+	REPORT = REPORT+"</td></tr>"	
 	REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
 	convertJsonToTable(PERCENT_OF_SERVED)
-	REPORT = REPORT+"</td></tr>"
-	#	(dict((key, value) for key, value in PERCENT_OF_SERVED.items()))	
+	REPORT = REPORT+"</td></tr>"	
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
-	convertJsonToTable(PERCENT_OF_TARGET_HCC_SERVED)
+	convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
 	REPORT = REPORT+"</td></tr>"
-	#	(TARGET_HCC, OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0])))
-	
-	#	(TARGET_HCC, SortedDict(PERCENT_OF_TARGET_HCC_SERVED))		
-	#	(TARGET_HCC, dict((key, value) for key, value in SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()))
-	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
-	drawGraph(PERCENT_OF_TARGET_HCC_SERVED)
+	drawGraph(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
 		
 	REPORT_EMAIL = REPORT_EMAIL + REPORT	
 	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
