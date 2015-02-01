@@ -1,3 +1,5 @@
+screen -S 23536 -X quit
+
 ===================== OPP ROUTER STOP AND START SERVICE =====================================
 
 Stage Server: hcc-opprouter-stg.apixio.com

@@ -249,22 +249,62 @@ def logInToHCC():
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	quit()
-  url = referer = URL+'/account/login/?next=/'
+#-----------------------------------------------------------------------------------------  	
+  # Original - url = referer = URL+'/account/login/?next=/'
+  url = URL+'/account/login/'
+  referer = URL+'/account/login/'
+  #Accept:*/*
+  #Accept-Encoding:gzip, deflate
+  #Accept-Language:en-US,en;q=0.8
+  #Connection:keep-alive
+  #Content-Length:377
+  #Content-Type:application/x-www-form-urlencoded
+  #Cookie:csrftoken=SXc1KEAOnaAsT1AA7b1zpQBgCR8u1mPJ; sessionid=4jtrl3lh28kdb5m3013ta5rk6ctaje6g
+  #Host:hccstage2.apixio.com
+  #Origin:https://hccstage2.apixio.com
+  #Referer:https://hccstage2.apixio.com/
+  #User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.91 Safari/537.36
+  
   response = requests.get(url)
   IncrementTestResultsTotals("login", response.status_code)
   print "* Login page         = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	logInToHCC()
+#-----------------------------------------------------------------------------------------  	
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
+  #Request URL:https://hccstage2.apixio.com/account/login/
+  #Host:hccstage2.apixio.com
+  #Origin:https://hccstage2.apixio.com
+  #Referer:https://hccstage2.apixio.com/account/login/
+  url = URL+'/account/login/'
+  referer = URL+'/account/login/'
+  host = DOMAIN
+  origin = URL
+  
   DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
-  HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
+  
+  HEADERS = { \
+  			'Accept': '*/*', \
+  			'Accept-Encoding': 'gzip, deflate', \
+  			'Accept-Language': 'en-US,en;q=0.8', \
+  			'Connection': 'keep-alive', \
+  			'Content-Length': '1105', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-			'Referer': referer}			
+			'Host': host, \
+			'Origin': origin, \
+			'Referer': referer \
+			}	
+  
+  #print ">>> TOKEN   = %s" % TOKEN
+  #print ">>> SESSID  = %s" % SESSID
+  #print ">>> DATA    = %s" % DATA
+  #print ">>> HEADERS = %s" % HEADERS					
   response = requests.post(url, data=DATA, headers=HEADERS) 
   IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
+  #quit()
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
