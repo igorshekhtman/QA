@@ -742,7 +742,7 @@ def drawGraph(srcedict):
 	#print y
 	#print z
 	
-	plot(x, y, color='blue', linestyle='solid', marker='o', markerfacecolor='green', markersize=3)
+	plot(x, y, color='blue', linewidth=3, linestyle='solid', marker='o', markerfacecolor='green', markersize=4)
 	xlabel('# of serves per time bucket')
 	ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
 	title('HCC Opportunity Router Optimization Test')
