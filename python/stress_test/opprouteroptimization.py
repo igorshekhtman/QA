@@ -781,10 +781,6 @@ def drawGraph(srcedict):
 	y = temp
 	z = sorted(srcedict.items())
 		
-	#print x
-	#print y
-	#print z
-	
 	plot(x, y, color='green', linewidth=3, linestyle='solid', marker='o', markerfacecolor='blue', markersize=6)
 	xlabel('# of serves per time bucket')
 	ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
@@ -803,8 +799,7 @@ def getKey(key):
 
 ###########################################################################################################################################
 
-
-def convertJsonToTable(srcedict):
+def convertJsonToTable(srcedict, sortby):
 	global REPORT
 	#print srcedict
 	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
@@ -814,11 +809,36 @@ def convertJsonToTable(srcedict):
 	#sortedict = sorted(srcedict.items(), key=lambda t: getKey(t[0]))
 	#sortedict = sorted(srcedict.items(), key=lambda t: int(t[0]))
 	#sortedkeys = sorted(srcedict.keys())
-	sortedkeys = sorted(srcedict.keys())
-	for key in sortedkeys:
-		value = srcedict[key]
-		if value > 0:
-			REPORT = REPORT+"<tr><td>"+str(key)+"</td><td><b>"+str(value)+"</b></td></tr>"
+	#=====sort by values=======================================
+	#import operator
+	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
+	#sorted_x = sorted(x.items(), key=operator.itemgetter(1))
+	#=====sort by keys=========================================
+	#import operator
+	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
+	#sorted_x = sorted(x.items(), key=operator.itemgetter(0))
+	#==========================================================
+	if sortby == "value":
+		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
+		ctr = 0
+		for item in sorteditems:
+			if item[1] > 0:
+				if ctr == 0:
+					b_color = '#FFFF00'
+					most_served = item[1]
+				else:
+					if item[1] == most_served:
+						b_color = '#FFFF00'
+					else:
+						b_color = '#FFFFFF'
+				REPORT = REPORT+"<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
+				ctr += 1
+	else:
+		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)	
+		for item in sorteditems:
+			if item[1] > 0:
+				REPORT = REPORT+"<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
+			
 	REPORT = REPORT+"</table>"
 
 ###########################################################################################################################################
@@ -837,8 +857,7 @@ def extractTargetedHccData(targhcc, srcedict):
 			
 	#print extrdict
 	#quit()
-	return (extrdict)
-	
+	return (extrdict)	
 
 ###########################################################################################################################################
 def writeReportFooter():
@@ -871,15 +890,15 @@ def writeReportFooter():
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 		
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(MODEL_YEAR)
+	convertJsonToTable(MODEL_YEAR, "key")
 	REPORT = REPORT+"</td></tr>"
 	#	(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td>"
-	convertJsonToTable(MODEL_RUN)
+	convertJsonToTable(MODEL_RUN, "key")
 	REPORT = REPORT+"</td></tr>"
 	#	(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))		
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(PAYMENT_YEAR)
+	convertJsonToTable(PAYMENT_YEAR, "key")
 	REPORT = REPORT+"</td></tr>"
 	#	(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
@@ -895,16 +914,16 @@ def writeReportFooter():
 	###############################################################################################################
 	#REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
 	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
-	convertJsonToTable(HCC)
+	convertJsonToTable(HCC, "value")
 	REPORT = REPORT+"</td></tr>"				
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(COUNT_OF_SERVED)
+	convertJsonToTable(COUNT_OF_SERVED, "key")
 	REPORT = REPORT+"</td></tr>"	
 	REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
-	convertJsonToTable(PERCENT_OF_SERVED)
+	convertJsonToTable(PERCENT_OF_SERVED, "key")
 	REPORT = REPORT+"</td></tr>"	
 	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
-	convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
+	convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED), "key")
 	REPORT = REPORT+"</td></tr>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
@@ -990,6 +1009,7 @@ def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
 	
 	print ("Emailing report ...\n")
+	IMAGEFILENAME=str(CURDAY)+".png" 
 	message = MIMEMultipart('related')
 	message.attach(MIMEText((REPORT_EMAIL), 'html'))
 	with open(IMAGEFILENAME, 'rb') as image_file:
