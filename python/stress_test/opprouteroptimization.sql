@@ -29,3 +29,6 @@ UPDATE Opportunity o SET o.user='',o.status='Routable';
 
 # Turn FK checks back on: 
 SET FOREIGN_KEY_CHECKS=1;
+
+# Turn off safe update mode:
+SET SQL_SAFE_UPDATES = 1;

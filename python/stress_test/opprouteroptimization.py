@@ -92,6 +92,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
+import numpy as np
+#from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -168,11 +170,12 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 HCC_CODES_TO_ACCEPT = {'27'}
 #HCC_CODES_TO_ACCEPT = {'131'}
 
-TARGET_HCC = '27'
+#TARGET_HCC = '27'
 #TARGET_HCC = '177'
 #TARGET_HCC = '32'
 #TARGET_HCC = '131'
 #TARGET_HCC = '29'
+TARGET_HCC = '130'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -782,7 +785,7 @@ def drawGraph(srcedict):
 	#print y
 	#print z
 	
-	plot(x, y, color='blue', linewidth=3, linestyle='solid', marker='o', markerfacecolor='green', markersize=4)
+	plot(x, y, color='green', linewidth=3, linestyle='solid', marker='o', markerfacecolor='blue', markersize=6)
 	xlabel('# of serves per time bucket')
 	ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
 	title('HCC Opportunity Router Optimization Test')
@@ -792,14 +795,30 @@ def drawGraph(srcedict):
 
 ###########################################################################################################################################
 
+def getKey(key):
+    try:
+        return int(key)
+    except ValueError:
+        return key
+
+###########################################################################################################################################
+
+
 def convertJsonToTable(srcedict):
 	global REPORT
+	#print srcedict
 	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-	key = sorted(srcedict.keys())
-	for i in key:
-		value = srcedict[i]
-		if (value > 0):
-			REPORT = REPORT+"<tr><td>"+str(i)+"</td><td><b>"+str(value)+"</b></td></tr>"
+	#key = sorted(srcedict.keys())
+	#sorted(mydict, key=lambda key: mydict[key])
+	#key = sorted(srcedict, key=lambda key: srcedict[key])
+	#sortedict = sorted(srcedict.items(), key=lambda t: getKey(t[0]))
+	#sortedict = sorted(srcedict.items(), key=lambda t: int(t[0]))
+	#sortedkeys = sorted(srcedict.keys())
+	sortedkeys = sorted(srcedict.keys())
+	for key in sortedkeys:
+		value = srcedict[key]
+		if value > 0:
+			REPORT = REPORT+"<tr><td>"+str(key)+"</td><td><b>"+str(value)+"</b></td></tr>"
 	REPORT = REPORT+"</table>"
 
 ###########################################################################################################################################
@@ -1044,8 +1063,10 @@ def IncrementTestResultsTotals(module, code):
 			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
 			quit()
 		if (code == unauthorized):
-			print "%s response code received from server.  Test is being terminated" % code
-			quit()
+			print "%s response code received from server.  Re-obtaining Autorization." % code
+			logInToHCC()
+			#print "%s response code received from server.  Test is being terminated" % code
+			#quit()
 			#logInToHCC()
 			#startCoding()
 
