@@ -1,0 +1,37 @@
+########################################
+ENVIRONMENT=Staging
+# ENVIRONMENT=Production
+########################################
+#UA_DOMAIN=accounts.apixio.com
+#UA_URL=https://accounts.apixio.com
+UA_DOMAIN=accounts-stg.apixio.com
+UA_URL=https://accounts-stg.apixio.com
+########################################
+HCC_DOMAIN=hccstage2.apixio.com
+#HCC_DOMAIN=hcc2.apixio.com
+#HCC_URL=https://hcc.apixio.com
+#HCC_URL=https://hcc2.apixio.com
+HCC_URL=https://hccstage2.apixio.com
+########################################
+NUMBER_OF_USERS_TO_CREATE=3
+NUMBER_OF_ORGS_TO_CREATE=1
+NUMBER_OF_GRPS_TO_CREATE=1
+########################################
+CODING_ORGANIZATION=Load Test Coders
+########################################
+HCC_PASSWORD=apixio.123
+HCC_USERNAME_PREFIX=sanityUSR
+HCC_USERNAME_POSTFIX=@apixio.net
+########################################
+ACL_CODNG_ORG_PREFIX=sanityORG
+ACL_GROUP_PREFIX=sanityGRP
+########################################
+PROTOCOL=https://
+#UAUSERNAME=root@api.apixio.com
+#UAPASSWORD=thePassword
+UAUSERNAME=abeyk6@apixio.net
+UAPASSWORD=apixio.123
+########################################
+MAX_NUM_RETRIES=5
+TEST_FLOW_CONTROL=1
+########################################
