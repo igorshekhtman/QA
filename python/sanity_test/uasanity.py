@@ -577,11 +577,11 @@ def logInToHCC(testype):
   	print ("* UA CONNECT TO HOST    = %s" % testype.upper())
 	IncrementTestResultsTotals("log into hcc", response.status_code, testype)
 	print ("\nHCC connect to host test completed ...\n")	
-	
+	#quit()
 	
 	#Corrupt user password for negative test purposes
 	if testype == "negative":
-		url = HCC_URL+'/account/login/?previous=/'
+		url = HCC_URL+'/account/logins/?previous=/'
 	else:
 		url = HCC_URL+'/account/login/?next=/'
 	print ("\n----------------------------------------------------------------------------")
@@ -594,15 +594,20 @@ def logInToHCC(testype):
 	if statuscode == ok:
 		HCC_TOKEN = response.cookies["csrftoken"]
 		HCC_SESSID = response.cookies["sessionid"]
-		print ("* HCC SESSION ID        = %s" % SESSID)
-		print ("* HCC TOKEN             = %s" % TOKEN)
+		print ("* HCC SESSION ID        = %s" % HCC_SESSID)
+		print ("* HCC TOKEN             = %s" % HCC_TOKEN)
 	print ("* HCC URL               = %s" % url)		
 	IncrementTestResultsTotals("log into hcc", response.status_code, testype)
 	print ("\nHCC login page test completed ...\n")
-	
+	#quit()
 	
 	
 	#Corrupt user password for negative test purposes
+	url = HCC_URL+'/account/login/?next=/'
+	response = requests.get(url)
+	HCC_TOKEN = response.cookies["csrftoken"]
+	HCC_SESSID = response.cookies["sessionid"]
+	
 	if testype == "negative":
 		token = '245624564526-2456245624562-245624562456'
 	else:
@@ -612,7 +617,7 @@ def logInToHCC(testype):
 	print ("----------------------------------------------------------------------------")	
 	url = HCC_URL+'/account/login/?next=/'
 	referer = HCC_URL+'/account/login/?next=/'
-	DATA =    {'csrfmiddlewaretoken': HCC_TOKEN, 'username': UAUSERNAME, 'password': UAPASSWORD } 
+	DATA =    {'csrfmiddlewaretoken': token, 'username': UAUSERNAME, 'password': UAPASSWORD } 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
 				'Cookie': 'csrftoken='+HCC_TOKEN+'; sessionid='+HCC_SESSID+' ', \
 				'Referer': referer}			
