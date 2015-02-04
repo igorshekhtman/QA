@@ -167,8 +167,8 @@ MODEL_RUN = {'Final': 0, 'Initial': 0}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
-HCC_CODES_TO_ACCEPT = {'27'}
-#HCC_CODES_TO_ACCEPT = {'131'}
+#HCC_CODES_TO_ACCEPT = {'27'}
+HCC_CODES_TO_ACCEPT = {'131'}
 
 #TARGET_HCC = '27'
 #TARGET_HCC = '177'

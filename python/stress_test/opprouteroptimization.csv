@@ -20,8 +20,8 @@ RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
 #### View Only, View Accept, View Reject, View Skip
 VOO_W=0
-VAO_W=0
-VRO_W=100
+VAO_W=8
+VRO_W=92
 VSO_W=0
 #### 2nd set of weights for targeted HCC Code
 #### View Only, View Accept, View Reject, View Skip
@@ -56,5 +56,5 @@ QA_REPORT_PAGES_MAX=1
 #### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
-MAX_NUM_RETRIES=50
+MAX_NUM_RETRIES=500
 ######################################
