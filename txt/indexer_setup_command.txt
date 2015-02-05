@@ -1,3 +1,10 @@
+============== PRODUCTION ACL ADMIN ACCESS ======================
+
+system_qa@apixio.com
+8p1qa19..
+
+====================== CANCELLEING SCREENS ======================
+
 screen -S 23536 -X quit
 
 ===================== OPP ROUTER STOP AND START SERVICE =====================================
@@ -17,6 +24,9 @@ https://sites.google.com/a/apixio.com/qa/accounts
 grep -i "loaded" /var/log/apx-opprouter/apx-opprouter-console.log
 
 https://hcc-opprouter-prd.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=MMG
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=MMG
+
 To see how many Opps are loaded on Stage:
 ssh hcc-opprouter-stg.apixio.com
 tail -f /var/log/apx-opprouter/apx-opprouter-console.log
