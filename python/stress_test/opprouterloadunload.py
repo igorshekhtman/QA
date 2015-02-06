@@ -521,21 +521,38 @@ def startCoding():
     print "********************************************************************************************"
     print "\n"
     print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
+    #print "*                      "
     print "* PATIENT UUID     = %s" % patient_uuid
-    print "\n"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "\n"
+    #print "\n"
+    #print "********************************************************************************************"
+    #print "********************************************************************************************"
+    #print "********************************************************************************************"
+    #print "\n"
     ######################################################################################
     
     # patient_uuid is key, complete_hcc is a value
     complete_hcc = hcc+"-"+model_year+"-"+model_run+"-"+payment_year
     complete_items_record_to_store = hcc+"-"+model_year+"-"+model_run+"-"+payment_year+"-"+patient_uuid
     if patient_uuid in PATIENTS_OPPS_SERVED:
-    	DUPLICATE_PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})	   
+    	#DUPLICATE_PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
+    	print "\n"
+    	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !!! DUPLICATE !!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    	print ">>>"
+    	print ">>> NEW PUUID SERVED  = %s" % patient_uuid
+    	print ">>> NEW HCC SERVED    = %s" % complete_hcc
+    	print ">>>"
+    	print ">>> STORED PUUID      = %s" % patient_uuid
+    	print ">>> STORED HCC        = %s" % PATIENTS_OPPS_SERVED[patient_uuid]
+    	print ">>>"
+    	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !!! DUPLICATE !!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"	
+    	if str(complete_hcc) == str(PATIENTS_OPPS_SERVED[patient_uuid]):
+    		DUPLICATE_PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
     PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
-    
+    print "\n"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "\n"
     
     patient_details = response.text
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
@@ -1152,10 +1169,11 @@ printResultsSummary()
 
 writeReportFooter()
 
-print "\nPatient Opps Served: "
-print PATIENTS_OPPS_SERVED
+#print "\nPatient Opps Served: "
+#print PATIENTS_OPPS_SERVED
 print "\nDuplicate Patient Opps Served: "
 print DUPLICATE_PATIENTS_OPPS_SERVED
+print "\n"
 #quit()
 
 archiveReport()
