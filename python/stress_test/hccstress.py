@@ -124,9 +124,9 @@ CURDAY=strftime("%d", gmtime())
 CURMONTH=strftime("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
 
-PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
+PASSED_TBL="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED_TBL="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR_TBL="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 MODULES = {	"login":"0", \
 			"coding opportunity check":"1", \
@@ -629,16 +629,17 @@ def writeReportHeader ():
 def writeReportDetails(module):	
 	global REPORT
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+	global SUBHDR_TBL, FAILED_TBL, PASSED_TBL
 	
-	REPORT = REPORT + SUBHDR % module.upper()
+	REPORT = REPORT + SUBHDR_TBL % module.upper()
 	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
 	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
 	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+FAILED
+		REPORT = REPORT+FAILED_TBL
 	else:
-		REPORT = REPORT+PASSED
+		REPORT = REPORT+PASSED_TBL
 	print ("Completed writeReportDetails ... \n")
 		
 	

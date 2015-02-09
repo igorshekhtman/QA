@@ -36,10 +36,10 @@ CODE_OPPS_ACTION=1
 RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
 VOO_W=0
-VAO_W=5
-VRO_W=95
+VAO_W=50
+VRO_W=50
 VSO_W=0
-CODE_OPPS_MAX=100000
+CODE_OPPS_MAX=2000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=1
