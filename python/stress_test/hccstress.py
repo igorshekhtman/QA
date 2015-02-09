@@ -760,7 +760,7 @@ def IncrementTestResultsTotals(module, code):
 			quit()
 		if (code == unauthorized):
 			logInToHCC()
-			startCoding()
+			#startCoding()
     
 def log(text):
 	global REPORT
