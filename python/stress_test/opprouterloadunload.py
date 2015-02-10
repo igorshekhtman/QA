@@ -524,16 +524,21 @@ def startCoding():
     if coding_opp_current > reload_limit:
       #raw_input("\n\n>>> Reload Opportuniy Router and Press Enter to continue after approximately 10 minutes ... <<<\n\n")
       reloadOppRouterData()
-      #wait X minutes for OppRouter data to reload
+      #wait 3 minutes for OppRouter data to re-load
       pause_limit = 180
       print ("\nPausing for %s seconds, allowing for data to re-load ..." % pause_limit) 
       time.sleep(pause_limit)  # Delay for 3 minutes (180 seconds)
       #reset limit back to original number of total opps served
       reload_limit = int(CODE_OPPS_MAX)
+      #refresh expired token
       logInToHCC()
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
+    if str(response.status_code) == str(unauthorized):
+      logInToHCC()
+      response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+      print "* GET CODNG OPP    = %s" % response.status_code    
     opportunity = response.json()
     ######################################################################################         
     model_year = opportunity.get("model_year")
