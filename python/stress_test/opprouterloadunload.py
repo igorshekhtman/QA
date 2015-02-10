@@ -69,6 +69,22 @@
 #            values are 0 for specific and 1 for random
 #
 ####################################################################################################
+#
+# REVISION: 1.0.3
+#
+# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
+#
+# DATE: 09-Feb-2015
+#
+# SPECIFICS: Introduced new reloadOppRouterData() function, allowing to remotely reload OppRouter
+#            Data, wait approximately for 5 minutes for old data to be unloaded and new data to be
+#            loaded.  Continue with the rest of the test, confirming that same Opps are not served
+#			 more than one time.
+#			 See Pycurl reload command below:
+#			 curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/reload"
+#
+####################################################################################################
+
 
 # LIBRARIES ########################################################################################
 
@@ -94,6 +110,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import numpy as np
 #from scipy import spline
+import pycurl
+import io
+import cStringIO
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -334,15 +353,15 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"user_id": USERNAME, \
     		"timestamp": str(1000 * int(time.time())), \
     		"result": "accept", \
-    		"comment": "Comment by the OppRtrOptTest", \
+    		"comment": "Comment by the OppRtrLUTest", \
     		"date_of_service": scorable.get("date_of_service"), \
     		"flag_for_review": "true", \
     		"icd9[code_system_name]": opportunity.get("suggested_codes")[0].get("code_system_name"), \
     		"icd9[code]": opportunity.get("suggested_codes")[0].get("code"), \
-    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" OppRtrOptTest", \
+    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" OppRtrLUTest", \
     		"icd9[code_system]": opportunity.get("suggested_codes")[0].get("code_system"), \
     		"icd9[code_system_version]": opportunity.get("suggested_codes")[0].get("code_system_version"), \
-    		"provider[name]": "The OppRtrOptTest M.D.", \
+    		"provider[name]": "The OppRtrLUTest M.D.", \
     		"provider[id]": "1992754832", \
     		"provider[type]": "Hospital Outpatient Setting", \
     		"payment_year": str(opportunity.get("payment_year")), \
@@ -365,11 +384,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"list_position": str(doc_no_current), \
     		"list_length": str(doc_no_max), \
     		"document_date": scorable.get("date_of_service"), \
-    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
-    		"predicted_code[code]": "The OppRtrOptTest", \
-    		"predicted_code[display_name]": "The OppRtrOptTest", \
-    		"predicted_code[code_system]": "The OppRtrOptTest", \
-    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_name]": "The OppRtrLUTest", \
+    		"predicted_code[code]": "The OppRtrLUTest", \
+    		"predicted_code[display_name]": "The OppRtrLUTest", \
+    		"predicted_code[code_system]": "The OppRtrLUTest", \
+    		"predicted_code[code_system_version]": "The OppRtrLUTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
@@ -393,7 +412,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"timestamp": str(1000 * int(time.time())), \
     		"result": "reject", \
     		"reject_reason": "Additional documentation needed to Accept the document for this HCC", \
-    		"comment": "Comment by The OppRtrOptTest", \
+    		"comment": "Comment by The OppRtrLUTest", \
     		"date_of_service": scorable.get("date_of_service"), \
     		"flag_for_review": "true", \
     		"payment_year": str(opportunity.get("payment_year")), \
@@ -416,11 +435,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"list_length": str(doc_no_max), \
     		"document_date": scorable.get("date_of_service"), \
     		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
-    		"predicted_code[code]": "The OppRtrOptTest", \
-    		"predicted_code[display_name]": "The OppRtrOptTest", \
-    		"predicted_code[code_system]": "The OppRtrOptTest", \
-    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_name]": "The OppRtrLUTest", \
+    		"predicted_code[code]": "The OppRtrLUTest", \
+    		"predicted_code[display_name]": "The OppRtrLUTest", \
+    		"predicted_code[code_system]": "The OppRtrLUTest", \
+    		"predicted_code[code_system_version]": "The OppRtrLUTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
@@ -452,7 +471,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"hcc[code]": str(opportunity.get("hcc")), \
     		"hcc[model_run]": opportunity.get("model_run"), \
     		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description") + " (OppRtrOptTest)", \
+    		"hcc[description]": opportunity.get("hcc_description") + " (OppRtrLUTest)", \
     		"hcc[label_set_version]": opportunity.get("label_set_version"), \
     		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
     		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
@@ -463,11 +482,11 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"list_length": str(doc_no_max), \
     		"document_date": scorable.get("date_of_service"), \
     		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The OppRtrOptTest", \
-    		"predicted_code[code]": "The OppRtrOptTest", \
-    		"predicted_code[display_name]": "The OppRtrOptTest", \
-    		"predicted_code[code_system]": "The OppRtrOptTest", \
-    		"predicted_code[code_system_version]": "The OppRtrOptTest", \
+    		"predicted_code[code_system_name]": "The OppRtrLUTest", \
+    		"predicted_code[code]": "The OppRtrLUTest", \
+    		"predicted_code[display_name]": "The OppRtrLUTest", \
+    		"predicted_code[code_system]": "The OppRtrLUTest", \
+    		"predicted_code[code_system_version]": "The OppRtrLUTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
@@ -500,7 +519,15 @@ def startCoding():
   # main loop controlling number of OPPS to process
   #====================================================
   buckets = -1
+  reload_limit = (int(CODE_OPPS_MAX)/2)
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
+    if coding_opp_current > reload_limit:
+      #raw_input("\n\n>>> Reload Opportuniy Router and Press Enter to continue after approximately 10 minutes ... <<<\n\n")
+      reloadOppRouterData()
+      #wait X minutes for OppRouter data to reload
+      time.sleep(300)  # Delay for 5 minutes (300 seconds)
+      #reset limit back to original number of total opps served
+      reload_limit = int(CODE_OPPS_MAX)
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
@@ -520,34 +547,35 @@ def startCoding():
     print "********************************************************************************************"
     print "********************************************************************************************"
     print "\n"
-    print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
-    #print "*                      "
     print "* PATIENT UUID     = %s" % patient_uuid
+    #print "*                      "
+    print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
     #print "\n"
+    #print "* RE-LOAD LIMIT    = %s OPPS" % 
     #print "********************************************************************************************"
     #print "********************************************************************************************"
     #print "********************************************************************************************"
     #print "\n"
     ######################################################################################
     
-    # patient_uuid is key, complete_hcc is a value
+    # patient_uuid+complete_hcc is key, coding_opp_current is a value
     complete_hcc = hcc+"-"+model_year+"-"+model_run+"-"+payment_year
-    complete_items_record_to_store = hcc+"-"+model_year+"-"+model_run+"-"+payment_year+"-"+patient_uuid
-    if patient_uuid in PATIENTS_OPPS_SERVED:
-    	#DUPLICATE_PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
+    complete_key = patient_uuid+"-"+complete_hcc
+    print "* COMPLETE KEY     = %s" % complete_key
+    if complete_key in PATIENTS_OPPS_SERVED:
     	print "\n"
     	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !!! DUPLICATE !!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     	print ">>>"
-    	print ">>> NEW PUUID SERVED  = %s" % patient_uuid
-    	print ">>> NEW HCC SERVED    = %s" % complete_hcc
+    	print ">>> NEW SERVED HCC    = %s" % complete_key
+    	print ">>> NEW OPP # SERVED  = %s" % coding_opp_current
     	print ">>>"
-    	print ">>> STORED PUUID      = %s" % patient_uuid
-    	print ">>> STORED HCC        = %s" % PATIENTS_OPPS_SERVED[patient_uuid]
+    	print ">>> STORED HCC        = %s" % complete_key
+    	print ">>> STORED OPP # SRVD = %s" % PATIENTS_OPPS_SERVED[complete_key]
     	print ">>>"
     	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> !!! DUPLICATE !!! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"	
-    	if str(complete_hcc) == str(PATIENTS_OPPS_SERVED[patient_uuid]):
-    		DUPLICATE_PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
-    PATIENTS_OPPS_SERVED.update({str(patient_uuid): str(complete_hcc)})
+    	old_new_hcc_sequence = str(PATIENTS_OPPS_SERVED[complete_key])+","+str(coding_opp_current)
+    	DUPLICATE_PATIENTS_OPPS_SERVED.update({str(complete_key): str(old_new_hcc_sequence)})
+    PATIENTS_OPPS_SERVED.update({str(complete_key): str(coding_opp_current)})
     print "\n"
     print "********************************************************************************************"
     print "********************************************************************************************"
@@ -566,6 +594,7 @@ def startCoding():
     #print "scorables: %s" % scorables
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
+    print("RE-LOAD LIMIT SET TO %d OPPS" % (reload_limit))
     TOTAL_OPPS_SERVED = coding_opp_current   
     
     if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
@@ -1133,6 +1162,42 @@ def log(text):
 	#REPORT = REPORT + text + "<br>"
 	print(text)
 	return 0    
+
+###########################################################################################################################################
+	
+class Response(object):
+	""" utility class to collect the response """
+	def __init__(self):
+		self.chunks = []
+	def callback(self, chunk):
+		self.chunks.append(chunk)
+	def content(self):
+		return ''.join(self.chunks)
+
+###########################################################################################################################################
+
+def test(debug_type, debug_msg):
+	global RETURNCODE
+	if debug_msg[ :4] == "HTTP" :
+		RETURNCODE = debug_msg[9: ]
+		print ("RETURN CODE: %s") % RETURNCODE	
+
+###########################################################################################################################################
+
+def reloadOppRouterData():
+	print ("Starting reload of OppRouter Data ...")
+	res = Response()
+	bufu = io.BytesIO()
+	response = cStringIO.StringIO()
+	curl = pycurl.Curl()
+	curl.setopt(curl.URL, "https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/reload")
+	curl.setopt(curl.WRITEFUNCTION, bufu.write)
+	curl.setopt(curl.VERBOSE, True)
+	curl.setopt(curl.SSL_VERIFYPEER, 1)
+	curl.setopt(curl.CUSTOMREQUEST, "PUT")
+	curl.perform()
+	print res.content()
+	print ("Ending reload of OppRouter Data ...")	
 
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
