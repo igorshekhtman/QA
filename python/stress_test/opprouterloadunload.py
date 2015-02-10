@@ -525,9 +525,12 @@ def startCoding():
       #raw_input("\n\n>>> Reload Opportuniy Router and Press Enter to continue after approximately 10 minutes ... <<<\n\n")
       reloadOppRouterData()
       #wait X minutes for OppRouter data to reload
-      time.sleep(300)  # Delay for 5 minutes (300 seconds)
+      pause_limit = 180
+      print ("\nPausing for %s seconds, allowing for data to re-load ..." % pause_limit) 
+      time.sleep(pause_limit)  # Delay for 3 minutes (180 seconds)
       #reset limit back to original number of total opps served
       reload_limit = int(CODE_OPPS_MAX)
+      logInToHCC()
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
@@ -988,10 +991,6 @@ def writeReportFooter():
 	REPORT = REPORT+"</td></tr>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
 	
-	
-	
-	
-	
 	drawGraph(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
 		
 	REPORT_EMAIL = REPORT_EMAIL + REPORT	
@@ -1185,7 +1184,9 @@ def test(debug_type, debug_msg):
 ###########################################################################################################################################
 
 def reloadOppRouterData():
-	print ("Starting reload of OppRouter Data ...")
+	print ("\n\n")
+	print ("==============================================================================================================================")
+	print ("Starting reload of OppRouter Data ...\n")
 	res = Response()
 	bufu = io.BytesIO()
 	response = cStringIO.StringIO()
@@ -1197,7 +1198,9 @@ def reloadOppRouterData():
 	curl.setopt(curl.CUSTOMREQUEST, "PUT")
 	curl.perform()
 	print res.content()
-	print ("Ending reload of OppRouter Data ...")	
+	print ("Ending reload of OppRouter Data ...")
+	print ("==============================================================================================================================")
+	print ("\n\n")	
 
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
