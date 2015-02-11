@@ -991,7 +991,9 @@ def writeReportFooter():
 	REPORT = REPORT+"</td></tr>"
 	
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Duplicate Patient/Opps Served:</td><td bgcolor='#D8D8D8'>"
+	REPORT = REPORT+"<tr><td>Opps Served Before Reload:</td><td><b>%s</b></td></tr>" % (int(CODE_OPPS_MAX)/2)
+	REPORT = REPORT+"<tr><td>Opps Served After Reload:</td><td><b>%s</b></td></tr>" % (int(CODE_OPPS_MAX)/2)
+	REPORT = REPORT+"<tr><td bgcolor='#FFFF00' nowrap>Duplicate Patient/Opps Served:</td><td bgcolor='#FFFF00'>"
 	convertJsonToTable(DUPLICATE_PATIENTS_OPPS_SERVED, "key")
 	REPORT = REPORT+"</td></tr>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
