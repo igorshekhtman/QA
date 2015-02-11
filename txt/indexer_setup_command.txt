@@ -1,3 +1,23 @@
+================ BUNDLING INSTRUCTIONS =========================
+
+LOG INTO: bundler-stg.apixio.com
+cd /usr/lib/apx-bundler/conf
+nano bundler.conf
+
+replace following fields:
+orgFilter: 401
+legacyOrgNames: igor1,401
+assumeEligibility: 401,true
+
+service apx-bundler stop
+service apx-bundler start
+service apx-bundler status
+
+*** REMEMBER:
+in ACLADMIN:
+
+"ViewDocuments" permission must exist for "System Users" coding group and system_hccreporting@apixio.net user
+
 ============== PRODUCTION ACL ADMIN ACCESS ======================
 
 system_qa@apixio.com
