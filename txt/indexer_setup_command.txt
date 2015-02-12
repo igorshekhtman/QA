@@ -13,10 +13,25 @@ service apx-bundler stop
 service apx-bundler start
 service apx-bundler status
 
+curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "https://bundler-stg.apixio.com:8444/hcc/bundler/get_historical?lo=0&hi=0&bundle=true"
+
+reload data-set:
+
+obtain “guid” from MySQL STAGE_HCC table Router_stg.DataSet;
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/reload" 
+
+The URLs used to direct the load and unload of opp router data sets are: 
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/load" 
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/unload" 
+
+Reloading is just a combined unload/load operation: 
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/reload" 
+
 *** REMEMBER:
 in ACLADMIN:
-
 "ViewDocuments" permission must exist for "System Users" coding group and system_hccreporting@apixio.net user
+
+Rules must be within “2013-2014” years.
 
 ============== PRODUCTION ACL ADMIN ACCESS ======================
 
