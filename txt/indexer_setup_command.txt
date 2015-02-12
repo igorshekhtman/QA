@@ -1,3 +1,30 @@
+================= EVENT CLOUD SEAN ======================================
+
+https://github.com/Apixio/complex-event-processing/blob/master/event_cloud/scripts/cep_query.py
+
+python cep_query.py 54.177.153.168:8076 pipeline batch_info 10000279_PipelineSanityTestProduction_02062015192259
+python cep_query.py dashboard-development.apixio.net:8075 pipeline batches
+python cep_query.py dashboard-development.apixio.net:8075 pipeline shell
+create window AllBatchState.win:time(60 days) as BatchState
+create window AllComponentErrors.win:time(60 days) as ComponentError
+create window AllEsperErrors.win:time(60 days) as SimpleEsperError
+
+create schema BatchState (eventType string, batchId string, stateName string, orgId string, occurences int,
+  successes int, errors int, numDocs int, numPatients int, numEvents int, duration long, starttime long, lasttime long)
+
+create schema ComponentError (eventType string, source string, message string, id string, time long)
+
+https://sites.google.com/a/apixio.com/engineering/hcc-optimizer/coder-hours
+https://progressreport.apixio.com:8038/peeves
+http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html
+http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html#functionreference
+
+HCC windows
+AllHCCErrors
+AllWorkSessions
+AllUserSessions
+AllEsperErrors
+
 ================ BUNDLING INSTRUCTIONS - STAGING =========================
 
 LOG INTO: bundler-stg.apixio.com
@@ -33,10 +60,7 @@ in ACLADMIN:
 
 Rules must be within “2013-2014” years.
 
-
 ================ BUNDLING INSTRUCTIONS - PRODUCTION =========================
-
-
 
 ip-10-233-6-10
 that's the production bundler
@@ -46,7 +70,6 @@ edit rules.json
 to match the needs of the bundling
 update bundler.conf with patient list, orgids , and other filters if necessary
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "https://localhost:8444/hcc/bundler/get_historical?hi=1423347758000&lo=1422824843000&bundle=true"
-
 
 ============== PRODUCTION ACL ADMIN ACCESS ======================
 
