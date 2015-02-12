@@ -1,4 +1,4 @@
-================ BUNDLING INSTRUCTIONS =========================
+================ BUNDLING INSTRUCTIONS - STAGING =========================
 
 LOG INTO: bundler-stg.apixio.com
 cd /usr/lib/apx-bundler/conf
@@ -32,6 +32,21 @@ in ACLADMIN:
 "ViewDocuments" permission must exist for "System Users" coding group and system_hccreporting@apixio.net user
 
 Rules must be within “2013-2014” years.
+
+
+================ BUNDLING INSTRUCTIONS - PRODUCTION =========================
+
+
+
+ip-10-233-6-10
+that's the production bundler
+step 1 is to copy the patient list over to /usr/lib/apx-bundler/bin
+scp -i ~/.ssh/staging_new_hcc.pem  hpmg_10000278_scan_uuids.txt    root@54.177.26.89:/usr/lib/apx-bundler/bin/
+edit rules.json
+to match the needs of the bundling
+update bundler.conf with patient list, orgids , and other filters if necessary
+curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "https://localhost:8444/hcc/bundler/get_historical?hi=1423347758000&lo=1422824843000&bundle=true"
+
 
 ============== PRODUCTION ACL ADMIN ACCESS ======================
 
