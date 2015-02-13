@@ -2,9 +2,14 @@
 
 https://github.com/Apixio/complex-event-processing/blob/master/event_cloud/scripts/cep_query.py
 
+Usage: cep_query.py <host> hcc|pipeline <function_name> [arg1] [arg2] ... [argN]
+
 python cep_query.py 54.177.153.168:8076 pipeline batch_info 10000279_PipelineSanityTestProduction_02062015192259
+
 python cep_query.py dashboard-development.apixio.net:8075 pipeline batches
+
 python cep_query.py dashboard-development.apixio.net:8075 pipeline shell
+
 create window AllBatchState.win:time(60 days) as BatchState
 create window AllComponentErrors.win:time(60 days) as ComponentError
 create window AllEsperErrors.win:time(60 days) as SimpleEsperError
@@ -18,6 +23,14 @@ https://sites.google.com/a/apixio.com/engineering/hcc-optimizer/coder-hours
 https://progressreport.apixio.com:8038/peeves
 http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html
 http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html#functionreference
+
+Pipeline:
+=========
+AllBatchState
+AllDocumentState
+AllEsperErrors
+AllComponentErrors
+
 
 HCC windows
 AllHCCErrors
