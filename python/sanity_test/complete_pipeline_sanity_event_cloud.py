@@ -21,10 +21,6 @@ import tabulate
 import uuid
 import cStringIO
 
-# os.system('clear')
-
-# quit()
-
 #============================================================================================
 #============================ MAIN FUNCTIONS ================================================
 #============================================================================================
@@ -38,7 +34,7 @@ def initializeGlobalVars():
 	global QUERY_NUMBER, PROCESS_ALL_QUERIES, PASSED, FAILED, SUBHDR, QUERY_DESC
 	global COMPONENT_STATUS, LOGTYPE, INDEXERLOGFILE, DOCRECEIVERLOGFILE
 	global COORDINATORLOGFILE, PARSERLOGFILE, OCRLOGFILE, PERSISTLOGFILE, EVENTSLOGFILE
-	global SENDER, RECEIVERS, DOCUMENTCOUNTER
+	global SENDER, RECEIVERS, EVENT_CLOUD_URL
 	
 	TEST_TYPE="PipelineSanityTest"
 	YEAR=strftime("%Y", gmtime())
@@ -55,6 +51,7 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com"
 		ENVIRONMENT="Production"
+		EVENT_CLOUD_URL="http://54.177.153.168:8076/event/query"
 	else:
 		# STAGING =====================
 		USERNAME="sanitytest1"
@@ -62,6 +59,7 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"
+		EVENT_CLOUD_URL="http://dashboard-development.apixio.net:8075/event/query"
 	#==================================
 	print ("ENVIRONMANT = %s") % ENVIRONMENT
 	# time.sleep(15)
@@ -186,7 +184,7 @@ def uploadData():
 	c.setopt(c.HTTPPOST, [("document", (c.FORM_FILE, "%s%s" % (DIR, FILE))), ("catalog", (c.FORM_FILE, "%s" % (CATALOG_FILE))) ])
 	c.perform()	
 
-# ========================================================================= Assign Values =======================================================
+#=========================================================== Assign Values =======================================================
 
 def uploadFiles():
 	global DOCUMENTCOUNTER, obj, MANIFEST_FILE
@@ -226,7 +224,7 @@ def uploadFiles():
 		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
 		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 		
-		# ============================== Uploading Data =================================================================================================================
+		#============================== Uploading Data =====================================================================================
 
 		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, DRBATCH)
 		bufu = io.BytesIO()
@@ -245,10 +243,8 @@ def uploadFiles():
 
 		MANIFEST_FILE = MANIFEST_FILE+("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t02/22/14 02:02:37 AM\n") % (DOCUMENT_ID, SOURCE_SYSTEM, USERNAME, UUID, ORGANIZATION, ORGID, BATCH, FILE_FORMAT)
 
+	#========================================================== Finish by closing batch ======================================================================================
 
-	# ========================================================== Finish by closing batch ======================================================================================
-
-	
 	print ("\nTOTAL NUMBER OF DOCUMENTS UPLOADED: %s\n" % (DOCUMENTCOUNTER));
 	print ("Closing Batch ...\n")
 
@@ -264,7 +260,8 @@ def uploadFiles():
 	objc=json.loads(bufc.getvalue())
 	# print (objc)
 	print ("Batch Closed, Upload Completed ...\n")
-	# ========================================================== Transmitting Manifest File ======================================================================================
+	
+	#========================================================== Transmitting Manifest File ======================================================================================
 
 	# Currently this is only working on Staging
 	if ENVIRONMENT == "Staging":
@@ -291,8 +288,26 @@ def pauseForUploadToComplete():
 	#Increased for the time being of cluster being 100% occupied ... 10-13-14 Igor
 	#PAUSE_LIMIT = 600
 	# wait for PAUSE_LIMIT seconds
-	print ("Pausing for %s seconds for all jobs to complete ...") % (PAUSE_LIMIT)
+	print ("Pausing for %s seconds for all jobs to complete ...\n") % (PAUSE_LIMIT)
 	time.sleep(PAUSE_LIMIT)
+
+#=========================================================================================
+
+def obtainOperationAndCategory():
+	global REPORT
+	print ("Obtaining operation and category ...\n")
+	cur.execute("""SELECT get_json_object(line, '$.submit.post.operation') as operation, \
+		get_json_object(line, '$.submit.post.category') as category \
+		FROM %s \
+		WHERE \
+		get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, BATCH))
+	ROW = 0	
+	for i in cur.fetch():
+		ROW += 1
+		print i
+		REPORT = REPORT+"Operation: <b>"+str(i[0])+"</b><BR>"
+		REPORT = REPORT+"Category: <b>"+str(i[1])+"</b><BR><BR>"
+	print ("Finished obtaining operation and category ...\n")	
 
 #=========================================================================================
 
@@ -313,11 +328,14 @@ def generateReportHeader():
 	BatchID: <b>%s</b><br>
 	User name: <b>%s</b><br>
 	""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
-
+	
+	#obtainOperationAndCategory()
+	
 #=========================================================================================
 
 def connectToHive():
-	global conn
+	global conn, cur
+	print ("Establishing Hive connection ...\n")
 	conn = pyhs2.connect(host='54.149.166.25',
                    port=10000,
                    authMechanism="PLAIN",
@@ -326,28 +344,31 @@ def connectToHive():
                    database='default')
 
 	cur = conn.cursor()
-	print ("Assigning queue name to hive ...")
+	print ("Assigning queue name to hive ...\n")
 	cur.execute("""SET mapred.job.queue.name=hive""")
-	
+
 #=========================================================================================	
 
-def generateReportDetails():
+def labelPassOrFail(component_status):
+	global REPORT, GLOBAL_STATUS
+		
+	if (component_status.upper() == "PASSED"):
+		REPORT = REPORT+PASSED
+		GLOBAL_STATUS="success"
+	else:
+		REPORT = REPORT+FAILED
+		COMPONENT_STATUS="PASSED"
+		GLOBAL_STATUS="failed"
+	REPORT = REPORT+"<br><br>"
+
+#=========================================================================================	
+	
+def queryIndexer():
 	global REPORT
-	print ("Obtaining operation and category...")
-	cur.execute("""SELECT get_json_object(line, '$.submit.post.operation') as operation, \
-		get_json_object(line, '$.submit.post.category') as category \
-		FROM %s \
-		WHERE \
-		get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, BATCH))
-	ROW = 0	
-	for i in cur.fetch():
-		ROW = ROW + 1
-		print i
-		REPORT = REPORT+"Operation: <b>"+str(i[0])+"</b><BR>"
-		REPORT = REPORT+"Category: <b>"+str(i[1])+"</b><BR><BR>"		
-
-	#=============================== INDEXER related queries =============================
-
+	
+	query_status = "passed"
+	component_status = "passed"
+	
 	REPORT = REPORT+SUBHDR % "INDEXER"
 
 	if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
@@ -361,7 +382,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td></tr>"
 		if (ROW == 0):
@@ -370,7 +391,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 1 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 	if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
@@ -386,7 +407,7 @@ def generateReportDetails():
 		TOTAL = 0
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 			if (str(i[0]).upper() == "PDF"):
@@ -399,21 +420,17 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if TOTAL < DOCUMENTCOUNTER:
 			print ("QUERY 2 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
+	labelPassOrFail(component_status)
 
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
+#=========================================================================================
 
-	REPORT = REPORT+"<br><br>"
+def queryDocReceiver():
+	global REPORT
 
-	#=============================== DOC-RECEIVER related queries ========================
-
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
 
 	if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
@@ -432,7 +449,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
@@ -441,7 +458,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 3 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -460,7 +477,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
@@ -469,7 +486,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 4 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 	if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
@@ -487,7 +504,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
@@ -496,7 +513,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 5 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -515,7 +532,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
 		if (ROW == 0):
@@ -524,21 +541,17 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[1]) < DOCUMENTCOUNTER:
 			print ("QUERY 6 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
+	labelPassOrFail(component_status)
 
+#=========================================================================================
 
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
-
-	#=============================== COORDINATOR related queries =========================
-
+def queryCoordinator():
+	global REPORT
+	
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "COORDINATOR"
 
 	if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
@@ -558,30 +571,27 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[2])+"</td></tr>"
 			if (str(i[2]).lower() == 'error'):
 				print ("QUERY 7 FAILED")
-				COMPONENT_STATUS="FAILED"
+				component_status="FAILED"
 		if (ROW == 0):
 			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 			print ("QUERY 7 FAILED")
-			COMPONENT_STATUS="FAILED"				
+			component_status="FAILED"				
 		REPORT = REPORT+"</table><br>"
 
+	labelPassOrFail(component_status)
 
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"	
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
+#=========================================================================================
 
-	#=============================== PARSER related queries ==============================
-
+def queryParser():
+	global REPORT
+	
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "PARSER"
 
 	if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
@@ -598,7 +608,7 @@ def generateReportDetails():
 		ROW = 0
 		TAGED_TO_OCR=0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
 			TAGED_TO_OCR = int(i[0])
@@ -608,7 +618,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if TAGED_TO_OCR < DOCUMENTS_TO_OCR:
 			print ("QUERY 8 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -626,7 +636,7 @@ def generateReportDetails():
 		ROW = 0
 		TAGED_TO_PERSIST=0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
 			TAGED_TO_PERSIST = int(i[0])
@@ -638,7 +648,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
 			print ("QUERY 9 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -656,7 +666,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
@@ -665,7 +675,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 10 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -684,32 +694,27 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
 		if (ROW == 0):
 			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# COMPONENT_STATUS="PASSED"
+			# component_status="PASSED"
 		else:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 		REPORT = REPORT+"</table><br>"
 		if ROW > 0:
 			print ("QUERY 11 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
+	labelPassOrFail(component_status)
 
-
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
-
-	#=============================== OCR related queries =================================
-
+#=========================================================================================
+def queryOCR():
+	global REPORT
+	
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "OCR"
 
 	if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
@@ -726,16 +731,16 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
 			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 			print ("QUERY 12 FAILED")
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTS_TO_OCR:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 	if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
@@ -753,33 +758,27 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
 		if (ROW == 0):
 			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# COMPONENT_STATUS="PASSED"
+			# component_status="PASSED"
 		else:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 		REPORT = REPORT+"</table><br>"
 		if ROW > 0:
 			print ("QUERY 13 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
+	labelPassOrFail(component_status)
 
-
-
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
-
-	#=============================== PERSIST related queries =============================
-
+#=========================================================================================
+def queryPersist():
+	global REPORT
+	
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "PERSIST"
 
 	if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
@@ -796,7 +795,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
 		if (ROW == 0):
@@ -805,7 +804,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 		if int(i[0]) < DOCUMENTCOUNTER:
 			print ("QUERY 14 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
 
 
@@ -824,34 +823,28 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
 		if (ROW == 0):
 			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# COMPONENT_STATUS="PASSED"
+			# component_status="PASSED"
 		else:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 		REPORT = REPORT+"</table><br>"
 		if ROW > 0:
 			print ("QUERY 15 FAILED")
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 
+	labelPassOrFail(component_status)
 
+#=========================================================================================
 
-
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
-
-
-	#=============================== EVENTS related queries ==============================
-
+def queryEvents():
+	global REPORT
+	
+	query_status = "passed"
+	component_status = "passed"
 	REPORT = REPORT+SUBHDR % "EVENTS"
 
 	if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
@@ -870,7 +863,7 @@ def generateReportDetails():
 		ROW = 0
 		TOTALEVENTMAPPER = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
 		if (ROW == 0) :
@@ -878,7 +871,7 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 	
 		if i[0] is None:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 			print ("QUERY 16 FAILED")
 		else:
 			TOTALEVENTMAPPER=int(i[0])
@@ -900,7 +893,7 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
 		if (ROW == 0) :
@@ -908,10 +901,10 @@ def generateReportDetails():
 		REPORT = REPORT+"</table><br>"
 	
 		if i[0] is None:
-			COMPONENT_STATUS="FAILED"
+			component_status="FAILED"
 		elif (int(i[0]) <> TOTALEVENTMAPPER):
 			print ("QUERY 17 FAILED")
-			COMPONENT_STATUS="FAILED"		
+			component_status="FAILED"		
 		
 	if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
 		QUERY_DESC="Number of Events succeeded and/or failed"
@@ -929,28 +922,142 @@ def generateReportDetails():
 		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
 		ROW = 0
 		for i in cur.fetch():
-			ROW = ROW + 1
+			ROW += 1
 			print i
 			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td><td align='center'>&nbsp;"+str(i[1])+"&nbsp;</td></tr>"
 			if str(i[1]) == "error":
-				COMPONENT_STATUS="FAILED"
+				component_status="FAILED"
 		if (ROW == 0) :
 			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
 		REPORT = REPORT+"</table><br>"
 	
-	if (COMPONENT_STATUS=="PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
-	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
-	REPORT = REPORT+"<br><br>"
+	labelPassOrFail(component_status)
 
+#=========================================================================================
+	
+class CEPException(Exception):
+	pass
 
+#=========================================================================================
+
+def output(data):
+	columns = sorted(reduce(lambda x, y: set(x) | set(y), [set(x.keys()) for x in data]))
+	odata = [[x.split('_')[-1] for x in columns]]
+	for row in data:
+		odata.append([row.get(x) if type(row.get(x)) != float else '%.2f' % row.get(x) for x in columns])
+	print tabulate.tabulate(odata, headers='firstrow', missingval='')
+  
+#=========================================================================================  
+
+def query(stmt, url=None):
+	
+	url = EVENT_CLOUD_URL
+	
+	r = requests.get(url, params={'statement': stmt})
+	if r.status_code != 200:
+		raise CEPException(r.text)
+	j = r.json()
+	if len(j) == 0:
+		raise CEPException('JSON length 0')
+	
+	return j	
+
+#=========================================================================================	
+	
+def batch_all_info_pipeline(batch):
+	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events from AllBatchState where batchId = '%s'" % (batch)))	
+	
+#=========================================================================================
+def componentUploadStatus(component, batch):
+	
+	
+	components = { \
+		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
+		}
+	states = { \
+		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
+		"parser", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr", "persist", "dataCheckAndRecovery", "event", "trace", "qaAndRecoverEvent" \
+		}
+	counts = { \
+		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
+		"parser": 2, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr": 2, "persist": 4, "dataCheckAndRecovery": 4, "event": 4, "trace": 8, "qaAndRecoverEvent": 4 \
+		}
+	successes = { \
+		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
+		"parser": 1, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr": 1, "persist": 2, "dataCheckAndRecovery": 2, "event": 2, "trace": 4, "qaAndRecoverEvent": 2 \
+		}
+	errors = { \
+		"Archived": 0, "Packaged": 0, "Uploaded": 0, "Submitted": 0, "SentToOCR": 0, "Parsed": 0, "SentToPersist": 0, "OCRed": 0, "Coordinated": 0, "PersistMapped": 0, "PersistReduced": 0, \
+		"parser": 0, "Checked": 0, "EventMapped": 0, "EventReduced": 0, "EventChecked": 0, "ocr": 0, "persist": 0, "dataCheckAndRecovery": 0, "event": 0, "trace": 0, "qaAndRecoverEvent": 0 \
+		}
+	docs = { \
+		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 13, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 0, "PersistMapped": 13, "PersistReduced": 13, \
+		"parser": 0, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 0, "ocr": 0, "persist": 0, "dataCheckAndRecovery": 0, "event": 0, "trace": 0, "qaAndRecoverEvent": 0 \
+		}
+	durations = 	{ \
+		"Archived": 685, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 0, \
+		"PersistMapped": 5448, "PersistReduced": 9089, "parser": 60553, "Checked": 5095, "EventMapped": 44228, "EventReduced": 860, "EventChecked": 1081, "ocr": 301006, "persist": 121555, \
+		"dataCheckAndRecovery": 120613, "event": 241290, "trace": 242661, "qaAndRecoverEvent": 120665 \
+		}	
+	columns = {"state", "counts", "successes", "errors", "docs", "durations"}		
+
+	status = "incomplete"	
+	print ("-----------------------------------------------------------------------------")
+	print ("Component        = %s" % component)
+	print ("Batch            = %s" % batch)
+	print ("Status           = %s" % status)
+	print ("-----------------------------------------------------------------------------")
+	
+	#batch_all_info_pipeline(batch)
+	for state in states:
+		data = query("\
+			SELECT stateName state, occurences counts, successes successes, errors errors, numDocs docs, duration durations \
+			FROM AllBatchState \
+			WHERE batchId = '%s' and stateName = '%s'" % (batch, state))
+	
+		for row in data:
+			for column in columns:
+				print row[column]
+
+	
+	#output (query("\
+	#	select stateName a_state \
+	#	from AllBatchState \
+	#	where batchId = '%s'" % (batch)))
+	
+	#output(query("select * from AllBatchState where batchId = '%s' and stateName = 'Archived' " % (batch)))
+		
+	return (status)
+
+#=========================================================================================
+
+def generateReportDetails():
+	global REPORT, cur, conn
+		
+	print ("Start querying individual pipeline components ...")
+	print ("===================================================================================\n")
+		
+	#if componentUploadStatus("indexer", BATCH)	== "complete":
+		#queryIndexer()
+	if componentUploadStatus("docreceiver", BATCH)	== "complete":
+		queryDocReceiver()	
+		if componentUploadStatus("coordinator", BATCH)	== "complete":
+			queryCoordinator()	
+			if componentUploadStatus("parser", BATCH)	== "complete":	
+				queryParser()
+				if componentUploadStatus("ocr", BATCH)	== "complete":
+					queryOCR()
+					if componentUploadStatus("persist", BATCH)	== "complete":
+						queryPersist()
+						if componentUploadStatus("event", BATCH)	== "complete":
+							queryEvents()
+	
+	print ("\n===================================================================================")
+	print ("End querying individual pipeline components ...\n")				
 	cur.close()
 	conn.close()
-
+	quit()
+	
 #=========================================================================================
 
 def generateReportFooter():
@@ -1039,9 +1146,12 @@ outputVarValues()
 
 obtainToken()
 
-uploadFiles()
+#uploadFiles()
 
-pauseForUploadToComplete()
+#pauseForUploadToComplete()
+#quit()
+
+BATCH="370_PipelineSanityTestStaging_02132015185431"
 
 connectToHive()
 

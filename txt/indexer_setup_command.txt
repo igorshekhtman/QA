@@ -24,6 +24,11 @@ https://progressreport.apixio.com:8038/peeves
 http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html
 http://esper.codehaus.org/esper-5.0.0/doc/reference/en-US/html_single/index.html#functionreference
 
+
+python2.7 cep_query.py dashboard-development.apixio.net:8075 pipeline batch_info 370_PipelineSanityTestStaging_02132015185431
+
+
+
 Pipeline:
 =========
 AllBatchState
