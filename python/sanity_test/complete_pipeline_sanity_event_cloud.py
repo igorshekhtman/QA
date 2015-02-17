@@ -34,7 +34,7 @@ def initializeGlobalVars():
 	global QUERY_NUMBER, PROCESS_ALL_QUERIES, PASSED, FAILED, SUBHDR, QUERY_DESC
 	global COMPONENT_STATUS, LOGTYPE, INDEXERLOGFILE, DOCRECEIVERLOGFILE
 	global COORDINATORLOGFILE, PARSERLOGFILE, OCRLOGFILE, PERSISTLOGFILE, EVENTSLOGFILE
-	global SENDER, RECEIVERS, EVENT_CLOUD_URL
+	global SENDER, RECEIVERS, EVENT_CLOUD_URL, observed_durations
 	
 	TEST_TYPE="PipelineSanityTest"
 	YEAR=strftime("%Y", gmtime())
@@ -89,6 +89,7 @@ def initializeGlobalVars():
 	GLOBAL_STATUS="success"
 	OPERATION=""
 	CATEGORY=""
+	observed_durations = {}
 	#=============== debugging =========
 	QUERY_NUMBER=18
 	PROCESS_ALL_QUERIES=bool(1)
@@ -957,8 +958,8 @@ def query(stmt, url=None):
 	if r.status_code != 200:
 		raise CEPException(r.text)
 	j = r.json()
-	if len(j) == 0:
-		raise CEPException('JSON length 0')
+	#if len(j) == 0:
+	#	raise CEPException('JSON length 0')
 	
 	return j	
 
@@ -968,7 +969,10 @@ def batch_all_info_pipeline(batch):
 	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events from AllBatchState where batchId = '%s'" % (batch)))	
 	
 #=========================================================================================
-def componentUploadStatus(component, batch):
+def componentUploadStatus(p_module, p_state, batch):
+	global observed_durations
+
+	component_upload_time_limit = 10
 	
 	
 	components = { \
@@ -994,16 +998,19 @@ def componentUploadStatus(component, batch):
 		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 13, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 0, "PersistMapped": 13, "PersistReduced": 13, \
 		"parser": 0, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 0, "ocr": 0, "persist": 0, "dataCheckAndRecovery": 0, "event": 0, "trace": 0, "qaAndRecoverEvent": 0 \
 		}
+	#685	
 	durations = 	{ \
-		"Archived": 685, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 0, \
+		"Archived": 80, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 2, \
 		"PersistMapped": 5448, "PersistReduced": 9089, "parser": 60553, "Checked": 5095, "EventMapped": 44228, "EventReduced": 860, "EventChecked": 1081, "ocr": 301006, "persist": 121555, \
 		"dataCheckAndRecovery": 120613, "event": 241290, "trace": 242661, "qaAndRecoverEvent": 120665 \
 		}	
-	columns = {"state", "counts", "successes", "errors", "docs", "durations"}		
+	columns = {"state", "counts", "successes", "errors", "docs", "durations"}
+			
 
-	status = "incomplete"	
+	status = "started"	
 	print ("-----------------------------------------------------------------------------")
-	print ("Component        = %s" % component)
+	print ("Component        = %s" % p_module)
+	print ("State            = %s" % p_state)
 	print ("Batch            = %s" % batch)
 	print ("Status           = %s" % status)
 	print ("-----------------------------------------------------------------------------")
@@ -1015,10 +1022,44 @@ def componentUploadStatus(component, batch):
 			FROM AllBatchState \
 			WHERE batchId = '%s' and stateName = '%s'" % (batch, state))
 	
-		for row in data:
-			for column in columns:
-				print row[column]
+		#for row in data:
+		#	for column in columns:
+		#		print row[column]
 
+	max_time = durations[p_state]
+	count = 0
+	print max_time
+	#quit()
+	start_time = time.time()  # remember when we started
+	while (time.time() - start_time) < max_time :
+		duration_time = (time.time() - start_time)
+		print ("Module : State     = %s : %s" % (p_module, p_state))
+		print ("Time passed        = %s" % (duration_time))
+		print ("Limit              = %s\n" % (max_time))
+		data = query("\
+			SELECT stateName state, occurences counts, successes successes, errors errors, numDocs docs, duration durations \
+			FROM AllBatchState \
+			WHERE batchId = '%s' and stateName = '%s'" % (batch, p_state))
+		for row in data:
+			print ("Documents actually %s = %d" % (p_state, row["counts"]))
+			print ("Documents expected %s = %d" % (p_state, counts[p_state]))
+			if (row["counts"] == counts[p_state]) and (duration_time < max_time):
+				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["counts"], p_state, batch, duration_time))
+				max_time = 0
+				observed_durations.update({str(p_module+" "+p_state): duration_time})
+			elif (row["counts"] < counts[p_state]) and (duration_time >= max_time):
+				print ("Time limit of %s exceeded %d documents were %s ...\n" % (duration_time, row["counts"], p_state))
+			
+			
+	if max_time >= duration_time:
+		print ("Time limit of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % (duration_time, max_time))
+		status = "incomplete"
+
+	else:
+		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["counts"], p_state, batch, duration_time))	 	
+		status = "complete"
+		#raw_input("Press Enter to continue...")
+		
 	
 	#output (query("\
 	#	select stateName a_state \
@@ -1032,25 +1073,64 @@ def componentUploadStatus(component, batch):
 #=========================================================================================
 
 def generateReportDetails():
-	global REPORT, cur, conn
+	global REPORT, cur, conn, BATCH, observed_durations
+	states = { \
+		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", \
+		"OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
+		"parser", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr", "persist", \
+		"dataCheckAndRecovery", "event", "trace", "qaAndRecoverEvent" \
+		}
+	components = { \
+		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
+		}	
 		
 	print ("Start querying individual pipeline components ...")
 	print ("===================================================================================\n")
 		
+	
+	modules_states = [ \
+		["docreceiver", "Archived"], ["docreceiver", "Packaged"], ["docreceiver", "Uploaded"], ["docreceiver", "Submitted"], \
+		["coordinator", "Coordinated"], \
+		["parser", "Parsed"], ["parser", "SentToOCR"], ["parser", "SentToPersist"], \
+		["ocr", "OCRed"], \
+		["persist", "PersistMapped"], ["persist", "PersistReduced"], \
+		["event", "EventMapped"], ["event", "EventReduced"], ["event", "EventChecked"], \
+		["qa", "Checked"], ["qa", "qaAndRecoverEvent"], \
+		["jobs", "parser"], ["jobs", "ocr"], ["jobs", "persist"], ["jobs", "event"], ["jobs", "trace"]]
+	
+	
+	for module_state in modules_states:
+			print module_state[0], module_state[1]
+			status = componentUploadStatus(module_state[0], module_state[1], BATCH)
+			print ("-----------------------------------------------------------------------------")
+			print ("Component        = %s" % module_state[0])
+			print ("State            = %s" % module_state[1])
+			print ("Batch            = %s" % BATCH)
+			print ("Status           = %s" % status)
+			print ("-----------------------------------------------------------------------------")
+	
+	
+	print observed_durations
+	
+	
+	
+	#if componentUploadStatus("docreceiver", "Archived", BATCH)	== "complete":
+	#	print ("Docreceiver - Archive completed ...\n")
+	
 	#if componentUploadStatus("indexer", BATCH)	== "complete":
 		#queryIndexer()
-	if componentUploadStatus("docreceiver", BATCH)	== "complete":
-		queryDocReceiver()	
-		if componentUploadStatus("coordinator", BATCH)	== "complete":
-			queryCoordinator()	
-			if componentUploadStatus("parser", BATCH)	== "complete":	
-				queryParser()
-				if componentUploadStatus("ocr", BATCH)	== "complete":
-					queryOCR()
-					if componentUploadStatus("persist", BATCH)	== "complete":
-						queryPersist()
-						if componentUploadStatus("event", BATCH)	== "complete":
-							queryEvents()
+	#if componentUploadStatus("docreceiver", BATCH)	== "complete":
+	#	queryDocReceiver()	
+	#	if componentUploadStatus("coordinator", BATCH)	== "complete":
+	#		queryCoordinator()	
+	#		if componentUploadStatus("parser", BATCH)	== "complete":	
+	#			queryParser()
+	#			if componentUploadStatus("ocr", BATCH)	== "complete":
+	#				queryOCR()
+	#				if componentUploadStatus("persist", BATCH)	== "complete":
+	#					queryPersist()
+	#					if componentUploadStatus("event", BATCH)	== "complete":
+	#						queryEvents()
 	
 	print ("\n===================================================================================")
 	print ("End querying individual pipeline components ...\n")				
@@ -1146,12 +1226,12 @@ outputVarValues()
 
 obtainToken()
 
-#uploadFiles()
+uploadFiles()
 
 #pauseForUploadToComplete()
 #quit()
 
-BATCH="370_PipelineSanityTestStaging_02132015185431"
+#BATCH="370_PipelineSanityTestStaging_02132015185431"
 
 connectToHive()
 
