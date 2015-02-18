@@ -13,6 +13,9 @@ import urlparse
 import json
 import re
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import string
 import mmap
 import readline
@@ -35,14 +38,20 @@ def initializeGlobalVars():
 	global COMPONENT_STATUS, LOGTYPE, INDEXERLOGFILE, DOCRECEIVERLOGFILE
 	global COORDINATORLOGFILE, PARSERLOGFILE, OCRLOGFILE, PERSISTLOGFILE, EVENTSLOGFILE
 	global SENDER, RECEIVERS, EVENT_CLOUD_URL, observed_durations
+	global STARTED, INCOMPLETE, SUCCESS, FAIL, SUBHDR, REPORT_TYPE, RECEIVERS2
 	
 	TEST_TYPE="PipelineSanityTest"
+	REPORT_TYPE="PipelineSanityTest"
 	YEAR=strftime("%Y", gmtime())
 	CURMONTH=strftime("%m", gmtime())
 	MONTH_FMN=strftime("%B", gmtime())
 	CURDAY=strftime("%d", gmtime())
 	START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	TIME_START=time.time()
+	SENDER="donotreply@apixio.com"
+	RECEIVERS="eng@apixio.com"
+	RECEIVERS2="ops@apixio.com"
+	
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 		# PRODUCTION ==================
@@ -61,8 +70,19 @@ def initializeGlobalVars():
 		ENVIRONMENT="Staging"
 		EVENT_CLOUD_URL="http://dashboard-development.apixio.net:8075/event/query"
 	#==================================
-	print ("ENVIRONMANT = %s") % ENVIRONMENT
-	# time.sleep(15)
+	if (len(sys.argv) > 3):
+		RECEIVERS = str(sys.argv[2])
+		RECEIVERS2 = str(sys.argv[3])
+	else:
+		RECEIVERS = "ishekhtman@apixio.com"
+		RECEIVERS2 = "ishekhtman@apixio.com"	
+	#==================================
+	
+	#print ("ENVIRONMANT = %s") % ENVIRONMENT
+	#print RECEIVERS
+	#print RECEIVERS2
+	#quit()
+	#time.sleep(15)
 	DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 	CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
@@ -94,9 +114,12 @@ def initializeGlobalVars():
 	QUERY_NUMBER=18
 	PROCESS_ALL_QUERIES=bool(1)
 	#===================================
-	PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-	FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
+	#{"started", "inclomete", "fail", "success"}
+	SUCCESS="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+	FAIL="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+	INCOMPLETE="<table><tr><td bgcolor='#FFFF00' align='center' width='800'><font size='3' color='#000000'><b>STATUS - INCOMPLETE</b></font></td></tr></table>"
+	STARTED="<table><tr><td bgcolor='#FFFFFF' align='center' width='800'><font size='3' color='#000000'><b>STATUS - STARTED</b></font></td></tr></table>"
+	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s:&nbsp;%s</b></font></td></tr></table>"
 	QUERY_DESC=""
 	COMPONENT_STATUS="PASSED"
 	LOGTYPE="24"
@@ -108,8 +131,6 @@ def initializeGlobalVars():
 	PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
 	EVENTSLOGFILE=ENVIRONMENT.lower()+"_logs_eventJob_"+LOGTYPE
 	# staging_logs_eventJob_24
-	SENDER="donotreply@apixio.com"
-	RECEIVERS="eng@apixio.com"
 	
 # =================================================================================================================
 
@@ -308,29 +329,31 @@ def obtainOperationAndCategory():
 		print i
 		REPORT = REPORT+"Operation: <b>"+str(i[0])+"</b><BR>"
 		REPORT = REPORT+"Category: <b>"+str(i[1])+"</b><BR><BR>"
-	print ("Finished obtaining operation and category ...\n")	
+	print ("Finished obtaining operation and category ...\n")
+	
+	return (i)	
 
 #=========================================================================================
 
 def generateReportHeader():
-	global REPORT
+	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	
-	REPORT = """From: Apixio QA <QA@apixio.com>
-	To: Engineering <eng@apixio.com>
-	MIME-Version: 1.0
-	Content-type: text/html
-	Subject: Pipeline QA Report %s batchID %s - %s
-
-	<h1>Apixio Pipeline QA Report</h1>
-	Date & Time: <b>%s</b><br>
-	Test type: <b>%s</b><br>
-	Enviromnent: <b><font color='red'>%s</font></b><br>
-	OrgID: <b>%s</b><br>
-	BatchID: <b>%s</b><br>
-	User name: <b>%s</b><br>
-	""" % (ENVIRONMENT, BATCH, CUR_TIME, CUR_TIME, TEST_TYPE, ENVIRONMENT, ORGID, BATCHID, USERNAME)
-	
+	print ("Begin writing report header ...\n")
+	# REPORT = MIMEMultipart()
+	REPORT = ""
+	REPORT = REPORT + "<h1>Apixio Pipeline QA Report</h1>"
+	REPORT = REPORT + "Run date & time (run): <b>%s</b><br>\n" % (CUR_TIME)
+	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
+	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
+	REPORT = REPORT + "OrgID: <b>%s</b><br>" % (ORGID)
+	REPORT = REPORT + "BatchID: <b>%s</b><br>" % (BATCHID)
+	REPORT = REPORT + "User name: <b>%s</b><br>" % (USERNAME)
 	#obtainOperationAndCategory()
+	REPORT = REPORT + "Operation: <b>"+"n/a"+"</b><BR>"
+	REPORT = REPORT + "Category: <b>"+"n/a"+"</b><BR><BR>"
+	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='1'><tr><td>"
+	
+	print ("End writing report header ...\n")	
 	
 #=========================================================================================
 
@@ -353,588 +376,22 @@ def connectToHive():
 def labelPassOrFail(component_status):
 	global REPORT, GLOBAL_STATUS
 		
-	if (component_status.upper() == "PASSED"):
-		REPORT = REPORT+PASSED
-		GLOBAL_STATUS="success"
+	if (component_status.upper() == "STARTED"):
+		REPORT = REPORT+STARTED
+		GLOBAL_STATUS="started"
+	elif (component_status.upper() == "INCOMPLETE"):
+		REPORT = REPORT+INCOMPLETE
+		GLOBAL_STATUS="incomplete"
+	elif (component_status.upper() == "SUCCESS"):
+		REPORT = REPORT+SUCCESS
+		GLOBAL_STATUS="success"	
 	else:
-		REPORT = REPORT+FAILED
-		COMPONENT_STATUS="PASSED"
-		GLOBAL_STATUS="failed"
+		REPORT = REPORT+FAIL
+		COMPONENT_STATUS="fail"
+		GLOBAL_STATUS="fail"
 	REPORT = REPORT+"<br><br>"
 
 #=========================================================================================	
-	
-def queryIndexer():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	
-	REPORT = REPORT+SUBHDR % "INDEXER"
-
-	if (QUERY_NUMBER == 1) or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of documents transmitted"
-		print ("Running INDEXER query #1 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT apixiouuid) as total_number_of_documents_indexer \
-			FROM %s \
-			WHERE \
-			batchid = '%s'""" %(INDEXERLOGFILE, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 1 FAILED")
-			component_status="FAILED"
-
-
-	if (QUERY_NUMBER == 2) or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Document type(s) transmitted"
-		print ("Running INDEXER query #2 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT filetype, count(filetype) as qty_each \
-			FROM %s \
-			WHERE \
-			batchid = '%s' \
-			GROUP BY filetype""" %(INDEXERLOGFILE, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		TOTAL = 0
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-			if (str(i[0]).upper() == "PDF"):
-				DOCUMENTS_TO_OCR = int(i[1])
-				# print DOCUMENTS_TO_OCR	
-			TOTAL = TOTAL + int(i[1])
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if TOTAL < DOCUMENTCOUNTER:
-			print ("QUERY 2 FAILED")
-			component_status="FAILED"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-
-def queryDocReceiver():
-	global REPORT
-
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "DOC-RECEIVER"
-
-	if (QUERY_NUMBER) == 3 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of documents uploaded"
-		print ("Running DOC-RECEIVER query #3 - retrieve %s ...") % (QUERY_DESC)
-			
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.upload.document.docid')) as documents_uploaded, \
-			get_json_object(line, '$.upload.document.status') as status \
-			FROM %s \
-			WHERE \
-			get_json_object(line, '$.level') = 'EVENT' and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.upload.document.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.upload.document.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 3 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 4 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of documents archived to S3"
-		print ("Running DOC-RECEIVER query #4 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.archive.afs.docid')) as documents_archived_to_S3, \
-			get_json_object(line, '$.archive.afs.status') as status \
-			FROM %s \
-			WHERE \
-			get_json_object(line, '$.level') = "EVENT" and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.archive.afs.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.archive.afs.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 4 FAILED")
-			component_status="FAILED"
-
-
-	if (QUERY_NUMBER) == 5 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of documents added to sequence file(s)"
-		print ("Running DOC-RECEIVER query #5 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.seqfile.file.document.docid')) as documents_added_to_seq_file, \
-			get_json_object(line, '$.seqfile.file.add.status') as status \
-			FROM %s \
-			WHERE \
-			get_json_object(line, '$.level') = "EVENT" and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.seqfile.file.document.batchid') = '%s' \
-			GROUP BY get_json_object(line, '$.seqfile.file.add.status')""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 5 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 6 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of seq. files and individual documents sent to redis"
-		print ("Running DOC-RECEIVER query #6 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT get_json_object(line, '$.submit.post.numfiles') as seq_files_sent_to_redis, \
-			get_json_object(line, '$.submit.post.apxfiles.count') as ind_files, \
-			get_json_object(line, '$.submit.post.queue.name') as redis_queue_name \
-			FROM %s \
-			WHERE get_json_object(line, '$.level') = "EVENT" and \
-			day=%s and month=%s and \
-			get_json_object(line, '$.submit.post.status') = "success" and \
-			get_json_object(line, '$.submit.post.batchid') = '%s'""" %(DOCRECEIVERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0', '0']
-		REPORT = REPORT+"</table><br>"
-		if int(i[1]) < DOCUMENTCOUNTER:
-			print ("QUERY 6 FAILED")
-			component_status="FAILED"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-
-def queryCoordinator():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "COORDINATOR"
-
-	if (QUERY_NUMBER) == 7 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of job types succeeded and/or failed by coordinator"
-		print ("Running COORDINATOR query #7 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT(get_json_object(line, '$.job.jobID'))) as count, \
-			get_json_object(line, '$.job.activity') as activity, \
-			get_json_object(line, '$.job.status') as status \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.job.context.batchID') = '%s' and \
-			get_json_object(line, '$.job.status') is not null and \
-			get_json_object(line, '$.job.status') <> 'start' \
-			GROUP BY get_json_object(line, '$.job.status'), get_json_object(line, '$.job.activity')""" %(COORDINATORLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='left'>"+str(i[1])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[2])+"</td></tr>"
-			if (str(i[2]).lower() == 'error'):
-				print ("QUERY 7 FAILED")
-				component_status="FAILED"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			print ("QUERY 7 FAILED")
-			component_status="FAILED"				
-		REPORT = REPORT+"</table><br>"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-
-def queryParser():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "PARSER"
-
-	if (QUERY_NUMBER) == 8 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of distinct UUIDs tagged to OCR"
-		print ("Running PARSER query #8 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_OCR \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.tag.ocr.status') = "success" and \
-			get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		TAGED_TO_OCR=0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
-			TAGED_TO_OCR = int(i[0])
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if TAGED_TO_OCR < DOCUMENTS_TO_OCR:
-			print ("QUERY 8 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 9 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of distinct UUIDs tagged to Persist"
-		print ("Running PARSER query #9 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as Parser_distinct_UUIDs_tagged_to_Persist \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.tag.persist.status') = "success" and \
-			get_json_object(line, '$.batchId') = '%s'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		TAGED_TO_PERSIST=0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'></td></tr>"
-			TAGED_TO_PERSIST = int(i[0])
-			# print TAGED_TO_PERSIST
-			# print TAGED_TO_PERSIST + TAGED_TO_OCR
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0']
-		REPORT = REPORT+"</table><br>"
-		if (TAGED_TO_OCR + TAGED_TO_PERSIST) < DOCUMENTCOUNTER:
-			print ("QUERY 9 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 10 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of distinct UUIDs succeeded or failed"
-		print ("Running PARSER query #10 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Parser_distinct_UUIDs, \
-			get_json_object(line, '$.status') as status \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' \
-			GROUP BY get_json_object(line, '$.status')""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0', 'success']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 10 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 11 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of Parser errors, class-name and specific error messages"
-		print ("Running PARSER query #11 - retrieve %s ...") %  (QUERY_DESC)
-		cur.execute("""SELECT get_json_object(line, '$.error.message') as parser_error_message, \
-			get_json_object(line, '$.className') as class_name, \
-			round((get_json_object(line, '$.file.bytes') / 1024 / 1024),2) as file_size_mb \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.status') = "error" and \
-			get_json_object(line, '$.jobname') LIKE '%s%%'""" %(PARSERLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"&nbsp;-&nbsp;</td><td>"+str(i[2])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# component_status="PASSED"
-		else:
-			component_status="FAILED"
-		REPORT = REPORT+"</table><br>"
-		if ROW > 0:
-			print ("QUERY 11 FAILED")
-			component_status="FAILED"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-def queryOCR():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "OCR"
-
-	if (QUERY_NUMBER) == 12 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of distinct UUIDs passed or failed by OCR"
-		print ("Running OCR query #12 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  OCR_distinct_UUIDs, \
-			get_json_object(line, '$.status') as status \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' \
-			GROUP BY get_json_object(line, '$.status')""" %(OCRLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			component_status="FAILED"
-			print ("QUERY 12 FAILED")
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTS_TO_OCR:
-			component_status="FAILED"
-
-
-	if (QUERY_NUMBER) == 13 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of OCR errors and specific error messages"
-		print ("Running PERSIST query #13 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT get_json_object(line, '$.error.message') as ocr_error_message, \
-			get_json_object(line, '$.className') as class_name, \
-			get_json_object(line, '$.file.bytes') as file_size_bytes \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.status') = "error" and \
-			get_json_object(line, '$.batchId') = '%s'""" %(OCRLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# component_status="PASSED"
-		else:
-			component_status="FAILED"
-		REPORT = REPORT+"</table><br>"
-		if ROW > 0:
-			print ("QUERY 13 FAILED")
-			component_status="FAILED"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-def queryPersist():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "PERSIST"
-
-	if (QUERY_NUMBER) == 14 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of distinct UUIDs passed or failed to Persist"
-		print ("Running PERSIST query #14 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT count(DISTINCT get_json_object(line, '$.documentuuid')) as  Persist_distinct_UUIDs, \
-			get_json_object(line, '$.status') as status \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' \
-			GROUP BY get_json_object(line, '$.status')""" %(PERSISTLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"&nbsp;-&nbsp;</td><td align='center'>"+str(i[1])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-			i = ['0', 'success']
-		REPORT = REPORT+"</table><br>"
-		if int(i[0]) < DOCUMENTCOUNTER:
-			print ("QUERY 14 FAILED")
-			component_status="FAILED"
-
-
-
-	if (QUERY_NUMBER) == 15 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of Persist errors and specific error messages"
-		print ("Running PERSIST query #15 - retrieve %s ...") % (QUERY_DESC)
-		cur.execute("""SELECT get_json_object(line, '$.error.message') as persist_error_message, \
-			get_json_object(line, '$.className') as class_name, \
-			get_json_object(line, '$.file.bytes') as file_size_bytes \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.status') = "error" and \
-			get_json_object(line, '$.batchId') = '%s'""" %(PERSISTLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>"+str(i[0])+"</td><td align='center'>"+str(i[1])+"</td><td align='center'>"+str(i[2])+"</td></tr>"
-		if (ROW == 0):
-			REPORT = REPORT+"<tr><td align='center'><i>None</i></td></tr>"
-			# component_status="PASSED"
-		else:
-			component_status="FAILED"
-		REPORT = REPORT+"</table><br>"
-		if ROW > 0:
-			print ("QUERY 15 FAILED")
-			component_status="FAILED"
-
-	labelPassOrFail(component_status)
-
-#=========================================================================================
-
-def queryEvents():
-	global REPORT
-	
-	query_status = "passed"
-	component_status = "passed"
-	REPORT = REPORT+SUBHDR % "EVENTS"
-
-	if (QUERY_NUMBER) == 16 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of EventsTotal and succeeded EventMapper"
-		print ("Running EVENTS query #16 - retrieve %s ...") % (QUERY_DESC)
-	
-		cur.execute("""SELECT SUM(get_json_object(line, '$.event.count')) as Total_Mapper_Events_Count \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' and \
-			get_json_object(line, '$.event.count') is not null and \
-			get_json_object(line, '$.className')  = 'com.apixio.jobs.event.mapper.EventMapper'""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		TOTALEVENTMAPPER = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
-		if (ROW == 0) :
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		REPORT = REPORT+"</table><br>"
-	
-		if i[0] is None:
-			component_status="FAILED"
-			print ("QUERY 16 FAILED")
-		else:
-			TOTALEVENTMAPPER=int(i[0])
-				
-		
-	if (QUERY_NUMBER) == 17 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of EventsTotal and succeeded EventReducer"
-		print ("Running EVENTS query #17 - retrieve %s ...") % (QUERY_DESC)
-		
-	
-		cur.execute("""SELECT SUM(get_json_object(line, '$.eventBatch.count')) as Total_Reducer_Events_Count \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' and \
-			get_json_object(line, '$.eventBatch.count') is not null and
-			get_json_object(line, '$.className')  = 'com.apixio.jobs.event.reducer.EventReducer'""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td></tr>"
-		if (ROW == 0) :
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		REPORT = REPORT+"</table><br>"
-	
-		if i[0] is None:
-			component_status="FAILED"
-		elif (int(i[0]) <> TOTALEVENTMAPPER):
-			print ("QUERY 17 FAILED")
-			component_status="FAILED"		
-		
-	if (QUERY_NUMBER) == 18 or PROCESS_ALL_QUERIES:
-		QUERY_DESC="Number of Events succeeded and/or failed"
-		print ("Running EVENTS query #18 - retrieve %s ...") % (QUERY_DESC)
-		
-		cur.execute("""SELECT COUNT(line) as total, get_json_object(line, '$.status') as status \
-			FROM %s \
-			WHERE \
-			day=%s and month=%s and \
-			get_json_object(line, '$.batchId') = '%s' and \
-			get_json_object(line, '$.status') is not null
-			GROUP BY get_json_object(line, '$.status')""" %(EVENTSLOGFILE, DAY, MONTH, BATCH))		
-		
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
-		REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'>"
-		ROW = 0
-		for i in cur.fetch():
-			ROW += 1
-			print i
-			REPORT = REPORT+"<tr><td align='center'>&nbsp;"+str(i[0])+"&nbsp;</td><td align='center'>&nbsp;"+str(i[1])+"&nbsp;</td></tr>"
-			if str(i[1]) == "error":
-				component_status="FAILED"
-		if (ROW == 0) :
-			REPORT = REPORT+"<tr><td align='center'><i>Logs data is missing</i></td></tr>"
-		REPORT = REPORT+"</table><br>"
-	
-	labelPassOrFail(component_status)
-
-#=========================================================================================
 	
 class CEPException(Exception):
 	pass
@@ -969,6 +426,33 @@ def batch_all_info_pipeline(batch):
 	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events from AllBatchState where batchId = '%s'" % (batch)))	
 	
 #=========================================================================================
+
+def logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last, actual_duration):
+	global REPORT
+	
+	#QUERY_DESC="Number of seq. files and individual documents sent to redis"
+	#print ("Running DOC-RECEIVER query #6 - retrieve %s ...") % (QUERY_DESC)
+	
+	#REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+p_module.upper()+" - "+p_state.upper()+"</b></td></tr></table>"
+	
+	REPORT = REPORT+SUBHDR % (p_module.upper(), p_state)
+	
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td>"
+	
+	REPORT = REPORT+"<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (p_module, p_state, batch)
+	
+	REPORT = REPORT+"<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (status, count, successes, errors)
+	
+	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (docs, patients, events, duration)
+	
+	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td></tr>" % (start, last, actual_duration)
+	
+	REPORT = REPORT+"</table><br>"
+	
+	labelPassOrFail(status)
+
+#=========================================================================================
+
 def componentUploadStatus(p_module, p_state, batch):
 	global observed_durations
 
@@ -980,31 +464,43 @@ def componentUploadStatus(p_module, p_state, batch):
 		}
 	states = { \
 		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
-		"parser", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr", "persist", "dataCheckAndRecovery", "event", "trace", "qaAndRecoverEvent" \
+		"parser_hadoop_job", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
 		}
 	counts = { \
 		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser": 2, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr": 2, "persist": 4, "dataCheckAndRecovery": 4, "event": 4, "trace": 8, "qaAndRecoverEvent": 4 \
+		"parser_hadoop_job": 2, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr_hadoop_job": 2, "persist_hadoop_job": 4, "dataCheckAndRecovery_hadoop_job": 4, "event_hadoop_job": 4, "trace_hadoop_job": 8, "qaAndRecoverEvent_hadoop_job": 4 \
 		}
 	successes = { \
 		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser": 1, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr": 1, "persist": 2, "dataCheckAndRecovery": 2, "event": 2, "trace": 4, "qaAndRecoverEvent": 2 \
+		"parser_hadoop_job": 1, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr_hadoop_job": 1, "persist_hadoop_job": 2, "dataCheckAndRecovery_hadoop_job": 2, "event_hadoop_job": 2, "trace_hadoop_job": 4, "qaAndRecoverEvent_hadoop_job": 2 \
 		}
 	errors = { \
 		"Archived": 0, "Packaged": 0, "Uploaded": 0, "Submitted": 0, "SentToOCR": 0, "Parsed": 0, "SentToPersist": 0, "OCRed": 0, "Coordinated": 0, "PersistMapped": 0, "PersistReduced": 0, \
-		"parser": 0, "Checked": 0, "EventMapped": 0, "EventReduced": 0, "EventChecked": 0, "ocr": 0, "persist": 0, "dataCheckAndRecovery": 0, "event": 0, "trace": 0, "qaAndRecoverEvent": 0 \
+		"parser_hadoop_job": 0, "Checked": 0, "EventMapped": 0, "EventReduced": 0, "EventChecked": 0, "ocr_hadoop_job": 0, "persist_hadoop_job": 0, "dataCheckAndRecovery_hadoop_job": 0, "event_hadoop_job": 0, "trace_hadoop_job": 0, "qaAndRecoverEvent_hadoop_job": 0 \
 		}
 	docs = { \
 		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 13, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 0, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser": 0, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 0, "ocr": 0, "persist": 0, "dataCheckAndRecovery": 0, "event": 0, "trace": 0, "qaAndRecoverEvent": 0 \
-		}
-	#685	
-	durations = 	{ \
-		"Archived": 80, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 2, \
-		"PersistMapped": 5448, "PersistReduced": 9089, "parser": 60553, "Checked": 5095, "EventMapped": 44228, "EventReduced": 860, "EventChecked": 1081, "ocr": 301006, "persist": 121555, \
-		"dataCheckAndRecovery": 120613, "event": 241290, "trace": 242661, "qaAndRecoverEvent": 120665 \
+		"parser_hadoop_job": 0, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 0, "ocr_hadoop_job": 0, "persist_hadoop_job": 0, "dataCheckAndRecovery_hadoop_job": 0, "event_hadoop_job": 0, "trace_hadoop_job": 0, "qaAndRecoverEvent_hadoop_job": 0 \
 		}	
+	durations = { \
+		"Archived": 685, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 2, \
+		"PersistMapped": 5448, "PersistReduced": 9089, "parser_hadoop_job": 60553, "Checked": 5095, "EventMapped": 44228, "EventReduced": 860, "EventChecked": 1081, "ocr_hadoop_job": 301006, "persist_hadoop_job": 121555, \
+		"dataCheckAndRecovery_hadoop_job": 120613, "event_hadoop_job": 241290, "trace_hadoop_job": 242661, "qaAndRecoverEvent_hadoop_job": 120665 \
+		}
+	actual_durations = { \
+		"Archived": 41, "Packaged": 1, "Uploaded": 1, "Submitted": 1, "SentToOCR": 1, "Parsed": 61, "SentToPersist": 1, "OCRed": 306, "Coordinated": 1, \
+		"PersistMapped": 17, "PersistReduced": 52, "parser_hadoop_job": 2, "Checked": 2, "EventMapped": 113, "EventReduced": 1, "EventChecked": 60, "ocr_hadoop_job": 1, "persist_hadoop_job": 1, \
+		"dataCheckAndRecovery_hadoop_job": 1, "event_hadoop_job": 1, "trace_hadoop_job": 1, "qaAndRecoverEvent_hadoop_job": 388 \
+		}
+	padded_durations = { \
+		"Archived": 80, "Packaged": 10, "Uploaded": 10, "Submitted": 10, "SentToOCR": 10, "Parsed": 81, "SentToPersist": 10, "OCRed": 350, "Coordinated": 10, \
+		"PersistMapped": 37, "PersistReduced": 72, "parser_hadoop_job": 10, "Checked": 10, "EventMapped": 133, "EventReduced": 10, "EventChecked": 80, "ocr_hadoop_job": 10, "persist_hadoop_job": 10, \
+		"dataCheckAndRecovery_hadoop_job": 10, "event_hadoop_job": 10, "trace_hadoop_job": 10, "qaAndRecoverEvent_hadoop_job": 408 \
+		}
+				
 	columns = {"state", "counts", "successes", "errors", "docs", "durations"}
+	
+	statuses = {"started", "inclomete", "fail", "success"}
 			
 
 	status = "started"	
@@ -1015,19 +511,13 @@ def componentUploadStatus(p_module, p_state, batch):
 	print ("Status           = %s" % status)
 	print ("-----------------------------------------------------------------------------")
 	
-	#batch_all_info_pipeline(batch)
-	for state in states:
-		data = query("\
-			SELECT stateName state, occurences counts, successes successes, errors errors, numDocs docs, duration durations \
-			FROM AllBatchState \
-			WHERE batchId = '%s' and stateName = '%s'" % (batch, state))
 	
-		#for row in data:
-		#	for column in columns:
-		#		print row[column]
+	#def batch_info_pipeline(args):
+  	#	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events, duration h_duration, starttime.format() i_start, lasttime.format() j_last from AllBatchState where batchId = '%s' order by j_last" % (args[0],)))
 
-	max_time = durations[p_state]
-	count = 0
+	
+	max_time = padded_durations[p_state]
+	#count = 0
 	print max_time
 	#quit()
 	start_time = time.time()  # remember when we started
@@ -1035,38 +525,46 @@ def componentUploadStatus(p_module, p_state, batch):
 		duration_time = (time.time() - start_time)
 		print ("Module : State     = %s : %s" % (p_module, p_state))
 		print ("Time passed        = %s" % (duration_time))
-		print ("Limit              = %s\n" % (max_time))
+		print ("Time limit         = %s seconds\n" % (max_time))
 		data = query("\
-			SELECT stateName state, occurences counts, successes successes, errors errors, numDocs docs, duration durations \
+			SELECT stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, \
+			numEvents g_events, duration h_duration, starttime.format() i_start,  lasttime.format() j_last \
 			FROM AllBatchState \
 			WHERE batchId = '%s' and stateName = '%s'" % (batch, p_state))
 		for row in data:
-			print ("Documents actually %s = %d" % (p_state, row["counts"]))
+			print ("Documents actually %s = %d" % (p_state, row["b_count"]))
 			print ("Documents expected %s = %d" % (p_state, counts[p_state]))
-			if (row["counts"] == counts[p_state]) and (duration_time < max_time):
-				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["counts"], p_state, batch, duration_time))
+			################
+			# SUCCESS ######
+			################
+			if (row["b_count"] == counts[p_state]) and (duration_time < max_time):
+				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_count"], p_state, batch, duration_time))
 				max_time = 0
 				observed_durations.update({str(p_module+" "+p_state): duration_time})
-			elif (row["counts"] < counts[p_state]) and (duration_time >= max_time):
-				print ("Time limit of %s exceeded %d documents were %s ...\n" % (duration_time, row["counts"], p_state))
+				#status = "success"
+				#logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last)
+			################
+			# FAILURE ######
+			################	
+			elif ((row["b_count"] < counts[p_state]) and (duration_time >= max_time)) or (row["d_errors"] > 0):
+				print ("Time limit of %s exceeded maximum time of %s seconds - %d documents were %s ...\n" % (duration_time, max_time, row["b_count"], p_state))
+				#status = "failure"
+				#logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last)
 			
 			
-	if max_time >= duration_time:
+	if (max_time >= duration_time):
 		print ("Time limit of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % (duration_time, max_time))
 		status = "incomplete"
-
-	else:
-		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["counts"], p_state, batch, duration_time))	 	
-		status = "complete"
-		#raw_input("Press Enter to continue...")
+		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, duration_time)
+	elif (row["b_count"] < counts[p_state]) or (row["d_errors"] > 0):
+		print (">>> Specific Component Failure Occured ...\n")
+		status = "fail"
+		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, duration_time)
+	else:		
+		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_count"], p_state, batch, duration_time))	 	
+		status = "success"
+		logDetailsIntoReport(p_module, p_state, batch, status, row["b_count"], row["c_successes"], row["d_errors"], row["e_docs"], row["f_patients"], row["g_events"], row["h_duration"], row["i_start"], row["j_last"], duration_time)
 		
-	
-	#output (query("\
-	#	select stateName a_state \
-	#	from AllBatchState \
-	#	where batchId = '%s'" % (batch)))
-	
-	#output(query("select * from AllBatchState where batchId = '%s' and stateName = 'Archived' " % (batch)))
 		
 	return (status)
 
@@ -1077,14 +575,14 @@ def generateReportDetails():
 	states = { \
 		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", \
 		"OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
-		"parser", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr", "persist", \
-		"dataCheckAndRecovery", "event", "trace", "qaAndRecoverEvent" \
+		"parser_hadoop_job", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr_hadoop_job", "persist_hadoop_job", \
+		"dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
 		}
 	components = { \
 		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
 		}	
 		
-	print ("Start querying individual pipeline components ...")
+	print ("Start generating Report Details ...")
 	print ("===================================================================================\n")
 		
 	
@@ -1095,10 +593,10 @@ def generateReportDetails():
 		["ocr", "OCRed"], \
 		["persist", "PersistMapped"], ["persist", "PersistReduced"], \
 		["event", "EventMapped"], ["event", "EventReduced"], ["event", "EventChecked"], \
-		["qa", "Checked"], ["qa", "qaAndRecoverEvent"], \
-		["jobs", "parser"], ["jobs", "ocr"], ["jobs", "persist"], ["jobs", "event"], ["jobs", "trace"]]
-	
-	
+		["qa", "Checked"], \
+		["jobs", "parser_hadoop_job"], ["jobs", "ocr_hadoop_job"], ["jobs", "persist_hadoop_job"], ["jobs", "event_hadoop_job"], \
+		["jobs", "trace_hadoop_job"], ["job", "dataCheckAndRecovery_hadoop_job"], ["job", "qaAndRecoverEvent_hadoop_job"]]
+		
 	for module_state in modules_states:
 			print module_state[0], module_state[1]
 			status = componentUploadStatus(module_state[0], module_state[1], BATCH)
@@ -1108,35 +606,14 @@ def generateReportDetails():
 			print ("Batch            = %s" % BATCH)
 			print ("Status           = %s" % status)
 			print ("-----------------------------------------------------------------------------")
-	
-	
-	print observed_durations
-	
-	
-	
-	#if componentUploadStatus("docreceiver", "Archived", BATCH)	== "complete":
-	#	print ("Docreceiver - Archive completed ...\n")
-	
-	#if componentUploadStatus("indexer", BATCH)	== "complete":
-		#queryIndexer()
-	#if componentUploadStatus("docreceiver", BATCH)	== "complete":
-	#	queryDocReceiver()	
-	#	if componentUploadStatus("coordinator", BATCH)	== "complete":
-	#		queryCoordinator()	
-	#		if componentUploadStatus("parser", BATCH)	== "complete":	
-	#			queryParser()
-	#			if componentUploadStatus("ocr", BATCH)	== "complete":
-	#				queryOCR()
-	#				if componentUploadStatus("persist", BATCH)	== "complete":
-	#					queryPersist()
-	#					if componentUploadStatus("event", BATCH)	== "complete":
-	#						queryEvents()
+		
+	print observed_durations	
 	
 	print ("\n===================================================================================")
-	print ("End querying individual pipeline components ...\n")				
+	print ("End generating Report Details ...\n")				
 	cur.close()
 	conn.close()
-	quit()
+	#quit()
 	
 #=========================================================================================
 
@@ -1156,22 +633,33 @@ def generateReportFooter():
 #=========================================================================================
 
 def emaiReport():
-	global REPORT
-	# CONTENT="Subject: %s<br><br>%s" % (SUBJECT, REPORT)
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+
+	print ("Emailing report ...\n")
+	IMAGEFILENAME=str(CURDAY)+".png" 
+	message = MIMEMultipart('related')
+	message.attach(MIMEText((REPORT), 'html'))
+	#with open(IMAGEFILENAME, 'rb') as image_file:
+	#	image = MIMEImage(image_file.read())
+	#image.add_header('Content-ID', '<picture@example.com>')
+	#image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
+	#message.attach(image)
+
+	message['From'] = 'Apixio QA <QA@apixio.com>'
+	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+	message['Subject'] = 'Pipeline %s Sanity Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
+	msg_full = message.as_string()
+		
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
-	s.login("donotreply@apixio.com", "apx.mail47")
-	# s.sendmail(SENDER, RECEIVERS, CONTENT)
-	# send report only if failure occured
-	# GLOBAL_STATUS = "failed"
-	if (GLOBAL_STATUS == "success"):
-		print "Status report was NOT emailed ...\n"
-		print "Sanity Test Passed ...\n"
-	else:
-		s.sendmail(SENDER, RECEIVERS, REPORT)	
-		print "Report completed, email to %s ...\n" % (RECEIVERS)
-		print ">>>>>>>>>>> Sanity Test Failed <<<<<<<<<<<\n"
+	s.login("donotreply@apixio.com", "apx.mail47")	        
+	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
+	s.quit()
+	# Delete graph image file from stress_test folder
+	#os.remove(IMAGEFILENAME)
+	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
+	
 	
 #===================================== ARCHIVE REPORT ===================================================================================
 def archiveReport():
@@ -1229,8 +717,6 @@ obtainToken()
 uploadFiles()
 
 #pauseForUploadToComplete()
-#quit()
-
 #BATCH="370_PipelineSanityTestStaging_02132015185431"
 
 connectToHive()

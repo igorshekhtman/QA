@@ -82,10 +82,13 @@ def esper_error_count_pipeline(args):
   output(query('select count(*) count from AllEsperErrors limit 1'))
 
 def batches_pipeline(args):
-  output(query('select batchId a_batchId, cast(min(starttime), long).format() b_start, cast(max(lasttime), long).format() c_last from AllBatchState group by batchId order by max(lasttime) desc'))
+  output(query("select batchId a_batchId, firstever(numDocs, stateName='PersistMapped') b_docs, cast(min(starttime), long).format() c_start, cast(max(lasttime), long).format() d_last from AllBatchState group by batchId order by max(lasttime) desc"))
 
 def batch_info_pipeline(args):
   output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events, duration h_duration, starttime.format() i_start, lasttime.format() j_last from AllBatchState where batchId = '%s' order by j_last" % (args[0],)))
+
+def batch_info2_pipeline(args):
+  output(query("select stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, lasttime.format() n_last from AllBatchState where batchId = '%s' order by n_last" % (args[0],)))
 
 def batch_all_info_pipeline(args):
   output(query("select * from AllBatchState where batchId = '%s'" % (args[0],)))
