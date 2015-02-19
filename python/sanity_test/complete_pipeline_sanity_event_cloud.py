@@ -38,7 +38,7 @@ def initializeGlobalVars():
 	global COMPONENT_STATUS, LOGTYPE, INDEXERLOGFILE, DOCRECEIVERLOGFILE
 	global COORDINATORLOGFILE, PARSERLOGFILE, OCRLOGFILE, PERSISTLOGFILE, EVENTSLOGFILE
 	global SENDER, RECEIVERS, EVENT_CLOUD_URL, observed_durations
-	global STARTED, INCOMPLETE, SUCCESS, FAIL, SUBHDR, REPORT_TYPE, RECEIVERS2
+	global STARTED, INCOMPLETE, PASSED, FAILED, SUBHDR, REPORT_TYPE, RECEIVERS2
 	
 	TEST_TYPE="PipelineSanityTest"
 	REPORT_TYPE="PipelineSanityTest"
@@ -115,11 +115,11 @@ def initializeGlobalVars():
 	PROCESS_ALL_QUERIES=bool(1)
 	#===================================
 	#{"started", "inclomete", "fail", "success"}
-	SUCCESS="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-	FAIL="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+	PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+	FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 	INCOMPLETE="<table><tr><td bgcolor='#FFFF00' align='center' width='800'><font size='3' color='#000000'><b>STATUS - INCOMPLETE</b></font></td></tr></table>"
 	STARTED="<table><tr><td bgcolor='#FFFFFF' align='center' width='800'><font size='3' color='#000000'><b>STATUS - STARTED</b></font></td></tr></table>"
-	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s:&nbsp;%s</b></font></td></tr></table>"
+	SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s:</b>&nbsp;%s:&nbsp;&nbsp;<b>BatchID:</b>&nbsp;%s</font></td></tr></table>"
 	QUERY_DESC=""
 	COMPONENT_STATUS="PASSED"
 	LOGTYPE="24"
@@ -342,7 +342,7 @@ def generateReportHeader():
 	# REPORT = MIMEMultipart()
 	REPORT = ""
 	REPORT = REPORT + "<h1>Apixio Pipeline QA Report</h1>"
-	REPORT = REPORT + "Run date & time (run): <b>%s</b><br>\n" % (CUR_TIME)
+	REPORT = REPORT + "Run date & time: <b>%s</b><br>\n" % (CUR_TIME)
 	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
 	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + "OrgID: <b>%s</b><br>" % (ORGID)
@@ -382,13 +382,13 @@ def labelPassOrFail(component_status):
 	elif (component_status.upper() == "INCOMPLETE"):
 		REPORT = REPORT+INCOMPLETE
 		GLOBAL_STATUS="incomplete"
-	elif (component_status.upper() == "SUCCESS"):
-		REPORT = REPORT+SUCCESS
-		GLOBAL_STATUS="success"	
+	elif (component_status.upper() == "PASSED"):
+		REPORT = REPORT+PASSED
+		GLOBAL_STATUS="passed"	
 	else:
-		REPORT = REPORT+FAIL
-		COMPONENT_STATUS="fail"
-		GLOBAL_STATUS="fail"
+		REPORT = REPORT+FAILED
+		COMPONENT_STATUS="failed"
+		GLOBAL_STATUS="failed"
 	REPORT = REPORT+"<br><br>"
 
 #=========================================================================================	
@@ -419,35 +419,40 @@ def query(stmt, url=None):
 	#	raise CEPException('JSON length 0')
 	
 	return j	
-
-#=========================================================================================	
-	
-def batch_all_info_pipeline(batch):
-	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events from AllBatchState where batchId = '%s'" % (batch)))	
 	
 #=========================================================================================
 
-def logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last, actual_duration):
+
+def logDetailsIntoReport(p_module, p_state, batch, status, successes, errors, docs, docswithe, patients, patientswithe, events, v5, dict, claims, duration, start, last, max_duration, actual_duration, bg_color):
 	global REPORT
+		
+	REPORT = REPORT+SUBHDR % (p_module.upper(), p_state, batch)
 	
-	#QUERY_DESC="Number of seq. files and individual documents sent to redis"
-	#print ("Running DOC-RECEIVER query #6 - retrieve %s ...") % (QUERY_DESC)
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0' width='800' bgcolor='"+bg_color+"'><tr><td>"
 	
-	#REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+p_module.upper()+" - "+p_state.upper()+"</b></td></tr></table>"
+	#REPORT = REPORT+"<table border='0' width='100%'><tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr></table>" % (p_module, p_state, batch, status)
 	
-	REPORT = REPORT+SUBHDR % (p_module.upper(), p_state)
+	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr><td width='50%%'>Successes: %s</td><td width='50%%'>Errors: %s</td></tr></table>" % (successes, errors)
 	
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td>"
+	REPORT = REPORT+"<hr width='100%%'>"
 	
-	REPORT = REPORT+"<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (p_module, p_state, batch)
+	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr>"
+	REPORT = REPORT+"<td>Docs:</td><td>Docs with Events:</td><td>Patients:</td><td>Patients with Events:</td><td>Events:</td><td>V5 Events:</td><td>Dictionary Events:</td><td>Claims:</td>"
+	REPORT = REPORT+"</tr><tr>"
+	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (docs, docswithe, patients, patientswithe, events, v5, dict, claims)
+	REPORT = REPORT+"</tr></table>"
 	
-	REPORT = REPORT+"<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (status, count, successes, errors)
+	REPORT = REPORT+"<hr width='100%%'>"
 	
-	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (docs, patients, events, duration)
+	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr>"
+	REPORT = REPORT+"<td>Duration (msec.):</td><td>Start Time:</td><td>End Time:</td><td>Max Duration (sec.):</td><td>Actual Duration (sec.):</td>"
+	REPORT = REPORT+"</tr><tr>"
+	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (duration, start, last, max_duration, actual_duration)
+	REPORT = REPORT+"</tr></table>"
 	
-	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td></tr>" % (start, last, actual_duration)
+	REPORT = REPORT+"<hr width='100%%'>"
 	
-	REPORT = REPORT+"</table><br>"
+	REPORT = REPORT+"</td></tr></table><br>"
 	
 	labelPassOrFail(status)
 
@@ -455,147 +460,132 @@ def logDetailsIntoReport(p_module, p_state, batch, status, count, successes, err
 
 def componentUploadStatus(p_module, p_state, batch):
 	global observed_durations
-
-	component_upload_time_limit = 10
 	
+	#states = { \
+	#	"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "parser_hadoop_job", "PersistMapped", "PersistReduced", \
+	#	"Checked", "EventMapped", "EventReduced", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
+	#	}		
+		
+	columns = ["state", "successes", "errors", "docs", "docsWithE", "patients", "patientsWithE", "events", "v5", "dict", "claims", "duration"]
 	
-	components = { \
-		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
-		}
-	states = { \
-		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
-		"parser_hadoop_job", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
-		}
-	counts = { \
-		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser_hadoop_job": 2, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr_hadoop_job": 2, "persist_hadoop_job": 4, "dataCheckAndRecovery_hadoop_job": 4, "event_hadoop_job": 4, "trace_hadoop_job": 8, "qaAndRecoverEvent_hadoop_job": 4 \
-		}
-	successes = { \
-		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 1, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 1, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser_hadoop_job": 1, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 2, "ocr_hadoop_job": 1, "persist_hadoop_job": 2, "dataCheckAndRecovery_hadoop_job": 2, "event_hadoop_job": 2, "trace_hadoop_job": 4, "qaAndRecoverEvent_hadoop_job": 2 \
-		}
-	errors = { \
-		"Archived": 0, "Packaged": 0, "Uploaded": 0, "Submitted": 0, "SentToOCR": 0, "Parsed": 0, "SentToPersist": 0, "OCRed": 0, "Coordinated": 0, "PersistMapped": 0, "PersistReduced": 0, \
-		"parser_hadoop_job": 0, "Checked": 0, "EventMapped": 0, "EventReduced": 0, "EventChecked": 0, "ocr_hadoop_job": 0, "persist_hadoop_job": 0, "dataCheckAndRecovery_hadoop_job": 0, "event_hadoop_job": 0, "trace_hadoop_job": 0, "qaAndRecoverEvent_hadoop_job": 0 \
-		}
-	docs = { \
-		"Archived": 13, "Packaged": 13, "Uploaded": 13, "Submitted": 13, "SentToOCR": 1, "Parsed": 13, "SentToPersist": 12, "OCRed": 1, "Coordinated": 0, "PersistMapped": 13, "PersistReduced": 13, \
-		"parser_hadoop_job": 0, "Checked": 13, "EventMapped": 13, "EventReduced": 5, "EventChecked": 0, "ocr_hadoop_job": 0, "persist_hadoop_job": 0, "dataCheckAndRecovery_hadoop_job": 0, "event_hadoop_job": 0, "trace_hadoop_job": 0, "qaAndRecoverEvent_hadoop_job": 0 \
-		}	
-	durations = { \
-		"Archived": 685, "Packaged": 97, "Uploaded": 1221, "Submitted": 60, "SentToOCR": 547, "Parsed": 9934, "SentToPersist": 9387, "OCRed": 206333, "Coordinated": 2, \
-		"PersistMapped": 5448, "PersistReduced": 9089, "parser_hadoop_job": 60553, "Checked": 5095, "EventMapped": 44228, "EventReduced": 860, "EventChecked": 1081, "ocr_hadoop_job": 301006, "persist_hadoop_job": 121555, \
-		"dataCheckAndRecovery_hadoop_job": 120613, "event_hadoop_job": 241290, "trace_hadoop_job": 242661, "qaAndRecoverEvent_hadoop_job": 120665 \
-		}
-	actual_durations = { \
-		"Archived": 41, "Packaged": 1, "Uploaded": 1, "Submitted": 1, "SentToOCR": 1, "Parsed": 61, "SentToPersist": 1, "OCRed": 306, "Coordinated": 1, \
-		"PersistMapped": 17, "PersistReduced": 52, "parser_hadoop_job": 2, "Checked": 2, "EventMapped": 113, "EventReduced": 1, "EventChecked": 60, "ocr_hadoop_job": 1, "persist_hadoop_job": 1, \
-		"dataCheckAndRecovery_hadoop_job": 1, "event_hadoop_job": 1, "trace_hadoop_job": 1, "qaAndRecoverEvent_hadoop_job": 388 \
-		}
-	padded_durations = { \
-		"Archived": 80, "Packaged": 10, "Uploaded": 10, "Submitted": 10, "SentToOCR": 10, "Parsed": 81, "SentToPersist": 10, "OCRed": 350, "Coordinated": 10, \
-		"PersistMapped": 37, "PersistReduced": 72, "parser_hadoop_job": 10, "Checked": 10, "EventMapped": 133, "EventReduced": 10, "EventChecked": 80, "ocr_hadoop_job": 10, "persist_hadoop_job": 10, \
-		"dataCheckAndRecovery_hadoop_job": 10, "event_hadoop_job": 10, "trace_hadoop_job": 10, "qaAndRecoverEvent_hadoop_job": 408 \
-		}
-				
-	columns = {"state", "counts", "successes", "errors", "docs", "durations"}
+	exp_rslt = { \
+		"Archived":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     80], \
+		"Packaged":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"Uploaded":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"Submitted":                        [1, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"SentToOCR":                        [1, 0,  1, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"Parsed":                          [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     70], \
+		"SentToPersist":                   [12, 0, 12, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"OCRed":                            [1, 0,  1, 0,  0, 0,  0, 0,  0, 0,    350], \
+		"Coordinated":                      [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,    400], \
+		"parser_hadoop_job":                [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"PersistMapped":                   [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     90], \
+		"PersistReduced":                  [13, 0,  0, 0, 13, 0,  0, 0,  0, 0,    200], \
+		"Checked":                         [13, 0, 13, 0, 13, 0,  0, 0,  0, 0,     10], \
+		"EventMapped":                     [13, 0, 13, 5, 13, 5, 37, 0, 37, 0,    210], \
+		"EventReduced":                     [5, 0,  0, 0,  5, 5, 37, 0,  0, 0,    100], \
+		"ocr_hadoop_job":                   [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,     80], \
+		"persist_hadoop_job":               [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,    160], \
+		"dataCheckAndRecovery_hadoop_job":  [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10], \
+		"event_hadoop_job":                 [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,    240], \
+		"trace_hadoop_job":                 [4, 0,  0, 0,  0, 0,  0, 0,  0, 0,     90], \
+		"qaAndRecoverEvent_hadoop_job":     [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10]}	
 	
-	statuses = {"started", "inclomete", "fail", "success"}
+	#output(query("select stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, 
+	#  numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, 
+	#  lasttime.format() n_last from AllBatchState where batchId = '%s' order by n_last" % (args[0],)))
+	
+	statuses = {"started", "inclomete", "failed", "passed"}
 			
-
 	status = "started"	
 	print ("-----------------------------------------------------------------------------")
 	print ("Component        = %s" % p_module)
 	print ("State            = %s" % p_state)
 	print ("Batch            = %s" % batch)
 	print ("Status           = %s" % status)
+	print ("Max. Time        = %s" % exp_rslt[p_state][10])
 	print ("-----------------------------------------------------------------------------")
+	print ("Running, please wait ...\n")
 	
-	
-	#def batch_info_pipeline(args):
-  	#	output(query("select stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, numEvents g_events, duration h_duration, starttime.format() i_start, lasttime.format() j_last from AllBatchState where batchId = '%s' order by j_last" % (args[0],)))
-
-	
-	max_time = padded_durations[p_state]
-	#count = 0
-	print max_time
-	#quit()
+	max_time = exp_rslt[p_state][10]
+	#print max_time
 	start_time = time.time()  # remember when we started
+	#ctr = 0
 	while (time.time() - start_time) < max_time :
 		duration_time = (time.time() - start_time)
-		print ("Module : State     = %s : %s" % (p_module, p_state))
-		print ("Time passed        = %s" % (duration_time))
-		print ("Time limit         = %s seconds\n" % (max_time))
+		#ctr += 1
+		#if (ctr/1000) == 1:
+		#print ("Module : State     = %s : %s" % (p_module, p_state))
+		#print ("Time passed        = %s" % (duration_time))
+		#print ("Time limit         = %s seconds\n" % (max_time))
 		data = query("\
-			SELECT stateName a_state, occurences b_count, successes c_successes, errors d_errors, numDocs e_docs, numPatients f_patients, \
-			numEvents g_events, duration h_duration, starttime.format() i_start,  lasttime.format() j_last \
+			SELECT stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, \
+			numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, lasttime.format() n_last \
 			FROM AllBatchState \
 			WHERE batchId = '%s' and stateName = '%s'" % (batch, p_state))
 		for row in data:
-			print ("Documents actually %s = %d" % (p_state, row["b_count"]))
-			print ("Documents expected %s = %d" % (p_state, counts[p_state]))
+			#print ("Documents actually %s = %d" % (p_state, row["b_successes"]))
+			#print ("Documents expected %s = %d" % (p_state, exp_rslt[p_state][0]))
 			################
 			# SUCCESS ######
 			################
-			if (row["b_count"] == counts[p_state]) and (duration_time < max_time):
-				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_count"], p_state, batch, duration_time))
+			if (row["b_successes"] == exp_rslt[p_state][0]) and (duration_time < max_time):
+				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))
 				max_time = 0
 				observed_durations.update({str(p_module+" "+p_state): duration_time})
-				#status = "success"
-				#logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last)
 			################
 			# FAILURE ######
 			################	
-			elif ((row["b_count"] < counts[p_state]) and (duration_time >= max_time)) or (row["d_errors"] > 0):
-				print ("Time limit of %s exceeded maximum time of %s seconds - %d documents were %s ...\n" % (duration_time, max_time, row["b_count"], p_state))
-				#status = "failure"
-				#logDetailsIntoReport(p_module, p_state, batch, status, count, successes, errors, docs, patients, events, duration, start, last)
+			elif ((row["b_successes"] < exp_rslt[p_state][0]) and (duration_time >= max_time)) or (row["c_errors"] > 0):
+				print ("Time limit of %s exceeded maximum time of %s seconds - %d documents were %s ...\n" % (duration_time, max_time, row["b_successes"], p_state))
 			
-			
-	if (max_time >= duration_time):
-		print ("Time limit of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % (duration_time, max_time))
-		status = "incomplete"
-		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, duration_time)
-	elif (row["b_count"] < counts[p_state]) or (row["d_errors"] > 0):
+	bg_color = "#FFFFFF"		
+	if (duration_time >= exp_rslt[p_state][10]):
+		print ("Time limit of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % (duration_time, exp_rslt[p_state][10]))
+		#status = "incomplete"
+		status = "failed"
+		bg_color = "#FFFF00"
+		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, exp_rslt[p_state][10], duration_time, bg_color)
+	elif (row["b_successes"] < exp_rslt[p_state][0]) or (row["c_errors"] > 0):
 		print (">>> Specific Component Failure Occured ...\n")
-		status = "fail"
-		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, duration_time)
+		status = "failed"
+		bg_color = "#FFFF00"
+		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
+			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
 	else:		
-		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_count"], p_state, batch, duration_time))	 	
-		status = "success"
-		logDetailsIntoReport(p_module, p_state, batch, status, row["b_count"], row["c_successes"], row["d_errors"], row["e_docs"], row["f_patients"], row["g_events"], row["h_duration"], row["i_start"], row["j_last"], duration_time)
-		
-		
+		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))	 	
+		status = "passed"
+		bg_color = "#FFFFFF"
+		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
+			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
+				
 	return (status)
 
 #=========================================================================================
 
 def generateReportDetails():
 	global REPORT, cur, conn, BATCH, observed_durations
-	states = { \
-		"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", \
-		"OCRed", "Coordinated", "PersistMapped", "PersistReduced", \
-		"parser_hadoop_job", "Checked", "EventMapped", "EventReduced", "EventChecked", "ocr_hadoop_job", "persist_hadoop_job", \
-		"dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
-		}
+	#states = { \
+	#	"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "parser_hadoop_job", "PersistMapped", "PersistReduced", \
+	#	"Checked", "EventMapped", "EventReduced", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
+	#	}
 	components = { \
 		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
 		}	
 		
 	print ("Start generating Report Details ...")
 	print ("===================================================================================\n")
-		
-	
+			
 	modules_states = [ \
 		["docreceiver", "Archived"], ["docreceiver", "Packaged"], ["docreceiver", "Uploaded"], ["docreceiver", "Submitted"], \
-		["coordinator", "Coordinated"], \
 		["parser", "Parsed"], ["parser", "SentToOCR"], ["parser", "SentToPersist"], \
 		["ocr", "OCRed"], \
 		["persist", "PersistMapped"], ["persist", "PersistReduced"], \
-		["event", "EventMapped"], ["event", "EventReduced"], ["event", "EventChecked"], \
-		["qa", "Checked"], \
-		["jobs", "parser_hadoop_job"], ["jobs", "ocr_hadoop_job"], ["jobs", "persist_hadoop_job"], ["jobs", "event_hadoop_job"], \
-		["jobs", "trace_hadoop_job"], ["job", "dataCheckAndRecovery_hadoop_job"], ["job", "qaAndRecoverEvent_hadoop_job"]]
+		["event", "EventMapped"], ["event", "EventReduced"], ["event", "Checked"], \
+		["coordinator", "Coordinated"]]
+		# Additional Hadoop Job completion checks can be added at a later time
+		#["jobs", "parser_hadoop_job"], ["jobs", "ocr_hadoop_job"], ["jobs", "persist_hadoop_job"], ["jobs", "event_hadoop_job"], \
+		#["jobs", "trace_hadoop_job"], ["job", "dataCheckAndRecovery_hadoop_job"], ["job", "qaAndRecoverEvent_hadoop_job"]]
 		
 	for module_state in modules_states:
 			print module_state[0], module_state[1]
@@ -613,7 +603,6 @@ def generateReportDetails():
 	print ("End generating Report Details ...\n")				
 	cur.close()
 	conn.close()
-	#quit()
 	
 #=========================================================================================
 
@@ -658,10 +647,10 @@ def emaiReport():
 	s.quit()
 	# Delete graph image file from stress_test folder
 	#os.remove(IMAGEFILENAME)
-	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
-	
+	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
 	
 #===================================== ARCHIVE REPORT ===================================================================================
+
 def archiveReport():
 	print ("Archiving report ...\n")
 	BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/pipelinesanity/"+str(YEAR)+"/"+str(CURMONTH)
@@ -717,7 +706,7 @@ obtainToken()
 uploadFiles()
 
 #pauseForUploadToComplete()
-#BATCH="370_PipelineSanityTestStaging_02132015185431"
+#BATCH="370_PipelineSanityTestStaging_02182015011557"
 
 connectToHive()
 
