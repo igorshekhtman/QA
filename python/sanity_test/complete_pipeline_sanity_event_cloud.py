@@ -479,7 +479,7 @@ def componentUploadStatus(p_module, p_state, batch):
 		"OCRed":                            [1, 0,  1, 0,  0, 0,  0, 0,  0, 0,    350], \
 		"Coordinated":                      [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,    400], \
 		"parser_hadoop_job":                [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"PersistMapped":                   [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     90], \
+		"PersistMapped":                   [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,    180], \
 		"PersistReduced":                  [13, 0,  0, 0, 13, 0,  0, 0,  0, 0,    200], \
 		"Checked":                         [13, 0, 13, 0, 13, 0,  0, 0,  0, 0,     10], \
 		"EventMapped":                     [13, 0, 13, 5, 13, 5, 37, 0, 37, 0,    210], \
