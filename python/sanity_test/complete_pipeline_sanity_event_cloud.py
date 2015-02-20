@@ -83,7 +83,8 @@ def initializeGlobalVars():
 	#print RECEIVERS2
 	#quit()
 	#time.sleep(15)
-	DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+	DIR="/mnt/testdata/SanityThirteenDocuments/Documents"
+	#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 	CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 	BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 	DAY=strftime("%d", gmtime())
@@ -215,7 +216,6 @@ def uploadFiles():
 	print ("Uploading Files ...\n")
 	for FILE in FILES:
 		DOCUMENTCOUNTER += 1
-		#DOCUMENTCOUNTER+1
 		ORGANIZATION=obj["organization"]
 		ORGID=obj["org_id"]
 		CODE=obj["code"]
@@ -461,35 +461,30 @@ def logDetailsIntoReport(p_module, p_state, batch, status, successes, errors, do
 def componentUploadStatus(p_module, p_state, batch):
 	global observed_durations
 	
-	#states = { \
-	#	"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "parser_hadoop_job", "PersistMapped", "PersistReduced", \
-	#	"Checked", "EventMapped", "EventReduced", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
-	#	}		
-		
 	columns = ["state", "successes", "errors", "docs", "docsWithE", "patients", "patientsWithE", "events", "v5", "dict", "claims", "duration"]
 	
 	exp_rslt = { \
-		"Archived":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     80], \
-		"Packaged":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"Uploaded":                        [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"Submitted":                        [1, 0, 13, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"SentToOCR":                        [1, 0,  1, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"Parsed":                          [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,     70], \
-		"SentToPersist":                   [12, 0, 12, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"OCRed":                            [1, 0,  1, 0,  0, 0,  0, 0,  0, 0,    350], \
-		"Coordinated":                      [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,    400], \
-		"parser_hadoop_job":                [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"PersistMapped":                   [13, 0, 13, 0,  0, 0,  0, 0,  0, 0,    180], \
-		"PersistReduced":                  [13, 0,  0, 0, 13, 0,  0, 0,  0, 0,    200], \
-		"Checked":                         [13, 0, 13, 0, 13, 0,  0, 0,  0, 0,     10], \
-		"EventMapped":                     [13, 0, 13, 5, 13, 5, 37, 0, 37, 0,    210], \
-		"EventReduced":                     [5, 0,  0, 0,  5, 5, 37, 0,  0, 0,    100], \
-		"ocr_hadoop_job":                   [1, 0,  0, 0,  0, 0,  0, 0,  0, 0,     80], \
-		"persist_hadoop_job":               [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,    160], \
-		"dataCheckAndRecovery_hadoop_job":  [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10], \
-		"event_hadoop_job":                 [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,    240], \
-		"trace_hadoop_job":                 [4, 0,  0, 0,  0, 0,  0, 0,  0, 0,     90], \
-		"qaAndRecoverEvent_hadoop_job":     [2, 0,  0, 0,  0, 0,  0, 0,  0, 0,     10]}	
+		"Archived":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     80], \
+		"Packaged":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"Uploaded":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"Submitted":                        [1, 0, 13, None,  0,  None,  0, None,  None, None,  10], \
+		"SentToPersist":                   [12, 0, 12, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"Parsed":                          [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    100], \
+		"SentToOCR":                        [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"OCRed":                            [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,    150], \
+		"PersistMapped":                   [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    180], \
+		"PersistReduced":                  [13, 0,  0, 0,    13,  0,     0, 0,     0,    0,    100], \
+		"EventReduced":                     [4, 0,  0, 0,     4,  4,    14, 0,     0,    0,     50], \
+		"Checked":                         [13, 0, 13, 0,    13,  0,     0, 0,     0,    0,     10], \
+		"Coordinated":                      [1, 0,  0, None,  0,  None,  0, None,  None, None,  50], \
+		"EventMapped":                     [13, 0, 13, 4,    13,  4,    14, 1,    13,    0,    220], \
+		"parser_hadoop_job":                [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"ocr_hadoop_job":                   [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     80], \
+		"persist_hadoop_job":               [2, 0,  0, 0,     0,  0,     0, 0,     0,    0,    160], \
+		"dataCheckAndRecovery_hadoop_job":  [2, 0,  0, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"qaAndRecoverEvent_hadoop_job":     [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"event_hadoop_job":                 [2, 0,  0, 0,     0,  0,     0, 0,     0,    0,    240], \
+		"trace_hadoop_job":                 [4, 0,  0, 0,     0,  0,     0, 0,     0,    0,     90] }
 	
 	#output(query("select stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, 
 	#  numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, 
@@ -510,14 +505,9 @@ def componentUploadStatus(p_module, p_state, batch):
 	max_time = exp_rslt[p_state][10]
 	#print max_time
 	start_time = time.time()  # remember when we started
-	#ctr = 0
 	while (time.time() - start_time) < max_time :
 		duration_time = (time.time() - start_time)
-		#ctr += 1
-		#if (ctr/1000) == 1:
-		#print ("Module : State     = %s : %s" % (p_module, p_state))
-		#print ("Time passed        = %s" % (duration_time))
-		#print ("Time limit         = %s seconds\n" % (max_time))
+		#print ("Module : State     = %s : %s\nTime passed        = %s\nTime limit         = %s seconds\n" % (p_module, p_state, duration_time, max_time))
 		data = query("\
 			SELECT stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, \
 			numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, lasttime.format() n_last \
@@ -529,15 +519,21 @@ def componentUploadStatus(p_module, p_state, batch):
 			################
 			# SUCCESS ######
 			################
-			if (row["b_successes"] == exp_rslt[p_state][0]) and (duration_time < max_time):
-				print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))
+			if (row["b_successes"] == exp_rslt[p_state][0]) and (duration_time < max_time) and \
+				(row["c_errors"] == exp_rslt[p_state][1]) and \
+				(row["d_docs"] == exp_rslt[p_state][2]) and (row["e_docsWithE"] == exp_rslt[p_state][3]) and \
+				(row["f_patients"] == exp_rslt[p_state][4]) and (row["g_patientsWithE"] == exp_rslt[p_state][5]) and \
+				(row["h_events"] == exp_rslt[p_state][6]) and (row["i_v5"] == exp_rslt[p_state][7]) and \
+				(row["j_dict"] == exp_rslt[p_state][8]) and (row["k_claims"] == exp_rslt[p_state][9]):
+
+				print ("%d successes were %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))
 				max_time = 0
 				observed_durations.update({str(p_module+" "+p_state): duration_time})
 			################
 			# FAILURE ######
 			################	
 			elif ((row["b_successes"] < exp_rslt[p_state][0]) and (duration_time >= max_time)) or (row["c_errors"] > 0):
-				print ("Time limit of %s exceeded maximum time of %s seconds - %d documents were %s ...\n" % (duration_time, max_time, row["b_successes"], p_state))
+				print ("Time limit of %s exceeded maximum time of %s seconds - %d successes were %s ...\n" % (duration_time, max_time, row["b_successes"], p_state))
 			
 	bg_color = "#FFFFFF"		
 	if (duration_time >= exp_rslt[p_state][10]):
@@ -553,7 +549,7 @@ def componentUploadStatus(p_module, p_state, batch):
 		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
 			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
 	else:		
-		print ("%d documents were successfully %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))	 	
+		print ("%d successes were %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))	 	
 		status = "passed"
 		bg_color = "#FFFFFF"
 		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
@@ -597,7 +593,7 @@ def generateReportDetails():
 			print ("Status           = %s" % status)
 			print ("-----------------------------------------------------------------------------")
 		
-	print observed_durations	
+	#print observed_durations	
 	
 	print ("\n===================================================================================")
 	print ("End generating Report Details ...\n")				
