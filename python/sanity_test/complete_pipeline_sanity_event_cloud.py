@@ -60,7 +60,7 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com"
 		ENVIRONMENT="Production"
-		EVENT_CLOUD_URL="http://54.177.153.168:8076/event/query"
+		EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
 	else:
 		# STAGING =====================
 		USERNAME="sanitytest1"
