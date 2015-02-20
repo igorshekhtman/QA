@@ -701,9 +701,6 @@ obtainToken()
 
 uploadFiles()
 
-#pauseForUploadToComplete()
-#BATCH="370_PipelineSanityTestStaging_02182015011557"
-
 connectToHive()
 
 generateReportHeader()
