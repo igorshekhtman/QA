@@ -179,7 +179,7 @@ def getUserData():
 # =================================================================================================================
 
 def obtainToken():	
-	global TOKEN, post, buf, obj
+	global TOKEN, post, buf, obj, USERNAME
 	print ("Start obtaining user token ...")
 	buf = io.BytesIO()
 	data = {'username':USERNAME, 'password':PASSWORD}
@@ -194,6 +194,7 @@ def obtainToken():
 # =================================================================================================================
 
 def uploadData():
+	global BATCHID
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
 	c = pycurl.Curl()
 	c.setopt(pycurl.URL, UPLOAD_URL)
@@ -210,11 +211,12 @@ def uploadData():
 #=========================================================== Assign Values =======================================================
 
 def uploadFiles():
-	global DOCUMENTCOUNTER, obj, MANIFEST_FILE
+	global DOCUMENTCOUNTER, obj, MANIFEST_FILE, USERNAME, BATCHID, BATCH
 	
 	FILES = os.listdir(DIR)
 	print ("Uploading Files ...\n")
 	for FILE in FILES:
+		file_ext = FILE[len(FILE)-3:]
 		DOCUMENTCOUNTER += 1
 		ORGANIZATION=obj["organization"]
 		ORGID=obj["org_id"]
@@ -244,7 +246,13 @@ def uploadFiles():
 		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
 		TOKEN_URL="%s/auth/token/" % (HOST);
 		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCHID);
-		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
+		if file_ext.upper() == "APO":
+			CATALOG_FILE=("<ApxCatalog><CatalogEntry><Organization>%s</Organization><FileFormat>APO</FileFormat><OrgId>%s</OrgId><UserName>%s</UserName><DocumentUUID>%s</DocumentUUID><BatchId>%s</BatchId></CatalogEntry></ApxCatalog>" % (ORGANIZATION, ORGID, USERNAME, DOCUMENT_ID, BATCH))
+		#	print CATALOG_FILE
+		#	quit()
+		#	CATALOG_FILE=("<?xml version='1.0' encoding='UTF-8' standalone='yes'?><ApxCatalog><CatalogEntry><Organization>%s</Organization><FileFormat>APO</FileFormat><OrgId>%s</OrgId><UserName>%s</UserName><DocumentUUID>%s</DocumentUUID><BatchId>%s</BatchId></CatalogEntry></ApxCatalog>" % (ORGANIZATION, ORGID, USERNAME, DOCUMENT_ID, BATCHID))
+		else:	
+			CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM))
 		
 		#============================== Uploading Data =====================================================================================
 
@@ -425,29 +433,54 @@ def query(stmt, url=None):
 
 def logDetailsIntoReport(p_module, p_state, batch, status, successes, errors, docs, docswithe, patients, patientswithe, events, v5, dict, claims, duration, start, last, max_duration, actual_duration, bg_color):
 	global REPORT
+	
 		
 	REPORT = REPORT+SUBHDR % (p_module.upper(), p_state, batch)
 	
-	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0' width='800' bgcolor='"+bg_color+"'><tr><td>"
+	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0' width='800'><tr><td>"
 	
-	#REPORT = REPORT+"<table border='0' width='100%'><tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr></table>" % (p_module, p_state, batch, status)
+	#print bg_color
+	#quit() 
 	
-	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr><td width='50%%'>Successes: %s</td><td width='50%%'>Errors: %s</td></tr></table>" % (successes, errors)
+
+	
+	REPORT = REPORT+"<table border='0' width='100%%' ><tr>"
+	
+	REPORT = REPORT+" \
+		<td width='50%%' bgcolor='%s'>Successes: %d</td> \
+		<td width='50%%' bgcolor='%s'>Errors: %d</td> \
+		</tr></table>" % (bg_color[0], successes, bg_color[1], errors)
 	
 	REPORT = REPORT+"<hr width='100%%'>"
 	
-	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr>"
-	REPORT = REPORT+"<td>Docs:</td><td>Docs with Events:</td><td>Patients:</td><td>Patients with Events:</td><td>Events:</td><td>V5 Events:</td><td>Dictionary Events:</td><td>Claims:</td>"
+	REPORT = REPORT+"<table border='0' width='100%%' ><tr>"
+	REPORT = REPORT+" \
+		<td bgcolor='%s'>Docs:</td> \
+		<td bgcolor='%s'>Docs with Events:</td> \
+		<td bgcolor='%s'>Patients:</td> \
+		<td bgcolor='%s'>Patients with Events:</td> \
+		<td bgcolor='%s'>Events:</td> \
+		<td bgcolor='%s'>V5 Events:</td> \
+		<td bgcolor='%s'>Dictionary Events:</td> \
+		<td bgcolor='%s'>Claims:</td>" % (bg_color[2], bg_color[3], bg_color[4], bg_color[5], bg_color[6], bg_color[7], bg_color[8], bg_color[9])
 	REPORT = REPORT+"</tr><tr>"
-	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (docs, docswithe, patients, patientswithe, events, v5, dict, claims)
+	REPORT = REPORT+" \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td> \
+		<td bgcolor='%s'>%s</td>" % (bg_color[2], docs, bg_color[3], docswithe, bg_color[4], patients, bg_color[5], patientswithe, bg_color[6], events, bg_color[7], v5, bg_color[8], dict, bg_color[9], claims)
 	REPORT = REPORT+"</tr></table>"
 	
 	REPORT = REPORT+"<hr width='100%%'>"
 	
-	REPORT = REPORT+"<table border='0' width='100%%' bgcolor='"+bg_color+"'><tr>"
-	REPORT = REPORT+"<td>Duration (msec.):</td><td>Start Time:</td><td>End Time:</td><td>Max Duration (sec.):</td><td>Actual Duration (sec.):</td>"
+	REPORT = REPORT+"<table border='0' width='100%%' ><tr>"
+	REPORT = REPORT+"<td>Duration (msec.):</td><td>Start Time:</td><td>End Time:</td><td bgcolor='%s'>Max Duration (sec.):</td><td bgcolor='%s'>Actual Duration (sec.):</td>" % (bg_color[10], bg_color[10])
 	REPORT = REPORT+"</tr><tr>"
-	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" % (duration, start, last, max_duration, actual_duration)
+	REPORT = REPORT+"<td>%s</td><td>%s</td><td>%s</td><td bgcolor='%s'>%s</td><td bgcolor='%s'>%s</td>" % (duration, start, last, bg_color[10], max_duration, bg_color[10], actual_duration)
 	REPORT = REPORT+"</tr></table>"
 	
 	REPORT = REPORT+"<hr width='100%%'>"
@@ -463,6 +496,8 @@ def componentUploadStatus(p_module, p_state, batch):
 	
 	columns = ["state", "successes", "errors", "docs", "docsWithE", "patients", "patientsWithE", "events", "v5", "dict", "claims", "duration"]
 	
+	bg_color = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"]
+
 	exp_rslt = { \
 		"Archived":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     80], \
 		"Packaged":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
@@ -474,10 +509,10 @@ def componentUploadStatus(p_module, p_state, batch):
 		"OCRed":                            [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,    150], \
 		"PersistMapped":                   [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    180], \
 		"PersistReduced":                  [13, 0,  0, 0,    13,  0,     0, 0,     0,    0,    100], \
-		"EventReduced":                     [4, 0,  0, 0,     4,  4,    14, 0,     0,    0,     50], \
+		"EventReduced":                     [5, 0,  0, 0,     5,  5,    15, 0,     0,    0,     50], \
 		"Checked":                         [13, 0, 13, 0,    13,  0,     0, 0,     0,    0,     10], \
 		"Coordinated":                      [1, 0,  0, None,  0,  None,  0, None,  None, None,  50], \
-		"EventMapped":                     [13, 0, 13, 4,    13,  4,    14, 1,    13,    0,    220], \
+		"EventMapped":                     [13, 0, 13, 5,    13,  5,    15, 1,    13,    1,    220], \
 		"parser_hadoop_job":                [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"ocr_hadoop_job":                   [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     80], \
 		"persist_hadoop_job":               [2, 0,  0, 0,     0,  0,     0, 0,     0,    0,    160], \
@@ -485,10 +520,7 @@ def componentUploadStatus(p_module, p_state, batch):
 		"qaAndRecoverEvent_hadoop_job":     [1, 0,  0, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"event_hadoop_job":                 [2, 0,  0, 0,     0,  0,     0, 0,     0,    0,    240], \
 		"trace_hadoop_job":                 [4, 0,  0, 0,     0,  0,     0, 0,     0,    0,     90] }
-	
-	#output(query("select stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, 
-	#  numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, 
-	#  lasttime.format() n_last from AllBatchState where batchId = '%s' order by n_last" % (args[0],)))
+		
 	
 	statuses = {"started", "inclomete", "failed", "passed"}
 			
@@ -505,55 +537,86 @@ def componentUploadStatus(p_module, p_state, batch):
 	max_time = exp_rslt[p_state][10]
 	#print max_time
 	start_time = time.time()  # remember when we started
+	row_ctr = 0
 	while (time.time() - start_time) < max_time :
 		duration_time = (time.time() - start_time)
-		#print ("Module : State     = %s : %s\nTime passed        = %s\nTime limit         = %s seconds\n" % (p_module, p_state, duration_time, max_time))
+		time.sleep(3)
+		print ("Module : State     = %s : %s\nTime passed        = %s\nTime limit         = %s seconds\n" % (p_module, p_state, duration_time, max_time))
 		data = query("\
 			SELECT stateName a_state, successes b_successes, errors c_errors, numDocs d_docs, docsWE e_docsWithE, numPatients f_patients, patientsWE g_patientsWithE, \
 			numEvents h_events, v5Events i_v5, dictEvents j_dict, claimEvents k_claims, duration l_duration, starttime.format() m_start, lasttime.format() n_last \
 			FROM AllBatchState \
 			WHERE batchId = '%s' and stateName = '%s'" % (batch, p_state))
+		#time.sleep(2)	
 		for row in data:
 			#print ("Documents actually %s = %d" % (p_state, row["b_successes"]))
 			#print ("Documents expected %s = %d" % (p_state, exp_rslt[p_state][0]))
 			################
 			# SUCCESS ######
 			################
-			if (row["b_successes"] == exp_rslt[p_state][0]) and (duration_time < max_time) and \
-				(row["c_errors"] == exp_rslt[p_state][1]) and \
+			row_ctr += 1
+			if (row["b_successes"] == exp_rslt[p_state][0]) and (row["c_errors"] == exp_rslt[p_state][1]) and \
 				(row["d_docs"] == exp_rslt[p_state][2]) and (row["e_docsWithE"] == exp_rslt[p_state][3]) and \
 				(row["f_patients"] == exp_rslt[p_state][4]) and (row["g_patientsWithE"] == exp_rslt[p_state][5]) and \
 				(row["h_events"] == exp_rslt[p_state][6]) and (row["i_v5"] == exp_rslt[p_state][7]) and \
-				(row["j_dict"] == exp_rslt[p_state][8]) and (row["k_claims"] == exp_rslt[p_state][9]):
-
-				print ("%d successes were %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))
+				(row["j_dict"] == exp_rslt[p_state][8]) and (row["k_claims"] == exp_rslt[p_state][9]) and \
+				((time.time() - start_time) < max_time):
+				#print ("%d successes were %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, (time.time() - start_time)))
 				max_time = 0
-				observed_durations.update({str(p_module+" "+p_state): duration_time})
+				observed_durations.update({str(p_module+" "+p_state): (time.time() - start_time)})
+				status = "passed"
+				bg_color = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"]
 			################
 			# FAILURE ######
 			################	
-			elif ((row["b_successes"] < exp_rslt[p_state][0]) and (duration_time >= max_time)) or (row["c_errors"] > 0):
-				print ("Time limit of %s exceeded maximum time of %s seconds - %d successes were %s ...\n" % (duration_time, max_time, row["b_successes"], p_state))
-			
-	bg_color = "#FFFFFF"		
-	if (duration_time >= exp_rslt[p_state][10]):
-		print ("Time limit of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % (duration_time, exp_rslt[p_state][10]))
+			#elif ((row["b_successes"] < exp_rslt[p_state][0]) and (duration_time >= max_time)) or (row["c_errors"] > 0):
+			else:
+				if (row["b_successes"] != exp_rslt[p_state][0]):
+					bg_color[0] = "#FFFF00"
+				if (row["c_errors"] != exp_rslt[p_state][1]):
+					bg_color[1] = "#FFFF00"
+				if (row["d_docs"] != exp_rslt[p_state][2]):
+					bg_color[2] = "#FFFF00"
+				if (row["e_docsWithE"] != exp_rslt[p_state][3]):
+					bg_color[3] = "#FFFF00"
+				if (row["f_patients"] != exp_rslt[p_state][4]):
+					bg_color[4] = "#FFFF00"
+				if (row["g_patientsWithE"] != exp_rslt[p_state][5]):
+					bg_color[5] = "#FFFF00"
+				if (row["h_events"] != exp_rslt[p_state][6]):
+					bg_color[6] = "#FFFF00"
+				if (row["i_v5"] != exp_rslt[p_state][7]):
+					bg_color[7] = "#FFFF00"
+				if (row["j_dict"] != exp_rslt[p_state][8]):
+					bg_color[8] = "#FFFF00"
+				if (row["k_claims"] != exp_rslt[p_state][9]):
+					bg_color[9] = "#FFFF00"
+				if ((time.time() - start_time) >= max_time):	
+					bg_color[10] = "#FFFF00"
+					#print ("Time limit-1 of %s exceeded maximum time of %s seconds - %d successes were %s ...\n" % ((time.time() - start_time), max_time, row["b_successes"], p_state))
+				status = "failed"
+					
+	if ((time.time() - start_time) >= exp_rslt[p_state][10]):
+		print ("Time limit-2 of %s seconds excedded maximum execution time of %s seconds. FAILED QA\n" % ((time.time() - start_time), exp_rslt[p_state][10]))
 		#status = "incomplete"
 		status = "failed"
-		bg_color = "#FFFF00"
-		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, exp_rslt[p_state][10], duration_time, bg_color)
+		#logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, exp_rslt[p_state][10], duration_time, bg_color)
 	elif (row["b_successes"] < exp_rslt[p_state][0]) or (row["c_errors"] > 0):
 		print (">>> Specific Component Failure Occured ...\n")
 		status = "failed"
-		bg_color = "#FFFF00"
-		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
-			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
+		#logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
+		#	row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
 	else:		
 		print ("%d successes were %s for batch %s completed in %s seconds ...\n" % (row["b_successes"], p_state, batch, duration_time))	 	
 		status = "passed"
-		bg_color = "#FFFFFF"
+		#logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
+		#	row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
+	
+	if row_ctr == 0:
+		logDetailsIntoReport(p_module, p_state, batch, status, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, exp_rslt[p_state][10], duration_time, bg_color)
+	else:
 		logDetailsIntoReport(p_module, p_state, batch, status, row["b_successes"], row["c_errors"], row["d_docs"], row["e_docsWithE"], row["f_patients"], \
-			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)
+			row["g_patientsWithE"], row["h_events"], row["i_v5"], row["j_dict"], row["k_claims"], row["l_duration"], row["m_start"], row["n_last"], exp_rslt[p_state][10], duration_time, bg_color)		
 				
 	return (status)
 
@@ -561,10 +624,6 @@ def componentUploadStatus(p_module, p_state, batch):
 
 def generateReportDetails():
 	global REPORT, cur, conn, BATCH, observed_durations
-	#states = { \
-	#	"Archived", "Packaged", "Uploaded", "Submitted", "SentToOCR", "Parsed", "SentToPersist", "OCRed", "Coordinated", "parser_hadoop_job", "PersistMapped", "PersistReduced", \
-	#	"Checked", "EventMapped", "EventReduced", "ocr_hadoop_job", "persist_hadoop_job", "dataCheckAndRecovery_hadoop_job", "event_hadoop_job", "trace_hadoop_job", "qaAndRecoverEvent_hadoop_job" \
-	#	}
 	components = { \
 		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
 		}	
