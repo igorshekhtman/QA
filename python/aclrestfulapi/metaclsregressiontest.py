@@ -81,6 +81,9 @@ import re
 import sys, os
 import json
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
@@ -373,7 +376,7 @@ def checkEnvironmentandReceivers():
 		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
-		RECEIVERS2="abeyk@apixio.com"
+		RECEIVERS2="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 				
 	# overwite any previous ENVIRONMENT settings
@@ -386,23 +389,19 @@ def checkEnvironmentandReceivers():
 	
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
+	
 	print ("Begin writing report header ...\n")
-	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	REPORT = REPORT + HTML_RECEIVERS
-	REPORT = REPORT + """MIME-Version: 1.0\n"""
-	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: ACL %s Sanity Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
-
-	REPORT = REPORT + """<h1>Apixio ACL Sanity Test Report</h1>\n"""
-	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
-	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
-	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """ACL user name: <b>%s</b><br>\n""" % (ACLUSERNAME)
-	REPORT = REPORT + """ACL app url: <b>%s</b><br>\n""" % (ACL_URL)
-	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
-	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
-	print ("End writing report header ...\n")
-
+	# REPORT = MIMEMultipart()
+	REPORT = ""
+	REPORT = REPORT + "<h1>Meta ACLs Regression Test Report</h1>"
+	REPORT = REPORT + "Run date & time: <b>%s</b><br>\n" % (CUR_TIME)
+	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
+	REPORT = REPORT + "ACL user name: <b>%s</b><br>\n" % (ACLUSERNAME)
+	REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (ACL_URL)	
+	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
+	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='1'><tr><td>"	
+	print ("End writing report header ...\n")	
+	
 #=========================================================================================	
 	
 def writeReportDetails(module):	
@@ -446,8 +445,8 @@ def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)
+		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/metaclsregression/"+str(YEAR)+"/"+str(CURMONTH)
+		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/metaclsregression/"+str(YEAR)+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
@@ -457,8 +456,8 @@ def archiveReport():
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(CURDAY)+".html"
-		REPORTXTSTRING="ACL Sanity "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/aclsanity/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
-		REPORTXTFILENAME="acl_sanity_reports_"+ENVIRONMENT.lower()+".txt"
+		REPORTXTSTRING="Meta ACLs Regression "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/metaclsregression/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
+		REPORTXTFILENAME="meta_acls_regression_reports_"+ENVIRONMENT.lower()+".txt"
 		# Old location 
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
 		# New location 
@@ -481,21 +480,39 @@ def archiveReport():
 			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 			REPORTFILETXT.write(REPORTXTSTRING)
 			REPORTFILETXT.close()
-		os.chdir("/mnt/automation/python/sanity_test")
+		os.chdir("/mnt/automation/python/aclrestfulapi")
 		print ("Finished archiving report ... \n")
 
 #=========================================================================================	
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	
 	print ("Emailing report ...\n")
+	IMAGEFILENAME=str(CURDAY)+".png" 
+	message = MIMEMultipart('related')
+	message.attach(MIMEText((REPORT), 'html'))
+	#with open(IMAGEFILENAME, 'rb') as image_file:
+	#	image = MIMEImage(image_file.read())
+	#image.add_header('Content-ID', '<picture@example.com>')
+	#image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
+	#message.attach(image)
+
+	message['From'] = 'Apixio QA <QA@apixio.com>'
+	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+	message['Subject'] = 'Meta ACLs %s Regression Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
+	msg_full = message.as_string()
+		
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
 	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, RECEIVERS, REPORT)	
-	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
+	s.quit()
+	# Delete graph image file from stress_test folder
+	#os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
+	
 			
 #=========================================================================================
 #===================== Main Functions ====================================================
@@ -863,5 +880,5 @@ archiveReport()
 emailReport()	
 	
 print ("==== End of Meta ACLs Regression Test =====")
-print ("================================dd=========")
+print ("===========================================")
 #=========================================================================================
