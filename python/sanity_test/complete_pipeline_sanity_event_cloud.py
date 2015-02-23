@@ -504,7 +504,7 @@ def componentUploadStatus(p_module, p_state, batch):
 		"Uploaded":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"Submitted":                        [1, 0, 13, None,  0,  None,  0, None,  None, None,  10], \
 		"SentToPersist":                   [12, 0, 12, 0,     0,  0,     0, 0,     0,    0,     10], \
-		"Parsed":                          [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    100], \
+		"Parsed":                          [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    160], \
 		"SentToOCR":                        [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"OCRed":                            [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,    150], \
 		"PersistMapped":                   [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    180], \
