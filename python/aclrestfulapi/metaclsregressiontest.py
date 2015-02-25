@@ -8,8 +8,8 @@
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
-#          This program should be executed via Grinder for testing ACL functionality:
-#			* Log into ACL
+#          This program should be executed via Python2.7 for testing Meta ACLs functionality:
+#			* Log into Meta ACL
 #			* Obtain and save token
 #			* Create new unique Coding Org(s) and save org_uuid(s)
 #				- Multiple Coding Orgs allowed (NUMBER_OF_ORGS_TO_CREATE) 
@@ -32,16 +32,78 @@
 #			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
 #			* Report total number of retries, failures and successes
 #
+# NOTES / COMMENTS:
+#			* Based on the 5 specific test cases I outlined in an email last week and that were copied to the JIRA QA ticket, I think it makes 
+#				sense to provide the following new RESTful APIs to be added to user-account service:
+#
+#			* GET /perms/{subject}/{operation}/{object}
+#
+#			  This API would perform a "has permission" test on the Subject/Operation/Object and return either 200 (has permission) or 403 (doesn't have permission)
+#
+#* PUT /perms/{subject}/{operation}/{object}
+#
+#  This API would attempt to add the given permission.  If the user linked with the token presented in the Authorization: HTTP header has the ability to add that permission, the 200 status code will be returned, otherwise a 403 will be returned.  There is no HTTP body.
+#
+#* DELETE /perms/{subject}/{operation}/{object}
+#
+#  This API will undo the effects of the PUT call, if the authenticated user has permission.
+#
+#* PUT /grants/{subject}/{operation}
+#
+#  This APi will attempt to grant the given subject the rights to add permission on the given operation.  The constraints on the subject and object of that "add permission" operation will be given by a string-ized JSON object that is the HTTP body.
+#
+#* DELETE /grants/{subject}/{operation}
+#
+#  This API will attempt to undo the effect of the PUT form of this URL.  No HTTP body is required.
+#
+#* GET /groups
+#
+#  This API will return a list of all UserGroups.  An optional query parameter of "type=role" will restrict the returned groups to those that are role-based UserGroups.  Only ROOT can request this list of groups.
+#
+#* GET /groups/{group}/members
+#
+#  This API will return the members of the given UserGroup.
+#
+#I believe those 7 APIs will support testing of the core of the MetaACLs functionality.  What that list doesn't support are query functions to answer questions such as, Who has Rights on this Object, etc.
+#
+#
+# END POINTS LIST:
+#
+#			* GET /customer/projects
+#			* GET /customer/{customerId}/projects
+#			* GET /customer/{customerId}/project/{projectId}
+#			* POST /customer/{customerId}/project
+#			* POST /customer/{customerId}/project/{projectId}
+#
+# COVERED TEST CASES:
+#
+#			* 1.) 	with just initial setup, no User should be able to perform any Operation
+#
+#			* 2.) 	addPermission(alex, garth, CanCode, Scripps) should return true; Alex(ROOT) can give Garth (in CodeBusters) any permission
+#					hasPermission(garth, CanCode, Scripps) should return true
+#					hasPermission(garth, CanCode, CHMC) should return false
+#					hasPermission(eric, CanCode, Scripps) should return false
+#
+#			* 3.) 	addPermission(eric, garth, CanCode, <any>) should return false; Eric can't directly give someone permissions
+#					grantAddPermission(eric, garth, CanCode, <any>, <any>) should return false; Eric can't delegate permissions either
+#
+#			* 4.)	grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
+#					addPermission(eric, brooke, CanCode, Scripps) should return true
+#					addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
+#					grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
+#
+#			* 5.)	removeAddPermission(alex, eric, CanCode) should return true; after this Eric should not be able to addPermission
+#					addPermission(eric, kim, CanCode, CHMC) should return false (no permissions now)
+#
 # SETUP:
-#          * Assumes a ACL and HCC environments are available
-#          * Assumes a Grinder environment is available
-#          * For further details, see http://grinder.sourceforge.net
+#          * Assumes Meta ACLs and HCC environments are available
+#		   * Assumes that Python2.7 is available 
 #
 # USAGE:
-#          * Ensure Grinder is configured to execute acl_complete_test.py
+#          * Ensure Grinder is configured to execute metaclsregressiontest.py
 #          * Set the global variables, see below (Global Test Environment Selection)
-#          * Run acl_complete_test.py
-#          * Results will be printed on Grinder Agent and in Grinder Console log files
+#          * Run: python2.7 metaclsregressiontest.py staging eng@apixio.com ops@apixio.com
+#          * Results can be accessed through Apixio Reports portal: https://reports.apixio.com/html/meta_acls_regression_reports_staging.html
 #
 #=========================================================================================
 # Global Paramaters descriptions and possible values:
@@ -58,18 +120,6 @@
 # CSV_FILE_PATH - name for output csv file 
 #
 # MAX_NUM_RETRIES - global limit for number of retries (statuscode = 500)
-#=========================================================================================
-# Revision 1: 1.0.1
-# Author: Igor Shekhtman ishekhtman@apixio.com 
-# Specifics: Introduction of Program Flow Control
-#=========================================================================================
-# Revision 2: 1.0.2
-# Author: Igor Shekhtman ishekhtman@apixio.com
-# Specifics: Introduction of external ACLConfig.csv configuration file
-#=========================================================================================
-# Revision 3:
-# Author:
-# Specifics:
 #=========================================================================================
 import requests
 import time
@@ -90,24 +140,6 @@ import mmap
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
-CDGORGMAP = { \
-	"AE & Associates":"UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", \
-	"Scripps":"UO_609aa5c3-4bff-4aec-a629-1da4f0be144e", \
-	"Coding Org 1":"UO_5c83fcf7-d216-42ca-859d-9908e74049e5", \
-	"Coding Org 2":"UO_c2fee803-b169-4bfb-9e46-137295379b46", \
-	"Coding Org 3":"UO_fb540446-a07d-4e2f-b2a2-6caf1179d455", \
-	"HealthCare Partners":"UO_62eb7683-e42b-4cf4-a7cf-e91dcaf68bbb", \
-	"Apixio Coders":"UO_059c7bbd-7ecc-4172-8d81-6ea2dadb6e76", \
-	"CCHCA":"UO_6cbe9df5-cdfb-414f-b1f0-f44c7b519bcb", \
-	"Load Test Coders":"UO_149af107-1ef7-49a0-923e-be4b2de174b3", \
-	"org0420":"UO_7c6cf5ea-b35c-4ecf-866f-915f70269d34", \
-	"test Coding org":"UO_ee2a6959-bc38-40c3-813b-d3e7a9cc681b", \
-	"Test Org2":"UO_8f2082b8-5060-4e90-bd6e-3db8f97659a6", \
-	"Test Org 1000":"UO_45dcce68-47a8-4e0f-9cf4-467476021337", \
-	"Test Org 1000":"UO_1296f532-2605-4e63-9d09-e5e992bd07ea", \
-	"Test Org 1000":"UO_6add7125-0eb0-472c-9840-47e24867f5ea", \
-	"test org1":"UO_9010f837-0ac7-41fa-abbf-16c82b1c9032", \
-	}
 
 PERIMISSION_TYPES = [ \
 	"canAnnotate", \
@@ -210,6 +242,7 @@ accepted = 202
 nocontent = 204
 movedperm = 301
 redirect = 302
+requestdenied = 400
 forbidden = 403
 intserveror = 500
 servunavail = 503
@@ -517,29 +550,99 @@ def emailReport():
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
-def logInToACL():
-	global TOKEN, ACL_URL, SESSID, DATA, HEADERS
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> ACL - OBTAIN AUTHORIZATION <<<")
-	print ("----------------------------------------------------------------------------")
-	print ("* ACL URL                = %s" % ACL_URL)
-	statuscode = 500
-	# repeat until successful login is reached
-	while statuscode != 200:
-  		url = ACL_URL+'/auth'
-  		referer = ACL_URL  				
-  		DATA =    {'Referer': referer, 'email': ACLUSERNAME, 'password': ACLPASSWORD} 
-  		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
-  		response = requests.post(url, data=DATA, headers=HEADERS) 
-  		SESSID = TOKEN = response.cookies["session"]
-  		print ("* LOG IN USER            = %s" % response.status_code)
+def obtainExternalToken():
+
+	#print ("\n----------------------------------------------------------------------------")
+	#print (">>> ACL - OBTAIN EXTERNAL TOKEN <<<")
+	#print ("----------------------------------------------------------------------------")
+
+	#8076
+	#7076
+	external_token = ""
+	#ACLUSERNAME="lschneider@apixio.com"
+	#ACLPASSWORD="ritiyi6!"
+	url = ACL_URL+'/auths'
+	#url = 'https://useraccount-stg.apixio.com:7076/auths'
+	referer = ACL_URL  	
+	#token=$(curl -v --data email=$email --data password="$passw" "http://localhost:8076/auths?int=true" | cut -c11-49)
+	
+	DATA =    {'Referer': referer, 'email': ACLUSERNAME, 'password': ACLPASSWORD} 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+	
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+
+	statuscode = response.status_code
+
+	userjson = response.json()
+	if userjson is not None:
+		external_token = userjson.get("token") 
 		print ("* ACL USERNAME           = %s" % ACLUSERNAME)
 		print ("* ACL PASSWORD           = %s" % ACLPASSWORD)
-		print ("* ACL SESSION ID         = %s" % SESSID)
-		print ("* ACL TOKEN              = %s" % TOKEN)
-		statuscode = response.status_code
+		print ("* URL                    = %s" % url)
+		print ("* EXTERNAL TOKEN         = %s" % external_token)
 		print ("* STATUS CODE            = %s" % statuscode)
-		IncrementTestResultsTotals("log into acl", statuscode)	
+		print ("****************************************************************************")
+			
+	return (external_token)
+
+#=========================================================================================
+def obtainInternalToken():
+	global TOKEN
+	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
+	print ("----------------------------------------------------------------------------")
+	
+	
+	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	external_token = obtainExternalToken()
+	url = TOKEN_URL
+  	referer = TOKEN_URL  				
+  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
+  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	userjson = response.json()
+  	if userjson is not None:
+  		TOKEN = userjson.get("token")
+	statuscode = response.status_code	
+	print ("* USERNAME               = %s" % ACLUSERNAME)
+	print ("* PASSWORD               = %s" % ACLPASSWORD)
+	print ("* TOKENIZER URL          = %s" % url)
+	print ("* EXTERNAL TOKEN         = %s" % external_token)
+	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* STATUS CODE            = %s" % statuscode)
+		
+#=========================================================================================		
+		
+def addACLOperation(name, description):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - ADD ACL OPERATION <<<")
+	print ("----------------------------------------------------------------------------")
+	
+	url = ACL_URL+'/aclop'
+  	referer = ACL_URL 	
+  	#print "Internal Token     = %s" % TOKEN
+  	apixio_token='Apixio '+str(TOKEN)
+  	#print "Apixio token       = %s" % apixio_token		
+  	DATA = {'name': name, 'description': description}
+	HEADERS = {'Authorization': apixio_token}
+	#print url
+	#print DATA
+	#print HEADERS
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	if statuscode == requestdenied:
+		print (">>> Operation %s already exists for user %s <<<" % (name, ACLUSERNAME))
+	else:
+		print ("* USERNAME               = %s" % ACLUSERNAME)
+		print ("* PASSWORD               = %s" % ACLPASSWORD)
+		print ("* URL                    = %s" % url)
+		print ("* INTERNAL TOKEN         = %s" % TOKEN)
+		print ("* OPERATION NAME         = %s" % name)
+		print ("* OPERATION DESCRIPTION  = %s" % description)
+	print ("* STATUS CODE            = %s" % statuscode)
+		
 #=========================================================================================
 def ACLCreateNewUser(retries):
 	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
@@ -829,55 +932,75 @@ ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
 checkEnvironmentandReceivers()
 
-writeReportHeader()
+#writeReportHeader()
 
 PrintGlobalParamaterSettings()
 
-logInToACL()
-writeReportDetails("log into acl")
+obtainInternalToken()
+
+addACLOperation("CanAnnotate3", "Can Annotate Things3")
+
+
+
+quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#writeReportDetails("log into acl")
 
 # Org related testing
-ACLCreateNewCodingOrg()
-writeReportDetails("create new coding organization")
+#ACLCreateNewCodingOrg()
+#writeReportDetails("create new coding organization")
 
 # Group related testing
-ACLCreateNewGroup()
-ACLDeleteExistingGroup(GRP_UUID)
-ACLCreateNewGroup()
-writeReportDetails("create and delete new group")
+#ACLCreateNewGroup()
+#ACLDeleteExistingGroup(GRP_UUID)
+#ACLCreateNewGroup()
+#writeReportDetails("create and delete new group")
 		
-for permission in PERIMISSION_TYPES:
-	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-	ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
-	ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
-writeReportDetails("add and delete group permissions")	
+
+#ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+#ACLDelGroupPermission(permission, GRP_UUID, ORG_UUID)
+#ACLAddGroupPermission(permission, GRP_UUID, ORG_UUID)
+#writeReportDetails("add and delete group permissions")	
 			
 # User related testing			
-for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-	ACLCreateNewUser(0)
-	HCCUSERSLIST.append(i)
-	HCCUSERSLIST[i] = HCCUSERNAME
-	ACLActivateNewUser()
-	ACLDectivateUser(USR_UUID)
-	ACLActivateNewUser()
-	ACLSetPassword()
-	ACLAssignCodingOrg()
-	ACLAddMemberToGroup()
-	ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
-	ACLAddMemberToGroup()
-	logInToHCC()	
-writeReportDetails("user/password/group/org creation/deletion/assignment")
+#ACLCreateNewUser(0)
+#HCCUSERSLIST.append(i)
+#HCCUSERSLIST[i] = HCCUSERNAME
+#ACLActivateNewUser()
+#ACLDectivateUser(USR_UUID)
+#ACLActivateNewUser()
+#ACLSetPassword()
+#ACLAssignCodingOrg()
+#ACLAddMemberToGroup()
+#ACLDelMemberFromGroup(GRP_UUID, USR_UUID)
+#ACLAddMemberToGroup()
+#logInToHCC()	
+#writeReportDetails("user/password/group/org creation/deletion/assignment")
 
-logInToHCC()
-writeReportDetails("log into hcc")
+#logInToHCC()
+#writeReportDetails("log into hcc")
 	
-ListUserGroupOrg()
+#ListUserGroupOrg()
 
-writeReportFooter()
+#writeReportFooter()
 
-archiveReport()
+#archiveReport()
 
-emailReport()	
+#emailReport()	
 	
 print ("==== End of Meta ACLs Regression Test =====")
 print ("===========================================")

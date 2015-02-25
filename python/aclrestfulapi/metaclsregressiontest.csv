@@ -5,7 +5,8 @@ ENVIRONMENT=Staging
 #ACL_DOMAIN=acladmin.apixio.com
 #ACL_URL=https://acladmin.apixio.com
 ACL_DOMAIN=acladmin-stg.apixio.com
-ACL_URL=https://acladmin-stg.apixio.com
+#ACL_URL=https://acladmin-stg.apixio.com
+ACL_URL=https://useraccount-stg.apixio.com:7076
 #ACL_URL=https://acladmin.apixio.com
 ########################################
 HCC_DOMAIN=hccstage2.apixio.com
