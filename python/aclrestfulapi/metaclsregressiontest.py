@@ -9,28 +9,6 @@
 #
 # PURPOSE:
 #          This program should be executed via Python2.7 for testing Meta ACLs functionality:
-#			* Log into Meta ACL
-#			* Obtain and save token
-#			* Create new unique Coding Org(s) and save org_uuid(s)
-#				- Multiple Coding Orgs allowed (NUMBER_OF_ORGS_TO_CREATE) 
-#			* Create new unique HCC user(s) and save user_uuid(s) 
-#				- Multiple HCC Users allowed (NUMBER_OF_USERS_TO_CREATE)
-#			* Create new unique ALC Group and save GRP_UUID
-#				- Multiple ACL Groups are allowed (NUMBER_OF_GRPS_TO_CREATE)
-#			* Activate newly created HCC user
-#			* Deactivate a specific HCC user
-#			* Assign newly created user pre-defined password (HCC_PASSWORD)
-#			* Assign newly created HCC user coding org
-#				- Either pre-defined coding org or newly created coding org
-#			* Assign specific or newly created coding org to a user
-#			* Add list of members to a newly created Group
-#			* Remove specific member(s) from a Group
-#			* Add specific rules to a Group
-#			* Delete specific rules from a Group
-#			* Log into HCC with newly created user/org
-#			* Store each of the newly created users in an array (HCCUSERSLIST[])
-#			* Store each of the newly created coding orgs in an array (HCCORGLIST[])
-#			* Report total number of retries, failures and successes
 #
 # NOTES / COMMENTS:
 #			* Based on the 5 specific test cases I outlined in an email last week and that were copied to the JIRA QA ticket, I think it makes 
@@ -40,31 +18,29 @@
 #
 #			  This API would perform a "has permission" test on the Subject/Operation/Object and return either 200 (has permission) or 403 (doesn't have permission)
 #
-#* PUT /perms/{subject}/{operation}/{object}
+#			* PUT /perms/{subject}/{operation}/{object}
 #
-#  This API would attempt to add the given permission.  If the user linked with the token presented in the Authorization: HTTP header has the ability to add that permission, the 200 status code will be returned, otherwise a 403 will be returned.  There is no HTTP body.
+#  				This API would attempt to add the given permission.  If the user linked with the token presented in the Authorization: HTTP header has the ability to add that permission, the 200 status code will be returned, otherwise a 403 will be returned.  There is no HTTP body.
 #
-#* DELETE /perms/{subject}/{operation}/{object}
+#			* DELETE /perms/{subject}/{operation}/{object}
 #
-#  This API will undo the effects of the PUT call, if the authenticated user has permission.
+#  				This API will undo the effects of the PUT call, if the authenticated user has permission.
 #
-#* PUT /grants/{subject}/{operation}
+#			* PUT /grants/{subject}/{operation}
 #
-#  This APi will attempt to grant the given subject the rights to add permission on the given operation.  The constraints on the subject and object of that "add permission" operation will be given by a string-ized JSON object that is the HTTP body.
+#  				This APi will attempt to grant the given subject the rights to add permission on the given operation.  The constraints on the subject and object of that "add permission" operation will be given by a string-ized JSON object that is the HTTP body.
 #
-#* DELETE /grants/{subject}/{operation}
+#			* DELETE /grants/{subject}/{operation}
 #
-#  This API will attempt to undo the effect of the PUT form of this URL.  No HTTP body is required.
+#  				This API will attempt to undo the effect of the PUT form of this URL.  No HTTP body is required.
 #
-#* GET /groups
+#			* GET /groups
 #
-#  This API will return a list of all UserGroups.  An optional query parameter of "type=role" will restrict the returned groups to those that are role-based UserGroups.  Only ROOT can request this list of groups.
+#  				This API will return a list of all UserGroups.  An optional query parameter of "type=role" will restrict the returned groups to those that are role-based UserGroups.  Only ROOT can request this list of groups.
 #
-#* GET /groups/{group}/members
+#			* GET /groups/{group}/members
 #
-#  This API will return the members of the given UserGroup.
-#
-#I believe those 7 APIs will support testing of the core of the MetaACLs functionality.  What that list doesn't support are query functions to answer questions such as, Who has Rights on this Object, etc.
+#  				This API will return the members of the given UserGroup.
 #
 #
 # END POINTS LIST:
@@ -612,8 +588,7 @@ def obtainInternalToken():
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* STATUS CODE            = %s" % statuscode)
 		
-#=========================================================================================		
-		
+#=========================================================================================				
 def addACLOperation(name, description):
 
 	print ("\n----------------------------------------------------------------------------")
@@ -641,8 +616,7 @@ def addACLOperation(name, description):
 		print ("* INTERNAL TOKEN         = %s" % TOKEN)
 		print ("* OPERATION NAME         = %s" % name)
 		print ("* OPERATION DESCRIPTION  = %s" % description)
-	print ("* STATUS CODE            = %s" % statuscode)
-		
+	print ("* STATUS CODE            = %s" % statuscode)	
 #=========================================================================================
 def getListOfUserGroups(param):
 	
@@ -709,6 +683,88 @@ def getListOfGroupMembers(groupID):
 	return group_member
 #=========================================================================================
 
+def getSetDeletePermissions(subject_uuid, op_name, customer, method):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - SUBJECT PERMISSIONS - "+method+" <<<")
+	print ("----------------------------------------------------------------------------")
+
+	perm_status = ""
+	
+	url = ACL_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
+  	referer = ACL_URL 
+  	apixio_token='Apixio '+str(TOKEN) 				
+  	DATA = {'Authorization': apixio_token}
+  	HEADERS = {'Authorization': apixio_token}
+  	if method.upper() == "GET":
+	  	response = requests.get(url, data=DATA, headers=HEADERS)
+	elif method.upper() == "PUT":
+		response = requests.put(url, data=DATA, headers=HEADERS)
+	elif method.upper() == "DELETE":
+		response = requests.delete(url, data=DATA, headers=HEADERS)
+	  	
+	statuscode = response.status_code	
+	if statuscode == ok:
+		print ("* USERNAME               = %s" % ACLUSERNAME)
+		print ("* PASSWORD               = %s" % ACLPASSWORD)
+		print ("* URL                    = %s" % url)
+		print ("* INTERNAL TOKEN         = %s" % TOKEN)
+		print ("* USER / GROUP UUID      = %s" % subject_uuid)
+		print ("* OPERATION NAME         = %s" % op_name)
+		print ("* CUSTOMER               = %s" % customer)
+		print ("* METHOD                 = %s" % method)
+		perm_status = "successfully %s" % method
+	else:
+		perm_status = "failed %s" % method
+	print ("* STATUS CODE            = %s" % statuscode)
+
+
+	return perm_status
+	
+	
+#=========================================================================================
+
+def addAndDeleteGrants(subject_uuid, op_name, method):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - SUBJECT GRANTS - "+method+" <<<")
+	print ("----------------------------------------------------------------------------")
+
+	grant_status = ""
+	
+	url = ACL_URL+'/grants/'+subject_uuid+'/'+op_name
+  	referer = ACL_URL
+  	apixio_token="Apixio "+str(TOKEN)
+  	SUBJECT = {"type": "All"}
+  	OBJECT = {"type": "All"}				
+  	DATA = {"subject": SUBJECT, "object": OBJECT}
+  	HEADERS = {"Content-Type": "application/json", "Authorization": apixio_token}
+	# this is a requirement to convert single quotes to double quotes in order for dropwizard to work
+  	DATA = json.dumps(DATA)
+  	
+	if method.upper() == "PUT":
+		response = requests.put(url, data=DATA, headers=HEADERS)
+	elif method.upper() == "DELETE":
+		response = requests.delete(url, data=DATA, headers=HEADERS)
+	  	
+	statuscode = response.status_code	
+	if statuscode == ok:
+		grant_status = "successfully %s" % method
+	else:
+		grant_status = "failed %s" % method
+	print ("* USERNAME               = %s" % ACLUSERNAME)
+	print ("* PASSWORD               = %s" % ACLPASSWORD)
+	print ("* URL                    = %s" % url)
+	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* USER / GROUP UUID      = %s" % subject_uuid)
+	print ("* OPERATION NAME         = %s" % op_name)
+	print ("* METHOD                 = %s" % method)	
+	print ("* STATUS CODE            = %s" % statuscode)
+
+
+	return grant_status	
+
+#=========================================================================================
 
 def logInToHCC(): 
 	global TOKEN, SESSID, DATA, HEADERS
@@ -752,8 +808,6 @@ def logInToHCC():
 #=========================================================================================
 os.system('clear')
 
-print ("\n\nStarting ACL-Admin New User Creation...\n")
-
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
 checkEnvironmentandReceivers()
@@ -764,13 +818,21 @@ PrintGlobalParamaterSettings()
 
 obtainInternalToken()
 
-#addACLOperation("CanAnnotate5", "Can Annotate Things")
+addACLOperation("CanAnnotate6", "Can Annotate Things")
 
 getListOfUserGroups("")
 
 getListOfUserGroups("?type=System:Role")
 
 getListOfGroupMembers("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45")
+
+getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "PUT")
+getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "GET")
+getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "DELETE")
+
+
+addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "PUT")
+addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "DELETE")
 
 
 quit()
