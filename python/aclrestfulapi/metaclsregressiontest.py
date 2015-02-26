@@ -526,7 +526,7 @@ def emailReport():
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
-def obtainExternalToken():
+def obtainExternalToken(un, pw):
 
 	#print ("\n----------------------------------------------------------------------------")
 	#print (">>> ACL - OBTAIN EXTERNAL TOKEN <<<")
@@ -542,7 +542,7 @@ def obtainExternalToken():
 	referer = ACL_URL  	
 	#token=$(curl -v --data email=$email --data password="$passw" "http://localhost:8076/auths?int=true" | cut -c11-49)
 	
-	DATA =    {'Referer': referer, 'email': ACLUSERNAME, 'password': ACLPASSWORD} 
+	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
 	
 	response = requests.post(url, data=DATA, headers=HEADERS) 
@@ -552,8 +552,8 @@ def obtainExternalToken():
 	userjson = response.json()
 	if userjson is not None:
 		external_token = userjson.get("token") 
-		print ("* ACL USERNAME           = %s" % ACLUSERNAME)
-		print ("* ACL PASSWORD           = %s" % ACLPASSWORD)
+		print ("* ACL USERNAME           = %s" % un)
+		print ("* ACL PASSWORD           = %s" % pw)
 		print ("* URL                    = %s" % url)
 		print ("* EXTERNAL TOKEN         = %s" % external_token)
 		print ("* STATUS CODE            = %s" % statuscode)
@@ -562,7 +562,7 @@ def obtainExternalToken():
 	return (external_token)
 
 #=========================================================================================
-def obtainInternalToken():
+def obtainInternalToken(un, pw):
 	global TOKEN
 	
 	print ("\n----------------------------------------------------------------------------")
@@ -571,7 +571,7 @@ def obtainInternalToken():
 	
 	
 	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
-	external_token = obtainExternalToken()
+	external_token = obtainExternalToken(un, pw)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
@@ -581,8 +581,8 @@ def obtainInternalToken():
   	if userjson is not None:
   		TOKEN = userjson.get("token")
 	statuscode = response.status_code	
-	print ("* USERNAME               = %s" % ACLUSERNAME)
-	print ("* PASSWORD               = %s" % ACLPASSWORD)
+	print ("* USERNAME               = %s" % un)
+	print ("* PASSWORD               = %s" % pw)
 	print ("* TOKENIZER URL          = %s" % url)
 	print ("* EXTERNAL TOKEN         = %s" % external_token)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
@@ -618,7 +618,7 @@ def addACLOperation(name, description):
 		print ("* OPERATION DESCRIPTION  = %s" % description)
 	print ("* STATUS CODE            = %s" % statuscode)	
 #=========================================================================================
-def getListOfUserGroups(param):
+def getListOfUserGroups(param, grp_name):
 	
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> ACL - GET LIST OF USER GROUPS "+param.upper()+"<<<")
@@ -639,16 +639,55 @@ def getListOfUserGroups(param):
   	userjson = response.json()
   	group_list = response.json()
   	#if userjson is not None:
-  	#	group_list = userjson.get()
+  	#	group_list = userjson.get("grp_name")
 	statuscode = response.status_code	
 	print ("* USERNAME               = %s" % ACLUSERNAME)
 	print ("* PASSWORD               = %s" % ACLPASSWORD)
 	print ("* URL                    = %s" % url)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* STATUS CODE            = %s" % statuscode)
-	#print group_list
+	for i in range (0, len(group_list)):
+		print json.dumps(group_list[i])
 	
-	return group_list
+	
+	#print group_list[1]
+	#print group_list[2]
+	#print group_list[3]
+	
+	#grp_list = json.dumps(group_list[0])
+	#print grp_list
+	
+	return json.dumps(group_list)
+	
+#=========================================================================================	
+def getUserRole(userID):
+	
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> ACL - GET STATUS AND ROLE OF THE USER <<<")
+	print ("----------------------------------------------------------------------------")
+
+	user_name = ""
+	#url = ACL_URL+'/users/'+userID+'/firstName'
+	url = ACL_URL+'/users/'+userID
+  	referer = ACL_URL 
+  	apixio_token='Apixio '+str(TOKEN) 				
+  	DATA = {'Authorization': apixio_token}
+  	HEADERS = {'Authorization': apixio_token}
+  	response = requests.get(url, data=DATA, headers=HEADERS)
+  	
+  	userjson = response.json()
+  	user_name = response.json()
+  	#if userjson is not None:
+  	#	group_member = userjson.get()
+	statuscode = response.status_code	
+	print ("* USERNAME               = %s" % ACLUSERNAME)
+	print ("* PASSWORD               = %s" % ACLPASSWORD)
+	print ("* URL                    = %s" % url)
+	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* STATUS / ROLE          = %s" % json.dumps(user_name))
+	print ("* STATUS CODE            = %s" % statuscode)
+	
+	return json.dumps(user_name)
 #=========================================================================================
 def getListOfGroupMembers(groupID):
 	
@@ -656,20 +695,16 @@ def getListOfGroupMembers(groupID):
 	print (">>> ACL - GET LIST OF MEMBERS FROM A SPECIFIC GROUP <<<")
 	print ("----------------------------------------------------------------------------")
 
-	group_member = ""
-	#url = ACL_URL+'/groups?type=System:Role'
+	group_member_list = ""
 	url = ACL_URL+'/groups/'+groupID+'/members'
   	referer = ACL_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
-  	#DATA =    {'Referer': referer, 'Authorization': apixio_token} 
   	DATA = {'Authorization': apixio_token}
-  	#HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
-  	#response = requests.get(url, data=DATA, headers=HEADERS) 
   	response = requests.get(url, data=DATA, headers=HEADERS)
   	
   	userjson = response.json()
-  	group_member = response.json()
+  	group_member_list = response.json()
   	#if userjson is not None:
   	#	group_member = userjson.get()
 	statuscode = response.status_code	
@@ -678,9 +713,11 @@ def getListOfGroupMembers(groupID):
 	print ("* URL                    = %s" % url)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* STATUS CODE            = %s" % statuscode)
-	#print group_member
+	for i in range (0, len(group_member_list)):
+		print json.dumps(group_member_list[i])
 	
-	return group_member
+	
+	return json.dumps(group_member_list)
 #=========================================================================================
 
 def getSetDeletePermissions(subject_uuid, op_name, customer, method):
@@ -719,7 +756,7 @@ def getSetDeletePermissions(subject_uuid, op_name, customer, method):
 	print ("* STATUS CODE            = %s" % statuscode)
 
 
-	return perm_status
+	return (statuscode)
 	
 	
 #=========================================================================================
@@ -806,6 +843,39 @@ def logInToHCC():
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
+# Groups:
+# "ROOT role" - "G_6b0f5c37-a6e3-49a3-b3cc-e0b77edc1cb0"
+#
+# "USER role" - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+#
+# Users:
+# "ROOT role" 
+#{"type": "U", "id": "U_05c5dfa1-710c-4010-8dcd-4301c0c667b3"}
+#{"type": "U", "id": "U_2357bb19-07cf-4a68-a5b2-2dff1811e253"}
+#{"type": "U", "id": "U_2862e12a-d000-41ac-87dd-a1824afc827a"}
+#{"type": "U", "id": "U_46056d96-1253-4e49-8eef-f05399d428ac"}
+#{"type": "U", "id": "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"}
+#{"type": "U", "id": "U_8eaf3a36-2438-4c77-87a9-4ba9bb7773da"}
+#{"type": "U", "id": "U_9db1b15b-0789-4f43-80b7-9f6cc95cb9c7"}
+#{"type": "U", "id": "U_a84c2790-94d8-4c97-bbf6-0b4bb7e00931"}
+#{"type": "U", "id": "U_b3529884-0a91-4211-b9ae-4f3b62de1ede"}
+#{"type": "U", "id": "U_dd132911-fa53-473e-bf1f-67b579e0e4f1"}
+#{"type": "U", "id": "U_e77e3280-948b-4b16-b69c-010493a7f886"}
+#
+# "USER role"
+#{"type": "U", "id": "U_fd92c9ef-a5cf-451f-b741-a816e044faf7"}
+#{"type": "U", "id": "U_fde77955-bf6b-4763-aa43-bcd5f35ef058"}
+#{"type": "U", "id": "U_fecfa42b-1a78-44fb-a2e7-6699891b763d"}
+#{"type": "U", "id": "U_ff19f00f-5770-4225-ab7e-dee3325d9547"}
+#{"type": "U", "id": "U_ff55cacc-45e7-4ed3-a1d8-63336c346a38"}
+#{"type": "U", "id": "U_ff794257-548c-42cc-9cdd-9797b2f97575"}
+#{"type": "U", "id": "U_ffb9d112-f6a3-4f2e-a9df-509313571c3e"}
+#{"type": "U", "id": "U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1"}
+#{"type": "U", "id": "U_ffd18f65-0dce-4086-a930-a70e1223e16b"}
+#{"type": "U", "id": "U_fff77145-4bb0-43b4-9788-3e4d05b0c8eb"}
+#
+# addACLOperation("CanCode", "Can Code Things")
+
 os.system('clear')
 
 ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
@@ -814,31 +884,110 @@ checkEnvironmentandReceivers()
 
 #writeReportHeader()
 
+#Then the test code can do the same verification (via GET:/perms/{sub}/{op}/{obj}) 
+
 PrintGlobalParamaterSettings()
+#obtainInternalToken()
 
-obtainInternalToken()
+#========================================================================================================
+#addACLOperation("CanCode100", "Can Code Things100")
+#quit()
+#========================================================================================================
+#getListOfUserGroups("", "ROOT Users")
+#getListOfUserGroups("?type=System:Role", "ROOT Users")
+#getListOfGroupMembers("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45")
+#getUserRole("U_e77e3280-948b-4b16-b69c-010493a7f886")
+#========================================================================================================
+#getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "PUT")
+############## to verify permissions #################
+#getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "GET")
+######################################################
+#getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "DELETE")
+#========================================================================================================
+#addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "PUT")
+#addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "DELETE")
+#========================================================================================================
 
-addACLOperation("CanAnnotate6", "Can Annotate Things")
+# ROOT:
+# Alex - "U_e77e3280-948b-4b16-b69c-010493a7f886"
+# USERS:
+# Garth - "U_ffb9d112-f6a3-4f2e-a9df-509313571c3e"
+# Eric -  "U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1"
+# Brooke - "U_ffd18f65-0dce-4086-a930-a70e1223e16b"
+# Kim - "U_fff77145-4bb0-43b4-9788-3e4d05b0c8eb"
 
-getListOfUserGroups("")
+#========================================================================================================
 
-getListOfUserGroups("?type=System:Role")
+def testCase2():
+# TEST CASE 2:
+#	addPermission(alex, garth, CanCode, Scripps) should return true; Alex(ROOT) can give Garth (in CodeBusters) any permission
+#	hasPermission(garth, CanCode, Scripps) should return true
+#	hasPermission(garth, CanCode, CHMC) should return false
+#	hasPermission(eric, CanCode, Scripps) should return false
 
-getListOfGroupMembers("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45")
+	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	addACLOperation("CanCode100", "Can Code Things100")
+	if (getSetDeletePermissions("U_e77e3280-948b-4b16-b69c-010493a7f886", "CanCode100", "Scripps", "PUT") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "PUT") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "GET") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
 
-getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "PUT")
-getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "GET")
-getSetDeletePermissions("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "IHC", "DELETE")
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "CHMC", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
 
 
-addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "PUT")
-addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "DELETE")
+#========================================================================================================
 
+# TEST CASE 3:
+#	addPermission(eric, garth, CanCode, <any>) should return false; Eric can't directly give someone permissions
+#	grantAddPermission(eric, garth, CanCode, <any>, <any>) should return false; Eric can't delegate permissions either
+def testCase3():
+	print "Test Case #3"
+
+
+#========================================================================================================
+
+# TEST CASE 4:
+#	grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
+#	addPermission(eric, brooke, CanCode, Scripps) should return true
+#	addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
+#	grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
+#
+def testCase4():
+	print "Test Case #4"
+
+#========================================================================================================
+
+# TEST CASE 5:
+#
+#	removeAddPermission(alex, eric, CanCode) should return true; after this Eric should not be able to addPermission
+#	addPermission(eric, kim, CanCode, CHMC) should return false (no permissions now)
+#
+def testCase5():
+	print "Test Case #5"
+
+#========================================================================================================
+
+testCase2()
+testCase3()
+testCase4()
+testCase5()
 
 quit()
-
-
-
 
 #logInToHCC()
 #writeReportDetails("log into hcc")
