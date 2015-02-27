@@ -233,6 +233,12 @@ RETRIED = 0
 #=========================================================================================
 #===================== Helper Functions ==================================================
 #=========================================================================================
+def LogData(data):
+	global REPORT
+	print (data)
+	REPORT = REPORT + str(data) + "<br>"
+
+#=========================================================================================
 def create_request(test, headers=None):
     request = HTTPRequest()
     if headers:
@@ -262,7 +268,7 @@ def get_csrf_token(thread_context):
 #=========================================================================================    
 def print_all_cookies(thread_context):
     cookies = CookieModule.listAllCookies(thread_context)
-    print "cookies = [%s]" % cookies
+    print ("cookies = [%s]" % cookies)
     return cookies    
 #=========================================================================================    
 def get_new_hcc_user():
@@ -271,7 +277,7 @@ def get_new_hcc_user():
 	hccusername = HCC_USERNAME_PREFIX + hccusernumber + HCC_USERNAME_POSTFIX
 	return hccusername
 #=========================================================================================
-def PrintGlobalParamaterSettings():
+def printGlobalParamaterSettings():
 	print ("\n")
 	print ("* Version                = %s"%VERSION)
 	print ("* Environment            = %s"%ENVIRONMENT)
@@ -483,9 +489,9 @@ def archiveReport():
 		f = open(REPORTXTFILENAME)
 		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
 		if s.find(REPORTXTSTRING) != -1:
-			print "Report entry found, skipping append ...\n"
+			print ("Report entry found, skipping append ...\n")
 		else:
-			print "Report entry not found, appending new entry ...\n"
+			print ("Report entry not found, appending new entry ...\n")
 			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
 			REPORTFILETXT.write(REPORTXTSTRING)
 			REPORTFILETXT.close()
@@ -520,7 +526,7 @@ def emailReport():
 	s.quit()
 	# Delete graph image file from stress_test folder
 	#os.remove(IMAGEFILENAME)
-	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)	
+	print ("Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2))	
 	
 			
 #=========================================================================================
@@ -648,7 +654,7 @@ def getListOfUserGroups(param, grp_name):
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* STATUS CODE            = %s" % statuscode)
 	for i in range (0, len(group_list)):
-		print json.dumps(group_list[i])
+		print (json.dumps(group_list[i]))
 	
 	
 	#print group_list[1]
@@ -715,7 +721,7 @@ def getListOfGroupMembers(groupID):
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* STATUS CODE            = %s" % statuscode)
 	for i in range (0, len(group_member_list)):
-		print json.dumps(group_member_list[i])
+		print (json.dumps(group_member_list[i]))
 	
 	
 	return json.dumps(group_member_list)
@@ -883,11 +889,10 @@ ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
 checkEnvironmentandReceivers()
 
-#writeReportHeader()
+writeReportHeader()
 
-#Then the test code can do the same verification (via GET:/perms/{sub}/{op}/{obj}) 
 
-PrintGlobalParamaterSettings()
+printGlobalParamaterSettings()
 #obtainInternalToken()
 
 #========================================================================================================
@@ -943,6 +948,7 @@ PrintGlobalParamaterSettings()
 #========================================================================================================
 
 def testCase2():
+	print ("Test Case #2")
 # TEST CASE 2:
 #	addPermission(alex, garth, CanCode, Scripps) should return true; Alex(ROOT) can give Garth (in CodeBusters) any permission
 #	hasPermission(garth, CanCode, Scripps) should return true
@@ -989,7 +995,7 @@ def testCase2():
 #	addPermission(eric, garth, CanCode, <any>) should return false; Eric can't directly give someone permissions
 #	grantAddPermission(eric, garth, CanCode, <any>, <any>) should return false; Eric can't delegate permissions either
 def testCase3():
-	print "Test Case #3"
+	print ("Test Case #3")
 	
 	# Login as a NON-ROOT user
 	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
@@ -1076,7 +1082,7 @@ def testCase3():
 # grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
 # CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
 def testCase4():
-	print "Test Case #4"
+	print ("Test Case #4")
 	# Login as ROOT and give permissions to Eric and CodeBusters 
 	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
 	
@@ -1131,7 +1137,7 @@ def testCase4():
 # CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
 #
 def testCase5():
-	print "Test Case #5"
+	print ("Test Case #5")
 	# Login as ROOT and give permissions to Eric and CodeBusters 
 	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
 	
@@ -1161,18 +1167,17 @@ testCase3()
 testCase4()
 testCase5()
 
-quit()
 
 #logInToHCC()
 #writeReportDetails("log into hcc")
 	
 #ListUserGroupOrg()
 
-#writeReportFooter()
+writeReportFooter()
 
-#archiveReport()
+archiveReport()
 
-#emailReport()	
+emailReport()	
 	
 print ("==== End of Meta ACLs Regression Test =====")
 print ("===========================================")
