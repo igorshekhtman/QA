@@ -616,7 +616,8 @@ def addACLOperation(name, description):
 		print ("* INTERNAL TOKEN         = %s" % TOKEN)
 		print ("* OPERATION NAME         = %s" % name)
 		print ("* OPERATION DESCRIPTION  = %s" % description)
-	print ("* STATUS CODE            = %s" % statuscode)	
+	print ("* STATUS CODE            = %s" % statuscode)
+	return (statuscode)	
 #=========================================================================================
 def getListOfUserGroups(param, grp_name):
 	
@@ -799,7 +800,7 @@ def addAndDeleteGrants(subject_uuid, op_name, method):
 	print ("* STATUS CODE            = %s" % statuscode)
 
 
-	return grant_status	
+	return (statuscode)
 
 #=========================================================================================
 
@@ -907,14 +908,37 @@ PrintGlobalParamaterSettings()
 #addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "PUT")
 #addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanAnnotate6", "DELETE")
 #========================================================================================================
-
+#=================================
+#List of newly created HCC Users:
+#=================================
+#sanitytest001@apixio.net -        U_76ceeff8-9319-4f6f-a14b-b45152ac6417
+#opprtroptusr0001@apixio.net -     U_e36b03f4-57d8-4ab6-b955-2e6f217113a6
+#grinderUSR1416591626@apixio.net - U_f8d8d099-8512-44df-83af-216f0140e758 - Eric
+#grinderUSR1416591631@apixio.net - U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c - Garth
+#grinderUSR1416591636@apixio.net - U_ee7a0cf3-8111-4277-b5ff-d3793159697e - Brooke
+#grinderUSR1416591640@apixio.net - U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6 - Kim
+#grinderUSR1416591644@apixio.net - U_a5647e32-78f2-4e91-bd86-080e8dfc29fb
+# pw: apixio.123
+#=================================
+#List of newly created HCC Orgs:
+#=================================
+#grinderORG1416591623
+#=================================
+#List of newly created HCC Groups:
+#=================================
+#grinderGRP1416591623
+#=================================
+#
 # ROOT:
-# Alex - "U_e77e3280-948b-4b16-b69c-010493a7f886"
+# Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
 # USERS:
-# Garth - "U_ffb9d112-f6a3-4f2e-a9df-509313571c3e"
-# Eric -  "U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1"
-# Brooke - "U_ffd18f65-0dce-4086-a930-a70e1223e16b"
-# Kim - "U_fff77145-4bb0-43b4-9788-3e4d05b0c8eb"
+# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
+# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# GROUPS:
+# grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
+# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
 
 #========================================================================================================
 
@@ -925,29 +949,38 @@ def testCase2():
 #	hasPermission(garth, CanCode, CHMC) should return false
 #	hasPermission(eric, CanCode, Scripps) should return false
 
+	# Login as a ROOT user
 	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
-	addACLOperation("CanCode100", "Can Code Things100")
-	if (getSetDeletePermissions("U_e77e3280-948b-4b16-b69c-010493a7f886", "CanCode100", "Scripps", "PUT") == ok):
+	
+	if (addACLOperation("CanCode101", "Can Code Things101") == ok) or (addACLOperation("CanCode101", "Can Code Things101") == requestdenied):
 		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "PUT") == ok):
+		raw_input("Press Enter to continue...")		
+	
+	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "PUT") == ok):
 		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "GET") == ok):
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+	
+	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "GET") == ok):
 		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+		
+	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "CHMC", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
 
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "CHMC", "GET") == forbidden):
+	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "GET") == forbidden):
 		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
-	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
-		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
 
 
 #========================================================================================================
@@ -957,6 +990,71 @@ def testCase2():
 #	grantAddPermission(eric, garth, CanCode, <any>, <any>) should return false; Eric can't delegate permissions either
 def testCase3():
 	print "Test Case #3"
+	
+	# Login as a NON-ROOT user
+	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
+	if (addACLOperation("CanCode100", "Can Code Things100") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+	if (getSetDeletePermissions("U_e77e3280-948b-4b16-b69c-010493a7f886", "CanCode100", "Scripps", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+
+	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "CHMC", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "DELETE") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "DELETE") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (addAndDeleteGrants("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (addAndDeleteGrants("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "DELETE") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	
 
 
 #========================================================================================================
@@ -967,8 +1065,52 @@ def testCase3():
 #	addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
 #	grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
 #
+# ROOT:
+# Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
+# USERS:
+# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
+# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# GROUPS:
+# grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
+# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
 def testCase4():
 	print "Test Case #4"
+	# Login as ROOT and give permissions to Eric and CodeBusters 
+	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	
+	if (addAndDeleteGrants("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "PUT") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	
+	if (addAndDeleteGrants("G_766e9de6-a9a4-40b0-a82d-8414be97953f", "CanCode101", "PUT") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")
+	
+	# LogIn as Eric	
+	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")			
+	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "Scripps", "PUT") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")	
+		raw_input("Press Enter to continue...")
+	
+	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "CHMC", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+	
+	if (addAndDeleteGrants("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
 
 #========================================================================================================
 
@@ -977,8 +1119,40 @@ def testCase4():
 #	removeAddPermission(alex, eric, CanCode) should return true; after this Eric should not be able to addPermission
 #	addPermission(eric, kim, CanCode, CHMC) should return false (no permissions now)
 #
+# ROOT:
+# Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
+# USERS:
+# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
+# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# GROUPS:
+# grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
+# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+#
 def testCase5():
 	print "Test Case #5"
+	# Login as ROOT and give permissions to Eric and CodeBusters 
+	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	
+	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "DELETE") == ok):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	# Login as Eric - non Root user 
+	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
+	if (getSetDeletePermissions("U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6", "CanCode101", "CHMC", "PUT") == forbidden):
+		print (">>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<")
+	else:
+		print (">>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+	
+	
+	
+	
+	
 
 #========================================================================================================
 
