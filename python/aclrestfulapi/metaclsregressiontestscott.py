@@ -967,6 +967,18 @@ printGlobalParamaterSettings()
 
 #========================================================================================================
 
+################################################################ global vars for user IDs, etc.
+ALEX_EMAIL="ishekhtman@apixio.com"
+GARTH_EMAIL="grinderUSR1416591631@apixio.net"
+GARTH_UUID="U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+ERIC_EMAIL="grinderUSR1416591626@apixio.net"
+ERIC_UUID="U_f8d8d099-8512-44df-83af-216f0140e758"
+BROOKE_EMAIL="grinderUSR1416591636@apixio.net"
+BROOKE_UUID="U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+KIM_EMAIL="grinderUSR1416591640@apixio.net"
+KIM_UUID="U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+CODEBUSTERS_UUID="G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+
 def testCase2():
 	print ("Test Case #2")
 	raw_input("Press Enter to continue...")	
@@ -978,7 +990,7 @@ def testCase2():
 
 
 	# Login as a ROOT user
-	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	obtainInternalToken(ALEX_EMAIL, "apixio.123")
 	
 	if (addACLOperation("CanCode101", "Can Code Things101") == ok) or (addACLOperation("CanCode101", "Can Code Things101") == requestdenied):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
@@ -986,25 +998,25 @@ def testCase2():
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
 		raw_input("Press Enter to continue...")		
 	
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "PUT") == ok):
+	if (getSetDeletePermissions(GARTH_UUID, "CanCode101", "Scripps", "PUT") == ok):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")			
 	
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "GET") == ok):
+	if (getSetDeletePermissions(GARTH_UUID, "CanCode101", "Scripps", "GET") == ok):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")		
 		
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "CHMC", "GET") == forbidden):
+	if (getSetDeletePermissions(GARTH_UUID, "CanCode101", "CHMC", "GET") == forbidden):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")		
 
-	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "GET") == forbidden):
+	if (getSetDeletePermissions(ERIC_UUID, "CanCode101", "Scripps", "GET") == forbidden):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
@@ -1021,7 +1033,7 @@ def testCase3():
 	raw_input("Press Enter to continue...")	
 	
 	# Login as a NON-ROOT user
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")
 	if (addACLOperation("CanCode100", "Can Code Things100") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
@@ -1063,12 +1075,12 @@ def testCase3():
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "PUT", "All", "", "All", "") == forbidden):
+	if (addAndDeleteGrants(CODEBUSTER_UUID, "CanCode100", "PUT", "All", "", "All", "") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "DELETE", "All", "", "All", "") == forbidden):
+	if (addAndDeleteGrants(CODEBUSTER_UUID, "CanCode100", "DELETE", "All", "", "All", "") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1089,25 +1101,21 @@ def testCase3():
 #========================================================================================================
 
 # TEST CASE 4:
-#	1. grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
-#	2. addPermission(eric, brooke, CanCode, Scripps) should return true
-#	3. addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
-#	4. grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
+#	grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
+#	addPermission(eric, brooke, CanCode, Scripps) should return true
+#	addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
+#	grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
 #
 # ROOT:
 # Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
 # USERS:
-# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
-# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
-# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
-# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# Garth -  GARTH_EMAIL - GARTH_UUID
+# Eric -   grinderUSR1416591626@apixio.net - ERIC_UUID
+# Brooke - grinderUSR1416591636@apixio.net - BROOKE_UUID
+# Kim -    grinderUSR1416591640@apixio.net - KIM_UUID
 # GROUPS:
 # grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
-# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
-# CUSTOMERS:
-# Scripps              - "X_a34081ff-5a9d-4af7-88f5-029b9722d9e7"
-# CHMC                 - "X_a34081ff-5a9d-4af7-88f5-029b9722d333"
-# 
+# CodeBusters          - CODEBUSTER_UUID
 
 # me: I need to modify OBJECT
 # Scott:  yes
@@ -1118,41 +1126,44 @@ def testCase3():
 
 def testCase4():
 	print ("Test Case #4")
+	SCRIPPS_UUID="X_7040367c-d8fd-411c-b87a-4382bbda4027"
+	CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
 	raw_input("Press Enter to continue...")	
+	
 	# Login as ROOT and give permissions to Eric and CodeBusters 
-	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	obtainInternalToken(ALEX_EMAIL, "apixio.123")
 	
-	members = ["X_a34081ff-5a9d-4af7-88f5-029b9722d9e7"]
+	members = [SCRIPPS_UUID]
 	
-	if (addAndDeleteGrants("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "PUT", "Set", members, "Set", members) == ok):
+	if (addAndDeleteGrants(ERIC_UUID, "CanCode101", "PUT", "All", "", "Set", members) == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 	
-	if (addAndDeleteGrants("G_766e9de6-a9a4-40b0-a82d-8414be97953f", "CanCode101", "PUT", "Set", members, "Set", members) == ok):
+	if (addAndDeleteGrants(CODEBUSTERS_UUID, "CanCode101", "PUT", "All", "", "Set", members) == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")
 	
 	# LogIn as Eric	
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")			
-	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "X_a34081ff-5a9d-4af7-88f5-029b9722d9e7", "PUT") == ok):
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")			
+	if (getSetDeletePermissions(BROOKE_UUID, "CanCode101", SCRIPPS_UUID, "PUT") == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
 		raw_input("Press Enter to continue...")
 	
-	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "X_a34081ff-5a9d-4af7-88f5-029b9722d333", "PUT") == forbidden):
+	if (getSetDeletePermissions(BROOKE_UUID, "CanCode101", CHMC_UUID, "PUT") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 		
-	members = ["X_a34081ff-5a9d-4af7-88f5-029b9722d333"]		
+	members = [CHMC_UUID]
 	
-	if (addAndDeleteGrants("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "PUT", "Set", members, "Set", members) == forbidden):
+	if (addAndDeleteGrants(GARTH_UUID, "CanCode101", "PUT", "Set", members, "Set", members) == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1168,13 +1179,13 @@ def testCase4():
 # ROOT:
 # Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
 # USERS:
-# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
-# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
-# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
-# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# Garth -  GARTH_EMAIL - GARTH_UUID
+# Eric -   grinderUSR1416591626@apixio.net - ERIC_UUID
+# Brooke - grinderUSR1416591636@apixio.net - BROOKE_UUID
+# Kim -    grinderUSR1416591640@apixio.net - KIM_UUID
 # GROUPS:
 # grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
-# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+# CodeBusters          - CODEBUSTER_UUID
 #
 def testCase5():
 	print ("Test Case #5")
@@ -1182,15 +1193,15 @@ def testCase5():
 	# Login as ROOT and give permissions to Eric and CodeBusters 
 	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
 	
-	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "DELETE") == ok):
+	if (getSetDeletePermissions(ERIC_UUID, "CanCode101", "Scripps", "DELETE") == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 		
 	# Login as Eric - non Root user 
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
-	if (getSetDeletePermissions("U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6", "CanCode101", "CHMC", "PUT") == forbidden):
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")
+	if (getSetDeletePermissions(KIM_UUID, "CanCode101", "CHMC", "PUT") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
