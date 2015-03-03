@@ -749,18 +749,18 @@ def getSetDeletePermissions(subject_uuid, op_name, customer, method):
 	  	
 	statuscode = response.status_code	
 	if statuscode == ok:
-		print ("* USERNAME               = %s" % ACLUSERNAME)
-		print ("* PASSWORD               = %s" % ACLPASSWORD)
-		print ("* URL                    = %s" % url)
-		print ("* INTERNAL TOKEN         = %s" % TOKEN)
-		print ("* USER / GROUP UUID      = %s" % subject_uuid)
-		print ("* OPERATION NAME         = %s" % op_name)
-		print ("* CUSTOMER               = %s" % customer)
-		print ("* METHOD                 = %s" % method)
 		perm_status = "successfully %s" % method
 	else:
 		perm_status = "failed %s" % method
 	print ("* STATUS CODE            = %s" % statuscode)
+	#print ("* USERNAME               = %s" % ACLUSERNAME)
+	#print ("* PASSWORD               = %s" % ACLPASSWORD)
+	print ("* URL                    = %s" % url)
+	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* USER / GROUP UUID      = %s" % subject_uuid)
+	print ("* OPERATION NAME         = %s" % op_name)
+	print ("* CUSTOMER               = %s" % customer)
+	print ("* METHOD                 = %s" % method)
 
 
 	return (statuscode)
@@ -802,9 +802,9 @@ def addAndDeleteGrants(subject_uuid, op_name, method, type_sub, type_value_sub, 
   	DATA = json.dumps(DATA)
   	SUBJECT = json.dumps(SUBJECT)
   	OBJECT = json.dumps(OBJECT)  
-  	print "DATA = "+DATA
-  	print "SUBJECT = "+SUBJECT
-  	print "OBJECT = "+OBJECT	
+  	#print "DATA = "+DATA
+  	#print "SUBJECT = "+SUBJECT
+  	#print "OBJECT = "+OBJECT	
   	
 	if method.upper() == "PUT":
 		response = requests.put(url, data=DATA, headers=HEADERS)
@@ -870,38 +870,6 @@ def logInToHCC():
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-# Groups:
-# "ROOT role" - "G_6b0f5c37-a6e3-49a3-b3cc-e0b77edc1cb0"
-#
-# "USER role" - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
-#
-# Users:
-# "ROOT role" 
-#{"type": "U", "id": "U_05c5dfa1-710c-4010-8dcd-4301c0c667b3"}
-#{"type": "U", "id": "U_2357bb19-07cf-4a68-a5b2-2dff1811e253"}
-#{"type": "U", "id": "U_2862e12a-d000-41ac-87dd-a1824afc827a"}
-#{"type": "U", "id": "U_46056d96-1253-4e49-8eef-f05399d428ac"}
-#{"type": "U", "id": "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"}
-#{"type": "U", "id": "U_8eaf3a36-2438-4c77-87a9-4ba9bb7773da"}
-#{"type": "U", "id": "U_9db1b15b-0789-4f43-80b7-9f6cc95cb9c7"}
-#{"type": "U", "id": "U_a84c2790-94d8-4c97-bbf6-0b4bb7e00931"}
-#{"type": "U", "id": "U_b3529884-0a91-4211-b9ae-4f3b62de1ede"}
-#{"type": "U", "id": "U_dd132911-fa53-473e-bf1f-67b579e0e4f1"}
-#{"type": "U", "id": "U_e77e3280-948b-4b16-b69c-010493a7f886"}
-#
-# "USER role"
-#{"type": "U", "id": "U_fd92c9ef-a5cf-451f-b741-a816e044faf7"}
-#{"type": "U", "id": "U_fde77955-bf6b-4763-aa43-bcd5f35ef058"}
-#{"type": "U", "id": "U_fecfa42b-1a78-44fb-a2e7-6699891b763d"}
-#{"type": "U", "id": "U_ff19f00f-5770-4225-ab7e-dee3325d9547"}
-#{"type": "U", "id": "U_ff55cacc-45e7-4ed3-a1d8-63336c346a38"}
-#{"type": "U", "id": "U_ff794257-548c-42cc-9cdd-9797b2f97575"}
-#{"type": "U", "id": "U_ffb9d112-f6a3-4f2e-a9df-509313571c3e"}
-#{"type": "U", "id": "U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1"}
-#{"type": "U", "id": "U_ffd18f65-0dce-4086-a930-a70e1223e16b"}
-#{"type": "U", "id": "U_fff77145-4bb0-43b4-9788-3e4d05b0c8eb"}
-#
-# addACLOperation("CanCode", "Can Code Things")
 
 os.system('clear')
 
@@ -967,7 +935,10 @@ printGlobalParamaterSettings()
 
 #========================================================================================================
 
+################################################################ global vars for user IDs, etc. ################################
+
 def testCase2():
+	global ACL_OPERATION2
 	print ("Test Case #2")
 	raw_input("Press Enter to continue...")	
 # TEST CASE 2:
@@ -978,33 +949,34 @@ def testCase2():
 
 
 	# Login as a ROOT user
-	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")
 	
-	if (addACLOperation("CanCode101", "Can Code Things101") == ok) or (addACLOperation("CanCode101", "Can Code Things101") == requestdenied):
+	ACL_OPERATION2 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+1)
+	if (addACLOperation(ACL_OPERATION2, "Can Code Things101") == ok) or (addACLOperation(ACL_OPERATION2, "Can Code Things101") == requestdenied):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
 		raw_input("Press Enter to continue...")		
 	
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "PUT") == ok):
+	if (getSetDeletePermissions(GARTH_UUID, ACL_OPERATION2, "Scripps", "PUT") == ok):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")			
 	
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "Scripps", "GET") == ok):
+	if (getSetDeletePermissions(GARTH_UUID, ACL_OPERATION2, "Scripps", "GET") == ok):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")		
 		
-	if (getSetDeletePermissions("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "CHMC", "GET") == forbidden):
+	if (getSetDeletePermissions(GARTH_UUID, ACL_OPERATION2, "CHMC", "GET") == forbidden):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 		raw_input("Press Enter to continue...")		
 
-	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "GET") == forbidden):
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION2, "Scripps", "GET") == forbidden):
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
 		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
@@ -1016,72 +988,62 @@ def testCase2():
 # TEST CASE 3:
 #	addPermission(eric, garth, CanCode, <any>) should return false; Eric can't directly give someone permissions
 #	grantAddPermission(eric, garth, CanCode, <any>, <any>) should return false; Eric can't delegate permissions either
+#
+# ALEX_EMAIL="ishekhtman@apixio.com"
+# IGOR_EMAIL="ishekhtman@apixio.com"
+# ERIC_EMAIL="grinderUSR1416591626@apixio.net"
+# BROOKE_EMAIL="grinderUSR1416591636@apixio.net"
+# GARTH_EMAIL="grinderUSR1416591631@apixio.net"
+# KIM_EMAIL="grinderUSR1416591640@apixio.net"
+#
+# IGOR_UUID="U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
+# GARTH_UUID="U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+# ERIC_UUID="U_f8d8d099-8512-44df-83af-216f0140e758"
+# BROOKE_UUID="U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+# KIM_UUID="U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+#
+# CODEBUSTERS_UUID="G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+# SCRIPPS_UUID="X_7040367c-d8fd-411c-b87a-4382bbda4027"
+# CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
+
 def testCase3():
 	print ("Test Case #3")
 	raw_input("Press Enter to continue...")	
 	
 	# Login as a NON-ROOT user
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
-	if (addACLOperation("CanCode100", "Can Code Things100") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")
+	ACL_OPERATION3 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+2)
+	if (addACLOperation(ACL_OPERATION3, "Can Code Things101") == forbidden):
+		print ("\n1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
 	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		print ("\n1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
 		raw_input("Press Enter to continue...")		
-	if (getSetDeletePermissions("U_e77e3280-948b-4b16-b69c-010493a7f886", "CanCode100", "Scripps", "PUT") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	if (getSetDeletePermissions(GARTH_UUID, ACL_OPERATION2, "Scripps", "PUT") == forbidden):
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
 		raw_input("Press Enter to continue...")	
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "PUT") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	if (getSetDeletePermissions(IGOR_UUID, ACL_OPERATION2, "Scripps", "PUT") == forbidden):
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")		
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "Scripps", "GET") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")		
-
-	if (getSetDeletePermissions("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "CHMC", "GET") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
 		raw_input("Press Enter to continue...")	
-	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	if (getSetDeletePermissions(BROOKE_UUID, ACL_OPERATION2, "Scripps", "PUT") == forbidden):
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
+		raw_input("Press Enter to continue...")			
+		
+		
+	if (addAndDeleteGrants(GARTH_UUID, ACL_OPERATION2, "PUT", "All", "", "All", "") == forbidden):
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
-	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "GET") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	if (addAndDeleteGrants(GARTH_UUID, ACL_OPERATION2, "DELETE", "All", "", "All", "") == forbidden):
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")	
-	if (getSetDeletePermissions("U_ffba21dd-5661-4539-b8c0-b9ced8a0fbb1", "CanCode100", "Scripps", "DELETE") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "PUT", "All", "", "All", "") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45", "CanCode100", "DELETE", "All", "", "All", "") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "PUT", "All", "", "All", "") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")	
-	if (addAndDeleteGrants("U_ffb9d112-f6a3-4f2e-a9df-509313571c3e", "CanCode100", "DELETE", "All", "", "All", "") == forbidden):
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-	else:
-		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 	
 
@@ -1089,25 +1051,21 @@ def testCase3():
 #========================================================================================================
 
 # TEST CASE 4:
-#	1. grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
-#	2. addPermission(eric, brooke, CanCode, Scripps) should return true
-#	3. addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
-#	4. grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
+#	grantAddPermission(alex, eric, CanCode, CodeBustersGroup, Scripps) should return true; Alex is granting Eric the ability to addPerm on CanCode
+#	addPermission(eric, brooke, CanCode, Scripps) should return true
+#	addPermission(eric, brooke, CanCode, CHMC) should return false (constraint failure)
+#	grantAddPermission(eric, garth, CanCode, CodeBustersGroup, CHMC) should return false; Eric still has no rights to delegate permissions
 #
 # ROOT:
 # Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
 # USERS:
-# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
-# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
-# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
-# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+# Garth -  GARTH_EMAIL - GARTH_UUID
+# Eric -   grinderUSR1416591626@apixio.net - ERIC_UUID
+# Brooke - grinderUSR1416591636@apixio.net - BROOKE_UUID
+# Kim -    grinderUSR1416591640@apixio.net - KIM_UUID
 # GROUPS:
 # grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
-# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
-# CUSTOMERS:
-# Scripps              - "X_a34081ff-5a9d-4af7-88f5-029b9722d9e7"
-# CHMC                 - "X_a34081ff-5a9d-4af7-88f5-029b9722d333"
-# 
+# CodeBusters          - CODEBUSTER_UUID
 
 # me: I need to modify OBJECT
 # Scott:  yes
@@ -1119,95 +1077,306 @@ def testCase3():
 def testCase4():
 	print ("Test Case #4")
 	raw_input("Press Enter to continue...")	
+		
 	# Login as ROOT and give permissions to Eric and CodeBusters 
-	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")
+	ACL_OPERATION4 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+3)
+	if (addACLOperation(ACL_OPERATION4, "Can Code Things101") == ok) or (addACLOperation(ACL_OPERATION4, "Can Code Things101") == requestdenied):
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
+	else:
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
+		raw_input("Press Enter to continue...")	
 	
-	members = ["X_a34081ff-5a9d-4af7-88f5-029b9722d9e7"]
+	members = [SCRIPPS_UUID]
 	
-	if (addAndDeleteGrants("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "PUT", "Set", members, "Set", members) == ok):
+	if (addAndDeleteGrants(ERIC_UUID, ACL_OPERATION4, "PUT", "All", "", "Set", members) == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 	
-	if (addAndDeleteGrants("G_766e9de6-a9a4-40b0-a82d-8414be97953f", "CanCode101", "PUT", "Set", members, "Set", members) == ok):
+	if (addAndDeleteGrants(CODEBUSTERS_UUID, ACL_OPERATION4, "PUT", "All", "", "Set", members) == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")
 	
 	# LogIn as Eric	
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")			
-	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "X_a34081ff-5a9d-4af7-88f5-029b9722d9e7", "PUT") == ok):
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")
+	#raw_input("Press Enter to continue...")
+	print ("begin test")			
+	if (getSetDeletePermissions(BROOKE_UUID, ACL_OPERATION4, SCRIPPS_UUID, "PUT") == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")	
 		raw_input("Press Enter to continue...")
+	print ("end test")	
 	
-	if (getSetDeletePermissions("U_ee7a0cf3-8111-4277-b5ff-d3793159697e", "CanCode101", "X_a34081ff-5a9d-4af7-88f5-029b9722d333", "PUT") == forbidden):
+	if (getSetDeletePermissions(BROOKE_UUID, ACL_OPERATION4, CHMC_UUID, "PUT") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 		
-	members = ["X_a34081ff-5a9d-4af7-88f5-029b9722d333"]		
+	members = [CHMC_UUID]
 	
-	if (addAndDeleteGrants("U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c", "CanCode101", "PUT", "Set", members, "Set", members) == forbidden):
+	if (addAndDeleteGrants(GARTH_UUID, ACL_OPERATION4, "PUT", "Set", members, "Set", members) == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 
 #========================================================================================================
-
 # TEST CASE 5:
-#
 #	removeAddPermission(alex, eric, CanCode) should return true; after this Eric should not be able to addPermission
 #	addPermission(eric, kim, CanCode, CHMC) should return false (no permissions now)
-#
-# ROOT:
-# Alex / Igor - "U_e77e3280-948b-4b16-b69c-010493a7f886" / "U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
-# USERS:
-# Garth -  grinderUSR1416591631@apixio.net - "U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
-# Eric -   grinderUSR1416591626@apixio.net - "U_f8d8d099-8512-44df-83af-216f0140e758"
-# Brooke - grinderUSR1416591636@apixio.net - "U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
-# Kim -    grinderUSR1416591640@apixio.net - "U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
-# GROUPS:
-# grinderGRP1416591623 - "G_766e9de6-a9a4-40b0-a82d-8414be97953f"
-# CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
-#
+
 def testCase5():
 	print ("Test Case #5")
 	raw_input("Press Enter to continue...")	
 	# Login as ROOT and give permissions to Eric and CodeBusters 
-	obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
-	
-	if (getSetDeletePermissions("U_f8d8d099-8512-44df-83af-216f0140e758", "CanCode101", "Scripps", "DELETE") == ok):
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")
+	ACL_OPERATION5 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+4)
+	if (addACLOperation(ACL_OPERATION5, "Can Code Things101") == ok) or (addACLOperation(ACL_OPERATION5, "Can Code Things101") == requestdenied):
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
+	else:
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION5, "Scripps", "DELETE") == ok):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 		raw_input("Press Enter to continue...")	
 		
 	# Login as Eric - non Root user 
-	obtainInternalToken("grinderUSR1416591626@apixio.net", "apixio.123")
-	if (getSetDeletePermissions("U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6", "CanCode101", "CHMC", "PUT") == forbidden):
+	obtainInternalToken(ERIC_EMAIL, "apixio.123")
+	if (getSetDeletePermissions(KIM_UUID, ACL_OPERATION5, "CHMC", "PUT") == forbidden):
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 	else:
 		print (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-		raw_input("Press Enter to continue...")			
-	
-	
-	
-	
-	
-
+		raw_input("Press Enter to continue...")					
 #========================================================================================================
+# TEST CASE 6:
+#	1. addGrants(Igor, Kim, CanCode103, CHMC) should return true; after this Kim should not be able to addPermission
+#	2. addPermission(Kim, Eric, CanCode103, CHMC) should return true
+#	3. deletePermission(Kim, Eric, CanCode103, CHMC) should return true
+#	4. viewPermission(Kim, Eric, CanCode103, CHMC) should return true
+#	5. addPermission(Kim, Eric, CanCode103, CHMC) should return true
+#   6. DeleteGrants(Igor, Kim, CanCode103, CHMC) should return true; after this Kim should not be able to addPermission
+#	7. viewPermission(Kim, Eric, CanCode103, CHMC) should return false (since grants have been removed)
+#	8. addPermission(Kim, Eric, CanCode103, CHMC) should return false (since grants have been removed)
+#	9. deletePermission(Kim, Eric, CanCode103, CHMC) should return false (since grants have been removed)
 
-#testCase2()
-#testCase3()
+def testCase6():
+	print ("Test Case #6")
+	raw_input("Press Enter to continue...")	
+	
+	# Login as ROOT (Igor)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")	
+	ACL_OPERATION6 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+5)
+	#print ALC_OPERATION
+	#quit()
+	if (addACLOperation(ACL_OPERATION6, "Can Code Things101") == ok) or (addACLOperation(ACL_OPERATION6, "Can Code Things101") == requestdenied):
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
+	else:
+		print ("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
+		raw_input("Press Enter to continue...")	
+	
+	
+	members = [CHMC_UUID]
+	if (addAndDeleteGrants(KIM_UUID, ACL_OPERATION6, "PUT", "All", "", "Set", members) == ok):
+		print ("1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	# Login as Kim - non Root user 
+	obtainInternalToken(KIM_EMAIL, "apixio.123")
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "PUT") == ok):
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "DELETE") == ok):
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "GET") == forbidden):
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "PUT") == ok):
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+		
+	# Login as ROOT (Igor)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")	
+	members = [CHMC_UUID]
+	if (addAndDeleteGrants(KIM_UUID, ACL_OPERATION6, "DELETE", "All", "", "Set", members) == ok):
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")
+	
+	# Login as Kim - non Root user 
+	obtainInternalToken(KIM_EMAIL, "apixio.123")
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "GET") == ok):
+		print ("7. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("7. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "PUT") == forbidden):
+		print ("8. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("8. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION6, CHMC_UUID, "DELETE") == forbidden):
+		print ("9. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("9. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+									
+#========================================================================================================
+# TEST CASE 7:
+
+def testCase7():
+	print ("Test Case #7")
+	raw_input("Press Enter to continue...")	
+	
+	# Login as ROOT (Igor)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")	
+	ACL_OPERATION7 = ACL_OPERATION+str(ACL_CAN_CODE_CTR+7)
+
+	if (addACLOperation(ACL_OPERATION7, "Can Code Things101") == ok) or (addACLOperation(ACL_OPERATION7, "Can Code Things101") == requestdenied):
+		print ("\n1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")
+	else:
+		print ("\n>1. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n")	
+		raw_input("Press Enter to continue...")	
+	
+	members = [SCRIPPS_UUID, CHMC_UUID]
+	if (addAndDeleteGrants(BROOKE_UUID, ACL_OPERATION7, "PUT", "All", "", "Set", members) == ok):
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("2. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	# Log in as Brooke
+	obtainInternalToken(BROOKE_EMAIL, "apixio.123")	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "PUT") == ok):
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("3. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, CHMC_UUID, "PUT") == ok):
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("4. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "GET") == ok):
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("5. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "DELETE") == ok):
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("6. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, CHMC_UUID, "DELETE") == ok):
+		print ("7. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("7. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "GET") == forbidden):
+		print ("8. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("8. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	obtainInternalToken(IGOR_EMAIL, "apixio.123")	
+					
+	members = [SCRIPPS_UUID, CHMC_UUID]
+	if (addAndDeleteGrants(BROOKE_UUID, ACL_OPERATION7, "DELETE", "All", "", "Set", members) == ok):
+		print ("9. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("9. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+		
+	# Log in as Brooke
+	obtainInternalToken(BROOKE_EMAIL, "apixio.123")	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "PUT") == forbidden):
+		print ("10. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("10. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, CHMC_UUID, "PUT") == forbidden):
+		print ("11. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("11. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "GET") == forbidden):
+		print ("12. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("12. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")			
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "DELETE") == forbidden):
+		print ("13. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("13. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")		
+		
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, CHMC_UUID, "DELETE") == forbidden):
+		print ("14. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("14. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+	
+	if (getSetDeletePermissions(ERIC_UUID, ACL_OPERATION7, SCRIPPS_UUID, "GET") == forbidden):
+		print ("15. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PASSED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+	else:
+		print ("15. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FAILED QA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+		raw_input("Press Enter to continue...")	
+									
+#========================================================================================================
+ALEX_EMAIL="ishekhtman@apixio.com"
+IGOR_EMAIL="ishekhtman@apixio.com"
+IGOR_UUID="U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
+GARTH_EMAIL="grinderUSR1416591631@apixio.net"
+GARTH_UUID="U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+ERIC_EMAIL="grinderUSR1416591626@apixio.net"
+ERIC_UUID="U_f8d8d099-8512-44df-83af-216f0140e758"
+BROOKE_EMAIL="grinderUSR1416591636@apixio.net"
+BROOKE_UUID="U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+KIM_EMAIL="grinderUSR1416591640@apixio.net"
+KIM_UUID="U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+CODEBUSTERS_UUID="G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+SCRIPPS_UUID="X_7040367c-d8fd-411c-b87a-4382bbda4027"
+CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
+
+ACL_OPERATION="CanCode"
+ACL_CAN_CODE_CTR=240
+
+testCase2()
+testCase3()
 testCase4()
-#testCase5()
-
+testCase5()
+testCase6()
+testCase7()
+#testCase8()
+#testCase9()
+#testCase10()
 
 #logInToHCC()
 #writeReportDetails("log into hcc")
