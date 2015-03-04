@@ -36,4 +36,21 @@ ACLPASSWORD=apixio.123
 ########################################
 MAX_NUM_RETRIES=5
 TEST_FLOW_CONTROL=1
+# 1=pause 0=no pause
+WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES=0
+########################################
+ALEX_EMAIL=ishekhtman@apixio.com
+IGOR_EMAIL=ishekhtman@apixio.com
+IGOR_UUID=U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066
+GARTH_EMAIL=grinderUSR1416591631@apixio.net
+GARTH_UUID=U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c
+ERIC_EMAIL=grinderUSR1416591626@apixio.net
+ERIC_UUID=U_f8d8d099-8512-44df-83af-216f0140e758
+BROOKE_EMAIL=grinderUSR1416591636@apixio.net
+BROOKE_UUID=U_ee7a0cf3-8111-4277-b5ff-d3793159697e
+KIM_EMAIL=grinderUSR1416591640@apixio.net
+KIM_UUID=U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6
+CODEBUSTERS_UUID=G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45
+SCRIPPS_UUID=X_7040367c-d8fd-411c-b87a-4382bbda4027
+CHMC_UUID=X_1879b8a5-2e6e-4595-9846-eb10048bf5d8
 ########################################
