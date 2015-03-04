@@ -38,6 +38,7 @@ MAX_NUM_RETRIES=5
 TEST_FLOW_CONTROL=1
 # 1=pause 0=no pause
 WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES=0
+PAUSE_FOR_FAILURES=1
 ########################################
 ALEX_EMAIL=ishekhtman@apixio.com
 IGOR_EMAIL=ishekhtman@apixio.com
@@ -53,4 +54,5 @@ KIM_UUID=U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6
 CODEBUSTERS_UUID=G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45
 SCRIPPS_UUID=X_7040367c-d8fd-411c-b87a-4382bbda4027
 CHMC_UUID=X_1879b8a5-2e6e-4595-9846-eb10048bf5d8
+ACL_OPERATION=CanCode
 ########################################
