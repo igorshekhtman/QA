@@ -223,9 +223,7 @@ def logInToHCC():
   DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
   HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-			'Referer': referer}	
-  			
-  
+			'Referer': referer}			
   response = requests.post(url, data=DATA, headers=HEADERS) 
   IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
@@ -253,12 +251,9 @@ def startCoding():
   coding_opp_current = 1
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
-    #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-    #https://hccstage2.apixio.com/api/next-work-item/
-    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+    response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
-    #opportunity = response.text
     patient_details = response.text
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     if opportunity == None:
@@ -266,9 +261,7 @@ def startCoding():
       return 1
     patient_uuid = ""
     patient_uuid = opportunity.get("patient_uuid")
-    #patient_uuid = opportunity("patient_uuid")
     #print "patient uuid: %s" % patient_uuid
-    #quit()
     scorables = opportunity.get("scorables")
     #print "scorables: %s" % scorables
     print("-------------------------------------------------------------------------------")
@@ -302,9 +295,7 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
-      #https://hccstage2.apixio.com/api/document-text/e9c32605-6db2-428d-ba4f-b7623dd20094
-      #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
-      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
       print "* GET SCRBLE DOC   = %s" % response.status_code
       
       
@@ -322,8 +313,7 @@ def historyReport():
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
   
-  #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
@@ -407,8 +397,7 @@ def qaReport():
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
   
-  #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
@@ -790,18 +779,6 @@ def log(text):
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
-  
-  HEADERS = {'Connection': 'keep-alive', \
-    	'Content-Length': '14340', \
-    	'Accept': 'application/json, text/plain, */*', \
-    	'Origin': 'https://hccstage2.apixio.com', \
-    	'X-CSRFToken': TOKEN, \
-    	'Content-Type': 'application/json;charset=UTF-8', \
-    	'Referer': 'https://hccstage2.apixio.com/', \
-    	'Accept-Encoding': 'gzip, deflate', \
-    	'Accept-Language': 'en-US,en;q=0.8'}	
-   
-  
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
@@ -851,8 +828,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
@@ -860,7 +836,6 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()  
   elif CODE_OPPS_ACTION == "2": # Reject Doc
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
@@ -901,16 +876,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"predicted_code[code_system_version]": "The SanityTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
-    		}		
-   		
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    		}
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()      
   elif CODE_OPPS_ACTION == "3": # Skip Opp
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
@@ -949,14 +921,12 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()  
   else:
     print("* CODER ACTION     = Unknown\n")
   return 0
