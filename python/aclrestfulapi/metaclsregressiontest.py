@@ -154,37 +154,6 @@ PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font s
 FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<br><table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
-MODULES = {	"login":"0", \
-			"create new coding organization":"1", \
-			"create and delete new group":"2", \
-			"add and delete group permissions":"3", \
-			"add delete activate assign new user":"4", \
-			"log into hcc":"5", \
-			"log into acl":"6", \
-			"create new user":"7", \
-			"activate new user":"8", \
-			"deactivate existing user":"9", \
-			"set password":"10", \
-			"create new group":"11", \
-			"delete existing group":"12", \
-			"add group permission":"13", \
-			"delete group permission":"14", \
-			"add coder to a group":"15", \
-			"remove coder from a group":"16", \
-			"assign coding organization":"17", \
-			"connection to hcc host":"18", \
-			"hcc login page":"19", \
-			"hcc user login":"20", \
-			"user/password/group/org creation/deletion/assignment": "21" \
-			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
-for i in range (0, 22):
-	FAILED_TOT[i] = 0
-	SUCCEEDED_TOT[i] = 0
-	RETRIED_TOT[i] = 0
-
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
 #=========================================================================================
@@ -658,7 +627,7 @@ def addACLOperation(name, description, exp_statuscode, step):
 	logTestCaseStatus(exp_statuscode, statuscode, step, "addACLOperation", TOKEN, name, description, "", "", "", "", "")
 	return (statuscode)	
 #=========================================================================================
-def getListOfUserGroups(param, grp_name):
+def getListOfUserGroups(param, grp_name, exp_statuscode, step):
 	
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> ACL - GET LIST OF USER GROUPS "+param.upper()+"<<<")
@@ -675,9 +644,14 @@ def getListOfUserGroups(param, grp_name):
   	HEADERS = {'Authorization': apixio_token}
   	#response = requests.get(url, data=DATA, headers=HEADERS) 
   	response = requests.get(url, data=DATA, headers=HEADERS)
-	  	
-  	userjson = response.json()
-  	group_list = response.json()
+  	
+	if response == ok:   	
+  		userjson = response.json()
+  		group_list = response.json()
+  		for i in range (0, len(group_list)):
+			print (json.dumps(group_list[i]))
+  	else:
+  		group_list = "Not Available"	
   	#if userjson is not None:
   	#	group_list = userjson.get("grp_name")
 	statuscode = response.status_code	
@@ -687,13 +661,11 @@ def getListOfUserGroups(param, grp_name):
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* TYPE                   = %s" % param)
 	print ("* NAME                   = %s" % grp_name)
+	print ("* GROUP LIST             = %s" % group_list)
 	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	logTestCaseStatus(exp_statuscode, statuscode, step, "getListOfUserGroups", TOKEN, param, grp_name, "", "", "", "", "")
-	for i in range (0, len(group_list)):
-		print (json.dumps(group_list[i]))
-	
-	
+
 	#print group_list[1]
 	#print group_list[2]
 	#print group_list[3]
@@ -704,7 +676,7 @@ def getListOfUserGroups(param, grp_name):
 	return json.dumps(group_list)
 	
 #=========================================================================================	
-def getUserRole(userID):
+def getUserRole(userID, exp_statuscode, step):
 	
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> ACL - GET STATUS AND ROLE OF THE USER <<<")
@@ -719,8 +691,12 @@ def getUserRole(userID):
   	HEADERS = {'Authorization': apixio_token}
   	response = requests.get(url, data=DATA, headers=HEADERS)
   	
-  	userjson = response.json()
-  	user_name = response.json()
+  	if response == ok:
+  		userjson = response.json()
+  		user_name = response.json()
+  		status_role = json.dumps(user_name)
+  	else:
+  		status_role = "Not Available"	
   	#if userjson is not None:
   	#	group_member = userjson.get()
 	statuscode = response.status_code	
@@ -728,14 +704,14 @@ def getUserRole(userID):
 	print ("* PASSWORD               = %s" % ACLPASSWORD)
 	print ("* URL                    = %s" % url)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
-	print ("* STATUS / ROLE          = %s" % json.dumps(user_name))
+	print ("* STATUS / ROLE          = %s" % status_role)
 	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	logTestCaseStatus(exp_statuscode, statuscode, step, "getUserRole", TOKEN, json.dumps(user_name), "", "", "", "", "", "")
 	
-	return json.dumps(user_name)
+	return status_role
 #=========================================================================================
-def getListOfGroupMembers(groupID):
+def getListOfGroupMembers(groupID, exp_statuscode, step):
 	
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> ACL - GET LIST OF MEMBERS FROM A SPECIFIC GROUP <<<")
@@ -749,8 +725,14 @@ def getListOfGroupMembers(groupID):
   	HEADERS = {'Authorization': apixio_token}
   	response = requests.get(url, data=DATA, headers=HEADERS)
   	
-  	userjson = response.json()
-  	group_member_list = response.json()
+  	if response == ok:
+  		userjson = response.json()
+  		group_member_list = response.json()
+  		for i in range (0, len(group_member_list)):
+			print (json.dumps(group_member_list[i]))
+	else:
+		group_member_list = "Not Available"			
+  		
   	#if userjson is not None:
   	#	group_member = userjson.get()
 	statuscode = response.status_code	
@@ -758,12 +740,10 @@ def getListOfGroupMembers(groupID):
 	print ("* PASSWORD               = %s" % ACLPASSWORD)
 	print ("* URL                    = %s" % url)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* GROUP MEMBER LIST      = %s" % group_member_list)
 	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-	logTestCaseStatus(exp_statuscode, statuscode, step, "getListOfGroupMembers", TOKEN, group_member_list, "", "", "", "", "", "")
-	for i in range (0, len(group_member_list)):
-		print (json.dumps(group_member_list[i]))
-	
+	logTestCaseStatus(exp_statuscode, statuscode, step, "getListOfGroupMembers", TOKEN, group_member_list, "", "", "", "", "", "")	
 	
 	return json.dumps(group_member_list)
 #=========================================================================================
@@ -930,12 +910,35 @@ printGlobalParamaterSettings()
 # CodeBusters          - "G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
 
 #========================================================================================================
+def testCase1():
+	global REPORT
+	REPORT = REPORT+(SUBHDR % "Test Case #1")
+	REPORT = REPORT+"<table border='0' width='100%'>"
+	print ("\n----------------------------------------------------------------------------")
+	print ("Test Case #1")
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")
+	
+# TEST CASE 1: 	
+#	with just initial setup, no User should be able to perform any Operation	
+	acl_operation = ACL_OPERATION+str(time.time())
+	# Login as Eric (NON-ROOT user)
+	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 1)
+	addACLOperation(acl_operation, "Can Code Things",  {forbidden}, 2)
+	getListOfUserGroups("type=System:Role", "ROOT Users", {forbidden}, 3)
+	getUserRole(GARTH_UUID, {forbidden}, 4)
+	getListOfGroupMembers(CODEBUSTERS_UUID, {forbidden}, 5)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {forbidden}, 6)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {forbidden}, 7)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "DELETE", {forbidden}, 8)
+
+
+#========================================================================================================
 
 def testCase2():
 	global REPORT
 	REPORT = REPORT+(SUBHDR % "Test Case #2")
 	REPORT = REPORT+"<table border='0' width='100%'>"
-	#REPORT = REPORT+"<tr><td>Step:</td><td>Expected Code:</td><td>Returned Code:</td><td>Status:</td></tr>"
 	print ("\n----------------------------------------------------------------------------")
 	print ("Test Case #2")
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
@@ -954,6 +957,8 @@ def testCase2():
 	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {ok}, 4)
 	getSetDeletePermissions(GARTH_UUID, acl_operation, "CHMC", "GET", {forbidden}, 5)	
 	getSetDeletePermissions(ERIC_UUID, acl_operation, "Scripps", "GET", {forbidden}, 6)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "All", "", {forbidden}, 7)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "DELETE", "All", "", "All", "", {forbidden}, 8)	
 	
 	REPORT = REPORT+"</table>"	
 
@@ -1124,13 +1129,13 @@ def testCase7():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	
-	# Login as ROOT (Igor)
+	# Login as Igor (Root)
 	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 1)	
 	acl_operation = ACL_OPERATION+str(time.time())
 	addACLOperation(acl_operation, "Can Code Things",  {ok}, 2)
 	addAndDeleteGrants(BROOKE_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, 3)
 		
-	# Log in as Brooke
+	# Log in as Brooke (Non-root)
 	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, 4)	
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {ok}, 5)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, 6)
@@ -1138,10 +1143,12 @@ def testCase7():
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "DELETE", {ok}, 8)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {ok}, 9)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, 10)
+	
+	# Log in as Igor (Root)
 	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 11)	
 	addAndDeleteGrants(BROOKE_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, 12)
 		
-	# Log in as Brooke
+	# Log in as Brooke (Non-root)
 	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, 13)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {forbidden}, 14)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, 15)
@@ -1171,6 +1178,7 @@ def testCase7():
 #ACL_CAN_CODE_CTR=240
 
 
+testCase1()
 testCase2()
 testCase3()
 testCase4()
