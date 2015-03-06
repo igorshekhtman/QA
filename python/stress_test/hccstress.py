@@ -237,7 +237,8 @@ def logInToHCC():
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
-  
+
+#=========================================================================================  
   
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
@@ -261,7 +262,8 @@ def startCoding():
   coding_opp_current = 1
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
-    response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+    #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
     patient_details = response.text
@@ -305,7 +307,10 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
-      response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
+      
+      #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
+      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      
       print "* GET SCRBLE DOC   = %s" % response.status_code
       
       
@@ -323,7 +328,8 @@ def historyReport():
   view_history_count = 1
   testCode = 10 + (1 * view_history_count)
   
-  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+  #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
@@ -407,7 +413,8 @@ def qaReport():
   qa_report_count = 1
   testCode = 10 + (1 * qa_report_count)
   
-  response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+  #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
   patient_details = response.text
@@ -705,6 +712,7 @@ def archiveReport():
 		os.chdir("/mnt/automation/python/stress_test")
 		print ("Finished archiving report ... \n")
 
+#=========================================================================================
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
@@ -717,6 +725,7 @@ def emailReport():
 	s.sendmail(SENDER, RECEIVERS2, REPORT)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
+#=========================================================================================
 
 def pages_payload(details):
 	report_json = details.json()
@@ -727,6 +736,8 @@ def pages_payload(details):
     		pages = 0
     		payload = 0
 	return (pages, payload)
+	
+#=========================================================================================	
 
 def create_request(test, headers=None):
   request = HTTPRequest()
@@ -734,6 +745,8 @@ def create_request(test, headers=None):
     request.headers = headers
   test.record(request)
   return (request)
+  
+#========================================================================================= 
 
 def get_csrf_token(thread_context):
   cookies = CookieModule.listAllCookies(thread_context)
@@ -742,6 +755,8 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return (csrftoken)
+
+#=========================================================================================
 
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
@@ -762,6 +777,8 @@ def IncrementTestResultsTotals(module, code):
 		if (code == unauthorized):
 			logInToHCC()
 			#startCoding()
+
+#=========================================================================================
     
 def log(text):
 	global REPORT
@@ -769,8 +786,20 @@ def log(text):
 	print(text)
 	return 0    
 
+#=========================================================================================
+
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
+  HEADERS = {'Connection': 'keep-alive', \
+    	'Content-Length': '14340', \
+    	'Accept': 'application/json, text/plain, */*', \
+    	'Origin': 'https://hccstage2.apixio.com', \
+    	'X-CSRFToken': TOKEN, \
+    	'Content-Type': 'application/json;charset=UTF-8', \
+    	'Referer': 'https://hccstage2.apixio.com/', \
+    	'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8'}	
+  
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
@@ -820,7 +849,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
@@ -869,7 +899,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
@@ -914,7 +945,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
