@@ -341,6 +341,18 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
+  HEADERS = {'Connection': 'keep-alive', \
+    	'Content-Length': '14340', \
+    	'Accept': 'application/json, text/plain, */*', \
+    	'Origin': 'https://hccstage2.apixio.com', \
+    	'X-CSRFToken': TOKEN, \
+    	'Content-Type': 'application/json;charset=UTF-8', \
+    	'Referer': 'https://hccstage2.apixio.com/', \
+    	'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8'}
+  
+  
+  
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
@@ -392,7 +404,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
@@ -443,7 +456,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
@@ -490,7 +504,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
-    response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
+    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
@@ -533,11 +548,13 @@ def startCoding():
       #refresh expired token
       logInToHCC()
     testCode = 10 + (1 * coding_opp_current)
-    response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+    #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     if str(response.status_code) == str(unauthorized):
       logInToHCC()
-      response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+      #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
+      response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
       print "* GET CODNG OPP    = %s" % response.status_code    
     opportunity = response.json()
     ######################################################################################         
@@ -648,7 +665,8 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
-      response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
+      #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
+      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
       print "* GET SCRBLE DOC   = %s" % response.status_code      
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
