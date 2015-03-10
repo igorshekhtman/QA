@@ -1,3 +1,20 @@
+============== SELENIUM WEB DRIVER: NOSETESTS ==========================
+
+nosetests
+
+with reports:
+
+nosetests --with-xunit --xunit-file=FILE --tests=NAMES
+
+
+view reports in html format
+
+xsltproc style.xslt nosetests.xml > tests_03_10_2015.html
+
+User’s Manual:
+https://selenium-python.readthedocs.org/getting-started.html
+
+
 ================= EVENT CLOUD SEAN ======================================
 
 https://github.com/Apixio/complex-event-processing/blob/master/event_cloud/scripts/cep_query.py
