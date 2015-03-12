@@ -9,11 +9,31 @@ nosetests --with-xunit --xunit-file=FILE --tests=NAMES
 
 view reports in html format
 
-xsltproc style.xslt nosetests.xml > tests_03_10_2015.html
+xsltproc style.xsl nosetests.xml > tests_03_10_2015.html
 
 User’s Manual:
 https://selenium-python.readthedocs.org/getting-started.html
 
+
+Igors-MacBook-Pro:selenium ishekhtman$ source .venv/bin/activate
+(.venv)Igors-MacBook-Pro:selenium ishekhtman$
+
+running specific test:
+--tests=NAMES         Run these tests (comma-separated list). (file names less .py)
+
+
+
+Commands for Jenkins:
+=====================
+1.) 
+nosetests --with-xunit --xunit-file=/mnt/hcc_test_automation/results_xml/test_hcc601.xml --tests=test_hcc601.py
+
+
+nosetests --with-xunit --xunit-file=/mnt/hcc_test_automation/results_xml/test_hcc601.xml --tests=/mnt/hcc_test_automation/hcc_front_end/test_hcc601.py
+
+
+2.) 
+xsltproc style.xsl /mnt/hcc_test_automation/results_xml/test_hcc601.xml > /mnt/hcc_test_automation/reports_html/test_hcc601_03_10_2015.html
 
 ================= EVENT CLOUD SEAN ======================================
 
