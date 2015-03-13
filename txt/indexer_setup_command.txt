@@ -35,6 +35,22 @@ nosetests --with-xunit --xunit-file=/mnt/hcc_test_automation/results_xml/test_hc
 2.) 
 xsltproc style.xsl /mnt/hcc_test_automation/results_xml/test_hcc601.xml > /mnt/hcc_test_automation/reports_html/test_hcc601_03_10_2015.html
 
+
+
+Jenkins
+========
+ssh -i ~/secrets/qa-prd.pem root@10.250.164.225 "cd /mnt/hcc_test_automation; nosetests --with-xunit --xunit-file=/mnt/hcc_test_automation/results_xml/test_hcc601.xml --tests=/mnt/hcc_test_automation/hcc_front_end/test_hcc601.py"
+
+ssh -i ~/secrets/qa-prd.pem root@10.250.164.225 "cd /mnt/hcc_test_automation; xsltproc style.xsl /mnt/hcc_test_automation/results_xml/test_hcc601.xml > /mnt/hcc_test_automation/reports_html/test_hcc601_03_10_2015.html”
+
+ssh -i ~/secrets/qa-prd.pem root@10.250.164.225 "cd /mnt/hcc_test_automation; nosetests --with-xunit --xunit-file=/usr/lib/apx-reporting/assets/reports/staging/hccregression/2015/03/12.xml --tests=/mnt/hcc_test_automation/hcc_front_end/test_hcc601.py”
+
+ssh -i ~/secrets/qa-prd.pem root@10.250.164.225 "cd /mnt/hcc_test_automation; xsltproc style.xsl /usr/lib/apx-reporting/assets/reports/staging/hccregression/2015/03/12.xml > /usr/lib/apx-reporting/assets/reports/staging/hccregression/2015/03/12.html"
+
+
+
+
+
 ================= EVENT CLOUD SEAN ======================================
 
 https://github.com/Apixio/complex-event-processing/blob/master/event_cloud/scripts/cep_query.py
