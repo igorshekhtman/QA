@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 
-class TestHCC_603(unittest.TestCase) :
+class hcc_sanity(unittest.TestCase) :
 
     @classmethod
     def setUpClass(cls) :

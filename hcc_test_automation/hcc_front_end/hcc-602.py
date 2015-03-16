@@ -4,7 +4,7 @@ import unittest
 
 from selenium import webdriver
 
-class TestHCC_601(unittest.TestCase) :
+class hcc_602(unittest.TestCase) :
 
     @classmethod
     def setUpClass(cls) :
@@ -33,13 +33,29 @@ class TestHCC_601(unittest.TestCase) :
         self.login()
 
 
-    def test_reporting_should_have_limited_pagination(self) :
+    def test_multiple_test_cases_within_one_python_script_602_1(self) :
         self.driver.get("https://hccstage2.apixio.com/#/qa") # go to the qa-workflow
         
         self.driver.implicitly_wait(3)
         pagination_controls = self.driver.find_elements_by_css_selector(".pagination > li")
         self.assertGreater(len(pagination_controls),2)
         self.assertLess(len(pagination_controls), 13)
+        
+    def test_multiple_test_cases_within_one_python_script_602_2(self) :
+        self.driver.get("https://hccstage2.apixio.com/#/qa") # go to the qa-workflow
+        
+        self.driver.implicitly_wait(3)
+        pagination_controls = self.driver.find_elements_by_css_selector(".pagination > li")
+        self.assertGreater(len(pagination_controls),2)
+        self.assertLess(len(pagination_controls), 13)  
+        
+    def test_multiple_test_cases_within_one_python_script_602_3(self) :
+        self.driver.get("https://hccstage2.apixio.com/#/qa") # go to the qa-workflow
+        
+        self.driver.implicitly_wait(3)
+        pagination_controls = self.driver.find_elements_by_css_selector(".pagination > li")
+        self.assertGreater(len(pagination_controls),2)
+        self.assertLess(len(pagination_controls), 13)      
 
     @classmethod
     def tearDownClass(cls) :

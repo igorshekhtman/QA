@@ -38,7 +38,7 @@ class TestHCC_603(unittest.TestCase) :
         
 #-----------------------------------------------------------------------------------------
         
-    def test_code_and_accept_opportunities_603(self) :
+    def test_code_and_accept_10_opportunities_603(self) :
     
         #self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
 		
