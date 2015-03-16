@@ -15,8 +15,11 @@ User’s Manual:
 https://selenium-python.readthedocs.org/getting-started.html
 
 
-Igors-MacBook-Pro:selenium ishekhtman$ source .venv/bin/activate
+=========== Activating nosetests =================
+cd /Users/ishekhtman/Documents/selenium
+source .venv/bin/activate
 (.venv)Igors-MacBook-Pro:selenium ishekhtman$
+==================================================
 
 running specific test:
 --tests=NAMES         Run these tests (comma-separated list). (file names less .py)
