@@ -384,7 +384,8 @@ def writeReportHeader ():
 	REPORT = REPORT + "ACL Root user name: <b>%s</b><br>\n" % (ACLUSERNAME)
 	REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (ACL_URL)	
 	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
-	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='1'><tr><td>"	
+	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='0'>"
+	#REPORT = REPORT + "<tr><td>"	
 	print ("End writing report header ...\n")	
 	
 #=========================================================================================	
@@ -594,7 +595,9 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
 	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "obtainInternalToken", un, pw, external_token, TOKEN, "", "", "", "")
+	# skip this step for tc or step of zero, which is indication of a cleanup process	
+	if (step > 0):
+		logTestCaseStatus(exp_statuscode, statuscode, tc, step, "obtainInternalToken", un, pw, external_token, TOKEN, "", "", "", "")
 
 #=========================================================================================				
 def addACLOperation(name, description, exp_statuscode, tc, step):
@@ -860,6 +863,65 @@ def addAndDeleteGrants(subject_uuid, op_name, method, type_sub, type_value_sub, 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "addAndDeleteGrants", TOKEN, subject_uuid, op_name, method, type_sub, type_value_sub, type_ob, type_value_ob)
 
 	return (statuscode)
+	
+#=========================================================================================	
+# This function is used for cleanUp() routine purposes only	
+def removePermission(subject_uuid, op_name, customer):
+
+	url = ACL_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
+  	referer = ACL_URL 
+  	apixio_token='Apixio '+str(TOKEN) 				
+  	DATA = {'Authorization': apixio_token}
+  	HEADERS = {'Authorization': apixio_token}
+	response = requests.delete(url, data=DATA, headers=HEADERS)
+	  	
+	statuscode = response.status_code	
+	if statuscode == ok:
+		print "successfully deleted permissions:  %s, %s, %s, %s" % (subject_uuid, op_name, customer, statuscode)
+	else:
+		print "failure occured deleting permissions:  %s, %s, %s, %s" % (subject_uuid, op_name, customer, statuscode)
+#=========================================================================================
+# This function is used for cleanUp() routine purposes only
+def removeGrants(subject_uuid, op_name):
+	SUBJECT = {"type": "All"}
+  	OBJECT = {"type": "All"}
+  	url = ACL_URL+'/grants/'+subject_uuid+'/'+op_name
+  	referer = ACL_URL
+  	apixio_token="Apixio "+str(TOKEN)	
+	DATA = {"subject": SUBJECT, "object": OBJECT}
+  	HEADERS = {"Content-Type": "application/json", "Authorization": apixio_token}
+	# this is a requirement to convert single quotes to double quotes in order for dropwizard to work
+  	DATA = json.dumps(DATA)
+  	SUBJECT = json.dumps(SUBJECT)
+  	OBJECT = json.dumps(OBJECT)  
+	response = requests.delete(url, data=DATA, headers=HEADERS)	
+	statuscode = response.status_code	
+	if statuscode == ok:
+		print "successfully removed grants:  %s, %s, %s" % (subject_uuid, op_name, statuscode)
+	else:
+		print "failure occured removing grants:  %s, %s, %s" % (subject_uuid, op_name, statuscode)
+#=========================================================================================
+
+def cleanUp():
+
+	acl_operation = ACL_OPERATION
+	# log-in as a Root-User
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
+	
+	removePermission(BROOKE_UUID, acl_operation, "Scripps")
+	removePermission(BROOKE_UUID, acl_operation, CHMC_UUID)
+	removePermission(BROOKE_UUID, acl_operation, SCRIPPS_UUID)
+	removePermission(ERIC_UUID, acl_operation, CHMC_UUID)
+	removePermission(ERIC_UUID, acl_operation, SCRIPPS_UUID)
+	removePermission(GARTH_UUID, acl_operation, "Scripps")
+	removePermission(IGOR_UUID, acl_operation, "Scripps")
+	removePermission(KIM_UUID, acl_operation, "CHMC")
+
+	removeGrants(BROOKE_UUID, acl_operation)
+	removeGrants(CODEBUSTERS_UUID, acl_operation)
+	removeGrants(ERIC_UUID, acl_operation)
+	removeGrants(GARTH_UUID, acl_operation)
+	removeGrants(KIM_UUID, acl_operation)
 
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
@@ -952,39 +1014,31 @@ def testCase1():
 	#acl_operation = ACL_OPERATION
 	acl_operation = ACL_OPERATION
 	
-	# Log in as Igor (Root) 
-	# This is a cleanup section, where all grants are removed first
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 1, 1)	
-	addAndDeleteGrants(ERIC_UUID, acl_operation, "DELETE", "All", "", "All", "", {ok}, 1, 2)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "DELETE", "All", "", "All", "", {ok}, 1, 3)
-	addAndDeleteGrants(ERIC_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 4)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 5)
-	
 	# Login as Eric (NON-ROOT user)
-	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 1, 6)
-	addACLOperation(acl_operation, "Can Test Things",  {forbidden}, 1, 7)
-	getListOfUserGroups("type=System:Role", "ROOT Users", {forbidden}, 1, 8)
-	getUserRole(GARTH_UUID, {notfound}, 1, 9)
-	getListOfGroupMembers(CODEBUSTERS_UUID, {forbidden}, 1, 10)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {forbidden}, 1, 11)
+	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 1, 2)
+	addACLOperation(acl_operation, "Can Test Things",  {forbidden}, 1, 3)
+	getListOfUserGroups("type=System:Role", "ROOT Users", {forbidden}, 1, 4)
+	getUserRole(GARTH_UUID, {notfound}, 1, 5)
+	getListOfGroupMembers(CODEBUSTERS_UUID, {forbidden}, 1, 6)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {forbidden}, 1, 7)
 	
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {forbidden}, 1, 12)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "DELETE", {forbidden}, 1, 13)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {forbidden}, 1, 8)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "DELETE", {forbidden}, 1, 9)
 	
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {forbidden}, 1, 14)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {forbidden}, 1, 15)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {forbidden}, 1, 10)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {forbidden}, 1, 11)
 	
 	# Login as Igor (ROOT user)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 1, 16)
-	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 1, 17)
-	getListOfUserGroups("type=System:Role", "ROOT Users", {ok}, 1, 18)
-	getUserRole(GARTH_UUID, {ok}, 1, 19)
-	getListOfGroupMembers(CODEBUSTERS_UUID, {ok}, 1, 20)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {ok}, 1, 21)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {ok}, 1, 22)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "DELETE", {ok}, 1, 23)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 24)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 25)	
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 1, 12)
+	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 1, 13)
+	getListOfUserGroups("type=System:Role", "ROOT Users", {ok}, 1, 14)
+	getUserRole(GARTH_UUID, {ok}, 1, 15)
+	getListOfGroupMembers(CODEBUSTERS_UUID, {ok}, 1, 16)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {ok}, 1, 17)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {ok}, 1, 18)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "DELETE", {ok}, 1,19)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 20)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 1, 21)	
 
 #========================================================================================================
 
@@ -1002,16 +1056,17 @@ def testCase2():
 #	hasPermission(garth, CanCode, CHMC) should return false
 #	hasPermission(eric, CanCode, Scripps) should return false
 
+
 	# Login as a ROOT user
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 2, 1)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 2, 2)
 	acl_operation = ACL_OPERATION
-	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 2, 2)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {ok}, 2, 3)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {ok}, 2, 4)
-	getSetDeletePermissions(GARTH_UUID, acl_operation, "CHMC", "GET", {forbidden}, 2, 5)	
-	getSetDeletePermissions(ERIC_UUID, acl_operation, "Scripps", "GET", {forbidden}, 2, 6)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "All", "", {ok}, 2, 7)
-	addAndDeleteGrants(GARTH_UUID, acl_operation, "DELETE", "All", "", "All", "", {ok}, 2, 8)	
+	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 2, 3)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {ok}, 2, 4)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "GET", {ok}, 2, 5)
+	getSetDeletePermissions(GARTH_UUID, acl_operation, "CHMC", "GET", {forbidden}, 2, 6)	
+	getSetDeletePermissions(ERIC_UUID, acl_operation, "Scripps", "GET", {forbidden}, 2, 7)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "All", "", {ok}, 2, 8)
+	addAndDeleteGrants(GARTH_UUID, acl_operation, "DELETE", "All", "", "All", "", {ok}, 2, 9)	
 	
 	REPORT = REPORT+"</table>"	
 
@@ -1228,7 +1283,8 @@ def testCase7():
 #CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
 
 #for i in range (1,8):
-for i in range (1,2):
+for i in range (1,8):
+	cleanUp()
 	exec('testCase' + str(i) + '()')
 
 writeReportFooter()
