@@ -107,6 +107,30 @@ decrypt_status string, decrypt_millis int, qa_event_types_status string, qa_even
 status string, error_message string, batch_id string, job_id string, work_id string, jobname string, hadoopjob_id string, seqfilename string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+create table summary_summary
+(time string, patient_uuid string, doc_id string, unpack_status string, unpack_millis int,
+persist_status string, persist_millis int, status string, error_message string, bytes int, millis int,
+jobname string, hadoopjob_id string, work_id string, job_id string, batch_id string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+create table summary_merge_summary
+(time string, input_key string, patient_uuid string, summary_key string, is_merged string,
+status string, error_message string, millis int,
+jobname string, hadoopjob_id string, work_id string, job_id string, batch_id string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+create table summary_qa_summary
+(time string, input_key string, patient_uuid string, doc_id string, unpack_status string, unpack_millis int,
+fetch_status string, fetch_millis int, summary_count int, qa_failed string, status string, error_message string,
+bytes int, millis int, jobname string, hadoopjob_id string, work_id string, job_id string, batch_id string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+create table summary_qa_merge_summary
+(time string, input_key string, patient_uuid string, summary_key string, aggregate_key string, aggregate_column string,
+fetch_status string, fetch_millis int, qa_failed string, status string, error_message string,
+millis int, jobname string, hadoopjob_id string, work_id string, job_id string, batch_id string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
 create table summary_loadapo
 (time string, input_key string, patient_uuids string, uuid_count int, status string, error_message string, jobname string, seqfilename string, hadoopjob_id string, work_id string, job_id string, read_buffer_size string, millis int, class_name string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
