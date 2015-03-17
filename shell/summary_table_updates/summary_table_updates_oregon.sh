@@ -533,6 +533,107 @@ from production_logs_qaeventjob_epoch
 where get_json_object(line, '$.level')="EVENT"
 and ($dateRange);
 
+insert overwrite table summary_summary partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.document.uuid') as doc_id,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+get_json_object(line, '$.persistSummary.status') as persist_status,
+cast(get_json_object(line, '$.persistSummary.millis') as int) as persist_millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.apo.bytes') as int) as bytes,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_summaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%SummaryMapper"
+and ($dateRange);
+
+insert overwrite table summary_merge_summary partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.summary.key') as summary_key,
+get_json_object(line, '$.summary.isMerged') as is_merged,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.summary.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_summaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%SummaryReducer"
+and ($dateRange);
+
+insert overwrite table summary_qa_summary partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.document.uuid') as doc_id,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+get_json_object(line, '$.qa.fetchSummary.status') as fetch_status,
+cast(get_json_object(line, '$.qa.fetchSummary.millis') as int) as fetch_millis,
+cast(get_json_object(line, '$.qa.fetchSummary.count') as int) as summary_count,
+get_json_object(line, '$.qa.failed') as qa_failed,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.apo.bytes') as int) as bytes,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_qasummaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%QASummaryMapper"
+and ($dateRange);
+
+insert overwrite table summary_qa_merge_summary partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.input.summaryKey') as summary_key,
+get_json_object(line, '$.input.aggrKey') as aggregate_key,
+get_json_object(line, '$.input.aggrColumn') as aggregate_column,
+get_json_object(line, '$.qa.fetchSummary.status') as fetch_status,
+cast(get_json_object(line, '$.qa.fetchSummary.millis') as int) as fetch_millis,
+get_json_object(line, '$.qa.failed') as qa_failed,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from production_logs_qasummaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%QAAggregateSummaryMapper"
+and ($dateRange);
+
 insert overwrite table summary_loadapo partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 if( get_json_object(line, '$.input.key') is not null,
@@ -1333,6 +1434,107 @@ month, day,
 get_json_object(line, '$.orgId') as org_id
 from staging_logs_qaeventjob_epoch
 where get_json_object(line, '$.level')="EVENT"
+and ($dateRange);
+
+insert overwrite table summary_summary_staging partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.document.uuid') as doc_id,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+get_json_object(line, '$.persistSummary.status') as persist_status,
+cast(get_json_object(line, '$.persistSummary.millis') as int) as persist_millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.apo.bytes') as int) as bytes,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_summaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%SummaryMapper"
+and ($dateRange);
+
+insert overwrite table summary_merge_summary_staging partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.summary.key') as summary_key,
+get_json_object(line, '$.summary.isMerged') as is_merged,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.summary.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_summaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%SummaryReducer"
+and ($dateRange);
+
+insert overwrite table summary_qa_summary_staging partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.document.uuid') as doc_id,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+get_json_object(line, '$.qa.fetchSummary.status') as fetch_status,
+cast(get_json_object(line, '$.qa.fetchSummary.millis') as int) as fetch_millis,
+cast(get_json_object(line, '$.qa.fetchSummary.count') as int) as summary_count,
+get_json_object(line, '$.qa.failed') as qa_failed,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.apo.bytes') as int) as bytes,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_qasummaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%QASummaryMapper"
+and ($dateRange);
+
+insert overwrite table summary_qa_merge_summary_staging partition (year, month, day, org_id)
+select
+get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.input.key') as input_key,
+get_json_object(line, '$.patient.uuid') as patient_uuid,
+get_json_object(line, '$.input.summaryKey') as summary_key,
+get_json_object(line, '$.input.aggrKey') as aggregate_key,
+get_json_object(line, '$.input.aggrColumn') as aggregate_column,
+get_json_object(line, '$.qa.fetchSummary.status') as fetch_status,
+cast(get_json_object(line, '$.qa.fetchSummary.millis') as int) as fetch_millis,
+get_json_object(line, '$.qa.failed') as qa_failed,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error_message,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.jobname') as jobname,
+get_json_object(line, '$.session') as hadoopjob_id,
+get_json_object(line, '$.workId') as work_id,
+get_json_object(line, '$.jobId') as job_id,
+get_json_object(line, '$.batchId') as batch_id,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_qasummaryjob_epoch
+where get_json_object(line, '$.level')='EVENT' 
+and get_json_object(line, '$.className') like "%QAAggregateSummaryMapper"
 and ($dateRange);
 
 insert overwrite table summary_loadapo_staging partition (year, month, day, org_id)
