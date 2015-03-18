@@ -123,7 +123,7 @@ def checkForPassedArguments():
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
 		ENVIRONMENT = "production"
-		EMAIL="ishekhtman@apixio.com"
+		EMAIL="ishekhtman@apixion.com"
 		PASSW="apixio.123"
 		AUTHHOST="https://useraccount-prd.apixio.com:7076"
 		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
@@ -258,21 +258,9 @@ def getFailedJobsList():
   				'Authorization': 'Apixio ' + TOKEN}
   	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
-	userjson = response.json()
+	jobs = response.json()
 	
-	#output (response.json())
-	
-	
-	
-	#userjson = response.json()	
-	#userjson = json.dumps(userjson)
-	
-	#output (userjson)
-	#quit()
-	
-	userjson = json.dumps(userjson, sort_keys=True, indent=0)
-	#userjson = json.dumps(userjson)
-	
+	print ("****************************************************************************")
 	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
 	print ("* ROOT USERNAME            = %s" % EMAIL)
 	print ("* PASSWORD                 = %s" % PASSW)
@@ -289,9 +277,12 @@ def getFailedJobsList():
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
+	print ("                    LIST OF AVAILABLE FAILED JOBS                           ")
+	print ("****************************************************************************")
 	
+	# ----------- List of Available fields -----------------
 	#"activityDisabled": false,
-	#"activityName": "loadAPO",
+	#----"activityName": "loadAPO",
 	#"createdAt": 1426201926233,
 	#"dataSize": 0,
 	#"effectivePriority": 7,
@@ -299,27 +290,27 @@ def getFailedJobsList():
 	#"hadoopJob": null,
 	#"hdfsDir": "/user/apxqueue/queue-location-3/work/32265/input",
 	#"initiator": null,
-	#"jobID": 32268,
+	#----"jobID": 32268,
 	#"launchedAt": null,
 	#"orgDisabled": false,
-	#"orgID": "407",
-	#"origJob": 32268,
+	#----"orgID": "407",
+	#----"origJob": 32268,
 	#"slotAlloc": "1;1;7;loadAPO;1;0;",
 	#"slotCount": 0,
 	#"trackingURL": null
 
-	
-	
-	#print ("activityDisabled\tactivityName")
-	#print userjson.get("activityName")
-	#userjson.get("token")
-	
-	#for item in userjson:
-	#	print item("activityName")
-	
-	#output (userjson)
-	print userjson
-	
+	print ("Number:\tJob ID:\tOrig ID:\tOrg ID:\tActivity Name:")
+	print ("=======\t=======\t========\t=======\t===============")
+	cntr = 0
+	for job in sorted(jobs):
+		#print json.dumps(job, sort_keys=True, indent=0)
+		cntr += 1
+		if (ENVIRONMENT.upper() == "STAGING"):
+			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:3], job['activityName'] ))
+		else:
+			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:8], job['activityName'] ))		
+	print ("\n\nTotal of %d failed jobs are available" % cntr)	
+			
 
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
