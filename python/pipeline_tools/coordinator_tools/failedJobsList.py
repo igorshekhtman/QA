@@ -123,8 +123,8 @@ def checkForPassedArguments():
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
 		ENVIRONMENT = "production"
-		EMAIL="ishekhtman@apixion.com"
-		PASSW="apixio.123"
+		EMAIL="system_qa@apixio.com"
+		PASSW="8p1qa19.."
 		AUTHHOST="https://useraccount-prd.apixio.com:7076"
 		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
 		PIPEHOST="http://coordinator-prd.apixio.com:8066"
@@ -277,7 +277,7 @@ def getFailedJobsList():
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
-	print ("                    LIST OF AVAILABLE FAILED JOBS                           ")
+	print ("*                    LIST OF AVAILABLE FAILED JOBS                         *")
 	print ("****************************************************************************")
 	
 	# ----------- List of Available fields -----------------
