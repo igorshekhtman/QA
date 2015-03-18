@@ -28,6 +28,8 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+import readline
+import tabulate
 #============================ GLOBAL VARIABLES ===========================================
 # Assigning default values
 EMAIL="ishekhtman@apixio.com"
@@ -58,6 +60,16 @@ intserveror = 500
 servunavail = 503
 
 #============================ FUNCTIONS ==================================================
+
+def output(data):
+	columns = sorted(reduce(lambda x, y: set(x) | set(y), [set(x.keys()) for x in data]))
+	odata = [[x.split('_')[-1] for x in columns]]
+	for row in data:
+		odata.append([row.get(x) if type(row.get(x)) != float else '%.2f' % row.get(x) for x in columns])
+	print tabulate.tabulate(odata, headers='firstrow', missingval='')
+
+#=========================================================================================
+
 def outputMissingArgumentsandAbort():
 	print ("----------------------------------------------------------------------------")
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
@@ -246,8 +258,21 @@ def getFailedJobsList():
   				'Authorization': 'Apixio ' + TOKEN}
   	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
-	userjson = response.json()	
-	userjson = json.dumps(userjson)
+	userjson = response.json()
+	
+	#output (response.json())
+	
+	
+	
+	#userjson = response.json()	
+	#userjson = json.dumps(userjson)
+	
+	#output (userjson)
+	#quit()
+	
+	userjson = json.dumps(userjson, sort_keys=True, indent=0)
+	#userjson = json.dumps(userjson)
+	
 	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
 	print ("* ROOT USERNAME            = %s" % EMAIL)
 	print ("* PASSWORD                 = %s" % PASSW)
@@ -264,6 +289,35 @@ def getFailedJobsList():
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
+	
+	#"activityDisabled": false,
+	#"activityName": "loadAPO",
+	#"createdAt": 1426201926233,
+	#"dataSize": 0,
+	#"effectivePriority": 7,
+	#"fromJob": null,
+	#"hadoopJob": null,
+	#"hdfsDir": "/user/apxqueue/queue-location-3/work/32265/input",
+	#"initiator": null,
+	#"jobID": 32268,
+	#"launchedAt": null,
+	#"orgDisabled": false,
+	#"orgID": "407",
+	#"origJob": 32268,
+	#"slotAlloc": "1;1;7;loadAPO;1;0;",
+	#"slotCount": 0,
+	#"trackingURL": null
+
+	
+	
+	#print ("activityDisabled\tactivityName")
+	#print userjson.get("activityName")
+	#userjson.get("token")
+	
+	#for item in userjson:
+	#	print item("activityName")
+	
+	#output (userjson)
 	print userjson
 	
 
