@@ -304,7 +304,7 @@ def validateUpdateString(input_string):
   	#print input_string
   	#print len(input_string)
   	
-  	if len(input_string) < 3:
+  	if len(input_string) < 2:
   		validation_string = "Some of the required paramaters are missing, please try again ..."
   	else:
   		validation_string = "success"	
@@ -388,7 +388,9 @@ def getListOfPartialKeys():
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "SUCCESS":
-			updateOrgConfig(INPUT_STRING)
+			#updateOrgConfig(INPUT_STRING)
+			obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+			getListOfPartialKeys()
 		else:
 			print (validation)
 			#quit()
