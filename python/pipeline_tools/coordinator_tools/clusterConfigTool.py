@@ -1,15 +1,15 @@
 #=========================================================================================
-#========================== getJobsInfo.py ===============================================
+#========================== clusterConfigTool.py =========================================
 #=========================================================================================
 #
-# PROGRAM:         getJobsInfo.py
+# PROGRAM:         clusterConfigTool.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    18-Mar-2015
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
-#          This program should be executed via Python2.7 for the purpose of retrieving list
-#			of Hadoop Job(s).
+#          This program should be executed via Python2.7 for the purpose of re-configuring
+#			Hadoop cluster.
 #
 #=========================================================================================
 import requests
@@ -28,8 +28,6 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
-import readline
-import tabulate
 #============================ GLOBAL VARIABLES ===========================================
 # Assigning default values
 EMAIL="ishekhtman@apixio.com"
@@ -42,10 +40,8 @@ PIPEHOST="http://coordinator-stg.apixio.com:8066"
 ENVIRONMENT = "staging" # default value is staging
 
 # Optional paramaters:
-STATUS = ""
-ORG = ""
-ACTIVITY = ""
-JOB = ""
+ACTIVITYID = ""
+
 
 ok = 200
 created = 201
@@ -60,22 +56,12 @@ intserveror = 500
 servunavail = 503
 
 #============================ FUNCTIONS ==================================================
-
-def output(data):
-	columns = sorted(reduce(lambda x, y: set(x) | set(y), [set(x.keys()) for x in data]))
-	odata = [[x.split('_')[-1] for x in columns]]
-	for row in data:
-		odata.append([row.get(x) if type(row.get(x)) != float else '%.2f' % row.get(x) for x in columns])
-	print tabulate.tabulate(odata, headers='firstrow', missingval='')
-
-#=========================================================================================
-
 def outputMissingArgumentsandAbort():
 	print ("----------------------------------------------------------------------------")
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 failedJobsList.py arg1 arg2 arg3 arg4")
+	print ("* python2.7 clusterConfigTool.py arg1 arg2")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
@@ -83,10 +69,7 @@ def outputMissingArgumentsandAbort():
 	print ("*")
 	print ("* Optional paramaters:")
 	print ("* --------------------")
-	print ("* arg2 - status (limit list to jobs with given status)")
-	print ("* arg3 - org (limit list to jobs for given orgID)")
-	print ("* arg4 - activity (limit list to jobs for given activity)")
-	print ("* arg5 - job (limit list to jobs of the given job IDs)")
+	print ("* arg2 - activityID")
 	print ("----------------------------------------------------------------------------")
 	print ("\n")
 	quit()
@@ -94,15 +77,15 @@ def outputMissingArgumentsandAbort():
 #=========================================================================================
 
 def checkForPassedArguments():
-	# Arg1 - environment (required)  / help
-	# Arg2 - status (optional)
-	# Arg3 - org (optional)
-	# Arg4 - activity (optional)
-	# Arg5 - job (optional)
+	# Arg1 - environment (required) / help
+	# Arg2 - activityID (optional)
+
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
-	global STATUS, ORG, ACTIVITY, JOB
+	global ORGID, CATEGORY, OPERATION, BATCH, PRIORITY
 	global ENVIRONMENT
+
+	#print ("Setting environment varibales ...\n")
 	
 	
 	if (len(sys.argv) < 2) or (str(sys.argv[1]).upper() == "HELP") or \
@@ -112,13 +95,7 @@ def checkForPassedArguments():
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 		if (len(sys.argv) > 2):
-			STATUS=str(sys.argv[2])
-			if (len(sys.argv) > 3):
-				ORG=str(sys.argv[3])
-				if (len(sys.argv) > 4):
-					ACTIVITY=str(sys.argv[4])
-					if (len(sys.argv) > 5):
-						JOB=str(sys.argv[5])
+			ACTIVITYID=str(sys.argv[2])
 		
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -150,10 +127,7 @@ def outputGlobalVariableSettings():
 	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
 	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
 	print ("*")
-	print ("* STATUS                   = %s" % STATUS)
-	print ("* ORG                      = %s" % ORG)
-	print ("* ACTIVITY                 = %s" % ACTIVITY )
-	print ("* JOB                      = %s" % JOB)	
+	print ("* ACTIVITY ID              = %s" % ACTIVITYID)
 	print ("****************************************************************************")
 
 #=========================================================================================
@@ -226,30 +200,17 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 
 #=========================================================================================	
 
-def getJobsInfoList():
+def getListOfActivities():
 	global TOKEN
 	
 	print ("----------------------------------------------------------------------------")
-	print (">>> SUBMIT A JOB <<<")
+	print (">>> GET LIST OF HADOOP CLUSTER ACTIVITIES <<<")
 	print ("----------------------------------------------------------------------------")
 
-	url = PIPEHOST+"/pipeline/coord/jobs/failed"
-	if (STATUS > "") or (ORG > "") or (ACTIVITY > "") or (JOB > ""):
-		url = url + "?"
-	if STATUS > "":
-		url = url + "&status="+STATUS+""
-	if ORG > "":
-		url = url + "&org="+ORG+""
-	if ACTIVITY > "":
-		url = url + "&activity="+ACTIVITY+""
-	if JOB > "":
-		url = url + "&job="+JOB+""	
+	url = PIPEHOST+"/pipeline/coord/activities"
+
 
   	referer = PIPEHOST  				
-  	#print url
-  	#print referer
-  	#quit()
-  	#Content-Type header in your request, or it's incorrect. In your case it must be application/xml
   	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
   	HEADERS = {	'Connection': 'keep-alive', \
   				'Content-Type': 'application/octet', \
@@ -258,21 +219,12 @@ def getJobsInfoList():
   				'Authorization': 'Apixio ' + TOKEN}
   	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
-	userjson = response.json()
-	
-	#output (response.json())
-	
-	
-	
-	#userjson = response.json()	
-	#userjson = json.dumps(userjson)
-	
-	#output (userjson)
-	#quit()
-	
-	userjson = json.dumps(userjson, sort_keys=True, indent=0)
-	#userjson = json.dumps(userjson)
-	
+	if statuscode == ok:
+		activities = response.json()
+	else:
+		print ("Failure occured with %s status code received back from server" % statuscode)
+		quit()
+				
 	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
 	print ("* ROOT USERNAME            = %s" % EMAIL)
 	print ("* PASSWORD                 = %s" % PASSW)
@@ -282,44 +234,31 @@ def getJobsInfoList():
 	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
 	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
 	print ("*")
-	print ("* STATUS                   = %s" % STATUS)
-	print ("* ORG                      = %s" % ORG)
-	print ("* ACTIVITY                 = %s" % ACTIVITY )
-	print ("* JOB                      = %s" % JOB)	
+	print ("* ACTIVITY ID              = %s" % ACTIVITYID)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
-	
-	#"activityDisabled": false,
-	#"activityName": "loadAPO",
-	#"createdAt": 1426201926233,
-	#"dataSize": 0,
-	#"effectivePriority": 7,
-	#"fromJob": null,
-	#"hadoopJob": null,
-	#"hdfsDir": "/user/apxqueue/queue-location-3/work/32265/input",
-	#"initiator": null,
-	#"jobID": 32268,
-	#"launchedAt": null,
-	#"orgDisabled": false,
-	#"orgID": "407",
-	#"origJob": 32268,
-	#"slotAlloc": "1;1;7;loadAPO;1;0;",
-	#"slotCount": 0,
-	#"trackingURL": null
+	# Available fields:
+	#    "borrowableSlots": "0",
+    #    "enabled": true,
+    #    "name": "docUUIDLinkCheckAndRecovery",
+    #    "priority": 5,
+    #    "slotMax": "1",
+    #    "slotMin": "0",
+    #    "totalSlots": "1"
 
+	print ("Nmbr:\tBS:\tEnabled:\tPriority:\tSl-Max:\tSl-Min:\tSl-Tot:\tName:")
+	print ("=====\t===\t========\t=========\t=======\t=======\t=======\t=====")
+	cntr = 0
+	for activity in sorted(activities):
+		#print json.dumps(job, sort_keys=True, indent=0)
+		cntr += 1
+		print ("%d\t%s\t%s\t\t%s\t\t%s\t%s\t%s\t%s" % (cntr, activity['borrowableSlots'], \
+			activity['enabled'], activity['priority'], activity['slotMax'], activity['slotMin'], \
+			activity['totalSlots'], activity['name'] ))	
+	print ("\nTotal of %d activities available" % cntr)	
 	
-	
-	#print ("activityDisabled\tactivityName")
-	#print userjson.get("activityName")
-	#userjson.get("token")
-	
-	#for item in userjson:
-	#	print item("activityName")
-	
-	#output (userjson)
-	print userjson
-	
+	#print json.dumps(activities, sort_keys=True, indent=4)
 
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
@@ -330,9 +269,8 @@ outputGlobalVariableSettings()
 
 obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 
-quit()
-getJobsInfoList()
+getListOfActivities()
 
 print ("----------------------------------------------------------------------------")
-print ("Exiting getJobsInfo ...")
+print ("Exiting clusterConfigTool ...")
 #============================ THE END ====================================================

@@ -309,7 +309,7 @@ def getFailedJobsList():
 			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:3], job['activityName'] ))
 		else:
 			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:8], job['activityName'] ))		
-	print ("\n\nTotal of %d failed jobs are available" % cntr)	
+	print ("\nTotal of %d failed jobs are available" % cntr)	
 			
 
 #============================ MAIN PROGRAM BODY ==========================================
