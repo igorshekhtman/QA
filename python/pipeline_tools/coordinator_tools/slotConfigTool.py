@@ -61,7 +61,7 @@ def outputMissingArgumentsandAbort():
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 clusterConfigTool.py arg1 arg2")
+	print ("* python2.7 slotConfigTool.py arg1 arg2")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
@@ -198,10 +198,75 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 
+#=========================================================================================
+def updateActivityConfig(input_string):
+	#print ("updateActivityConfig")
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	#input_string = json.dumps(input_string)
+	print input_string
+	activity = ACT_DICT[int(input_string[0])]
+	enabled = input_string[1]
+	priority = input_string[2]
+	slmax = input_string[3]
+	slmin = input_string[4]
+	slbor = input_string[5]
+	sltot = input_string[6]
+	
+	update_string = {"name": ACT_DICT[int(input_string[0])], "enabled": input_string[1], \
+		"priority": input_string[2], "totalSlots": input_string[6], \
+		"borrowableSlots": input_string[5], "slotMin": input_string[4], "slotMax": input_string[3]}
+	update_string = json.dumps(update_string)
+	#print update_string
+	#quit()
+	
+	#sample json
+	#{"name":"summary","enabled":true,"priority":5,"totalSlots":"1","borrowableSlots":"0","slotMin":"0","slotMax":"5"}
+	
+	print ("----------------------------------------------------------------------------")
+	print (">>> UPDATE ACTIVITIES <<<")
+	print ("----------------------------------------------------------------------------")
+
+	url = PIPEHOST+"/pipeline/coord/activity/"+str(ACT_DICT[int(input_string[0])])+""
+  	referer = PIPEHOST  				
+  	
+  	#DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+  	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'application/json', \
+  				'Content-Length': '48', \
+  				'Referer': referer, \
+  				'Accept': '*/*', \
+  				'Authorization': 'Apixio ' + TOKEN}	
+  	DATA = update_string			
+			
+  	response = requests.put(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	if statuscode == ok:
+		print statuscode
+	else:
+		print ("Failure occured with %s status code received back from server" % statuscode)
+		quit()
+	
+#=========================================================================================
+def validateUpdateString(input_string):
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	#input_string = json.dumps(input_string)
+  	#print input_string
+  	#print len(input_string)
+  	
+  	if len(input_string) < 7:
+  		validation_string = "Some of the required paramaters are missing, please try again ..."
+  	else:
+  		validation_string = "success"	
+  	
+  	return(validation_string)
 #=========================================================================================	
 
 def getListOfActivities():
-	global TOKEN
+	global TOKEN, INPUT_STRING, ACT_DICT
+	
+	ACT_DICT = {}
 	
 	print ("----------------------------------------------------------------------------")
 	print (">>> GET LIST OF HADOOP CLUSTER ACTIVITIES <<<")
@@ -238,6 +303,7 @@ def getListOfActivities():
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
+	print ("-------------------------------------------------------------------------------------------------------")
 	# Available fields:
 	#    "borrowableSlots": "0",
     #    "enabled": true,
@@ -247,18 +313,35 @@ def getListOfActivities():
     #    "slotMin": "0",
     #    "totalSlots": "1"
 
-	print ("Nmbr:\tBS:\tEnabled:\tPriority:\tSl-Max:\tSl-Min:\tSl-Tot:\tName:")
-	print ("=====\t===\t========\t=========\t=======\t=======\t=======\t=====")
+	print ("Activity Number & Name:\t\t\tEnabled:\tPriority:\tSl-Max:\tSl-Min:\tSl-Bor:\tSl-Tot:")
+	print ("=======================\t\t\t========\t=========\t=======\t=======\t=======\t=======")
 	cntr = 0
-	for activity in sorted(activities):
+	
+	for activity in sorted(activities, key=lambda k: k['name']):
 		#print json.dumps(job, sort_keys=True, indent=0)
 		cntr += 1
-		print ("%d\t%s\t%s\t\t%s\t\t%s\t%s\t%s\t%s" % (cntr, activity['borrowableSlots'], \
+		print ("%s%s\t%s\t\t%s\t\t%s\t%s\t%s\t%s" % (str(cntr).ljust(3), activity['name'].ljust(32), \
 			activity['enabled'], activity['priority'], activity['slotMax'], activity['slotMin'], \
-			activity['totalSlots'], activity['name'] ))	
-	print ("\nTotal of %d activities available" % cntr)	
+			activity['borrowableSlots'], activity['totalSlots'] ))
+		ACT_DICT.update({cntr:activity['name']})	
+			
+			
+				
+	#print ("\nTotal of %d activities available" % cntr)	
 	
 	#print json.dumps(activities, sort_keys=True, indent=4)
+	print ("-------------------------------------------------------------------------------------------------------")
+	#print ACT_DICT[24]
+	INPUT_STRING = raw_input("Update string: 1,false,4,1,1,0,2 or just enter Q to Quit: ")
+	if INPUT_STRING.upper() != "Q":
+		validation = validateUpdateString(INPUT_STRING)
+		if validation.upper() == "SUCCESS":
+			updateActivityConfig(INPUT_STRING)
+		else:
+			print (validation)
+			#quit()
+			raw_input("Press Enter to continue...")
+			
 
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
@@ -267,10 +350,12 @@ checkForPassedArguments()
 
 outputGlobalVariableSettings()
 
-obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+#obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 
-getListOfActivities()
+INPUT_STRING=""
+while INPUT_STRING.upper() != "Q":
+	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+	getListOfActivities()
 
-print ("----------------------------------------------------------------------------")
-print ("Exiting slotConfigTool ...")
+
 #============================ THE END ====================================================
