@@ -43,6 +43,15 @@ ENVIRONMENT = "staging" # default value is staging
 # Optional paramaters:
 ORGID = ""
 FILTER = "all"
+STARTKEY = ""
+FILTER_DICT = { \
+				"1" : "partialPatientKey", \
+				"2" : "patientUUID", \
+				"3" : "documentUUID", \
+				"4" : "documentHash", \
+				"5" : "documentId", \
+				"6" : "all" \
+				} 
 
 #===== MySQL Authentication============
 STDOM = "mysqltest-stg1.apixio.net" 
@@ -65,18 +74,22 @@ servunavail = 503
 
 #============================ FUNCTIONS ==================================================
 def outputMissingArgumentsandAbort():
-	print ("----------------------------------------------------------------------------")
+	print ("------------------------------------------------------------------------------------------------------------")
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
-	print ("----------------------------------------------------------------------------")
+	print ("------------------------------------------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 getPartKeys.py arg1 arg2 arg3")
+	print ("* python2.7 getPartKeys.py arg1 arg2 arg3 arg4")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
 	print ("* arg1 - environment (staging or production) / help")
 	print ("* arg2 - orgID (ex. 370)")
-	print ("* arg3 - filter (ex. [partialPatientKey, patientUUID, documentUUID, documentHash, documentId, all]")
-	print ("----------------------------------------------------------------------------")
+	print ("*")
+	print ("* Optional paramaters:")
+	print ("* --------------------")	
+	print ("* arg3 - filter (ex. 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all")
+	print ("* arg4 - startKey (ex. pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a")
+	print ("------------------------------------------------------------------------------------------------------------")
 	print ("\n")
 	quit()
 
@@ -90,12 +103,12 @@ def checkForPassedArguments():
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
 	global ORGID, CATEGORY, OPERATION, BATCH, PRIORITY
-	global ENVIRONMENT
+	global ENVIRONMENT, FILTER, STARTKEY
 
 	#print ("Setting environment varibales ...\n")
 	
 	
-	if (len(sys.argv) < 4) or (str(sys.argv[1]).upper() == "HELP") or \
+	if (len(sys.argv) < 3) or (str(sys.argv[1]).upper() == "HELP") or \
 		(str(sys.argv[1]).upper() == "--HELP") or (str(sys.argv[1]).upper() == "-H") or \
 		(str(sys.argv[1]).upper() == "-HELP") or (str(sys.argv[1]).upper() == "--H"):
 		outputMissingArgumentsandAbort()
@@ -105,6 +118,8 @@ def checkForPassedArguments():
 			ORGID = str(sys.argv[2])
 			if (len(sys.argv) > 3):
 			 FILTER = str(sys.argv[3]) 
+			 if (len(sys.argv) > 4):
+  				STARTKEY = str(sys.argv[4])
 		
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -298,22 +313,34 @@ def updateOrgConfig(input_string):
 	
 #=========================================================================================
 def validateUpdateString(input_string):
+	global FILTER, ORGID, STARTKEY
+	
 	delimiter = ','
   	input_string = input_string.split(delimiter)
   	#input_string = json.dumps(input_string)
   	#print input_string
   	#print len(input_string)
   	
+  	
   	if len(input_string) < 2:
   		validation_string = "Some of the required paramaters are missing, please try again ..."
   	else:
-  		validation_string = "success"	
+  		validation_string = "success" 		
+  		ORGID = input_string[0]
+  		FILTER = FILTER_DICT[input_string[1]]
+  		if len(input_string) > 2:
+  			STARTKEY = input_string[2]
+  		#print ORGID
+  		#print FILTER
+  		#print STARTKEY
+  		#quit()	
+  			
   	
   	return(validation_string)
 #=========================================================================================	
 
 def getListOfPartialKeys():
-	global TOKEN, INPUT_STRING, ORG_DICT
+	global TOKEN, INPUT_STRING, ORG_DICT, FILTER, STARTKEY
 	
 	ORG_DICT = {}
 	
@@ -322,6 +349,11 @@ def getListOfPartialKeys():
 	print ("----------------------------------------------------------------------------")
 
 	url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?filter="+FILTER+""
+	if STARTKEY > "":
+		url = url + "&startkey="+STARTKEY+"" 
+	
+	
+	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?keyType=patientUUID"
 
 
   	referer = PIPEHOST  				
@@ -348,13 +380,16 @@ def getListOfPartialKeys():
 	print ("* AUTHENTICATION HOST URL  = %s" % AUTHHOST)
 	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
 	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
-	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
+	print ("* SUBMIT PARTIAL KEYS URL  = %s" % url)
 	print ("*")
 	print ("* ORG ID                   = %s" % ORGID)
+	print ("* FILTER                   = %s" % FILTER)
+	print ("* START KEY                = %s" % STARTKEY)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
 	print ("----------------------------------------------------------------------------")
+	#raw_input("Press Enter to continue...")
 	# Available fields:
 	# name
 	# enabled
@@ -382,9 +417,11 @@ def getListOfPartialKeys():
 	
 	#print json.dumps(activities, sort_keys=True, indent=4)
 	print keys
-	print ("----------------------------------------------------------------------------")
+	print ("-------------------------------------------------------------------------------------------------------------")
 	#print ORG_DICT[24]
-	INPUT_STRING = raw_input("Relist string: 370,all or just enter Q to Quit: ")
+	print ("Possible filters are: 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all")
+	print ("-------------------------------------------------------------------------------------------------------------")
+	INPUT_STRING = raw_input("To re-list enter: orgID,Filter#,startkey or just enter Q to Quit: ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "SUCCESS":
