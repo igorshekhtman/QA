@@ -39,7 +39,9 @@ PIPEHOST="http://coordinator-stg.apixio.com:8066"
 
 # Required paramaters:
 ENVIRONMENT = "staging" # default value is staging
+ORGID = ""
 JOBID = ""
+
 
 #===== MySQL Authentication============
 STDOM = "mysqltest-stg1.apixio.net" 
@@ -71,32 +73,37 @@ def outputMissingArgumentsandAbort():
 	print ("* Required paramaters:")
 	print ("* --------------------")
 	print ("* arg1 - environment (staging or production) / help")
-	print ("* arg2 - jobID (ex. 1,4,6), comma separated list of job Numbers")
+	print ("*")
+	print ("* Optional paramaters:")
+	print ("* --------------------")
+	print ("* arg2 - orgID (ex. 370)")	
 	print ("----------------------------------------------------------------------------")
 	print ("\n")
+	
 	quit()
 
 #=========================================================================================
 
 def checkForPassedArguments():
 	# Arg1 - environment (required) / help
-	# Arg2 - jobID (required), comma separated list of jobIDs
+	# Arg2 - orgID (optional), comma separated list of jobIDs
 
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
-	global JOBID, ENVIRONMENT
+	global JOBID, ENVIRONMENT, ORGID
 
 	#print 	len(sys.argv)
 	#print str(sys.argv[1])
 	#quit()
 	
-	if (len(sys.argv) < 3) or (str(sys.argv[1]).upper() == "HELP") or \
+	if (len(sys.argv) < 2) or (str(sys.argv[1]).upper() == "HELP") or \
 		(str(sys.argv[1]).upper() == "--HELP") or (str(sys.argv[1]).upper() == "-H") or \
 		(str(sys.argv[1]).upper() == "-HELP") or (str(sys.argv[1]).upper() == "--H"):
 		outputMissingArgumentsandAbort()
 	else:
 		ENVIRONMENT=str(sys.argv[1])
-		JOBID=str(sys.argv[2])
+		if (len(sys.argv) > 2):
+			ORGID=str(sys.argv[2])
 	
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -170,7 +177,7 @@ def outputGlobalVariableSettings():
 	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
 	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
 	print ("*")
-	print ("* JOB ID(S)                = %s" % JOBID)
+	print ("* ORGID(S)                 = %s" % ORGID)
 	print ("****************************************************************************")
 
 #=========================================================================================
@@ -241,9 +248,30 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 
+
+#=========================================================================================
+def validateUpdateString(input_string):
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	#input_string = json.dumps(input_string)
+  	#print input_string
+  	#print len(input_string)
+  	#print len(input_string)
+  	#print input_string
+  	
+  	#if len(input_string) < 2:
+  	if input_string == ['']:
+  		validation_string = "Some of the required paramaters are missing, please try again ..."
+  	else:
+  		validation_string = "success"
+  		#for i in range (0,len(input_string)):
+  		#	print AV_JOBS[input_string[i]]
+  		#quit()		
+  	
+  	return(validation_string)
 #=========================================================================================	
 
-def submitJob():
+def submitJob(input_string):
 	global TOKEN
 	
 	print ("----------------------------------------------------------------------------")
@@ -260,21 +288,16 @@ def submitJob():
   				'Accept': '*/*', \
   				'Authorization': 'Apixio ' + TOKEN}			
 
-
-  	#temp_list = [JOBID]
-  	#print temp_list
-  	#temp_list1 = json.dumps(temp_list)
-  	#print temp_list1
-  	#JOBID = 'spam,span,spek'
+	JOBIDS = []
   	delimiter = ','
-  	JOBIDS = JOBID.split(delimiter)
-  	#print JOBIDS
-  	JOBIDS = json.dumps(JOBIDS)
-  	#print JOBIDS
+  	input_string = input_string.split(delimiter)
+  	for i in range (0,len(input_string)):
+  		#print AV_JOBS[input_string[i]]
+  		JOBIDS.append(AV_JOBS[input_string[i]])
 
-  	#quit()
+  	JOBIDS = json.dumps(JOBIDS)
   		
-  	DATA = JOBIDS		
+  	DATA = JOBIDS
 		
   	response = requests.post(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code	
@@ -287,15 +310,105 @@ def submitJob():
 	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
 	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
 	print ("*")
-	print ("* JOB ID(S)                = %s" % JOBID)	
+	print ("* JOB ID(S)                = %s" % JOBIDS)	
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
 
+#=========================================================================================
+	
+def getFailedJobsList():
+	global TOKEN, AV_JOBS, INPUT_STRING
+	
+	print ("----------------------------------------------------------------------------")
+	print (">>> GET FAILED JOB(S) LIST <<<")
+	print ("----------------------------------------------------------------------------")
+
+	url = PIPEHOST+"/pipeline/coord/jobs/failed"
+	if (ORGID > ""):
+		url = url + "?"
+	if ORGID > "":
+		url = url + "&org="+ORGID+""
+	
+	AV_JOBS = {}
+  	referer = PIPEHOST  				
+  	#print url
+  	#print referer
+  	#quit()
+  	#Content-Type header in your request, or it's incorrect. In your case it must be application/xml
+  	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+  	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'application/octet', \
+  				'Content-Length': '48', \
+  				'Referer': referer, \
+  				'Authorization': 'Apixio ' + TOKEN}
+  	response = requests.get(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	jobs = response.json()
+	
+	print ("****************************************************************************")
+	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
+	print ("* ROOT USERNAME            = %s" % EMAIL)
+	print ("* PASSWORD                 = %s" % PASSW)
+	print ("* INTERNAL TOKEN           = %s" % TOKEN)
+	print ("* AUTHENTICATION HOST URL  = %s" % AUTHHOST)
+	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
+	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
+	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
+	print ("*")
+	print ("* ORGID                    = %s" % ORGID)
+	print ("*")
+	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
+	print ("****************************************************************************************")
+	print ("*                           LIST OF AVAILABLE FAILED JOBS                              *")
+	print ("****************************************************************************************")
+	
+	# ----------- List of Available fields -----------------
+	#"activityDisabled": false,
+	#----"activityName": "loadAPO",
+	#"createdAt": 1426201926233,
+	#"dataSize": 0,
+	#"effectivePriority": 7,
+	#"fromJob": null,
+	#"hadoopJob": null,
+	#"hdfsDir": "/user/apxqueue/queue-location-3/work/32265/input",
+	#"initiator": null,
+	#----"jobID": 32268,
+	#"launchedAt": null,
+	#"orgDisabled": false,
+	#----"orgID": "407",
+	#----"origJob": 32268,
+	#"slotAlloc": "1;1;7;loadAPO;1;0;",
+	#"slotCount": 0,
+	#"trackingURL": null
+
+	print ("Line#:\tJob ID:\tOrg ID:\t\t\tOrg Name:\t\t\tActivity Name:")
+	print ("======\t=======\t=======\t\t\t=========\t\t\t==============")
+	cntr = 0
+	for job in sorted(jobs, key=lambda k: k['jobID']):
+		#print json.dumps(job, sort_keys=True, indent=0)
+		cntr += 1
+		if str(job['orgID']) != "resubmitJobTool.py":
+			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), getOrgName(job['orgID']).ljust(30), job['activityName']))
+		else:
+			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), job['orgID'].ljust(30), job['activityName']))
+		AV_JOBS.update({ str(cntr): str(job['jobID'])})		
+	#print AV_JOBS
+	print ("-------------------------------------------------------------------------------------------")
+	print ("Enter line number(s), comma separated, of the job(s) to resubmit or just enter Q to Quit")
+	print ("-------------------------------------------------------------------------------------------")
+	INPUT_STRING = raw_input("Line number(s): ")
+	if INPUT_STRING.upper() != "Q":
+		validation = validateUpdateString(INPUT_STRING)
+		if validation.upper() == "SUCCESS":
+			submitJob(INPUT_STRING)
+		else:
+			print (validation)
+			#quit()
+			raw_input("Press Enter to continue...")	
+
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
-
-connectToMySQL()
 
 checkForPassedArguments()
 
@@ -303,7 +416,14 @@ outputGlobalVariableSettings()
 
 obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 
-submitJob()
+connectToMySQL()
+
+INPUT_STRING=""
+while INPUT_STRING.upper() != "Q":
+	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+	getFailedJobsList()
+
+#submitJob()
 
 closeMySQLConnection()
 
