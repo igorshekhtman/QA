@@ -30,6 +30,7 @@ import calendar
 import mmap
 import readline
 import tabulate
+import MySQLdb
 #============================ GLOBAL VARIABLES ===========================================
 # Assigning default values
 EMAIL="ishekhtman@apixio.com"
@@ -46,6 +47,13 @@ STATUS = ""
 ORG = ""
 ACTIVITY = ""
 JOB = ""
+
+#===== MySQL Authentication============
+STDOM = "mysqltest-stg1.apixio.net" 
+STPW = "M8ng0St33n!"
+PRDOM = "10.198.2.97"
+PRPW = "J3llyF1sh!"
+#======================================
 
 ok = 200
 created = 201
@@ -128,6 +136,8 @@ def checkForPassedArguments():
 		AUTHHOST="https://useraccount-prd.apixio.com:7076"
 		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
 		PIPEHOST="http://coordinator-prd.apixio.com:8066"
+		MYSQLDOM = "10.198.2.97"
+		MYSQPW = "J3llyF1sh!"
 	else:  # STAGING ENVIRONMENT
 		ENVIRONMENT = "staging"
 		EMAIL="ishekhtman@apixio.com"
@@ -135,8 +145,52 @@ def checkForPassedArguments():
 		AUTHHOST="https://useraccount-stg.apixio.com:7076"
 		TOKEHOST="https://tokenizer-stg.apixio.com:7075"
 		PIPEHOST="http://coordinator-stg.apixio.com:8066"	
+		MYSQLDOM = "mysqltest-stg1.apixio.net"
+		MYSQPW = "M8ng0St33n!"			
 
 #=========================================================================================
+def connectToMySQL():
+	print ("Connecing to MySQL ...\n")
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_conn = MySQLdb.connect(host=STDOM, \
+		user='qa', \
+		passwd=STPW, \
+		db='apixiomain')		
+	mss_cur = mss_conn.cursor() 
+	msp_conn = MySQLdb.connect(host=PRDOM, \
+		user='qa', \
+		passwd=PRPW, \
+		db='apixiomain')		
+	msp_cur = msp_conn.cursor()
+	print ("Connection to MySQL established ...\n")
+#=========================================================================================
+def closeMySQLConnection():
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_cur.close()
+	mss_conn.close()
+	msp_cur.close()
+	msp_conn.close()	
+#=========================================================================================
+def getOrgName(id):
+	global mss_cur, mss_conn, msp_cur, msp_conn
+	mss_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+	for row in mss_cur.fetchall():
+		orgname = str(row[0])
+		env = "Staging"
+		break	
+	else:	
+		msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+		for row in msp_cur.fetchall():
+			orgname = str(row[0])
+			env = "Production"
+			break
+		else:
+			orgname = id
+			env = "N/A"	
+	#print env+" Orgname: "+orgname
+	#print ""
+	return (orgname)
+#=========================================================================================	
 
 def outputGlobalVariableSettings():
 
@@ -299,21 +353,24 @@ def getFailedJobsList():
 	#"slotCount": 0,
 	#"trackingURL": null
 
-	print ("Number:\tJob ID:\tOrig ID:\tOrg ID:\tActivity Name:")
-	print ("=======\t=======\t========\t=======\t===============")
+	print ("Number:\tJob ID:\tOrg ID:\t\t\tOrg Name:\t\t\tActivity Name:")
+	print ("=======\t=======\t=======\t\t\t=========\t\t\t==============")
 	cntr = 0
-	for job in sorted(jobs):
+	for job in sorted(jobs, key=lambda k: k['jobID']):
 		#print json.dumps(job, sort_keys=True, indent=0)
 		cntr += 1
-		if (ENVIRONMENT.upper() == "STAGING"):
-			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:3], job['activityName'] ))
+		if str(job['orgID']) != "resubmitJobTool.py":
+			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), getOrgName(job['orgID']).ljust(30), job['activityName']))
 		else:
-			print ("%d\t%s\t%s\t\t%s\t%s" % (cntr, job['jobID'], job['origJob'], job['orgID'][:8], job['activityName'] ))		
+			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), job['orgID'].ljust(30), job['activityName']))	
+	
 	print ("\nTotal of %d failed jobs are available" % cntr)	
 			
 
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
+
+connectToMySQL()
 
 checkForPassedArguments()
 
@@ -323,6 +380,8 @@ obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 
 #quit()
 getFailedJobsList()
+
+closeMySQLConnection()
 
 print ("----------------------------------------------------------------------------")
 print ("Exiting resubmitJobTool ...")
