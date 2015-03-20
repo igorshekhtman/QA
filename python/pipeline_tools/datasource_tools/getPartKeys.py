@@ -87,8 +87,8 @@ def outputMissingArgumentsandAbort():
 	print ("*")
 	print ("* Optional paramaters:")
 	print ("* --------------------")	
-	print ("* arg3 - filter (ex. 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all")
-	print ("* arg4 - startKey (ex. pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a")
+	print ("* arg3 - filter (ex. 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all)")
+	print ("* arg4 - startKey (ex. pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a)")
 	print ("------------------------------------------------------------------------------------------------------------")
 	print ("\n")
 	quit()
@@ -441,7 +441,7 @@ checkForPassedArguments()
 
 outputGlobalVariableSettings()
 
-connectToMySQL()
+#connectToMySQL()
 
 
 INPUT_STRING=""
@@ -449,5 +449,5 @@ while INPUT_STRING.upper() != "Q":
 	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 	getListOfPartialKeys()
 
-closeMySQLConnection()
+#closeMySQLConnection()
 #============================ THE END ====================================================

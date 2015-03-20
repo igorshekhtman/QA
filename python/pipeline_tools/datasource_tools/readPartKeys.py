@@ -1,14 +1,14 @@
 #=========================================================================================
-#========================== getPartKeys.py ===============================================
+#========================== readPartKeys.py ==============================================
 #=========================================================================================
 #
-# PROGRAM:         getPartKeys.py
+# PROGRAM:         readPartKeys.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    19-Mar-2015
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
-#          This program should be executed via Python2.7 for the purpose of retrieving 
+#          This program should be executed via Python2.7 for the purpose of translating
 #			partial keys.
 #
 #=========================================================================================
@@ -42,16 +42,10 @@ ENVIRONMENT = "staging" # default value is staging
 
 # Optional paramaters:
 ORGID = ""
-FILTER = "all"
-STARTKEY = ""
-FILTER_DICT = { \
-				"1" : "partialPatientKey", \
-				"2" : "patientUUID", \
-				"3" : "documentUUID", \
-				"4" : "documentHash", \
-				"5" : "documentId", \
-				"6" : "all" \
-				} 
+KEYTYPE = "patientUUID"
+AUTHORITY = ""
+#[externalID, partialPatientKey, patientUUID, documentUUID]
+KEYTYPE_DICT = {"1": "partialPatientKey", "2": "patientUUID", "3": "documentUUID", "4": "externalID"} 
 
 #===== MySQL Authentication============
 STDOM = "mysqltest-stg1.apixio.net" 
@@ -78,17 +72,17 @@ def outputMissingArgumentsandAbort():
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
 	print ("------------------------------------------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 getPartKeys.py arg1 arg2 arg3 arg4")
+	print ("* python2.7 readPartKeys.py arg1 arg2 arg3 arg4")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
 	print ("* arg1 - environment (staging or production) / help")
 	print ("* arg2 - orgID (ex. 370)")
+	print ("* arg3 - keyType (ex. 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-externalID)")
 	print ("*")
 	print ("* Optional paramaters:")
 	print ("* --------------------")	
-	print ("* arg3 - filter (ex. 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all")
-	print ("* arg4 - startKey (ex. pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a")
+	print ("* arg4 - authority (optional)")
 	print ("------------------------------------------------------------------------------------------------------------")
 	print ("\n")
 	quit()
@@ -103,12 +97,12 @@ def checkForPassedArguments():
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
 	global ORGID, CATEGORY, OPERATION, BATCH, PRIORITY
-	global ENVIRONMENT, FILTER, STARTKEY
+	global ENVIRONMENT, KEYTYPE, AUTHORITY
 
 	#print ("Setting environment varibales ...\n")
 	
 	
-	if (len(sys.argv) < 3) or (str(sys.argv[1]).upper() == "HELP") or \
+	if (len(sys.argv) < 4) or (str(sys.argv[1]).upper() == "HELP") or \
 		(str(sys.argv[1]).upper() == "--HELP") or (str(sys.argv[1]).upper() == "-H") or \
 		(str(sys.argv[1]).upper() == "-HELP") or (str(sys.argv[1]).upper() == "--H"):
 		outputMissingArgumentsandAbort()
@@ -117,9 +111,9 @@ def checkForPassedArguments():
 		if (len(sys.argv) > 2):
 			ORGID = str(sys.argv[2])
 			if (len(sys.argv) > 3):
-			 FILTER = str(sys.argv[3]) 
+			 KEYTYPE = str(sys.argv[3]) 
 			 if (len(sys.argv) > 4):
-  				STARTKEY = str(sys.argv[4])
+  				AUTHORITY = str(sys.argv[4])
 		
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -313,7 +307,7 @@ def updateOrgConfig(input_string):
 	
 #=========================================================================================
 def validateUpdateString(input_string):
-	global FILTER, ORGID, STARTKEY
+	global KEYTYPE, ORGID, AUTHORITY
 	
 	delimiter = ','
   	input_string = input_string.split(delimiter)
@@ -327,46 +321,75 @@ def validateUpdateString(input_string):
   	else:
   		validation_string = "success" 		
   		ORGID = input_string[0]
-  		FILTER = FILTER_DICT[input_string[1]]
+  		KEYTYPE = KEYTYPE_DICT[input_string[1]]
   		if len(input_string) > 2:
-  			STARTKEY = input_string[2]
+  			AUTHORITY = input_string[2]
   		#print ORGID
-  		#print FILTER
-  		#print STARTKEY
+  		#print KEYTYPE
+  		#print AUTHORITY
   		#quit()	
   			
   	
   	return(validation_string)
 #=========================================================================================	
 
-def getListOfPartialKeys():
-	global TOKEN, INPUT_STRING, ORG_DICT, FILTER, STARTKEY
+def readListOfPartialKeys():
+	global TOKEN, INPUT_STRING, ORG_DICT, KEYTYPE, AUTHORITY
 	
 	ORG_DICT = {}
 	
 	print ("----------------------------------------------------------------------------")
-	print (">>> GET LIST OF PARTIAL KEYS <<<")
+	print (">>> READ OR TRANSLATE PARTIAL KEY(S) <<<")
 	print ("----------------------------------------------------------------------------")
 
-	url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?filter="+FILTER+""
-	if STARTKEY > "":
-		url = url + "&startkey="+STARTKEY+"" 
+	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?filter="+KEYTYPE+""
+	#if AUTHORITY > "":
+	#	url = url + "&startkey="+AUTHORITY+"" 
 	
 	
-	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?keyType=documentUUID"
+	#sample patientUUID for ORG-370 - "pat_af339ba3-faab-4660-9fb1-72855468ced5"
+	#pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a
+	#pat_c4eef6a2-429b-4591-a15c-a30058f2f711
+	#pat_f7fcc246-c8ec-4411-91bb-9496ab303fe3
+	#pat_8698b558-0333-4b74-8b1e-30213fdf864a
+	#pat_023aa984-de91-40ce-9453-1139fda2b36d
+	#pat_4c3baa8f-5ae8-488c-b7a6-1e988245c3f8
+	#pat_99828dd2-cb86-46e8-b9d1-5744d98faab6
+	#pat_f9d90866-f589-4cca-b957-a674f7a07b33
+	#pat_1aa02475-3866-435b-b357-11f4eacebeca
 	
+	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?keyType="+KEYTYPE+""
+	
+	url = PIPEHOST+"/pipeline/datasource/370/keys?keyType=patientUUID"
+	
+  	referer = PIPEHOST  
+  	
+  	#print url
+  	#quit()				
 
-  	referer = PIPEHOST  				
-  	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+  	#DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+
   	HEADERS = {	'Connection': 'keep-alive', \
   				'Content-Type': 'text/plain', \
   				'Content-Length': '48', \
   				'Referer': referer, \
-  				'Authorization': 'Apixio ' + TOKEN} 			
-  	response = requests.get(url, data=DATA, headers=HEADERS) 
+  				'Authorization': 'Apixio ' + TOKEN} 
+  	
+  	ids_list = ("pat_af339ba3-faab-4660-9fb1-72855468ced5\n", "pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a\n", "pat_c4eef6a2-429b-4591-a15c-a30058f2f711\n")
+  	
+  	ids_list = json.dumps(ids_list)
+  				
+  	DATA = ids_list	
+  	#print DATA
+  	#quit()					
+
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+
 	statuscode = response.status_code
+
+
 	if statuscode == ok:
-		keys = response.text
+		output_data = response.text
 		#print keys
 		#quit()
 	else:
@@ -383,8 +406,8 @@ def getListOfPartialKeys():
 	print ("* SUBMIT PARTIAL KEYS URL  = %s" % url)
 	print ("*")
 	print ("* ORG ID                   = %s" % ORGID)
-	print ("* FILTER                   = %s" % FILTER)
-	print ("* START KEY                = %s" % STARTKEY)
+	print ("* KEYTYPE                  = %s" % KEYTYPE)
+	print ("* AUTHORITY                = %s" % AUTHORITY)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
@@ -416,18 +439,18 @@ def getListOfPartialKeys():
 	#print ("\nTotal of %d activities available" % cntr)	
 	
 	#print json.dumps(activities, sort_keys=True, indent=4)
-	print keys
+	print output_data
 	print ("-------------------------------------------------------------------------------------------------------------")
 	#print ORG_DICT[24]
-	print ("Possible filters are: 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-documentHash, 5-documentId, 6-all")
+	print ("Possible keyTypes are: 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-externalID")
 	print ("-------------------------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("To re-list enter: orgID,Filter#,startkey or just enter Q to Quit: ")
+	INPUT_STRING = raw_input("To re-list enter: orgID,keyType,key or just enter Q to Quit: ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "SUCCESS":
 			#updateOrgConfig(INPUT_STRING)
 			obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
-			getListOfPartialKeys()
+			readListOfPartialKeys()
 		else:
 			print (validation)
 			#quit()
@@ -441,13 +464,13 @@ checkForPassedArguments()
 
 outputGlobalVariableSettings()
 
-connectToMySQL()
+#connectToMySQL()
 
 
 INPUT_STRING=""
 while INPUT_STRING.upper() != "Q":
 	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
-	getListOfPartialKeys()
+	readListOfPartialKeys()
 
-closeMySQLConnection()
+#closeMySQLConnection()
 #============================ THE END ====================================================
