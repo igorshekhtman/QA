@@ -1,8 +1,8 @@
 #=========================================================================================
-#========================== eventConfigComplete.py =======================================
+#========================== eventConfigCompleteTool.py ===================================
 #=========================================================================================
 #
-# PROGRAM:         eventConfigComplete.py
+# PROGRAM:         eventConfigCompleteTool.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    21-Mar-2015
 # INITIAL VERSION: 1.0.0
@@ -70,7 +70,7 @@ def outputMissingArgumentsandAbort():
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & JOB-NUMBER(S) <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 eventConfigComplete.py arg1 arg2")
+	print ("* python2.7 eventConfigCompleteTool.py arg1 arg2")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
