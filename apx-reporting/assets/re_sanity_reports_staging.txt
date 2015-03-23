@@ -1,0 +1,4 @@
+RulesEditor Sanity Staging Report - January 15, 2015	reports/staging/resanity/2015/01/15.html
+RulesEditor Sanity Staging Report - January 16, 2015	reports/staging/resanity/2015/01/16.html
+RulesEditor Sanity Staging Report - January 20, 2015	reports/staging/resanity/2015/01/20.html
+RulesEditor Sanity Staging Report - January 28, 2015	reports/staging/resanity/2015/01/28.html

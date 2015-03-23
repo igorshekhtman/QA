@@ -548,3 +548,15 @@ Daily Production Report - January 12, 2015	reports/production/pipeline/2015/1/12
 Daily Staging Report - January 12, 2015	reports/staging/pipeline/2015/1/12.html
 Daily Production Report - January 13, 2015	reports/production/pipeline/2015/1/13.html
 Daily Staging Report - January 13, 2015	reports/staging/pipeline/2015/1/13.html
+Daily Production Report - January 14, 2015	reports/production/pipeline/2015/1/14.html
+Daily Staging Report - January 14, 2015	reports/staging/pipeline/2015/1/14.html
+Daily Production Report - January 15, 2015	reports/production/pipeline/2015/1/15.html
+Daily Staging Report - January 15, 2015	reports/staging/pipeline/2015/1/15.html
+Daily Production Report - January 16, 2015	reports/production/pipeline/2015/1/16.html
+Daily Staging Report - January 16, 2015	reports/staging/pipeline/2015/1/16.html
+Daily Production Report - January 17, 2015	reports/production/pipeline/2015/1/17.html
+Daily Staging Report - January 17, 2015	reports/staging/pipeline/2015/1/17.html
+Daily Production Report - January 18, 2015	reports/production/pipeline/2015/1/18.html
+Daily Staging Report - January 18, 2015	reports/staging/pipeline/2015/1/18.html
+Daily Production Report - January 19, 2015	reports/production/pipeline/2015/1/19.html
+Daily Staging Report - January 19, 2015	reports/staging/pipeline/2015/1/19.html
