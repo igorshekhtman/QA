@@ -28,7 +28,7 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
-import MySQLdb
+#import MySQLdb
 #============================ GLOBAL VARIABLES ===========================================
 # Assigning default values
 EMAIL="ishekhtman@apixio.com"
@@ -44,6 +44,7 @@ ENVIRONMENT = "staging" # default value is staging
 ORGID = ""
 KEYTYPE = "patientUUID"
 AUTHORITY = ""
+STARTKEY = ""
 #[externalID, partialPatientKey, patientUUID, documentUUID]
 KEYTYPE_DICT = {"1": "partialPatientKey", "2": "patientUUID", "3": "documentUUID", "4": "externalID"} 
 
@@ -97,7 +98,7 @@ def checkForPassedArguments():
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
 	global ORGID, CATEGORY, OPERATION, BATCH, PRIORITY
-	global ENVIRONMENT, KEYTYPE, AUTHORITY
+	global ENVIRONMENT, KEYTYPE, AUTHORITY, KEYTYPE_KEY
 
 	#print ("Setting environment varibales ...\n")
 	
@@ -111,9 +112,9 @@ def checkForPassedArguments():
 		if (len(sys.argv) > 2):
 			ORGID = str(sys.argv[2])
 			if (len(sys.argv) > 3):
-			 KEYTYPE = str(sys.argv[3]) 
-			 if (len(sys.argv) > 4):
-  				AUTHORITY = str(sys.argv[4])
+				KEYTYPE_KEY = str(sys.argv[3]) 
+			 	if (len(sys.argv) > 4):
+  					AUTHORITY = str(sys.argv[4])
 		
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -139,24 +140,14 @@ def checkForPassedArguments():
 def connectToMySQL():
 	print ("Connecing to MySQL ...\n")
 	global mss_cur, mss_conn, msp_cur, msp_conn
-	mss_conn = MySQLdb.connect(host=STDOM, \
-		user='qa', \
-		passwd=STPW, \
-		db='apixiomain')		
-	mss_cur = mss_conn.cursor() 
-	msp_conn = MySQLdb.connect(host=PRDOM, \
-		user='qa', \
-		passwd=PRPW, \
-		db='apixiomain')		
-	msp_cur = msp_conn.cursor()
 	print ("Connection to MySQL established ...\n")
 #=========================================================================================
 def closeMySQLConnection():
 	global mss_cur, mss_conn, msp_cur, msp_conn
-	mss_cur.close()
-	mss_conn.close()
-	msp_cur.close()
-	msp_conn.close()	
+#	mss_cur.close()
+#	mss_conn.close()
+#	msp_cur.close()
+#	msp_conn.close()	
 #=========================================================================================
 def getOrgName(id):
 	global mss_cur, mss_conn, msp_cur, msp_conn
@@ -307,7 +298,7 @@ def updateOrgConfig(input_string):
 	
 #=========================================================================================
 def validateUpdateString(input_string):
-	global KEYTYPE, ORGID, AUTHORITY
+	global KEYTYPE, ORGID, AUTHORITY, KEYTYPE_KEY, STARTKEY
 	
 	delimiter = ','
   	input_string = input_string.split(delimiter)
@@ -321,9 +312,16 @@ def validateUpdateString(input_string):
   	else:
   		validation_string = "success" 		
   		ORGID = input_string[0]
-  		KEYTYPE = KEYTYPE_DICT[input_string[1]]
+  		KEYTYPE_KEY = input_string[1]
+  		KEYTYPE = KEYTYPE_DICT[KEYTYPE_KEY]
+  		#if len(input_string) > 2:
+  		#	AUTHORITY = input_string[2]
   		if len(input_string) > 2:
-  			AUTHORITY = input_string[2]
+  			STARTKEY = input_string[2]
+  		else:
+  			STARTKEY = ""	
+  		
+  		
   		#print ORGID
   		#print KEYTYPE
   		#print AUTHORITY
@@ -331,10 +329,66 @@ def validateUpdateString(input_string):
   			
   	
   	return(validation_string)
+  	
+  	
+#=========================================================================================
+
+def getListOfPartialKeys(orgid, filter):
+	global TOKEN, INPUT_STRING, ORG_DICT, FILTER, STARTKEY
+	
+	ORG_DICT = {}
+	#STARTKEY = "" #this is a temp setting
+	
+	print ("----------------------------------------------------------------------------")
+	print (">>> GET LIST OF PARTIAL KEYS <<<")
+	print ("----------------------------------------------------------------------------")
+
+	url = PIPEHOST+"/pipeline/datasource/"+orgid+"/keys?filter="+filter+""
+	if STARTKEY > "":
+		url = url + "&startkey="+STARTKEY+"" 
+	
+	
+
+  	referer = PIPEHOST  				
+  	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+  	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'text/plain', \
+  				'Content-Length': '48', \
+  				'Referer': referer, \
+  				'Authorization': 'Apixio ' + TOKEN} 			
+  	response = requests.get(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	if statuscode == ok:
+		keys = response.text
+	else:
+		print ("Failure occured with %s status code received back from server" % statuscode)
+		quit()
+				
+	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
+	print ("* ROOT USERNAME            = %s" % EMAIL)
+	print ("* PASSWORD                 = %s" % PASSW)
+	print ("* INTERNAL TOKEN           = %s" % TOKEN)
+	print ("* AUTHENTICATION HOST URL  = %s" % AUTHHOST)
+	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
+	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
+	print ("* SUBMIT PARTIAL KEYS URL  = %s" % url)
+	print ("*")
+	print ("* ORG ID                   = %s" % ORGID)
+	print ("* FILTER / KEY TYPE        = %s" % filter)
+	print ("* START KEY                = %s" % STARTKEY)
+	print ("*")
+	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
+	print ("****************************************************************************")
+	print ("----------------------------------------------------------------------------")
+
+	#print keys
+	
+	return (keys)
+
 #=========================================================================================	
 
 def readListOfPartialKeys():
-	global TOKEN, INPUT_STRING, ORG_DICT, KEYTYPE, AUTHORITY
+	global TOKEN, INPUT_STRING, ORG_DICT, KEYTYPE, AUTHORITY, KEYTYPE_KEY
 	
 	ORG_DICT = {}
 	
@@ -345,6 +399,12 @@ def readListOfPartialKeys():
 	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?filter="+KEYTYPE+""
 	#if AUTHORITY > "":
 	#	url = url + "&startkey="+AUTHORITY+"" 
+	
+	
+	#------------------------------
+	# Obtain list of patientUUIDs
+	#-------------------------------
+	
 	
 	
 	#sample patientUUID for ORG-370 - "pat_af339ba3-faab-4660-9fb1-72855468ced5"
@@ -360,26 +420,26 @@ def readListOfPartialKeys():
 	
 	#url = PIPEHOST+"/pipeline/datasource/"+ORGID+"/keys?keyType="+KEYTYPE+""
 	
-	url = PIPEHOST+"/pipeline/datasource/370/keys?keyType=patientUUID"
 	
+	KEYTYPE = KEYTYPE_DICT[KEYTYPE_KEY]	
+	
+	ids_list = getListOfPartialKeys(ORGID, KEYTYPE)
+	
+	
+	url = PIPEHOST+"/pipeline/datasource/370/keys?keyType="+KEYTYPE+""	
   	referer = PIPEHOST  
-  	
-  	#print url
-  	#quit()				
-
-  	#DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
-
   	HEADERS = {	'Connection': 'keep-alive', \
   				'Content-Type': 'text/plain', \
   				'Content-Length': '48', \
   				'Referer': referer, \
   				'Authorization': 'Apixio ' + TOKEN} 
   	
-  	ids_list = ("pat_af339ba3-faab-4660-9fb1-72855468ced5\n", "pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a\n", "pat_c4eef6a2-429b-4591-a15c-a30058f2f711\n")
+	#ids_list = ("pat_af339ba3-faab-4660-9fb1-72855468ced5", "pat_554ac7f2-e512-4439-ab13-a2041fb8fb3a", "pat_c4eef6a2-429b-4591-a15c-a30058f2f711", "pat_f7fcc246-c8ec-4411-91bb-9496ab303fe3")
   	
-  	ids_list = json.dumps(ids_list)
+#  	ids_list = json.dumps(ids_list)
   				
-  	DATA = ids_list	
+  	#DATA = '\n'.join(ids_list)
+  	DATA = ids_list
   	#print DATA
   	#quit()					
 
@@ -390,8 +450,6 @@ def readListOfPartialKeys():
 
 	if statuscode == ok:
 		output_data = response.text
-		#print keys
-		#quit()
 	else:
 		print ("Failure occured with %s status code received back from server" % statuscode)
 		quit()
@@ -412,39 +470,13 @@ def readListOfPartialKeys():
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************")
 	print ("----------------------------------------------------------------------------")
-	#raw_input("Press Enter to continue...")
-	# Available fields:
-	# name
-	# enabled
-	# priority
-	
-	#print json.dumps(orgs)
-	#quit()
-	
-	#str(cntr).ljust(3)
-
-	#print ("OrgID:\t\tOrg Name:\t\t\tEnabled:\tPriority:")
-	#print ("======\t\t=========\t\t\t========\t=========")
-	#cntr = 0
-	
-	#for org in sorted(orgs, key=lambda k: k['name']):
-		#print json.dumps(job, sort_keys=True, indent=0)
-		#cntr += 1
-		#print ("%s\t%s\t%s\t\t%s" % (org['name'].ljust(10),  getOrgName(org['name']).ljust(25), \
-		#	org['enabled'], org['priority'] ))
-		#ORG_DICT.update({org['name']:getOrgName(org['name'])})	
-			
-			
-				
-	#print ("\nTotal of %d activities available" % cntr)	
-	
-	#print json.dumps(activities, sort_keys=True, indent=4)
+					
 	print output_data
+	
 	print ("-------------------------------------------------------------------------------------------------------------")
-	#print ORG_DICT[24]
 	print ("Possible keyTypes are: 1-partialPatientKey, 2-patientUUID, 3-documentUUID, 4-externalID")
 	print ("-------------------------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("To re-list enter: orgID,keyType,key or just enter Q to Quit: ")
+	INPUT_STRING = raw_input("To re-list enter: orgID,keyType,startkey or just enter Q to Quit: ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "SUCCESS":
