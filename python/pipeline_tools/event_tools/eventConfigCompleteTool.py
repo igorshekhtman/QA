@@ -260,18 +260,110 @@ def validateUpdateString(input_string):
   	#print len(input_string)
   	#print len(input_string)
   	#print input_string
+  	#version = "1405126119695"
   	
   	#if len(input_string) < 2:
   	if input_string == ['']:
   		validation_string = "Some of the required paramaters are missing, please try again ..."
   	else:
-  		validation_string = "success"
-  		#for i in range (0,len(input_string)):
-  		#	print AV_JOBS[input_string[i]]
-  		#quit()		
-  	
+  		if input_string[0].upper() == "G":
+  			validation_string = "get"
+  		elif input_string[0].upper() == "D":
+  			validation_string = "delete"
+  		elif input_string[0].upper() == "A":
+  			validation_string = "add"
+  		elif input_string[0].upper() == "Q":
+  			quit()  		  		
+
   	return(validation_string)
+
+#=========================================================================================  	
+##Tue Mar 24 18:20:29 UTC 2015
+#$propertyVersion=1405126119695
+#V5THRESHOLD=0.8
+#model_filename=apxcat_models_11405126119695
+#$modelFile=apxcat_models_1.zip
+#$version=1405126119695
+#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
+#
+#
+##Tue Mar 24 18:20:29 UTC 2015
+#$propertyVersion=1406595348574
+#V5THRESHOLD=0.8
+#model_filename=apxcat_models_21406595348574
+#$modelFile=apxcat_models_2.zip
+#$version=1406595348574
+#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
+#=========================================================================================
+def addEventModelConfiguration(org, filename, input_string):
+	
+	print ("----------------------------------------------------------------------------")
+	print (">>> ADD ORG SPECIFIC SET OF PROPERTIES <<<")
+	print ("----------------------------------------------------------------------------")
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	if len(input_string) < 3:
+  		print ("Some of the required paramaters are missing, please try again ...")
+  		raw_input("Press Enter to continue...")
+  	else:
+  		org = input_string[1]
+  		filename = input_string[2]
+	
+	url = PIPEHOST+"/pipeline/event/model/"+filename+"?orgID="+org+""
+	referer = PIPEHOST
+	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'application/octet-stream', \
+  				'Content-Length': '48', \
+  				'Referer': referer, \
+  				'Authorization': 'Apixio ' + TOKEN}
+  	response = requests.post(url, data=DATA, headers=HEADERS)		
+  	statuscode = response.status_code
+  	if statuscode == ok:
+  		print response.text
+  		result = response.text
+  	else:
+  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
+  		quit()
   	
+	
+	#print ("addEventModelConfiguration: org: %s, filename: %s" % (org, filename))
+	#raw_input("Press Enter to continue...")	
+#========================================================================================= 
+def delEventModelConfiguration(org, version, input_string):
+
+	print ("----------------------------------------------------------------------------")
+	print (">>> DELETE ORG SPECIFIC SET OF PROPERTIES <<<")
+	print ("----------------------------------------------------------------------------")
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	if len(input_string) < 3:
+  		print ("Some of the required paramaters are missing, please try again ...")
+  		raw_input("Press Enter to continue...")
+  	else:
+  		org = input_string[1]
+  		version = input_string[2]
+  		
+  	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
+	referer = PIPEHOST
+	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'text/plain', \
+  				'Content-Length': '48', \
+  				'Referer': referer, \
+  				'Authorization': 'Apixio ' + TOKEN}
+  	response = requests.delete(url, data=DATA, headers=HEADERS)		
+  	statuscode = response.status_code
+  	if statuscode == ok:
+  		print response.text
+  		result = response.text
+  	else:
+  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
+  		quit()	
+  		
+  	
+  	#print ("delEventModelConfiguration: org: %s, version: %s" % (org, version))
+	#raw_input("Press Enter to continue...")	
 #=========================================================================================  	  	
 def getOrgSpecificProperties(org, version):
 	  	
@@ -365,25 +457,27 @@ def getEventConfigVersionNumbers():
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************************")
-	print ("*                           LIST OF AVAILABLE FAILED JOBS                              *")
+	print ("*                     LIST OF AVAILABLE EVENT CONFIG PROPERTIES                        *")
 	print ("****************************************************************************************")
 	
 
 	for version in versions_list:
 		specific_properties = getOrgSpecificProperties(ORGID, version)
-
 	
 	print ("-------------------------------------------------------------------------------------------")
-	print ("Enter line number(s), comma separated, of the job(s) to resubmit or just enter Q to Quit")
+	print ("Enter G-Get, D-Del, A-Add or just enter Q to Quit")
 	print ("-------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("Line number(s): ")
+	INPUT_STRING = raw_input("Option, orgID, Version#/Filename: ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
-		if validation.upper() == "SUCCESS":
-			submitJob(INPUT_STRING)
+		if validation.upper() == "GET":
+  			getOrgSpecificProperties(ORGID, version)
+  		elif validation.upper() == "DELETE":
+  			delEventModelConfiguration(ORGID, version, INPUT_STRING)
+  		elif validation.upper() == "ADD":
+  			addEventModelConfiguration(ORGID, version, INPUT_STRING)
 		else:
 			print (validation)
-			#quit()
 			raw_input("Press Enter to continue...")	
 
 #============================ MAIN PROGRAM BODY ==========================================
