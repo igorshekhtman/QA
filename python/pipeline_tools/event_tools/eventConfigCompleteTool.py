@@ -271,54 +271,33 @@ def validateUpdateString(input_string):
   		#quit()		
   	
   	return(validation_string)
-#=========================================================================================	
-
-def submitJob(input_string):
-	global TOKEN
-	
+  	
+#=========================================================================================  	  	
+def getOrgSpecificProperties(org, version):
+	  	
 	print ("----------------------------------------------------------------------------")
-	print (">>> RE-SUBMIT JOB(s) <<<")
+	print (">>> GET ORG SPECIFIC SET OF PROPERTIES <<<")
 	print ("----------------------------------------------------------------------------")
 
-	url = PIPEHOST+"/pipeline/coord/jobs/resubmit"
-  	referer = PIPEHOST  				
-
-  	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'application/json', \
+	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
+	referer = PIPEHOST
+	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
+	HEADERS = {	'Connection': 'keep-alive', \
+  				'Content-Type': 'application/octet', \
   				'Content-Length': '48', \
   				'Referer': referer, \
-  				'Accept': '*/*', \
-  				'Authorization': 'Apixio ' + TOKEN}			
+  				'Authorization': 'Apixio ' + TOKEN}
+  	response = requests.get(url, data=DATA, headers=HEADERS)		
+  	statuscode = response.status_code
+  	if statuscode == ok:
+  		print response.text
+  		result = response.text
+  	else:
+  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
+  		result = "Event model properties not available"		
+	return (result)
+#=========================================================================================	
 
-	JOBIDS = []
-  	delimiter = ','
-  	input_string = input_string.split(delimiter)
-  	for i in range (0,len(input_string)):
-  		#print AV_JOBS[input_string[i]]
-  		JOBIDS.append(AV_JOBS[input_string[i]])
-
-  	JOBIDS = json.dumps(JOBIDS)
-  		
-  	DATA = JOBIDS
-		
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-	statuscode = response.status_code	
-	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
-	print ("* ROOT USERNAME            = %s" % EMAIL)
-	print ("* PASSWORD                 = %s" % PASSW)
-	print ("* INTERNAL TOKEN           = %s" % TOKEN)
-	print ("* AUTHENTICATION HOST URL  = %s" % AUTHHOST)
-	print ("* TOKENIZER HOST URL       = %s" % TOKEHOST)
-	print ("* COORDINATOR HOST URL     = %s" % PIPEHOST)
-	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
-	print ("*")
-	print ("* JOB ID(S)                = %s" % JOBIDS)	
-	print ("*")
-	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
-	print ("****************************************************************************")
-
-#=========================================================================================
-	
 def getEventConfigVersionNumbers():
 	global TOKEN, AV_JOBS, INPUT_STRING
 	
@@ -326,18 +305,25 @@ def getEventConfigVersionNumbers():
 	print (">>> GET EVENT CONFIG VERSION NUMBERS <<<")
 	print ("----------------------------------------------------------------------------")
 
-	url = PIPEHOST+"/pipeline/coord/jobs/failed"
-	if (ORGID > ""):
-		url = url + "?"
-	if ORGID > "":
-		url = url + "&org="+ORGID+""
+	url = PIPEHOST+"/pipeline/event/versions"
+	#if (ORGID > ""):
+	#	url = url + "?"
+	#if ORGID > "":
+	#	url = url + "&org="+ORGID+""
+	
+	#1405126119695
+	#1406595348574
+
+	
+	
+	#url = PIPEHOST+"/pipeline/event/properties/1405126119695"
+	
+	#url = PIPEHOST+"/pipeline/event/properties/1405126119695?orgID=370"
+	
 	
 	AV_JOBS = {}
   	referer = PIPEHOST  				
-  	#print url
-  	#print referer
-  	#quit()
-  	#Content-Type header in your request, or it's incorrect. In your case it must be application/xml
+
   	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
   	HEADERS = {	'Connection': 'keep-alive', \
   				'Content-Type': 'application/octet', \
@@ -346,7 +332,23 @@ def getEventConfigVersionNumbers():
   				'Authorization': 'Apixio ' + TOKEN}
   	response = requests.get(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
-	jobs = response.json()
+	
+	versions_list = []
+	cntr = 0
+	version = ""
+	if statuscode == ok:
+		versions = response.text
+		for item in versions:
+			if item != "\n":
+				version = version + item
+			else:
+				versions_list.append(version)
+				version = ""					
+		print versions_list 
+		print len(versions_list)
+	else:
+		print ("Bad server response %s received.  Exiting application ..." % statuscode)	
+	#quit()
 	
 	print ("****************************************************************************")
 	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
@@ -359,27 +361,18 @@ def getEventConfigVersionNumbers():
 	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
 	print ("*")
 	print ("* ORGID                    = %s" % ORGID)
+	print ("* VERSIONS LIST            = %s" % versions_list)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************************")
 	print ("*                           LIST OF AVAILABLE FAILED JOBS                              *")
 	print ("****************************************************************************************")
 	
-	# ----------- List of Available fields -----------------
 
+	for version in versions_list:
+		specific_properties = getOrgSpecificProperties(ORGID, version)
 
-	print ("Line#:\tJob ID:\tOrg ID:\t\t\tOrg Name:\t\t\tActivity Name:")
-	print ("======\t=======\t=======\t\t\t=========\t\t\t==============")
-	cntr = 0
-	for job in sorted(jobs, key=lambda k: k['jobID']):
-		#print json.dumps(job, sort_keys=True, indent=0)
-		cntr += 1
-		if str(job['orgID']) != "resubmitJobTool.py":
-			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), getOrgName(job['orgID']).ljust(30), job['activityName']))
-		else:
-			print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), job['orgID'].ljust(30), job['activityName']))
-		AV_JOBS.update({ str(cntr): str(job['jobID'])})		
-	#print AV_JOBS
+	
 	print ("-------------------------------------------------------------------------------------------")
 	print ("Enter line number(s), comma separated, of the job(s) to resubmit or just enter Q to Quit")
 	print ("-------------------------------------------------------------------------------------------")
@@ -408,8 +401,6 @@ INPUT_STRING=""
 while INPUT_STRING.upper() != "Q":
 	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 	getEventConfigVersionNumbers()
-
-#submitJob()
 
 #closeMySQLConnection()
 
