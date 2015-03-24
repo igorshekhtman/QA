@@ -365,11 +365,18 @@ def delEventModelConfiguration(org, version, input_string):
   	#print ("delEventModelConfiguration: org: %s, version: %s" % (org, version))
 	#raw_input("Press Enter to continue...")	
 #=========================================================================================  	  	
-def getOrgSpecificProperties(org, version):
+def getOrgSpecificProperties(org, version, input_string):
 	  	
 	print ("----------------------------------------------------------------------------")
 	print (">>> GET ORG SPECIFIC SET OF PROPERTIES <<<")
 	print ("----------------------------------------------------------------------------")
+	delimiter = ','
+  	input_string = input_string.split(delimiter)
+  	if len(input_string) > 2:
+  		org = input_string[1]
+  		version = input_string[2]
+  	if 	len(input_string) > 1:
+  		org = input_string[1]
 
 	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
 	referer = PIPEHOST
@@ -462,7 +469,7 @@ def getEventConfigVersionNumbers():
 	
 
 	for version in versions_list:
-		specific_properties = getOrgSpecificProperties(ORGID, version)
+		specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
 	
 	print ("-------------------------------------------------------------------------------------------")
 	print ("Enter G-Get, D-Del, A-Add or just enter Q to Quit")
@@ -471,7 +478,7 @@ def getEventConfigVersionNumbers():
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "GET":
-  			getOrgSpecificProperties(ORGID, version)
+  			getOrgSpecificProperties(ORGID, version, INPUT_STRING)
   		elif validation.upper() == "DELETE":
   			delEventModelConfiguration(ORGID, version, INPUT_STRING)
   		elif validation.upper() == "ADD":
