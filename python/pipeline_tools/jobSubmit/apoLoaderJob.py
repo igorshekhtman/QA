@@ -43,7 +43,7 @@ ORGID = ""
 APO_FILENAME = ""
 CATEGORY = "standard"
 OPERATION = "pipeline"
-BATCH = ""
+BATCH = "apoLoaderJob"
 PRIORITY = "5"
 
 
@@ -305,24 +305,17 @@ def submitWorkToCoordinator():
   	referer = PIPEHOST  				
 
   	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'application/octet', \
+  				'Content-Type': 'application/octet-stream', \
   				'Content-Length': '48', \
   				'Referer': referer, \
   				'Accept': '*/*', \
   				'Authorization': 'Apixio ' + TOKEN}			
+  	
+  	FILES = {'file': open(APO_FILENAME, 'rb')}
 
-	#JOBIDS = []
-  	#delimiter = ','
-  	#input_string = input_string.split(delimiter)
-  	#for i in range (0,len(input_string)):
-  		#print AV_JOBS[input_string[i]]
-  		#JOBIDS.append(AV_JOBS[input_string[i]])
-
-  	#JOBIDS = json.dumps(JOBIDS)
-  		
-  	DATA = APO_FILENAME
-		
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	
+  	response = requests.post(url, files=FILES, headers=HEADERS) 
+  	
 	statuscode = response.status_code	
 	print ("* ENVIRONMENT              = %s" % ENVIRONMENT)
 	print ("* ROOT USERNAME            = %s" % EMAIL)
@@ -357,8 +350,6 @@ obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
 #getFailedJobsList()
 
 submitWorkToCoordinator()
-
-#submitJob()
 
 #closeMySQLConnection()
 
