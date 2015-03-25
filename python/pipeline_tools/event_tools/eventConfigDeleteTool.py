@@ -255,14 +255,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 def validateUpdateString(input_string):
 	delimiter = ','
   	input_string = input_string.split(delimiter)
-  	#input_string = json.dumps(input_string)
-  	#print input_string
-  	#print len(input_string)
-  	#print len(input_string)
-  	#print input_string
-  	#version = "1405126119695"
-  	
-  	#if len(input_string) < 2:
+
   	if input_string == ['']:
   		validation_string = "Some of the required paramaters are missing, please try again ..."
   	else:
@@ -274,59 +267,6 @@ def validateUpdateString(input_string):
   			quit()  		  		
 
   	return(validation_string)
-
-#=========================================================================================  	
-##Tue Mar 24 18:20:29 UTC 2015
-#$propertyVersion=1405126119695
-#V5THRESHOLD=0.8
-#model_filename=apxcat_models_11405126119695
-#$modelFile=apxcat_models_1.zip
-#$version=1405126119695
-#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
-#
-#
-##Tue Mar 24 18:20:29 UTC 2015
-#$propertyVersion=1406595348574
-#V5THRESHOLD=0.8
-#model_filename=apxcat_models_21406595348574
-#$modelFile=apxcat_models_2.zip
-#$version=1406595348574
-#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
-#=========================================================================================
-def addEventModelConfiguration(org, filename, input_string):
-	
-	print ("----------------------------------------------------------------------------")
-	print (">>> ADD ORG SPECIFIC SET OF PROPERTIES <<<")
-	print ("----------------------------------------------------------------------------")
-	delimiter = ','
-  	input_string = input_string.split(delimiter)
-  	if len(input_string) < 3:
-  		print ("Some of the required paramaters are missing, please try again ...")
-  		raw_input("Press Enter to continue...")
-  	else:
-  		org = input_string[1]
-  		filename = input_string[2]
-	
-	url = PIPEHOST+"/pipeline/event/model/"+filename+"?orgID="+org+""
-	referer = PIPEHOST
-	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
-	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'application/octet-stream', \
-  				'Content-Length': '48', \
-  				'Referer': referer, \
-  				'Authorization': 'Apixio ' + TOKEN}
-  	response = requests.post(url, data=DATA, headers=HEADERS)		
-  	statuscode = response.status_code
-  	if statuscode == ok:
-  		print response.text
-  		result = response.text
-  	else:
-  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
-  		quit()
-  	
-	
-	#print ("addEventModelConfiguration: org: %s, filename: %s" % (org, filename))
-	#raw_input("Press Enter to continue...")	
 #========================================================================================= 
 def delEventModelConfiguration(org, version, input_string):
 
@@ -339,8 +279,8 @@ def delEventModelConfiguration(org, version, input_string):
   		print ("Some of the required paramaters are missing, please try again ...")
   		raw_input("Press Enter to continue...")
   	else:
-  		org = input_string[1]
-  		version = input_string[2]
+  		version = input_string[1]
+  		org = input_string[2]
   		
   	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
 	referer = PIPEHOST
@@ -350,11 +290,15 @@ def delEventModelConfiguration(org, version, input_string):
   				'Content-Length': '48', \
   				'Referer': referer, \
   				'Authorization': 'Apixio ' + TOKEN}
-  	response = requests.delete(url, data=DATA, headers=HEADERS)		
+  				
+  	response = requests.delete(url, data=DATA, headers=HEADERS)	
+  		
   	statuscode = response.status_code
+  	
   	if statuscode == ok:
-  		print response.text
-  		result = response.text
+  		print ("Specific event property version: %s for orgID: %s was successfully removed ..." % (version, org))
+  		#result = response.text
+  		raw_input("Press Enter to continue...")
   	else:
   		print ("Bad server response %s received.  Exiting application ..." % statuscode)
   		quit()	
@@ -371,10 +315,10 @@ def getOrgSpecificProperties(org, version, input_string):
 	delimiter = ','
   	input_string = input_string.split(delimiter)
   	if len(input_string) > 2:
-  		org = input_string[1]
-  		version = input_string[2]
+  		version = input_string[1]
+  		org = input_string[2]
   	if 	len(input_string) > 1:
-  		org = input_string[1]
+  		version = input_string[1]
 
 	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
 	referer = PIPEHOST
@@ -389,6 +333,7 @@ def getOrgSpecificProperties(org, version, input_string):
   	if statuscode == ok:
   		print response.text
   		result = response.text
+  		raw_input("Press Enter to continue...")
   	else:
   		print ("Bad server response %s received.  Exiting application ..." % statuscode)
   		result = "Event model properties not available"		
@@ -441,8 +386,8 @@ def getEventConfigVersionNumbers():
 			else:
 				versions_list.append(version)
 				version = ""					
-		print versions_list 
-		print len(versions_list)
+		#print versions_list 
+		#print len(versions_list)
 	else:
 		print ("Bad server response %s received.  Exiting application ..." % statuscode)	
 	#quit()
@@ -458,29 +403,43 @@ def getEventConfigVersionNumbers():
 	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
 	print ("*")
 	print ("* ORGID                    = %s" % ORGID)
-	print ("* VERSIONS LIST            = %s" % versions_list)
+	#print ("* VERSIONS LIST            = %s" % versions_list)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 	print ("****************************************************************************************")
 	print ("*                     LIST OF AVAILABLE EVENT CONFIG PROPERTIES                        *")
 	print ("****************************************************************************************")
 	
+	cntr = 0
+	max_ver = len(versions_list)
+	#print max_ver
 
-	for version in versions_list:
-		specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
+	for i in range (0, max_ver, 5):
+		if i+5 <= max_ver: 
+			print ("%s\t%s\t%s\t%s\t%s" % (versions_list[i], versions_list[i+1], versions_list[i+2], versions_list[i+3], versions_list[i+4]))
+		elif i+4 <= max_ver: 
+			print ("%s\t%s\t%s\t%s" % (versions_list[i], versions_list[i+1], versions_list[i+2], versions_list[i+3]))
+		elif i+3 <= max_ver:	
+			print ("%s\t%s\t%s" % (versions_list[i], versions_list[i+1], versions_list[i+2]))
+		elif i+2 <= max_ver:	
+			print ("%s\t%s" % (versions_list[i], versions_list[i+1]))
+		elif i <= max_ver:
+			print ("%s" % (versions_list[i]))
+				 
+
+		#print version
+		#specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
 	
 	print ("-------------------------------------------------------------------------------------------")
 	print ("Enter V-View, D-Delete or just enter Q to Quit")
 	print ("-------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("Option, orgID, Version#/Filename: ")
+	INPUT_STRING = raw_input("Option, Version#, orgID: ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "GET":
   			getOrgSpecificProperties(ORGID, version, INPUT_STRING)
   		elif validation.upper() == "DELETE":
   			delEventModelConfiguration(ORGID, version, INPUT_STRING)
-  		elif validation.upper() == "ADD":
-  			addEventModelConfiguration(ORGID, version, INPUT_STRING)
 		else:
 			print (validation)
 			raw_input("Press Enter to continue...")	
