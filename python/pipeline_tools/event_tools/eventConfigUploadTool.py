@@ -41,8 +41,16 @@ PIPEHOST="http://coordinator-stg.apixio.com:8066"
 
 # Required paramaters:
 ENVIRONMENT = "staging" # default value is staging
+PROPERTIES_FILE = ""
+
+# Optional paramaters:
+MODEL_FILE = ""
 ORGID = ""
-JOBID = ""
+VALIDATION = "true"
+FORCE_DATE_EXTRACTION = "false"
+EXTRACT_DATES = "true"
+EXTRACTORS = ""
+
 
 
 #===== MySQL Authentication============
@@ -67,15 +75,16 @@ servunavail = 503
 #============================ FUNCTIONS ==================================================
 def outputMissingArgumentsandAbort():
 	print ("----------------------------------------------------------------------------")
-	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & CONFIG FILE-NAME <<<")
+	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT, PROPERTIES & CONFIG FILE <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 eventConfigUploadTool.py arg1 arg2")
+	print ("* python2.7 eventConfigUploadTool.py arg1 arg2 arg3")
+	print ("* Example: python2.7 eventConfigUploadTool.py staging test.properties 370")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
 	print ("* arg1 - environment (staging or production) / help")
-	print ("* arg2 - event configuration filename")
+	print ("* arg2 - properties filename (ex. test.properies)")
 	print ("*")
 	print ("* Optional paramaters:")
 	print ("* --------------------")
@@ -89,24 +98,23 @@ def outputMissingArgumentsandAbort():
 
 def checkForPassedArguments():
 	# Arg1 - environment (required) / help
-	# Arg2 - orgID (optional), comma separated list of jobIDs
+	# Arg2 - properties filename
 
 
 	global EMAIL, PASSW, AUTHHOST, TOKEHOST, PIPEHOST
-	global JOBID, ENVIRONMENT, ORGID
+	global ENVIRONMENT, ORGID, PROPERTIES_FILE
 
-	#print 	len(sys.argv)
-	#print str(sys.argv[1])
-	#quit()
 	
-	if (len(sys.argv) < 2) or (str(sys.argv[1]).upper() == "HELP") or \
+	if (len(sys.argv) < 3) or (str(sys.argv[1]).upper() == "HELP") or \
 		(str(sys.argv[1]).upper() == "--HELP") or (str(sys.argv[1]).upper() == "-H") or \
 		(str(sys.argv[1]).upper() == "-HELP") or (str(sys.argv[1]).upper() == "--H"):
 		outputMissingArgumentsandAbort()
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 		if (len(sys.argv) > 2):
-			ORGID=str(sys.argv[2])
+			PROPERTIES_FILE=str(sys.argv[2])
+			if (len(sys.argv) > 3):
+				ORGID=str(sys.argv[3])
 	
 
 	if (ENVIRONMENT.upper() == "P") or (ENVIRONMENT.upper() == "PROD") or (ENVIRONMENT.upper() == "PRODUCTION"):
@@ -251,7 +259,38 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
 
+#=========================================================================================
 
+def loadArgumentsFromPropertiesFile():
+	global VALIDATION, FORCE_DATE_EXTRACTION, EXTRACT_DATES, EXTRACTORS, MODEL_FILE
+
+	print ("----------------------------------------------------------------------------")
+	print (">>> READ IN PROPERTIES FILE: %s <<<" % PROPERTIES_FILE)
+	print ("----------------------------------------------------------------------------")
+	
+	result={}
+	propfile = open(PROPERTIES_FILE, 'rb')
+	reader = csv.reader(propfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+	for row in reader:
+		if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
+			result[row[0]] = row[1]
+	globals().update(result)
+	
+	VALIDATION = result["validation"]
+	FORCE_DATE_EXTRACTION = result["force_date_extraction"]
+	EXTRACT_DATES = result["extract_dates"]
+	EXTRACTORS = result["extractors"]
+	MODEL_FILE = result["$modelFile"] 
+	
+	print ("* PROPERTIES FILE          = %s" % PROPERTIES_FILE)
+	print ("* VALIDATION               = %s" % VALIDATION)
+	print ("* FORCE DATE EXTRACTION    = %s" % FORCE_DATE_EXTRACTION)
+	print ("* MODEL FILE               = %s" % MODEL_FILE)
+	print ("* EXTRACT DATES            = %s" % EXTRACT_DATES)
+	print ("* EXTRACTORS               = %s" % EXTRACTORS)
+	print ("****************************************************************************")
+	  	
+	#quit()		
 #=========================================================================================
 def validateUpdateString(input_string):
 	delimiter = ','
@@ -278,93 +317,7 @@ def validateUpdateString(input_string):
 
   	return(validation_string)
 
-#=========================================================================================  	
-##Tue Mar 24 18:20:29 UTC 2015
-#$propertyVersion=1405126119695
-#V5THRESHOLD=0.8
-#model_filename=apxcat_models_11405126119695
-#$modelFile=apxcat_models_1.zip
-#$version=1405126119695
-#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
-#
-#
-##Tue Mar 24 18:20:29 UTC 2015
-#$propertyVersion=1406595348574
-#V5THRESHOLD=0.8
-#model_filename=apxcat_models_21406595348574
-#$modelFile=apxcat_models_2.zip
-#$version=1406595348574
-#extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor
-#=========================================================================================
-def addEventModelConfiguration(org, filename, input_string):
-	
-	print ("----------------------------------------------------------------------------")
-	print (">>> ADD ORG SPECIFIC SET OF PROPERTIES <<<")
-	print ("----------------------------------------------------------------------------")
-	delimiter = ','
-  	input_string = input_string.split(delimiter)
-  	if len(input_string) < 3:
-  		print ("Some of the required paramaters are missing, please try again ...")
-  		raw_input("Press Enter to continue...")
-  	else:
-  		org = input_string[1]
-  		filename = input_string[2]
-	
-	url = PIPEHOST+"/pipeline/event/model/"+filename+"?orgID="+org+""
-	referer = PIPEHOST
-	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
-	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'application/octet-stream', \
-  				'Content-Length': '48', \
-  				'Referer': referer, \
-  				'Authorization': 'Apixio ' + TOKEN}
-  	response = requests.post(url, data=DATA, headers=HEADERS)		
-  	statuscode = response.status_code
-  	if statuscode == ok:
-  		print response.text
-  		result = response.text
-  	else:
-  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
-  		quit()
-  	
-	
-	#print ("addEventModelConfiguration: org: %s, filename: %s" % (org, filename))
-	#raw_input("Press Enter to continue...")	
-#========================================================================================= 
-def delEventModelConfiguration(org, version, input_string):
 
-	print ("----------------------------------------------------------------------------")
-	print (">>> DELETE ORG SPECIFIC SET OF PROPERTIES <<<")
-	print ("----------------------------------------------------------------------------")
-	delimiter = ','
-  	input_string = input_string.split(delimiter)
-  	if len(input_string) < 3:
-  		print ("Some of the required paramaters are missing, please try again ...")
-  		raw_input("Press Enter to continue...")
-  	else:
-  		org = input_string[1]
-  		version = input_string[2]
-  		
-  	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
-	referer = PIPEHOST
-	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
-	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'text/plain', \
-  				'Content-Length': '48', \
-  				'Referer': referer, \
-  				'Authorization': 'Apixio ' + TOKEN}
-  	response = requests.delete(url, data=DATA, headers=HEADERS)		
-  	statuscode = response.status_code
-  	if statuscode == ok:
-  		print response.text
-  		result = response.text
-  	else:
-  		print ("Bad server response %s received.  Exiting application ..." % statuscode)
-  		quit()	
-  		
-  	
-  	#print ("delEventModelConfiguration: org: %s, version: %s" % (org, version))
-	#raw_input("Press Enter to continue...")	
 #=========================================================================================  	  	
 def getOrgSpecificProperties(org, version, input_string):
 	  	
@@ -398,56 +351,52 @@ def getOrgSpecificProperties(org, version, input_string):
 	return (result)
 #=========================================================================================	
 
-def getEventConfigVersionNumbers():
+def uploadEventConfigFile():
 	global TOKEN, AV_JOBS, INPUT_STRING
+	global VALIDATION, FORCE_DATE_EXTRACTION, EXTRACT_DATES, EXTRACTORS, MODEL_FILE
+	
 	
 	print ("----------------------------------------------------------------------------")
-	print (">>> GET EVENT CONFIG VERSION NUMBERS <<<")
+	print (">>> UPLOAD NEW EVENT CONFIG MODEL FILE: %s <<" % MODEL_FILE)
 	print ("----------------------------------------------------------------------------")
 
-	url = PIPEHOST+"/pipeline/event/versions"
-	#if (ORGID > ""):
-	#	url = url + "?"
-	#if ORGID > "":
-	#	url = url + "&org="+ORGID+""
+	url = PIPEHOST+"/pipeline/event/model/"+MODEL_FILE+"?"
+	url = url + "validation="+VALIDATION+""
+	url = url + "&force_date_extraction="+FORCE_DATE_EXTRACTION+""
+	url = url + "&extract_dates="+EXTRACT_DATES+""
+	url = url + "&extractors="+EXTRACTORS+""
+		
+	if ORGID > "":
+		url = url + "&org="+ORGID+""
 	
-	#1405126119695
-	#1406595348574
-
-	
-	
-	#url = PIPEHOST+"/pipeline/event/properties/1405126119695"
-	
-	#url = PIPEHOST+"/pipeline/event/properties/1405126119695?orgID=370"
-	
+	#print url
+	#quit()
 	
 	AV_JOBS = {}
   	referer = PIPEHOST  				
 
   	DATA =    { 'Referer': referer, 'Authorization': 'Apixio ' + TOKEN} 
   	HEADERS = {	'Connection': 'keep-alive', \
-  				'Content-Type': 'application/octet', \
+  				'Content-Type': 'application/octet-stream', \
   				'Content-Length': '48', \
   				'Referer': referer, \
   				'Authorization': 'Apixio ' + TOKEN}
-  	response = requests.get(url, data=DATA, headers=HEADERS) 
+  				
+  	FILES = {'file': open(MODEL_FILE, 'rb')}
+  				
+  	#response = requests.post(url, data=DATA, headers=HEADERS) 
+  	
+  	response = requests.post(url, files=FILES, headers=HEADERS)
+  	
+  	
 	statuscode = response.status_code
 	
-	versions_list = []
-	cntr = 0
-	version = ""
 	if statuscode == ok:
-		versions = response.text
-		for item in versions:
-			if item != "\n":
-				version = version + item
-			else:
-				versions_list.append(version)
-				version = ""					
-		print versions_list 
-		print len(versions_list)
+		print ("Event config model file: %s was successfully uploaded ..." % MODEL_FILE)
+		raw_input("Press Enter to continue...")
 	else:
-		print ("Bad server response %s received.  Exiting application ..." % statuscode)	
+		print ("Bad server response %s received.  Exiting application ..." % statuscode)
+		raw_input("Press Enter to continue...")	
 	#quit()
 	
 	print ("****************************************************************************")
@@ -461,32 +410,10 @@ def getEventConfigVersionNumbers():
 	print ("* SUBMIT JOB COMPLETE URL  = %s" % url)
 	print ("*")
 	print ("* ORGID                    = %s" % ORGID)
-	print ("* VERSIONS LIST            = %s" % versions_list)
 	print ("*")
 	print ("* RECEIVED STATUS CODE     = %s" % statuscode)
-	print ("****************************************************************************************")
-	print ("*                     LIST OF AVAILABLE EVENT CONFIG PROPERTIES                        *")
-	print ("****************************************************************************************")
-	
+	print ("****************************************************************************")
 
-	for version in versions_list:
-		specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
-	
-	print ("-------------------------------------------------------------------------------------------")
-	print ("Enter U-Upload or just enter Q to Quit")
-	print ("-------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("Option, orgID, Version#/Filename: ")
-	if INPUT_STRING.upper() != "Q":
-		validation = validateUpdateString(INPUT_STRING)
-		if validation.upper() == "GET":
-  			getOrgSpecificProperties(ORGID, version, INPUT_STRING)
-  		elif validation.upper() == "DELETE":
-  			delEventModelConfiguration(ORGID, version, INPUT_STRING)
-  		elif validation.upper() == "ADD":
-  			addEventModelConfiguration(ORGID, version, INPUT_STRING)
-		else:
-			print (validation)
-			raw_input("Press Enter to continue...")	
 
 #============================ MAIN PROGRAM BODY ==========================================
 os.system('clear')
@@ -495,14 +422,13 @@ checkForPassedArguments()
 
 outputGlobalVariableSettings()
 
-obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+loadArgumentsFromPropertiesFile()
 
 #connectToMySQL()
 
-INPUT_STRING=""
-while INPUT_STRING.upper() != "Q":
-	obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
-	getEventConfigVersionNumbers()
+obtainInternalToken(EMAIL, PASSW, {ok, created}, 0, 0)
+
+uploadEventConfigFile()
 
 #closeMySQLConnection()
 
