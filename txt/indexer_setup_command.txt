@@ -1,3 +1,10 @@
+============= PIPELINE CONFIG TOOLS ===================================
+
+production_model_with_dateextraction_20141028b.zip
+
+and the properties file that points to that is test.properties
+
+
 ============== SELENIUM WEB DRIVER: NOSETESTS ==========================
 
 nosetests

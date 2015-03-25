@@ -1,10 +1,10 @@
 #=========================================================================================
-#========================== eventConfigCompleteTool.py ===================================
+#========================== eventConfigUploadTool.py =====================================
 #=========================================================================================
 #
-# PROGRAM:         eventConfigCompleteTool.py
+# PROGRAM:         eventConfigUploadTool.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
-# DATE CREATED:    21-Mar-2015
+# DATE CREATED:    25-Mar-2015
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
@@ -67,18 +67,19 @@ servunavail = 503
 #============================ FUNCTIONS ==================================================
 def outputMissingArgumentsandAbort():
 	print ("----------------------------------------------------------------------------")
-	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & JOB-NUMBER(S) <<<")
+	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & CONFIG FILE-NAME <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 eventConfigCompleteTool.py arg1 arg2")
+	print ("* python2.7 eventConfigUploadTool.py arg1 arg2")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
 	print ("* arg1 - environment (staging or production) / help")
+	print ("* arg2 - event configuration filename")
 	print ("*")
 	print ("* Optional paramaters:")
 	print ("* --------------------")
-	print ("* arg2 - orgID (ex. 370)")	
+	print ("* arg3 - orgID (ex. 370)")	
 	print ("----------------------------------------------------------------------------")
 	print ("\n")
 	
@@ -472,7 +473,7 @@ def getEventConfigVersionNumbers():
 		specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
 	
 	print ("-------------------------------------------------------------------------------------------")
-	print ("Enter G-Get, D-Del, A-Add or just enter Q to Quit")
+	print ("Enter U-Upload or just enter Q to Quit")
 	print ("-------------------------------------------------------------------------------------------")
 	INPUT_STRING = raw_input("Option, orgID, Version#/Filename: ")
 	if INPUT_STRING.upper() != "Q":
