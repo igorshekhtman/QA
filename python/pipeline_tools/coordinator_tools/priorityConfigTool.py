@@ -1,15 +1,15 @@
 #=========================================================================================
-#========================== disablingTool.py =============================================
+#========================== priorityConfigTool.py ========================================
 #=========================================================================================
 #
-# PROGRAM:         disablingTool.py
+# PROGRAM:         priorityConfigTool.py
 # AUTHOR:          Igor Shekhtman ishekhtman@apixio.com
 # DATE CREATED:    19-Mar-2015
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
-#          This program should be executed via Python2.7 for the purpose of disabling and
-#			changing priority for any one org in a Hadoop cluster.
+#          This program should be executed via Python2.7 for the purpose of adjusting
+#			priority for any one available organization.
 #
 #=========================================================================================
 import requests
@@ -69,7 +69,7 @@ def outputMissingArgumentsandAbort():
 	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
-	print ("* python2.7 disablingTool.py arg1 arg2")
+	print ("* python2.7 priorityConfigTool.py arg1 arg2")
 	print ("*")
 	print ("* Required paramaters:")
 	print ("* --------------------")
@@ -303,7 +303,7 @@ def validateUpdateString(input_string):
   	#print input_string
   	#print len(input_string)
   	
- 	if len(input_string) < 3:
+  	if len(input_string) < 3:
   		validation_string = "Some of the required paramaters are missing, please try again ..."	
   	elif (int(input_string[2]) < 1) or 	(int(input_string[2]) > 9):
   		validation_string = "Priority value must be withing 1-9 range %s is not allowed, please re-enter ..." % input_string[2]
