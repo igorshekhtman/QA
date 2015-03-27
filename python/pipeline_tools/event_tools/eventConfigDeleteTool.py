@@ -275,12 +275,13 @@ def delEventModelConfiguration(org, version, input_string):
 	print ("----------------------------------------------------------------------------")
 	delimiter = ','
   	input_string = input_string.split(delimiter)
-  	if len(input_string) < 3:
+  	if len(input_string) < 2:
   		print ("Some of the required paramaters are missing, please try again ...")
   		raw_input("Press Enter to continue...")
   	else:
   		version = input_string[1]
-  		org = input_string[2]
+  		if len(input_string) > 2:
+  			org = input_string[2]
   		
   	url = PIPEHOST+"/pipeline/event/properties/"+version+"?orgID="+org+""
 	referer = PIPEHOST
@@ -296,9 +297,11 @@ def delEventModelConfiguration(org, version, input_string):
   	statuscode = response.status_code
   	
   	if statuscode == ok:
-  		print ("Specific event property version: %s for orgID: %s was successfully removed ..." % (version, org))
-  		#result = response.text
+  		print ("Specific event property version: %s was successfully removed ..." % (version))
   		raw_input("Press Enter to continue...")
+  	elif statuscode == notfound:
+  		print ("Specific event property version: %s was not found. Most likely it is NOT org-specific ..." % (version))
+  		raw_input("Press Enter to continue...")	
   	else:
   		print ("Bad server response %s received.  Exiting application ..." % statuscode)
   		quit()	
@@ -348,10 +351,10 @@ def getEventConfigVersionNumbers():
 	print ("----------------------------------------------------------------------------")
 
 	url = PIPEHOST+"/pipeline/event/versions"
-	#if (ORGID > ""):
-	#	url = url + "?"
-	#if ORGID > "":
-	#	url = url + "&org="+ORGID+""
+	if (ORGID > ""):
+		url = url + "?"
+	if ORGID > "":
+		url = url + "&orgID="+ORGID+""
 	
 	#1405126119695
 	#1406595348574
@@ -431,9 +434,9 @@ def getEventConfigVersionNumbers():
 		#specific_properties = getOrgSpecificProperties(ORGID, version, INPUT_STRING)
 	
 	print ("-------------------------------------------------------------------------------------------")
-	print ("Enter V-View, D-Delete or just enter Q to Quit")
+	print ("Select Option: V-View details, D-Delete or just enter Q to Quit")
 	print ("-------------------------------------------------------------------------------------------")
-	INPUT_STRING = raw_input("Option, Version#, orgID: ")
+	INPUT_STRING = raw_input("Option, Version#, (optional orgID): ")
 	if INPUT_STRING.upper() != "Q":
 		validation = validateUpdateString(INPUT_STRING)
 		if validation.upper() == "GET":

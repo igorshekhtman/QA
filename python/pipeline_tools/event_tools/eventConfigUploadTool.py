@@ -367,7 +367,7 @@ def uploadEventConfigFile():
 	url = url + "&extractors="+EXTRACTORS+""
 		
 	if ORGID > "":
-		url = url + "&org="+ORGID+""
+		url = url + "&orgID="+ORGID+""
 	
 	#print url
 	#quit()
