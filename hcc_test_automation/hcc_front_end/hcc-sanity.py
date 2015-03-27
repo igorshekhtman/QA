@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException        
+
 
 class hcc_sanity(unittest.TestCase) :
 
@@ -15,6 +17,7 @@ class hcc_sanity(unittest.TestCase) :
         if 'DISPLAY' not in os.environ :
             os.environ['DISPLAY'] = ':1'
         cls.driver = webdriver.Firefox()
+        #cls.driver = webdriver.Chrome()
 
 #-----------------------------------------------------------------------------------------
 
@@ -35,15 +38,24 @@ class hcc_sanity(unittest.TestCase) :
         self.username = "sanitytest001@apixio.net"
         self.password = "apixio.123"
         self.login()
+
+#-----------------------------------------------------------------------------------------        
+        
+    def check_exists_by_xpath(self, xpath) :
+        try:
+            webdriver.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            return False
+        return True        
         
 #-----------------------------------------------------------------------------------------
         
     def test_code_and_accept_opportunities(self) :
     
-        #self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+        self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
 		
-        for i in range (0,1):
-        	self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+        for i in range (0,0):
+        	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link.click()
         	#accept_button = self.driver.find_element(By.CSS_SELECTOR, "div.btn.btn-success")
@@ -51,8 +63,8 @@ class hcc_sanity(unittest.TestCase) :
         	accept_button.click()
         
         	icd_code_select_field = Select(self.driver.find_element_by_name("icd"))
-        	#icd_code_select_field.select_by_index(5)
-        	icd_code_select_field.select_by_visible_text("V45.11 - Renal dialysis status")
+        	icd_code_select_field.select_by_index(1)
+        	#icd_code_select_field.select_by_visible_text("V45.11 - Renal dialysis status")
         
         	provider_name_field = self.driver.find_element_by_name("providerName")
         	provider_name_field.send_keys("Dr. Feel Good")
@@ -75,9 +87,8 @@ class hcc_sanity(unittest.TestCase) :
         
         	next_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.btn.btn-success")))
         	next_button.click()
-    
-        
-        
+        	
+       
         	#flag_for_review_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-default.input-group-addon")))
         	#accept_button.click()
         	#<div class="btn btn-default input-group-addon open"
@@ -97,14 +108,71 @@ class hcc_sanity(unittest.TestCase) :
 
 #-----------------------------------------------------------------------------------------
 
-    #def test_reporting_should_have_limited_pagination_603(self) :
+    def test_code_and_reject_opportunities(self) :
+    	self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+    		
+        for i in range (0,5):
+        	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+        	#first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
+        	first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[1]/td[2]")))
+        	tot_docs = 1
+        	
+        	#check if 2nd document is present
+        	try:
+        		second_document_link = self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[2]/td[2]")
+        	except NoSuchElementException:
+        		tot_docs = 1
+        	else:
+        		tot_docs = 2	
+
+        			
+        	#check if 3rd document is present
+        	#try:
+        	#	self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[3]/td[2]")
+        	#except NoSuchElementException:	
+        	#	tot_docs = 1
+        	#else:
+        	#	tot_docs = 3	
+
+        		
+        	#check if 4th document is present
+        	#try:
+        	#	self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[4]/td[2]")
+        	#except NoSuchElementException:	
+        	#	tot_docs = 1
+        	#else:
+        	#	tot_docs = 4	
+
+        	
+        	
+        	
+        	
+        	print ("Total number of documents found: %s" % tot_docs)
+        	#quit()
+        	
+        	
+        	first_document_link.click()
+        	
+
+        	reject_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-primary")))
+        	reject_button.click()
+        	     	
+        	reject_reason_select_field = Select(self.driver.find_element_by_xpath("//form/div/div[1]/div/select"))
+        	reject_reason_select_field.select_by_index(1)
+        	
+        	done_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[3]/input")))
+        	done_button.click()
+        	    
+        	next_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "//ui-view/div/div/div/div[2]/span")))
+        	next_button.click()
+        	
+        	if tot_docs > 1:
+        		alert = self.driver.switch_to_alert()
+        		skip_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "html/body/div[3]/div/div/div[2]/div/div/button[2]")))
+        		skip_button.click()
+        	
     
-    #    self.driver.get("https://hccstage2.apixio.com/#/qa") # go to the qa-workflow
-        
-    #    self.driver.implicitly_wait(3)
-    #    pagination_controls = self.driver.find_elements_by_css_selector(".pagination > li")
-    #    self.assertGreater(len(pagination_controls),2)
-    #    self.assertLess(len(pagination_controls), 13)
+#-----------------------------------------------------------------------------------------
 
     @classmethod
     def tearDownClass(cls) :

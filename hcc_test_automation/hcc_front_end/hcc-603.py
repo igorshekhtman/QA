@@ -51,8 +51,8 @@ class TestHCC_603(unittest.TestCase) :
         	accept_button.click()
         
         	icd_code_select_field = Select(self.driver.find_element_by_name("icd"))
-        	#icd_code_select_field.select_by_index(5)
-        	icd_code_select_field.select_by_visible_text("V45.11 - Renal dialysis status")
+        	icd_code_select_field.select_by_index(1)
+        	#icd_code_select_field.select_by_visible_text("V45.11 - Renal dialysis status")
         
         	provider_name_field = self.driver.find_element_by_name("providerName")
         	provider_name_field.send_keys("Dr. Feel Good")
