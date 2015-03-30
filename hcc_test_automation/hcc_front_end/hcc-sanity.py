@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import NoSuchElementException        
+from selenium.common.exceptions import NoSuchElementException, TimeoutException  
 
 
 class hcc_sanity(unittest.TestCase) :
@@ -41,7 +41,7 @@ class hcc_sanity(unittest.TestCase) :
 
 #-----------------------------------------------------------------------------------------        
         
-    def check_exists_by_xpath(self, xpath) :
+    def check_exists_by_xpath(xpath) :
         try:
             webdriver.find_element_by_xpath(xpath)
         except NoSuchElementException:
@@ -50,11 +50,11 @@ class hcc_sanity(unittest.TestCase) :
         
 #-----------------------------------------------------------------------------------------
         
-    def test_code_and_accept_opportunities(self) :
+    def test_code_and_accept_ten_opportunities(self) :
     
         self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
 		
-        for i in range (0,0):
+        for i in range (0,10):
         	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link.click()
@@ -108,53 +108,37 @@ class hcc_sanity(unittest.TestCase) :
 
 #-----------------------------------------------------------------------------------------
 
-    def test_code_and_reject_opportunities(self) :
+    def test_code_and_reject_ten_opportunities(self) :
     	self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
     		
-        for i in range (0,5):
-        	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+        for i in range (0,10):
         	#first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
-        	first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[1]/td[2]")))
+        	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[1]/td[2]")))
         	tot_docs = 1
         	
         	#check if 2nd document is present
         	try:
-        		second_document_link = self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[2]/td[2]")
+        		second_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[2]/td[2]")))
         	except NoSuchElementException:
         		tot_docs = 1
+        	except TimeoutException:
+        		tot_docs = 1	
         	else:
         		tot_docs = 2	
-
-        			
-        	#check if 3rd document is present
-        	#try:
-        	#	self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[3]/td[2]")
-        	#except NoSuchElementException:	
-        	#	tot_docs = 1
-        	#else:
-        	#	tot_docs = 3	
-
         		
-        	#check if 4th document is present
-        	#try:
-        	#	self.driver.find_element_by_xpath("html/body/div[1]/div[2]/ui-view/div/div/div/table/tbody/tr[4]/td[2]")
-        	#except NoSuchElementException:	
-        	#	tot_docs = 1
-        	#else:
-        	#	tot_docs = 4	
+   	        	        	
+        	print ("Loop number: %s, Total number of documents found: %s" % (i, tot_docs))
 
         	
-        	
-        	
-        	
-        	print ("Total number of documents found: %s" % tot_docs)
-        	#quit()
-        	
-        	
-        	first_document_link.click()
+        	if tot_docs > 1:
+        		WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[2]/td[2]"))).click()
+        	else:
+        		WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[1]/td[2]"))).click()
+        			
         	
 
-        	reject_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-primary")))
+        	#reject_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-primary")))
+        	reject_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "html/body/div[1]/div[2]/ui-view/div/div[4]/div[1]/div[2]/div")))
         	reject_button.click()
         	     	
         	reject_reason_select_field = Select(self.driver.find_element_by_xpath("//form/div/div[1]/div/select"))
