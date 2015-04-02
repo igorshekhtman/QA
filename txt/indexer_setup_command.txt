@@ -1,3 +1,10 @@
+============= CHECKING FOR AVAILABLE OPPS ============================
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=sanitytest001@apixion.net&organizations=MMG&projects=any
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=any&projects=any
+
+
 ============= PIPELINE CONFIG TOOLS ===================================
 
 production_model_with_dateextraction_20141028b.zip

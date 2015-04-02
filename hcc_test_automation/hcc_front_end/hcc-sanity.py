@@ -54,7 +54,7 @@ class hcc_sanity(unittest.TestCase) :
     
         self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
 		
-        for i in range (0,10):
+        for i in range (0,2):
         	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link.click()
@@ -75,6 +75,10 @@ class hcc_sanity(unittest.TestCase) :
         	provider_type_select_field = Select(self.driver.find_element_by_name("encounterType"))
         	provider_type_select_field.select_by_visible_text("Hospital Outpatient Setting") 
                
+    
+    
+    
+    
         
         	#done_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.btn.btn-success")))
         	#done_button = self.driver.find_element(By.CSS_SELECTOR, "input.btn.btn-success")
@@ -111,7 +115,7 @@ class hcc_sanity(unittest.TestCase) :
     def test_code_and_reject_ten_opportunities(self) :
     	self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
     		
-        for i in range (0,10):
+        for i in range (0,0):
         	#first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[1]/td[2]")))
         	tot_docs = 1
