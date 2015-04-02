@@ -211,7 +211,7 @@ VOO = VAO = VRO = VSO = 0
 # MAIN FUNCTIONS ####################################################################################################
  
 def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS
+  global TOKEN, SESSID, DATA, HEADERS, COOKIES
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   url = referer = URL+'/account/login/?next=/'
@@ -220,6 +220,7 @@ def logInToHCC():
   print "* Login page         = "+str(response.status_code)
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
+  COOKIES = dict(csrftoken=''+TOKEN+'')
   DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
   HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
@@ -228,8 +229,12 @@ def logInToHCC():
   
   response = requests.post(url, data=DATA, headers=HEADERS) 
   IncrementTestResultsTotals("login", response.status_code)
-  print "* Log in user        = "+str(response.status_code)
-  
+  print ("* Log in user        = %s" % (response.status_code))
+  print ("* Token              = %s" % TOKEN)
+  print ("* Session ID         = %s" % SESSID)
+  #quit()
+
+#----------------------------------------------------------------------------------------------------------------------  
   
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
@@ -315,6 +320,8 @@ def startCoding():
       act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
 
+#---------------------------------------------------------------------------------------------------------------------- 
+
 def historyReport():
   global VIEW_HISTORY_PAGES_MAX
   print("-------------------------------------------------------------------------------")
@@ -397,6 +404,8 @@ def historyReport():
       			print("* CODER ACTION     = History Report Filtering\n* FILTER BY        = [%s]\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % (result, response))
       		
   return 0
+
+#---------------------------------------------------------------------------------------------------------------------- 
 
 def qaReport():
   global QA_REPORT_PAGES_MAX
@@ -520,6 +529,8 @@ def qaReport():
       			    	
   return 0
 
+#---------------------------------------------------------------------------------------------------------------------- 
+
 def logout():
   print("-------------------------------------------------------------------------------")
   testCode = 99
@@ -552,6 +563,8 @@ def WeightedRandomCodingAction():
 	elif action == "3":
 		VSO += 1 
 	return (action)
+
+#---------------------------------------------------------------------------------------------------------------------- 
 	
 def printResultsSummary():
 	log("=============================================================================")
@@ -789,23 +802,26 @@ def log(text):
 #=========================================================================================
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
-  global CODE_OPPS_ACTION
+  global CODE_OPPS_ACTION, COOKIES, TOKEN, SESSID
   
-  HEADERS = {'Connection': 'keep-alive', \
-    	'Content-Length': '14340', \
-    	'Accept': 'application/json, text/plain, */*', \
-    	'Origin': 'https://hccstage2.apixio.com', \
-    	'X-CSRFToken': TOKEN, \
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+  		'Accept-Encoding': 'gzip, deflate', \
+  		'Accept-Language': 'en-US,en;q=0.8', \
+  		'Connection': 'keep-alive', \
+    	'Content-Length': '10109', \
     	'Content-Type': 'application/json;charset=UTF-8', \
+    	'Host': 'hccstage2.apixio.com', \
+    	'Origin': 'https://hccstage2.apixio.com', \
     	'Referer': 'https://hccstage2.apixio.com/', \
-    	'Accept-Encoding': 'gzip, deflate', \
-    	'Accept-Language': 'en-US,en;q=0.8'}	
-   
+    	'X-CSRFToken': TOKEN \
+    	}	
+
   
-  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
+  if CODE_OPPS_ACTION == "0": # ================== DO NOT ACCEPT OR REJECT DOC =============
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
-  elif CODE_OPPS_ACTION == "1": # Accept Doc
+  elif CODE_OPPS_ACTION == "1": # ================= ACCEPT DOC =============================
     finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = 	{ \
@@ -851,8 +867,10 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
     		}
+    
+    
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
@@ -861,7 +879,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     #quit()  
-  elif CODE_OPPS_ACTION == "2": # Reject Doc
+  elif CODE_OPPS_ACTION == "2": # ======================= REJECT DOC =========================
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -901,17 +919,17 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"predicted_code[code_system_version]": "The SanityTest", \
     		"page_load_time": str(1000 * int(time.time())), \
     		"document_load_time": str(1000 * int(time.time())) \
-    		}		
-   		
+    		}	
+    		   		
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
     #quit()      
-  elif CODE_OPPS_ACTION == "3": # Skip Opp
+  elif CODE_OPPS_ACTION == "3": # ================== SKIP DOC ====================================
     finding_id = scorable.get("id")
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
@@ -950,7 +968,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)	
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
@@ -984,20 +1002,20 @@ writeReportDetails("coding view and accept")
 writeReportDetails("coding view and reject")
 writeReportDetails("coding view and skip")
 
-historyReport()
+if int(VIEW_HISTORY) != 0:
+	historyReport()
+	writeReportDetails("history report opportunity check")
+	writeReportDetails("history report pagination")
+	writeReportDetails("history report searching")
+	writeReportDetails("history report filtering")
 
-writeReportDetails("history report opportunity check")
-writeReportDetails("history report pagination")
-writeReportDetails("history report searching")
-writeReportDetails("history report filtering")
-
-qaReport()
-
-writeReportDetails("qa report coder list check")
-writeReportDetails("qa report opportunity check")
-writeReportDetails("qa report pagination")
-writeReportDetails("qa report searching")
-writeReportDetails("qa report filtering")
+if int(QA_REPORT) != 0:
+	qaReport()
+	writeReportDetails("qa report coder list check")
+	writeReportDetails("qa report opportunity check")
+	writeReportDetails("qa report pagination")
+	writeReportDetails("qa report searching")
+	writeReportDetails("qa report filtering")
 
 logout()
 
