@@ -246,7 +246,7 @@ VOO = VAO = VRO = VSO = 0
 ###########################################################################################################################################
  
 def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS
+  global TOKEN, SESSID, DATA, HEADERS, COOKIES
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
@@ -277,6 +277,7 @@ def logInToHCC():
 #-----------------------------------------------------------------------------------------  	
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
+  COOKIES = dict(csrftoken=''+TOKEN+'')
   #Request URL:https://hccstage2.apixio.com/account/login/
   #Host:hccstage2.apixio.com
   #Origin:https://hccstage2.apixio.com
@@ -379,7 +380,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    #response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
@@ -431,7 +433,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)	
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)	
+    #response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
@@ -479,7 +482,8 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     		"document_load_time": str(1000 * int(time.time())) \
     		}
     #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)		
+    #response = requests.post(URL+ "/api/annotate/", data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
