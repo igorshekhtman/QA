@@ -14,6 +14,9 @@ import urlparse
 import json
 import re
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import string
 from datetime import datetime
 import datetime as DT
@@ -313,12 +316,12 @@ def test(debug_type, debug_msg):
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
-	REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	REPORT = REPORT + HTML_RECEIVERS
-	REPORT = REPORT + """MIME-Version: 1.0\n"""
-	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
-
+	#REPORT = """From: Apixio QA <QA@apixio.com>\n"""
+	#REPORT = REPORT + HTML_RECEIVERS
+	#REPORT = REPORT + """MIME-Version: 1.0\n"""
+	#REPORT = REPORT + """Content-type: text/html\n"""
+	#REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
+	REPORT = """ """
 	REPORT = REPORT + """<h1>Apixio Daily Pipeline QA Report</h1>\n"""
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
@@ -1317,14 +1320,43 @@ def archiveReport():
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	
 	print ("Emailing report ...\n")
+	IMAGEFILENAME=str(CURDAY)+".png" 
+	message = MIMEMultipart('related')
+	message.attach(MIMEText((REPORT_EMAIL), 'html'))
+	#with open(IMAGEFILENAME, 'rb') as image_file:
+	#	image = MIMEImage(image_file.read())
+	#image.add_header('Content-ID', '<picture@example.com>')
+	#image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
+	#message.attach(image)
+
+	message['From'] = 'Apixio QA <QA@apixio.com>'
+	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+	message['Subject'] = 'Apixio %s Pipeline QA Report - %s\n\n' % (ENVIRONMENT, START_TIME)
+	msg_full = message.as_string()
+		
 	s=smtplib.SMTP()
 	s.connect("smtp.gmail.com",587)
 	s.starttls()
 	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, RECEIVERS, REPORT)	
-	s.sendmail(SENDER, RECEIVERS2, REPORT)
+	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
+	s.quit()
+	# Delete graph image file from stress_test folder
+	#os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
+
+
+#def emailReport():
+#	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+#	print ("Emailing report ...\n")
+#	s=smtplib.SMTP()
+#	s.connect("smtp.gmail.com",587)
+#	s.starttls()
+#	s.login("donotreply@apixio.com", "apx.mail47")	        
+#	s.sendmail(SENDER, RECEIVERS, REPORT)	
+#	s.sendmail(SENDER, RECEIVERS2, REPORT)
+#	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 	
 #================ START OF MAIN BODY =================================================================	
 	
