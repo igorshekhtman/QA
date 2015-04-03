@@ -64,6 +64,7 @@ REPORT_TYPE="Daily engineering QA"
 LOGTYPE = "epoch"
 SENDER="donotreply@apixio.com"
 REPORT=""
+REPORT_EMAIL = ""
 
 PASSED="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
