@@ -71,6 +71,7 @@ FAILED="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='
 SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp;%s</b></font></td></tr></table>"
 
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 BATCHID=strftime("%m%d%Y%H%M%S", gmtime())
 TIMESTAMP=strftime("%s", gmtime())
 DATESTAMP=strftime("%m/%d/%y %r", gmtime())
