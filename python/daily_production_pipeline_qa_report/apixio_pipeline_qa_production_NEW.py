@@ -1321,9 +1321,10 @@ def archiveReport():
 
 
 def emailReport():
-	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
+	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2, REPORT_EMAIL
 	
 	print ("Emailing report ...\n")
+	REPORT_EMAIL = REPORT
 	IMAGEFILENAME=str(CURDAY)+".png" 
 	message = MIMEMultipart('related')
 	message.attach(MIMEText((REPORT_EMAIL), 'html'))
