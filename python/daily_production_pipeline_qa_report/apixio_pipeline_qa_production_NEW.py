@@ -1,3 +1,4 @@
+import requests
 import pyhs2
 import os
 import time
@@ -113,6 +114,18 @@ PRDOM = "10.198.2.97"
 PRPW = "J3llyF1sh!"
 #======================================
 
+ok = 200
+created = 201
+accepted = 202
+nocontent = 204
+movedperm = 301
+redirect = 302
+requestdenied = 400
+forbidden = 403
+notfound = 404
+intserveror = 500
+servunavail = 503
+
 #================================================================================================
 #=== ORGID - ORGNAME MAP ========================================================================
 #================================================================================================
@@ -218,7 +231,7 @@ def checkEnvironmentandReceivers():
 
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS, YEAR, CURYEAR, DAYSBACK
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global AUTHHOST
+	global AUTHHOST, TOKEHOST, AUTH_EMAIL, AUTH_PASSW
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -236,6 +249,9 @@ def checkEnvironmentandReceivers():
 		MYSQLDOM = "10.198.2.97"
 		MYSQPW = "J3llyF1sh!"
 		AUTHHOST="https://useraccount-prd.apixio.com:7076"
+		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
+		AUTH_EMAIL="system_qa@apixio.com"
+		AUTH_PASSW="8p1qa19.."
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
@@ -246,6 +262,9 @@ def checkEnvironmentandReceivers():
 		MYSQLDOM = "mysqltest-stg1.apixio.net"
 		MYSQPW = "M8ng0St33n!"
 		AUTHHOST="https://useraccount-stg.apixio.com:7076"
+		TOKEHOST="https://tokenizer-stg.apixio.com:7075"
+		AUTH_EMAIL="ishekhtman@apixio.com"
+		AUTH_PASSW="apixio.123"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -359,6 +378,77 @@ def connectToMySQL():
 		db='apixiomain')		
 	msp_cur = msp_conn.cursor()
 	print ("Connection to MySQL established ...\n")
+	
+#-----------------------------------------------------------------------------------------
+
+def obtainExternalToken(un, pw, exp_statuscode, tc, step):
+
+	#print ("\n----------------------------------------------------------------------------")
+	#print (">>> OBTAIN EXTERNAL TOKEN <<<")
+	#print ("----------------------------------------------------------------------------")
+
+	#8076
+	#7076
+	external_token = ""
+	url = AUTHHOST+"/auths"
+	#url = 'https://useraccount-stg.apixio.com:7076/auths'
+	referer = AUTHHOST  	
+	#token=$(curl -v --data email=$email --data password="$passw" ${authhost}/auths | cut -c11-49)
+	
+	DATA =    {'Referer': referer, 'email': AUTH_EMAIL, 'password': AUTH_PASSW} 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+	
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+
+	statuscode = response.status_code
+	#print statuscode
+	#quit()
+
+	userjson = response.json()
+	if userjson is not None:
+		external_token = userjson.get("token") 
+		#print ("* USERNAME                 = %s" % un)
+		#print ("* PASSWORD                 = %s" % pw)
+		#print ("* URL                      = %s" % url)
+		#print ("* EXTERNAL TOKEN           = %s" % external_token)
+		#print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
+		#print ("* RECEIVED STATUS CODE     = %s" % statuscode)
+		#print ("****************************************************************************")
+			
+	return (external_token)
+
+#-----------------------------------------------------------------------------------------
+def obtainInternalToken(un, pw, exp_statuscode, tc, step):
+	global TOKEN
+	
+	#print ("----------------------------------------------------------------------------")
+	#print (">>> OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
+	#print ("----------------------------------------------------------------------------")
+	
+	
+	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
+	url = TOKEHOST+"/tokens"
+  	referer = TOKEHOST 				
+  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
+  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	userjson = response.json()
+  	if userjson is not None:
+  		TOKEN = userjson.get("token")
+  	else:
+  		TOKEN = "Not Available"	
+	statuscode = response.status_code	
+	#print ("* USERNAME                 = %s" % un)
+	#print ("* PASSWORD                 = %s" % pw)
+	#print ("* TOKENIZER URL            = %s" % url)
+	#print ("* EXTERNAL TOKEN           = %s" % external_token)
+	#print ("* INTERNAL TOKEN           = %s" % TOKEN)
+	#print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
+	#print ("* RECEIVED STATUS CODE     = %s" % statuscode)
+	#print ("----------------------------------------------------------------------------")
+	#print ("\n")
+	
 
 #-----------------------------------------------------------------------------------------
 	
@@ -384,6 +474,9 @@ def connectToMySQL():
 	
 def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
+    
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    
     idString = str(id)
     blankUUID = 'O_00000000-0000-0000-0000-000000000000'
     url = AUTHHOST+"/customer/"+blankUUID[0:-(len(idString))]+idString
@@ -396,7 +489,10 @@ def getOrgName(id):
     response = requests.get(url, data={}, headers=HEADERS)
     statuscode = response.status_code
     customerOrg = response.json()
-        
+    #print url
+    #print TOKEN
+    #print statuscode
+    #quit()    
     return (customerOrg['name'])	
 	
 #-----------------------------------------------------------------------------------------	
@@ -1392,6 +1488,8 @@ checkEnvironmentandReceivers()
 identifyReportDayandMonth()
 
 writeReportHeader()	
+
+#obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
 
 connectToMySQL()
 
