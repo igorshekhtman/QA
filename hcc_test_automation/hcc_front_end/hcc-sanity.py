@@ -54,11 +54,10 @@ class hcc_sanity(unittest.TestCase) :
     
         self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
 		
-        for i in range (0,2):
-        	#self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
+        for i in range (0,10):
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link.click()
-        	#accept_button = self.driver.find_element(By.CSS_SELECTOR, "div.btn.btn-success")
+
         	accept_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-success")))
         	accept_button.click()
         
@@ -75,47 +74,28 @@ class hcc_sanity(unittest.TestCase) :
         	provider_type_select_field = Select(self.driver.find_element_by_name("encounterType"))
         	provider_type_select_field.select_by_visible_text("Hospital Outpatient Setting") 
                
+    		#found_on_page_field = self.driver.find_element_by_name("page")
+    		found_on_page_field = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "page")))
+    		found_on_page_field.send_keys("1")
     
-    
-    
-    
-        
-        	#done_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.btn.btn-success")))
-        	#done_button = self.driver.find_element(By.CSS_SELECTOR, "input.btn.btn-success")
-        	#done_button.click()
-        	#name = "acceptForm"
-        
+    		flag_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[3]/div[2]/div/div/div[1]/span")))
+    		flag_button.click()
+    		
+    		flag_comment_accept_flag = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[3]/div[2]/div/div/input")))
+    		flag_comment_accept_flag.send_keys("Sanity Test Accept Comment")
+    		   
         	accept_form = self.driver.find_element_by_name("acceptForm")
         	accept_form.submit()
-        
-        
+                
         	next_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.btn.btn-success")))
         	next_button.click()
         	
-       
-        	#flag_for_review_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.btn.btn-default.input-group-addon")))
-        	#accept_button.click()
-        	#<div class="btn btn-default input-group-addon open"
-        
-        	#flag_for_review_field = self.driver.find_element_by_class_name("btn btn-default input-group-addon open")     
-        	#flag_for_review_field.send_keys("Dr. Feel Good testing flag field")
-        
-  
-    		#next_button = self.driver.find_element(By.CSS_SELECTOR, "span.btn.btn-default")
-    		#self.driver.implicitly_wait(6)
-    		#next_button.click()
-    		#self.driver.implicitly_wait(6)
-    		#alert = self.driver.switch_to_alert()
-    		#self.driver.implicitly_wait(6)
-    		#cancel_button = self.driver.find_element(By.CSS_SELECTOR, "button.btn.btn-success")
-    		#cancel_button.click()	
-
 #-----------------------------------------------------------------------------------------
 
     def test_code_and_reject_ten_opportunities(self) :
     	self.driver.get("https://hccstage2.apixio.com/#/opportunity") # go to the coding opp page
     		
-        for i in range (0,0):
+        for i in range (0,10):
         	#first_document_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, "td.ng-binding")))
         	first_document_link = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//table/tbody/tr[1]/td[2]")))
         	tot_docs = 1
@@ -147,6 +127,12 @@ class hcc_sanity(unittest.TestCase) :
         	     	
         	reject_reason_select_field = Select(self.driver.find_element_by_xpath("//form/div/div[1]/div/select"))
         	reject_reason_select_field.select_by_index(1)
+        	
+        	flag_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[2]/div/div/div[1]/span")))
+    		flag_button.click()
+        	
+        	flag_comment_reject_flag = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[2]/div/div/input")))
+    		flag_comment_reject_flag.send_keys("Sanity Test Reject Comment")
         	
         	done_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "//form/div/div[3]/input")))
         	done_button.click()
