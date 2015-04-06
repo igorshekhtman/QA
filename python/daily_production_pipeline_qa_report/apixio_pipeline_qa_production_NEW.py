@@ -234,6 +234,7 @@ def checkEnvironmentandReceivers():
 		POSTFIX = ""
 		MYSQLDOM = "10.198.2.97"
 		MYSQPW = "J3llyF1sh!"
+		AUTHHOST="https://useraccount-prd.apixio.com:7076"
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
@@ -243,6 +244,7 @@ def checkEnvironmentandReceivers():
 		POSTFIX = "_staging"
 		MYSQLDOM = "mysqltest-stg1.apixio.net"
 		MYSQPW = "M8ng0St33n!"
+		AUTHHOST="https://useraccount-stg.apixio.com:7076"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -356,26 +358,47 @@ def connectToMySQL():
 		db='apixiomain')		
 	msp_cur = msp_conn.cursor()
 	print ("Connection to MySQL established ...\n")
+
+#-----------------------------------------------------------------------------------------
 	
-def getOrgName(id):
-	global mss_cur, mss_conn, msp_cur, msp_conn
-	mss_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
-	for row in mss_cur.fetchall():
-		orgname = str(row[0])
-		env = "Staging"
-		break	
-	else:	
-		msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
-		for row in msp_cur.fetchall():
-			orgname = str(row[0])
-			env = "Production"
-			break
-		else:
-			orgname = id
-			env = "N/A"	
+#def getOrgName(id):
+#	global mss_cur, mss_conn, msp_cur, msp_conn
+#	mss_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+#	for row in mss_cur.fetchall():
+#		orgname = str(row[0])
+#		env = "Staging"
+#		break	
+#	else:	
+#		msp_cur.execute("SELECT org_name FROM apixiomain.ldap_org where ldap_org_id=%s" % id)
+#		for row in msp_cur.fetchall():
+#			orgname = str(row[0])
+#			env = "Production"
+#			break
+#		else:
+#			orgname = id
+#			env = "N/A"	
 	#print env+" Orgname: "+orgname
 	#print ""
-	return (orgname)
+#	return (orgname)
+	
+def getOrgName(id):
+    # TODO: hit a customer endpoint on the user account service for the customer org name
+    idString = str(id)
+    blankUUID = 'O_00000000-0000-0000-0000-000000000000'
+    url = AUTHHOST+"/customer/"+blankUUID[0:-(len(idString))]+idString
+    
+    referer = AUTHHOST
+    #Content-Type header in your request, or it's incorrect. In your case it must be application/xml
+    HEADERS = { 'Content-Type': 'application/json', \
+                'Referer': referer, \
+                'Authorization': 'Apixio ' + TOKEN}
+    response = requests.get(url, data={}, headers=HEADERS)
+    statuscode = response.status_code
+    customerOrg = response.json()
+        
+    return (customerOrg['name'])	
+	
+#-----------------------------------------------------------------------------------------	
 
 def setHiveParameters():
 	hadoopqueuename="hive"
