@@ -218,6 +218,7 @@ def checkEnvironmentandReceivers():
 
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS, YEAR, CURYEAR, DAYSBACK
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global AUTHHOST
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
