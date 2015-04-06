@@ -60,7 +60,8 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com"
 		ENVIRONMENT="Production"
-		EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
+		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
+		EVENT_CLOUD_URL="http://eventcloud-pipeline.apixio.com:8076/event/query"
 	else:
 		# STAGING =====================
 		USERNAME="sanitytest1"
@@ -68,7 +69,8 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"
-		EVENT_CLOUD_URL="http://dashboard-development.apixio.net:8075/event/query"
+		#EVENT_CLOUD_URL="http://dashboard-development.apixio.net:8075/event/query"
+		EVENT_CLOUD_URL="http://eventcloud-pipeline-stg.apixio.com:8076/event/query"
 	#==================================
 	if (len(sys.argv) > 3):
 		RECEIVERS = str(sys.argv[2])
