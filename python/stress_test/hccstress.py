@@ -215,6 +215,9 @@ CODING_OPP_CURRENT = 1
  
 def logInToHCC(): 
   global TOKEN, SESSID, DATA, HEADERS, COOKIES
+  
+  obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+  
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
@@ -263,7 +266,7 @@ def startCoding():
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, action, CODE_OPPS_MAX))
   print("-------------------------------------------------------------------------------")
   #coding_opp_current = 1
-  for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX)+1)):
+  for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX))):
     testCode = 10 + (1 * CODING_OPP_CURRENT)
     #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
@@ -297,7 +300,11 @@ def startCoding():
       document_uuid = scorable.get("document_uuid")
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
-      print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
+      patient_org_name = getOrgName(patient_org_id)
+      #* PATIENT ORG ID   = %s\n
+      #* PATIENT ORG NAME = %s\n
+      
+      print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT ORG NAME = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_org_name, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
       if patient_uuid    == "":
         print("WARNING : PATIENT UUID is Empty")
       if patient_org_id  == "":
@@ -598,6 +605,7 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global AUTHHOST, TOKEHOST, AUTH_EMAIL, AUTH_PASSW
 	# Environment for stressTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -609,10 +617,18 @@ def checkEnvironmentandReceivers():
 		#USERNAME="apxdemot0138"
 		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
+		AUTHHOST="https://useraccount-prd.apixio.com:7076"
+		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
+		AUTH_EMAIL="system_qa@apixio.com"
+		AUTH_PASSW="8p1qa19.."
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
+		AUTHHOST="https://useraccount-stg.apixio.com:7076"
+		TOKEHOST="https://tokenizer-stg.apixio.com:7075"
+		AUTH_EMAIL="ishekhtman@apixio.com"
+		AUTH_PASSW="apixio.123"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -683,7 +699,66 @@ def writeReportFooter():
 	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
 
+#-----------------------------------------------------------------------------------------
+def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 
+	external_token = ""
+	url = AUTHHOST+"/auths"
+	referer = AUTHHOST  	
+
+	DATA =    {'Referer': referer, 'email': AUTH_EMAIL, 'password': AUTH_PASSW} 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+
+	userjson = response.json()
+	if userjson is not None:
+		external_token = userjson.get("token") 
+			
+	return (external_token)
+#-----------------------------------------------------------------------------------------
+def obtainInternalToken(un, pw, exp_statuscode, tc, step):
+	global ORG_TOKEN
+
+	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
+	url = TOKEHOST+"/tokens"
+  	referer = TOKEHOST 				
+  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
+  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	userjson = response.json()
+  	if userjson is not None:
+  		ORG_TOKEN = userjson.get("token")
+  	else:
+  		ORG_TOKEN = "Not Available"	
+	statuscode = response.status_code	
+
+#-----------------------------------------------------------------------------------------
+
+def getOrgName(id):
+    # TODO: hit a customer endpoint on the user account service for the customer org name
+    # If orgName is not retrievable for any reason, return orgID
+    
+    #obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    
+    idString = str(id)
+    blankUUID = 'O_00000000-0000-0000-0000-000000000000'
+    url = AUTHHOST+"/customer/"+blankUUID[0:-(len(idString))]+idString
+    
+    referer = AUTHHOST
+    #Content-Type header in your request, or it's incorrect. In your case it must be application/xml
+    HEADERS = { 'Content-Type': 'application/json', \
+                'Referer': referer, \
+                'Authorization': 'Apixio ' + ORG_TOKEN}
+    response = requests.get(url, data={}, headers=HEADERS)
+    statuscode = response.status_code
+    if statuscode == ok:
+    	customerOrg = response.json()
+    	customerOrgName = customerOrg['name']
+    else:
+    	customerOrgName = id   
+    return (customerOrgName)	
+	
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
