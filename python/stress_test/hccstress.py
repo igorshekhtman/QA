@@ -216,7 +216,7 @@ CODING_OPP_CURRENT = 1
 def logInToHCC(): 
   global TOKEN, SESSID, DATA, HEADERS, COOKIES
   
-  obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+  #obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
   
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
@@ -739,7 +739,7 @@ def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
     # If orgName is not retrievable for any reason, return orgID
     
-    #obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
     
     idString = str(id)
     blankUUID = 'O_00000000-0000-0000-0000-000000000000'
