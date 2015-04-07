@@ -218,7 +218,6 @@ def submitJob():
   				'Authorization': 'Apixio ' + TOKEN}			
 
 
-	#re.split('; |, |\*|\n',JOBID)
   	#temp_list = [JOBID]
   	#print temp_list
   	#temp_list1 = json.dumps(temp_list)

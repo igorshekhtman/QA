@@ -58,7 +58,7 @@ servunavail = 503
 #============================ FUNCTIONS ==================================================
 def outputMissingArgumentsandAbort():
 	print ("----------------------------------------------------------------------------")
-	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ORGID <<<")
+	print (">>> MISSING REQUIRED PARAMETERS: ENVIRONMENT & ACTIVITYID <<<")
 	print ("----------------------------------------------------------------------------")
 	print ("* Usage:")
 	print ("* python2.7 slotConfigTool.py arg1 arg2")
