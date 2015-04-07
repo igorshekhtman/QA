@@ -474,6 +474,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	
 def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
+    # If orgName is not retrievable for any reason, return orgID
     
     obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
     
@@ -488,12 +489,12 @@ def getOrgName(id):
                 'Authorization': 'Apixio ' + TOKEN}
     response = requests.get(url, data={}, headers=HEADERS)
     statuscode = response.status_code
-    customerOrg = response.json()
-    #print url
-    #print TOKEN
-    #print statuscode
-    #quit()    
-    return (customerOrg['name'])	
+    if statuscode == ok:
+    	customerOrg = response.json()
+    	customerOrgName = customerOrg['name']
+    else:
+    	customerOrgName = id	    
+    return (customerOrgName)	
 	
 #-----------------------------------------------------------------------------------------	
 
