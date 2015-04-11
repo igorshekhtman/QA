@@ -396,19 +396,19 @@ def getFailedJobsList():
     print ("*                           LIST OF AVAILABLE FAILED JOBS                              *")
     print ("****************************************************************************************")
 
-    print ("Line#:\tJob ID:\tOrg ID:\t\t\tOrg Name:\t\t\tActivity Name:")
-    print ("======\t=======\t=======\t\t\t=========\t\t\t==============")
+    print ("Line#:\tJob ID:\tOrg ID:\t\tOrg Name:\t\tBatch ID:\t\tActivity Name:")
+    print ("======\t=======\t=======\t\t=========\t\t=========\t\t==============")
     cntr = 0
     for job in sorted(jobs, key=lambda k: k['jobID']):
         #print json.dumps(job, sort_keys=True, indent=0)
         cntr += 1
-        print ("%d\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(20), getOrgName(job['orgID']).ljust(30), job['activityName']))
+        print ("%d\t%s\t%s\t%s\t%s\t%s" % (cntr, job['jobID'], job['orgID'].ljust(10), getOrgName(job['orgID']).ljust(20), str(job['batchID']).ljust(20), job['activityName']))
         AV_JOBS.update({ str(cntr): str(job['jobID'])})
     
     print ("-------------------------------------------------------------------------------------------")
     print ("Enter line number(s), comma separated, of the job(s) to resubmit ")
-    print ("      or a filter of the form key=value where the key is jobID, orgID, or acivityName")
-    print ("      or IGNORE to remove your next ")
+    print ("      or a filter of the form key=value where the key is jobID, orgID, batchID, or acivityName")
+    print ("      or IGNORE to remove the next specified set of jobs")
     print ("      or just enter Q to Quit")
     print ("-------------------------------------------------------------------------------------------")
     INPUT_STRING = raw_input("Next command: ")
