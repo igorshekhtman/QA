@@ -2,7 +2,7 @@
 USE Router_stg;
 
 # This is the name of a project to target for a reset:
-SET @proj = 'foo';
+SET @proj = 'CP_c0810d74-bae7-466e-a200-51175a38ddd9';
 
 # Turn off foreign key checks on a temporary basis: 
 SET FOREIGN_KEY_CHECKS=0;
@@ -10,12 +10,18 @@ SET FOREIGN_KEY_CHECKS=0;
 # Turn off safe update mode:
 SET SQL_SAFE_UPDATES = 0;
 
+# Make a backup SO table:
+CREATE TABLE ServedOpportunity_BK LIKE ServedOpportunity;
+INSERT ServedOpportunity_BK SELECT * FROM ServedOpportunity;
+
 # Clean tables: 
-DELETE FROM Finding_Annotation fa WHERE fa.annotations_id IN (
-  SELECT a.id FROM Annotation a WHERE a.project = @proj);
+DELETE FROM Finding_Annotation WHERE annotations_id IN (SELECT a.id FROM Annotation a WHERE a.project = @proj);
 DELETE FROM Annotation WHERE project = @proj;
 DELETE FROM ServedOpportunity WHERE id IN (
-  SELECT so.id FROM ServedOpportunity so INNER JOIN Opportunity o ON o.id = so.opId WHERE o.project = @proj);
+  SELECT so.id FROM ServedOpportunity_BK so INNER JOIN Opportunity o ON o.id = so.opId WHERE o.project = @proj);
+
+# Don't need this anymore:
+DROP TABLE ServedOpportunity_BK;
 
 # Cleaning up assigned code is tricky, because it is filled both programatically and by front end: 
 CREATE TABLE AssignedCode_BK LIKE AssignedCode;
