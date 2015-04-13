@@ -769,16 +769,6 @@ def emailReport():
 	#os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
-#def emailReport():
-#	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
-#	print ("Emailing report ...\n")
-#	s=smtplib.SMTP()
-#	s.connect("smtp.gmail.com",587)
-#	s.starttls()
-#	s.login("donotreply@apixio.com", "apx.mail47")	        
-#	s.sendmail(SENDER, RECEIVERS, REPORT)	
-#	s.sendmail(SENDER, RECEIVERS2, REPORT)
-#	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
 #=========================================================================================
 
@@ -836,21 +826,20 @@ def log(text):
 #=========================================================================================
 
 def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
-  global CODE_OPPS_ACTION, COOKIES, TOKEN, SESSID
-  
+  global CODE_OPPS_ACTION
+  global TOKEN, SESSID, COOKIES
+
   HEADERS = { \
   		'Accept': 'application/json, text/plain, */*', \
   		'Accept-Encoding': 'gzip, deflate', \
-  		'Accept-Language': 'en-US,en;q=0.8', \
+    	'Accept-Language': 'en-US,en;q=0.8', \
   		'Connection': 'keep-alive', \
-    	'Content-Length': '10109', \
-    	'Content-Type': 'application/json;charset=UTF-8', \
-    	'Host': 'hccstage2.apixio.com', \
-    	'Origin': 'https://hccstage2.apixio.com', \
-    	'Referer': 'https://hccstage2.apixio.com/', \
+    	'Content-Type': 'application/json', \
+    	'Referer': URL+'/', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
     	'X-CSRFToken': TOKEN \
     	}	
-
   
   if CODE_OPPS_ACTION == "0": # ================== DO NOT ACCEPT OR REJECT DOC =============
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
@@ -859,52 +848,75 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "accept", \
-    		"comment": "Comment by the SanityTest", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"flag_for_review": "true", \
-    		"icd9[code_system_name]": opportunity.get("suggested_codes")[0].get("code_system_name"), \
-    		"icd9[code]": opportunity.get("suggested_codes")[0].get("code"), \
-    		"icd9[display_name]": opportunity.get("suggested_codes")[0].get("display_name")+" SanityTest", \
-    		"icd9[code_system]": opportunity.get("suggested_codes")[0].get("code_system"), \
-    		"icd9[code_system_version]": opportunity.get("suggested_codes")[0].get("code_system_version"), \
-    		"provider[name]": "The SanityTest M.D.", \
-    		"provider[id]": "1992754832", \
-    		"provider[type]": "Hospital Outpatient Setting", \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"page": "2015", \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description")+" grinder", \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid": scorable.get("document_uuid"), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"predicted_code[code_system_name]": "The SanityTest", \
-    		"predicted_code[code]": "The SanityTest", \
-    		"predicted_code[display_name]": "The SanityTest", \
-    		"predicted_code[code_system]": "The SanityTest", \
-    		"predicted_code[code_system_version]": "The SanityTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}
+			"opportunity": \
+			{ \
+			"model_year": opportunity.get("model_year"), \
+			"hash": opportunity.get("hash"), \
+			"scorables": \
+			[ \
+			{ \
+			"mimeType": scorable.get("mimeType"), \
+			"document_title": scorable.get("document_title"), \
+			"code": \
+			{ \
+			"code_system_name": scorable.get("code").get("code_system_name"), \
+			"code": scorable.get("code").get("code"), \
+			"display_name": scorable.get("code").get("display_name"), \
+			"code_system": scorable.get("code").get("code_system"), \
+			"code_system_version": scorable.get("code").get("code_system_version") \
+			}, \
+			"end": scorable.get("end"), \
+			"start": scorable.get("start"), \
+			"conditionSet": scorable.get("conditionSet"), \
+			"patient_org_id": scorable.get("patient_org_id"), \
+			"patient_id": scorable.get("patient_id"), \
+			"source_type": scorable.get("source_type"), \
+			"document_uuid": scorable.get("document_uuid"), \
+			"elements": scorable.get("elements"), \
+			"source_id": scorable.get("source_id"), \
+			"date_of_service": scorable.get("date_of_service"), \
+			"id": scorable.get("id"), \
+			"page": scorable.get("page"), \
+			"list_position": str(doc_no_current) \
+			} \
+			], \
+			"hcc_description": opportunity.get("hcc_description"), \
+			"payment_year": opportunity.get("payment_year"), \
+			"patient_id": opportunity.get("patient_id"), \
+			"project": opportunity.get("project"), \
+			"hcc": opportunity.get("hcc"), \
+			"get_id": opportunity.get("get_id"), \
+			"label_set_version": opportunity.get("label_set_version"), \
+			"suggested_codes": opportunity.get("suggested_codes"), \
+			"rule_hash": opportunity.get("rule_hash"), \
+			"patient": opportunity.get("patient"), \
+			"patient_uuid": opportunity.get("patient_uuid"), \
+			"model_run": opportunity.get("model_run") \
+			}, \
+			"annotations": \
+			[ \
+			{ \
+			"flaggedForReview": True, \
+			"changed": True, \
+			"result": "accept", \
+			"encounterType": "Hospital Inpatient Setting: Other Diagnosis", \
+			"icd": \
+			{ \
+			"code_system_name": opportunity.get("suggested_codes")[0].get("code_system_name"), \
+			"code": opportunity.get("suggested_codes")[0].get("code"), \
+			"display_name": opportunity.get("suggested_codes")[0].get("display_name"), \
+			"code_system": opportunity.get("suggested_codes")[0].get("code_system"), \
+			"code_system_version": opportunity.get("suggested_codes")[0].get("code_system_version") \
+			}, \
+			"provider": "Dr. Grinder", \
+			"dateOfService": scorable.get("date_of_service"), \
+			"page": scorable.get("page"), \
+			"comment":"Grinder Flag for Review" \
+			}]}	
     
     
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
+    
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
@@ -918,45 +930,62 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
     print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "reject", \
-    		"reject_reason": "Additional documentation needed to Accept the document for this HCC", \
-    		"comment": "Comment by The SanityTest", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"flag_for_review": "true", \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description"), \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid":  scorable.get("document_uuid"), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The SanityTest", \
-    		"predicted_code[code]": "The SanityTest", \
-    		"predicted_code[display_name]": "The SanityTest", \
-    		"predicted_code[code_system]": "The SanityTest", \
-    		"predicted_code[code_system_version]": "The SanityTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}	
+    DATA = { \
+			"opportunity": \
+			{ \
+			"model_year": opportunity.get("model_year"), \
+			"hash": opportunity.get("hash"), \
+			"scorables": \
+			[{ \
+			"mimeType": scorable.get("mimeType"), \
+			"document_title": scorable.get("document_title"), \
+			"code": \
+			{ \
+			"code_system_name": scorable.get("code").get("code_system_name"), \
+			"code": scorable.get("code").get("code"), \
+			"display_name": scorable.get("code").get("display_name"), \
+			"code_system": scorable.get("code").get("code_system"), \
+			"code_system_version": scorable.get("code").get("code_system_version") \
+			}, \
+			"end": scorable.get("end"), \
+			"start": scorable.get("start"), \
+			"conditionSet": scorable.get("conditionSet"), \
+			"patient_org_id": scorable.get("patient_org_id"), \
+			"patient_id": scorable.get("patient_id"), \
+			"source_type": scorable.get("source_type"), \
+			"document_uuid": scorable.get("document_uuid"), \
+			"elements": scorable.get("elements"), \
+			"source_id": scorable.get("source_id"), \
+			"date_of_service": scorable.get("date_of_service"), \
+			"id": scorable.get("id"), \
+			"page": scorable.get("page"), \
+			"list_position": str(doc_no_current) \
+			}], \
+			"hcc_description": opportunity.get("hcc_description"), \
+			"payment_year": opportunity.get("payment_year"), \
+			"patient_id": opportunity.get("patient_id"), \
+			"project": opportunity.get("project"), \
+			"hcc": opportunity.get("hcc"), \
+			"get_id": opportunity.get("get_id"), \
+			"label_set_version": opportunity.get("label_set_version"), \
+			"suggested_codes": opportunity.get("suggested_codes"), \
+			"rule_hash": opportunity.get("rule_hash"), \
+			"patient": opportunity.get("patient"), \
+			"patient_uuid": opportunity.get("patient_uuid"), \
+			"model_run": opportunity.get("model_run") \
+			}, \
+			"annotations": \
+			[{ \
+			"flaggedForReview": True, \
+			"changed": True, \
+			"result": "reject", \
+			"rejectReason": "Invalid Date of Service", \
+			"comment": "Grinder Flag for Review Comment", \
+			"page": scorable.get("page") \
+			}]}		
     		   		
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
+    		
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
@@ -968,41 +997,58 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     #annotation = create_request(Test(testname, "Annotate Finding"))
     #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
     print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
-    		"user_id": USERNAME, \
-    		"timestamp": str(1000 * int(time.time())), \
-    		"result": "skipped", \
-    		"date_of_service": scorable.get("date_of_service"), \
-    		"payment_year": str(opportunity.get("payment_year")), \
-    		"orig_date_of_service": scorable.get("date_of_service"), \
-    		"opportunity_hash": opportunity.get("hash"), \
-    		"rule_hash": opportunity.get("rule_hash"), \
-    		"get_id": str(opportunity.get("get_id")), \
-    		"patient_uuid": opportunity.get("patient_uuid"), \
-    		"hcc[code]": str(opportunity.get("hcc")), \
-    		"hcc[model_run]": opportunity.get("model_run"), \
-    		"hcc[model_year]": str(opportunity.get("model_year")), \
-    		"hcc[description]": opportunity.get("hcc_description") + " (SanityTest)", \
-    		"hcc[label_set_version]": opportunity.get("label_set_version"), \
-    		"hcc[mapping_version]": str(opportunity.get("model_year")) + " " + opportunity.get("model_run"), \
-    		"hcc[code_system]": str(opportunity.get("model_year")) + "PYFinal", \
-    		"finding_id": str(finding_id), \
-    		"document_uuid": scorable.get("document_uuid"), \
-    		"patient_org_id": str(scorable.get("patient_org_id")), \
-    		"list_position": str(doc_no_current), \
-    		"list_length": str(doc_no_max), \
-    		"document_date": scorable.get("date_of_service"), \
-    		"snippets": str(scorable.get("snippets")), \
-    		"predicted_code[code_system_name]": "The SanityTest", \
-    		"predicted_code[code]": "The SanityTest", \
-    		"predicted_code[display_name]": "The SanityTest", \
-    		"predicted_code[code_system]": "The SanityTest", \
-    		"predicted_code[code_system_version]": "The SanityTest", \
-    		"page_load_time": str(1000 * int(time.time())), \
-    		"document_load_time": str(1000 * int(time.time())) \
-    		}
-    #response = requests.post(URL+ "/api/annotate/" + str(finding_id) + "/", data=DATA, headers=HEADERS)		
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)	
+    DATA = { \
+			"opportunity": \
+			{ \
+			"model_year": opportunity.get("model_year"), \
+			"hash": opportunity.get("hash"), \
+			"scorables": \
+			[ \
+			{ \
+			"mimeType": scorable.get("mimeType"), \
+			"document_title": scorable.get("document_title"), \
+			"code": \
+			{ \
+			"code_system_name": scorable.get("code").get("code_system_name"), \
+			"code": scorable.get("code").get("code"), \
+			"display_name": scorable.get("code").get("display_name"), \
+			"code_system": scorable.get("code").get("code_system"), \
+			"code_system_version": scorable.get("code").get("code_system_version") \
+			}, \
+			"end": scorable.get("end"), \
+			"start": scorable.get("start"), \
+			"conditionSet": scorable.get("conditionSet"), \
+			"patient_org_id": scorable.get("patient_org_id"), \
+			"patient_id": scorable.get("patient_id"), \
+			"source_type": scorable.get("source_type"), \
+			"document_uuid": scorable.get("document_uuid"), \
+			"elements": scorable.get("elements"), \
+			"source_id": scorable.get("source_id"), \
+			"date_of_service": scorable.get("date_of_service"), \
+			"id": scorable.get("id"), \
+			"page": scorable.get("page") \
+			}], \
+			"hcc_description": opportunity.get("hcc_description"), \
+			"payment_year": opportunity.get("payment_year"), \
+			"patient_id": opportunity.get("patient_id"), \
+			"project": opportunity.get("project"), \
+			"hcc": opportunity.get("hcc"), \
+			"get_id": opportunity.get("get_id"), \
+			"label_set_version": opportunity.get("label_set_version"), \
+			"suggested_codes": opportunity.get("suggested_codes"), \
+			"rule_hash": opportunity.get("rule_hash"), \
+			"patient": opportunity.get("patient"), \
+			"patient_uuid": opportunity.get("patient_uuid"), \
+			"model_run": opportunity.get("model_run") \
+			}, \
+			"annotations": \
+			[{ \
+			"changed": True, \
+			"result": "skipped", \
+			"flaggedForReview": False \
+			}]}    
+		
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
