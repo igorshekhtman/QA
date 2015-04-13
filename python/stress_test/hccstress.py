@@ -320,6 +320,8 @@ def chooseCodingAction():
 def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO, PATIENT_ORG_NAME
+  global FAILED, SUCCEEDED, RETRIED, MODULES, MAX_NUM_RETRIES
+  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
 
 
   url = URL+"/api/next-work-item/"
@@ -341,6 +343,19 @@ def startCoding():
   testCode = 10 + (1 * CODING_OPP_CURRENT)
 
   response = requests.get(url, cookies=COOKIES, data=DATA, headers=HEADERS)
+  if response.status_code == unauthorized:
+    if RETRIED < MAX_NUM_RETRIES:
+      FAILED += 1
+      RETRIED += 1
+      logInToHCC()
+      chooseCodingAction()
+      startCoding()
+    else:
+      print ("Number of retries %s exceeded limit of %s, exiting now ..." % (RETRIED, MAX_NUM_RETRIES)) 
+      quit()
+     	  
+  
+  
 
   IncrementTestResultsTotals("coding opportunity check", response.status_code)
   print "* GET CODNG OPP    = %s" % response.status_code
@@ -419,6 +434,21 @@ def startCoding():
 
 def historyReport():
   global VIEW_HISTORY_PAGES_MAX
+  global TOKEN, SESSID, COOKIES
+  
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+  		'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8', \
+  		'Connection': 'keep-alive', \
+    	'Content-Type': 'application/json', \
+    	'Referer': URL+'/', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
+    	'X-CSRFToken': TOKEN \
+    	}
+    	
+  DATA = {}    	
   
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = View History Report" % (URL, USERNAME, PASSWORD))
@@ -426,7 +456,7 @@ def historyReport():
   testCode = 10 + (1 * view_history_count)
   
   #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/next-work-item/", cookies=COOKIES, data=DATA, headers=HEADERS)
   IncrementTestResultsTotals("history report opportunity check", response.status_code)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
@@ -443,7 +473,7 @@ def historyReport():
     report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
     
     #response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
-    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     
     
     IncrementTestResultsTotals("history report pagination", response.status_code)
@@ -461,7 +491,7 @@ def historyReport():
     		testCode += 1
     		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
     		#response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    		response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     		IncrementTestResultsTotals("history report pagination", response.status_code)
     		print("-------------------------------------------------------------------------------")
     		
@@ -477,7 +507,7 @@ def historyReport():
     		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
     		#response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    		response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     		IncrementTestResultsTotals("history report searching", response.status_code)
     		print("-------------------------------------------------------------------------------")
     		
@@ -493,7 +523,7 @@ def historyReport():
     		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
     		#response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    		response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     		IncrementTestResultsTotals("history report filtering", response.status_code)
     		print("-------------------------------------------------------------------------------")
     		
@@ -509,7 +539,21 @@ def historyReport():
 
 def qaReport():
   global QA_REPORT_PAGES_MAX
-  #global DATA, HEADERS, TOKEN, SESSID
+  global TOKEN, SESSID, COOKIES
+  
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+  		'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8', \
+  		'Connection': 'keep-alive', \
+    	'Content-Type': 'application/json', \
+    	'Referer': URL+'/', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
+    	'X-CSRFToken': TOKEN \
+    	}
+  
+  DATA = {}
   
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = QA Report" % (URL, USERNAME, PASSWORD))
@@ -518,7 +562,7 @@ def qaReport():
   testCode = 10 + (1 * qa_report_count)
   
   #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-  response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/next-work-item/", cookies=COOKIES, data=DATA, headers=HEADERS)
   IncrementTestResultsTotals("qa report opportunity check", response.status_code)
   print "* GET CODNG OPP      = %s" % response.status_code
   opportunity = response.json()
@@ -546,7 +590,7 @@ def qaReport():
     print("* CODER ACTION     = Get coding opportunity\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]\n[%s]" % (response.status_code, opportunity.get("message")))
   
   testCode = testCode + 1
-  response = requests.get(URL + "/api/report/orgCoders/", data=DATA, headers=HEADERS)
+  response = requests.get(URL + "/api/report/orgCoders/", cookies=COOKIES, data=DATA, headers=HEADERS)
   IncrementTestResultsTotals("qa report coder list check", response.status_code)
   print "* GET CODERS LIST  = %s" % response.status_code
   coders = response.json()
@@ -574,7 +618,7 @@ def qaReport():
     now = datetime.datetime.now()
     report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     #response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
-    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     IncrementTestResultsTotals("qa report pagination", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = QA Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
@@ -590,7 +634,7 @@ def qaReport():
     		testCode += 1
     		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
     		#response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    		response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     		IncrementTestResultsTotals("qa report pagination", response.status_code)
     		print("-------------------------------------------------------------------------------")
     		
@@ -606,7 +650,7 @@ def qaReport():
     		testCode += 1
     		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
     		#response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
-    		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    		response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     		IncrementTestResultsTotals("qa report searching", response.status_code)
     		print("-------------------------------------------------------------------------------")
     		
@@ -623,7 +667,7 @@ def qaReport():
     			testCode += 1
     			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
     			#response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
-    			response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
+    			response = requests.get(URL + report_range, cookies=COOKIES, data=DATA, headers=HEADERS)
     			IncrementTestResultsTotals("qa report filtering", response.status_code)
     			print("-------------------------------------------------------------------------------")
     			
@@ -670,6 +714,8 @@ def WeightedRandomCodingAction():
 	elif action == "3":
 		VSO += 1 
 	return (action)
+
+#=========================================================================================
 	
 def printResultsSummary():
 	log("=============================================================================")
@@ -688,6 +734,8 @@ def printResultsSummary():
 	log("=============================================================================")
 	log("=============================================================================")
 	log("=============================================================================")	
+
+#=========================================================================================
 	
 def checkEnvironmentandReceivers():
 	# Environment for stressTest is passed as a paramater. Staging is a default value
@@ -695,7 +743,7 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global AUTHHOST, TOKEHOST, AUTH_EMAIL, AUTH_PASSW
+	global AUTHHOST, TOKEHOST, AUTH_EMAIL, AUTH_PASSW, USERNAME
 	# Environment for stressTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -724,6 +772,8 @@ def checkEnvironmentandReceivers():
 		RECEIVERS=str(sys.argv[2])
 		RECEIVERS2=str(sys.argv[3])
 		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
+		if (len(sys.argv) > 3):
+			USERNAME=str(sys.argv[4])
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
 		RECEIVERS2="abeyk@apixio.com"
@@ -733,7 +783,9 @@ def checkEnvironmentandReceivers():
 	#ENVIRONMENT = "Production"
 	print ("Version %s\n") % VERSION
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
-	print ("Completed setting of enviroment and report receivers ...\n")	
+	print ("Completed setting of enviroment and report receivers ...\n")
+
+#=========================================================================================
 
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
@@ -753,6 +805,8 @@ def writeReportHeader ():
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
 	print ("End writing report header ...\n")
+
+#=========================================================================================
 	
 def writeReportDetails(module):	
 	global REPORT
@@ -770,7 +824,7 @@ def writeReportDetails(module):
 		REPORT = REPORT+PASSED_TBL
 	print ("Completed writeReportDetails ... \n")
 
-#-----------------------------------------------------------------------------------------		
+#=========================================================================================		
 	
 def writeReportFooter():
 	global REPORT
@@ -790,7 +844,8 @@ def writeReportFooter():
 	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
 
-#-----------------------------------------------------------------------------------------
+#=========================================================================================
+
 def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 
 	external_token = ""
@@ -807,7 +862,9 @@ def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 		external_token = userjson.get("token") 
 			
 	return (external_token)
-#-----------------------------------------------------------------------------------------
+	
+#=========================================================================================
+
 def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	global ORG_TOKEN
 
@@ -824,7 +881,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
   		ORG_TOKEN = "Not Available"	
 	statuscode = response.status_code	
 
-#-----------------------------------------------------------------------------------------
+#=========================================================================================
 
 def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
@@ -850,7 +907,7 @@ def getOrgName(id):
     	customerOrgName = id   
     return (customerOrgName)	
 
-#-----------------------------------------------------------------------------------------	
+#=========================================================================================	
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
@@ -1276,10 +1333,10 @@ if QA_REPORT != "0":
 logout()
 writeReportDetails("logout")
 
-#printResultsSummary()
+printResultsSummary()
 
-#writeReportFooter()
+writeReportFooter()
 
-#archiveReport()
+archiveReport()
 
-#emailReport()
+emailReport()

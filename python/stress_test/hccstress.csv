@@ -44,7 +44,7 @@ VAO_W=45
 VRO_W=25
 #View and Skip
 VSO_W=25
-CODE_OPPS_MAX=11000
+CODE_OPPS_MAX=40000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0
