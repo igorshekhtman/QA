@@ -11,6 +11,7 @@ ENVIRONMENT=Staging
 #### STAGING
 DOMAIN=hccstage2.apixio.com
 URL=https://hccstage2.apixio.com
+#URL=https://hcceng.apixio.com
 #DOMAIN=hcc2.apixio.com
 #URL=https://hcc2.apixio.com
 ######################################
@@ -35,14 +36,18 @@ CODE_OPPS_ACTION=1
 #### If RANDOM_OPPS_ACTION flag is set to 1, CODE_OPPS_ACTION will be ignored
 RANDOM_OPPS_ACTION=1
 #### Coder actions weighted by specific percentage, must add up to 100%
-VOO_W=1
+#View Only
+VOO_W=5
+#View and Accept
 VAO_W=45
-VRO_W=49
-VSO_W=5
-CODE_OPPS_MAX=28000
+#View and Reject
+VRO_W=25
+#View and Skip
+VSO_W=25
+CODE_OPPS_MAX=40000
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
-VIEW_HISTORY=1
+VIEW_HISTORY=0
 VIEW_HISTORY_PAGINATION=1
 VIEW_HISTORY_SEARCH=1
 VIEW_HISTORY_FILTER=1
@@ -51,7 +56,7 @@ VIEW_HISTORY_MAX=1
 VIEW_HISTORY_PAGES_MAX=0
 ######################################
 #### 0 = DO NOT VIEW QA REPORT, 1 = VIEW QA REPORT
-QA_REPORT=1
+QA_REPORT=0
 QA_REPORT_PAGINATION=1
 QA_REPORT_SEARCH=1
 QA_REPORT_FILTER=1
