@@ -5,6 +5,10 @@ npm install -g mocha
 npm install chai
 
 
+vi firstTest.spec.js 
+protractor startup.config.js 
+
+
 
 ============= CHECKING FOR AVAILABLE OPPS ============================
 
