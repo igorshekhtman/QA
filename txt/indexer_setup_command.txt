@@ -1,3 +1,11 @@
+============ PROTRACTOR ==============================================
+
+npm install -g protractor
+npm install -g mocha
+npm install chai
+
+
+
 ============= CHECKING FOR AVAILABLE OPPS ============================
 
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=sanitytest001@apixio.net&organizations=MMG&projects=any
@@ -1562,6 +1570,14 @@ uploadurl=https://testdr.apixio.com:8443/
 CARE OPTIMIZER (PRODUCTION):
 https://care.apixio.com/signup.do?action=loadSignup
 uploadurl=https://dr.apixio.com:8443/
+
+
+CARE OPTIMIZER (OREGON):
+https://care-or.apixio.com/signup.do?action=loadSignup
+uploadurl=https://docreceiver-or.apixio.com/
+https://sites.google.com/a/apixio.com/devops/architecture/endpoints-orego
+https://sites.google.com/a/apixio.com/devops/architecture/dns-names-oregon
+
 
 
 HCC (STAGING):
