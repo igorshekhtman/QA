@@ -1,8 +1,38 @@
 ============ PROTRACTOR ==============================================
 
+yum install npm --enablerepo=epel
+
+it should be v0.10.38 (node)
+
+sudo npm -g update node
+sudo nom cache clean -f
+sudo npm install -g n
+sudo n stable
+node -v
+sudo npm install -g npm
+npm update -g node
+webdriver-manager update
+
+
+http://code.tutsplus.com/tutorials/headless-functional-testing-with-selenium-and-phantomjs--net-30545
+
+export DISPLAY=:1 && protractor protractor.config.firefox.js
+
+
+npm install
 npm install -g protractor
+sudo webdriver-manager update
 npm install -g mocha
-npm install chai
+npm install -g lodash —save
+npm install -g q —save
+npm install -g chai
+npm install -g chai-as-promised
+npm install -g moment
+npm install -g jasmine
+npm install -g jasmine-reporters
+npm install protractor-html-screenshot-reporter --save-dev
+
+https://www.npmjs.com/package/protractor-html-screenshot-reporter
 
 
 vi firstTest.spec.js 
