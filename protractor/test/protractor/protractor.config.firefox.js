@@ -18,7 +18,6 @@ var year = today.getFullYear();
 // append a record to the following file:
 // /usr/lib/apx-reporting/assets/progress_regression_reports_staging.txt
 // "PR Regression Staging Report - April 23, 2015	reports/staging/progressreport/2015/4/23.html"
-
 // /mnt/reports/staging/progressreport/'+year+'/'+month+'/'
 
 
