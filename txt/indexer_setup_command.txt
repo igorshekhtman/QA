@@ -1,4 +1,16 @@
 ============ PROTRACTOR ==============================================
+MAC - 
+$ brew update
+$ brew uninstall node
+$ brew install node
+$ sudo brew postinstall node # brew error message provided this recommendation; only worked with sudo
+to test that npm is working (tho appears to build an index, which not everyone may want):
+$ npm search # returns long list of packages
+
+npm install -g
+
+
+brew install node
 
 yum install npm --enablerepo=epel
 

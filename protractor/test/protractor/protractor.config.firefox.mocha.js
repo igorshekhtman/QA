@@ -43,7 +43,8 @@ exports.config={
 	plugins:[
 		{
 			path:"screenshot-plugin.js",
-			reportPath:"reports/"
+			reportPath:"reports/",
+			screenShotPath:"reports/"+String(day)+"/"
 		}
 	]  
 

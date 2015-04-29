@@ -32,7 +32,7 @@ grep_string="$part_report_line $report_txt_folder$report_txt_fname"
 export DISPLAY=:1
 
 # run specific set of Protractor Tests
-protractor protractor.config.firefox.js
+protractor protractor.config.firefox.mocha.js
 
 # backup archive tests folder
 cp -avr $report_folder $backup_folder
