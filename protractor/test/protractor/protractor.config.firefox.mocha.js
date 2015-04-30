@@ -37,14 +37,26 @@ exports.config={
 		reporter:'spec',
 		enableTimeouts:false
 	},
+	//framework:'custom',
+	//frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/igor.js',
 	framework:'mocha',
-	specs:['testsuite/*.spec.js'],
+	
+	//specs:['testsuite/*.spec.js'],
+	specs:['specs/*.spec.js'],
+	
+	
+	
 	//seleniumAddress:"http://10.250.164.225:39831/wd/hub",
 	plugins:[
 		{
-			path:"screenshot-plugin.js",
-			reportPath:"reports/",
-			screenShotPath:"reports/"+String(day)+"/"
+			path:"mocha-report-with-screenshots-plugin.js",
+			reportPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",
+			screenShotPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+			reportLine:"PR Regression Staging Report - "+monthNames[monthIndex]+" "+String(day)+", "+String(year)+"\treports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html\n",
+			partReportLine:"reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+			reportTxtFolder:"/usr/lib/apx-reporting/assets/",
+			reportTxtFname:"progress_regression_reports_staging.txt"
+			
 		}
 	]  
 
