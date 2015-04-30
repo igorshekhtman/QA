@@ -1,4 +1,10 @@
 ============ PROTRACTOR ==============================================
+
+cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
+cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js
+vi /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
+
+
 MAC - 
 $ brew update
 $ brew uninstall node

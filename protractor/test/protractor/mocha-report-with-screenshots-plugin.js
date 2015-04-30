@@ -37,8 +37,10 @@ module.exports={
     // generate report header
     report = "";
     report = report + "<table align='left' width='800' cellpadding='0' cellspacing='0' border='0'>"
-    report = report + "<r><td>";
-	report = report + "<h1>Apixio Progress Report Test Results</h1></td></tr>";
+    report = report + "<r><td><h1>Apixio Progress Report Test Results</h1></td></tr>";
+	report = report + "<r><td><b>Operating System:</b> LINUX<br><br></td></tr>";
+	
+	
 	report = report + "<tr><td>";
 	
 	
@@ -47,8 +49,8 @@ module.exports={
 	report = report + "<tr><td bgcolor='grey'><font color='white'>TC#</td>";
 	report = report + "<td bgcolor='grey'><font color='white'>Description</td>";
 	report = report + "<td bgcolor='grey'><font color='white'>Passed</td>";
+	report = report + "<td bgcolor='grey'><font color='white'>Duration</td>";
 	report = report + "<td bgcolor='grey'><font color='white'>Browser</td>";
-	report = report + "<td bgcolor='grey'><font color='white'>OS</td>";
 	report = report + "<td bgcolor='grey'><font color='white'>Message</td>";
 	report = report + "<td bgcolor='grey'><font color='white'>Screenshot</td></tr>";
     
@@ -62,7 +64,7 @@ module.exports={
 	var duration = start_time - new Date();
 	//var duration = moment.duration((start_time - new Date()), "minutes").format("h:mm");
 	
-	
+	// generate report footer
 	report = report + "</table></td></tr>";
 	report = report + "<tr><td><br><h1><u>Results summary</u></h1></td></tr>";
 	report = report + "<tr><td><b>Total tests passed:</b> "+String(total-failed)+"</td></tr>";
@@ -78,8 +80,17 @@ module.exports={
   		if (err) throw err;
   		console.log('Test report file is saved...');
 	});
-	
-	
+
+		
+    },
+    
+//========================================================================================
+    postResults:function(config){
+    	//anything at the end of the suite
+    	//copy created reports to backup folder
+    	//append reports line if one does not already exist  
+    	
+   
 	// appending report line to txt file if does not already exist
 	fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", 'ascii', function (err,data) {
   		if (err) {
@@ -120,19 +131,8 @@ module.exports={
         else {
 			console.log("Report file backed up...");
         }
-    });
-	
-	
-		
-    },
-    
-//========================================================================================
-    postResults:function(config){
-    	//anything at the end of the suite
-    	//copy created reports to backup folder
-    	//append reports line if one does not already exist  
-    	
-    //report = report +"<tr><td colspan='6'>"+testInfo['category']+"</td></tr>";	  	
+    });   
+   	  	
     },
     
 //========================================================================================
@@ -151,17 +151,30 @@ module.exports={
           report = report + "<tr><td bgcolor='white' colspan='7'><font color='black'><b>"+testInfo['category']+"</b></td></tr>";
           category = testInfo['category'];
           }
+    // generate report details      
     report = report + "<tr><td bgcolor='white'><font color='black'>"+String(total)+"</td>";
     report = report + "<td bgcolor='white'><font color='black'>"+testInfo['name']+"</td>";
 	report = report + "<td bgcolor="+bgcolor+"><font color='white'>"+passed+"</td>";
+	report = report + "<td bgcolor='white'><font color='black'>("+testInfo['duration']+"ms)</td>";
 	report = report + "<td bgcolor='white'><font color='black'>firefox:31.6.0</td>";
-	report = report + "<td bgcolor='white'><font color='black'>LINUX</td>";
-	report = report + "<td bgcolor='white'><font color='black'>undefined</td>";
-	if(!passed)
-		report = report + "<td bgcolor='white'><font color='black'><a href="+String(day)+"/"+String(total)+".png target='_blank'>View</a></td></tr>";
-	else
+	//report = report + "<td bgcolor='white'><font color='black'>"+testInfo['errorMsg']+" <a href='' target='_blank'>View Stack Trace Info</a></td>";
+	if(!passed) {
+		report = report + "<td bgcolor='white'><font color='black'>"+testInfo['errorMsg']+" <a href="+String(day)+"/"+String(total)+".html target='_self'>View Stack Trace Info</a></td>";
+		report = report + "<td bgcolor='white'><font color='black'><a href="+String(day)+"/"+String(total)+".png target='_self'>View</a></td></tr>";
+		// create and save stack trace info html file
+		fs.writeFile(""+config['screenShotPath']+""+String(total)+".html", testInfo['stackTrace'], function (err) {
+  			if (err) throw err;
+  			//console.log('Stack trace report file is saved...');
+		});
+		
+		
+		
+		}
+	else {
+		report = report + "<td bgcolor='white'><font color='black'>"+testInfo['errorMsg']+"</td>";
 		report = report + "<td bgcolor='white'><font color='black'></td></tr>";	
-    
+		}
+    // generate and save screen-shot as well as the stack trace info html page
 	if(!passed)
 		return browser.takeScreenshot().then(function(png){
 				var stream=fs.createWriteStream(""+config['screenShotPath']+""+String(total)+".png");

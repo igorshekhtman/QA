@@ -33,9 +33,10 @@ exports.config={
 		reporter:'spec',
 		enableTimeouts:false
 	},
-	//framework:'custom',
+	framework:'custom',
 	//frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/igor.js',
-	framework:'mocha',
+	frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js',
+	//framework:'mocha',
 	
 	//specs:['testsuite/*.spec.js'],
 	specs:['specs/*.spec.js'],
