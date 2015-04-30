@@ -71,10 +71,7 @@ module.exports={
 	//report = report + "<tr><td>Test duration was "+duration+"</td></tr>";
 	report = report + "</table>";
 	
-	
-	
-	
-	//fs.writeFileSync(""+config['reportPath']+""+day+".html", report) {
+
 		
 	fs.writeFile(""+config['reportPath']+""+day+".html", report, function (err) {
   		if (err) throw err;
@@ -83,35 +80,21 @@ module.exports={
 	
 	
 	// appending report line to txt file if does not already exist
-	// read first
-	//fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", function (err, data) {
-  	//	if (err) throw err;
-  	//	if(data.indexOf(config['partReportLine']) < 0){
-   	//		console.log("string exists")
-  	//	}
-	//});
-	
-	//console.log(config);
-	
-	//fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", function(err, cont) {
-    //if (err)
-    //    throw err;    
-    //console.log("String"+(cont.indexOf(config['partReportLine'])>-1 ? " " : " not ")+"found");
-	//});
-	
-	
-	
-	fs.appendFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", config['reportLine'], function (err) {
-		if (err) throw err;
-  		console.log('New report line was appended to report txt file...');
+	fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", 'ascii', function (err,data) {
+  		if (err) {
+    	return console.log(err);
+  		}
+  		//console.log(data);
+  		if(data.indexOf(config['partReportLine']) > -1)
+  			console.log("Report entry line exists, skipping ...");
+  		else {
+  			console.log("Report entry line does not exist, appending ...");	
+  			fs.appendFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", config['reportLine'], function (err) {
+				if (err) throw err;
+  				console.log('New report line was appended to report txt file...');
+			});	
+  		}
 	});
-	
-	
-	
-	
-	
-	
-	//console.log(config);
 	
     },
     

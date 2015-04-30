@@ -27,10 +27,6 @@ exports.config={
      var height = 1024;
      browser.ignoreSynchronization = true;
      browser.driver.manage().window().setSize(width, height);
-     //jasmine.getEnv().addReporter(new HtmlReporter({
-     //    baseDirectory: '/usr/lib/apx-reporting/assets/reports/staging/progressreport/'+year+'/'+month+'/'
-     //    , docName: day+'.html'
-     // }));
     },
        
 	mochaOpts:{
