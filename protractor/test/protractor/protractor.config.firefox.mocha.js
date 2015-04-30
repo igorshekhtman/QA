@@ -46,7 +46,18 @@ exports.config={
 	plugins:[
 		{
 			path:"mocha-report-with-screenshots-plugin.js",
-			reportPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",
+			
+			reportPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",			
+			backupPath:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",
+			
+			reportFile:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+			backupReportFile:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+			
+			screenShotFolder:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+			backupScreenShotFolder:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+			
+			
+			
 			screenShotPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
 			reportLine:"PR Regression Staging Report - "+monthNames[monthIndex]+" "+String(day)+", "+String(year)+"\treports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html\n",
 			partReportLine:"reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",

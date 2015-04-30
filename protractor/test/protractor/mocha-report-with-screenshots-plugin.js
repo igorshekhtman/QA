@@ -2,6 +2,7 @@
  * Updated by Igor Shekhtman on 04-27-2015.
  */
 var fs    = require("fs");
+var exec = require("exec");
 //var reportFolder = "reports"
 var report="";
 var today = new Date();
@@ -96,6 +97,33 @@ module.exports={
   		}
 	});
 	
+	// backup report file to mnt drive
+	exec("cp -avu "+config['reportFile']+" "+config['backupReportFile']+"", function(error, stdout, stderr) {
+        console.log("stdout: " + stdout);
+        console.log("stderr: " + stderr);
+        if(error !== null) {
+            console.log("exec error: " + error);
+        } 
+        else {
+			console.log("Report file backed up...");
+        }
+    });
+	
+	
+	// backup screen-shot folder to mnt drive
+	exec("cp -avru "+config['screenShotFolder']+" "+config['backupScreenShotFolder']+"", function(error, stdout, stderr) {
+        console.log("stdout: " + stdout);
+        console.log("stderr: " + stderr);
+        if(error !== null) {
+            console.log("exec error: " + error);
+        } 
+        else {
+			console.log("Report file backed up...");
+        }
+    });
+	
+	
+		
     },
     
 //========================================================================================
