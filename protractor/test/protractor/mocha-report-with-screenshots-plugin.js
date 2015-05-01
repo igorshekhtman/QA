@@ -4,7 +4,7 @@
 var fs    = require("fs");
 var exec = require("exec");
 var os = require("os");
-//var reportFolder = "reports"
+//var useragent = require('useragent');
 var report="";
 var today = new Date();
 var start_time = new Date();
@@ -123,7 +123,7 @@ module.exports={
 			console.log("Report file backed up...");
         }
     });   
-
+    
 		
     },
     
@@ -159,8 +159,11 @@ module.exports={
     report = report + "<td bgcolor='white'><font color='black'>"+testInfo['name']+"</td>";
 	report = report + "<td bgcolor="+bgcolor+"><font color='white'>"+passed+"</td>";
 	report = report + "<td bgcolor='white'><font color='black'>("+testInfo['duration']+"ms)</td>";
-	report = report + "<td bgcolor='white'><font color='black'>firefox:31.6.0</td>";
+	report = report + "<td bgcolor='white'><font color='black'>"+browser.browserName+" "+browser.browserVersion+"</td>";
 	//report = report + "<td bgcolor='white'><font color='black'>"+testInfo['errorMsg']+" <a href='' target='_blank'>View Stack Trace Info</a></td>";
+	
+
+	
 	if(!passed) {
 		report = report + "<td bgcolor='white'><font color='black'>"+testInfo['errorMsg']+" <a href="+String(day)+"/"+String(total)+".html target='_self'>View Stack Trace Info</a></td>";
 		report = report + "<td bgcolor='white'><font color='black'><a href="+String(day)+"/"+String(total)+".png target='_self'>View</a></td></tr>";

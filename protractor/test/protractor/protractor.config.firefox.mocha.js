@@ -27,8 +27,16 @@ exports.config={
      var height = 1024;
      browser.ignoreSynchronization = true;
      browser.driver.manage().window().setSize(width, height);
+     
+     browser.getCapabilities().then(function (cap) {
+  	 browser.browserName = cap.caps_.browserName;
+  	 browser.browserVersion = cap.caps_.version;
+	 });
+     
+     
     },
-       
+    
+      
 	mochaOpts:{
 		reporter:'spec',
 		enableTimeouts:false
