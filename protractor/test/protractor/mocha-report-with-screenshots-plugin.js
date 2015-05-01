@@ -3,6 +3,7 @@
  */
 var fs    = require("fs");
 var exec = require("exec");
+var os = require("os");
 //var reportFolder = "reports"
 var report="";
 var today = new Date();
@@ -38,7 +39,7 @@ module.exports={
     report = "";
     report = report + "<table align='left' width='800' cellpadding='0' cellspacing='0' border='0'>"
     report = report + "<r><td><h1>Apixio Progress Report Test Results</h1></td></tr>";
-	report = report + "<r><td><b>Operating System:</b> LINUX<br><br></td></tr>";
+	report = report + "<r><td><b>Operating System:</b> "+String(os.type()).toUpperCase()+"<br><br></td></tr>";
 	
 	
 	report = report + "<tr><td>";
@@ -80,17 +81,7 @@ module.exports={
   		if (err) throw err;
   		console.log('Test report file is saved...');
 	});
-
-		
-    },
-    
-//========================================================================================
-    postResults:function(config){
-    	//anything at the end of the suite
-    	//copy created reports to backup folder
-    	//append reports line if one does not already exist  
-    	
-   
+	
 	// appending report line to txt file if does not already exist
 	fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", 'ascii', function (err,data) {
   		if (err) {
@@ -132,6 +123,18 @@ module.exports={
 			console.log("Report file backed up...");
         }
     });   
+
+		
+    },
+    
+//========================================================================================
+    postResults:function(config){
+    	//anything at the end of the suite
+    	//copy created reports to backup folder
+    	//append reports line if one does not already exist  
+    	
+   
+	
    	  	
     },
     
