@@ -60,8 +60,8 @@ exports.config={
 	frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js',
 	//framework:'mocha',
 	
-	//specs:['testsuite/*.spec.js'],
-	specs:['specs/*.spec.js'],
+	specs:['testsuite/*.spec.js'],
+	//specs:['specs/*.spec.js'],
 	
 	
 	
