@@ -22,6 +22,7 @@ module.exports={
     setup:function(config){
 	//anything at the start of the test
 	//create a directories for reports and screenshots
+	
 	try { 
 	    fs.mkdirSync(config['reportPath']); 
 	    } 

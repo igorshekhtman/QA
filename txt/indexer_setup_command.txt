@@ -1,5 +1,12 @@
 ============ PROTRACTOR ==============================================
 
+/usr/local/lib/node_modules/protractor/bin/elementexplorer.js
+
+node elementexplorer.js https://hcc.apixio.com/account/login/
+
+node elementexplorer.js https://progressreport-stg.apixio.com/
+
+
 cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
 cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js
 vi /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
