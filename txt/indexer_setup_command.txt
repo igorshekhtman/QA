@@ -71,6 +71,8 @@ https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=sanity
 
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=any&projects=any
 
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=grinderusr1414103999@apixio.net&organizations=MMG&projects=CP_fa7f3247-7877-423c-a260-59a3b02bd6ef
+
 
 ============= PIPELINE CONFIG TOOLS ===================================
 
