@@ -92,7 +92,9 @@
 # SPECIFICS: Added "Document Page Retrieval" functionality to the stress test. Total number of 
 #			 available pages in a document is looked up, followed by a lookup loop from fist to
 #			 last available document page.  Main purpose of this addition was to stress test
-#			 Data Orchestrator, which seemed to be failing intermittently in Production.
+#			 Data Orchestrator, which seemed to be failing intermittently in Production. Took
+#			 function getDocPageTotal(scorable), used to obtain number of pages in a document
+#			 to outside and added to already existing set of helper functions.
 #
 ####################################################################################################
 
@@ -436,17 +438,7 @@ def startCoding():
     IncrementTestResultsTotals("coding scorable document check", response.status_code)
     print "* GET SCORABLE DOC = %s" % response.status_code     
     
-
-    elements = json.dumps(scorable.get("elements"))
-    elementstr = elements[1:len(elements)-1]  
-    strindex = elementstr.find("event.totalPages")
-
-    i = 20
-    totalPagesStr = ""
-    while elementstr[strindex+i] != ",":
-    	totalPagesStr = totalPagesStr+elementstr[strindex+i]
-    	i += 1
-    totalPages = int(totalPagesStr[:len(totalPagesStr)-1])	
+    totalPages = getDocPageTotal(scorable)
     print "* TOTAL # OF PAGES = %s" % totalPages
  
     # looping through each and every available page in a document
@@ -727,6 +719,20 @@ def logout():
   return 0
 
 # HELPER FUNCTIONS ####################################################################################################
+
+def getDocPageTotal(scorable):
+    elements = json.dumps(scorable.get("elements"))
+    elementstr = elements[1:len(elements)-1]  
+    strindex = elementstr.find("event.totalPages")
+    i = 20
+    totalPagesStr = ""
+    while elementstr[strindex+i] != ",":
+    	totalPagesStr = totalPagesStr+elementstr[strindex+i]
+    	i += 1
+    totalPages = int(totalPagesStr[:len(totalPagesStr)-1])
+    return (totalPages)    	
+
+#=========================================================================================
 
 def WeightedRandomCodingAction():
 	global VOO_W, VAO_W, VRO_W, VSO_W
