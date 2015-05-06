@@ -1,4 +1,4 @@
-10####################################################################################################
+####################################################################################################
 #
 # PROGRAM: hccstress.py
 # AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
@@ -82,6 +82,19 @@
 #            are pre-defined in HCCConfig.csv configuration file.
 #
 ####################################################################################################
+#
+# REVISION: 1.0.3.1
+#
+# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
+#
+# DATE: 05-May-2015
+#
+# SPECIFICS: Added "Document Page Retrieval" functionality to the stress test. Total number of 
+#			 available pages in a document is looked up, followed by a lookup loop from fist to
+#			 last available document page.  Main purpose of this addition was to stress test
+#			 Data Orchestrator, which seemed to be failing intermittently in Production.
+#
+####################################################################################################
 
 # LIBRARIES ########################################################################################
 
@@ -144,12 +157,13 @@ MODULES = {	"login":"0", \
 			"qa report pagination":"13", \
 			"qa report searching":"14", \
 			"qa report filtering":"15", \
-			"logout":"16" \
+			"logout":"16", \
+			"document page retrieval":"17" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-for i in range (0, 17):
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+for i in range (0, 18):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
@@ -418,71 +432,31 @@ def startCoding():
       print("WARNING : DOC DATE is Empty")
     test_counter = test_counter + 1
       
-    #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
     response = requests.get(URL + "/api/document-text/" + document_uuid, cookies=COOKIES, data=DATA, headers=HEADERS)
     IncrementTestResultsTotals("coding scorable document check", response.status_code)
     print "* GET SCORABLE DOC = %s" % response.status_code     
     
-    
-    #for i in range (0,1):
-    #	response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
-    #	print "* DOCUMENT PAGE %d  = %s" % (i, response.status_code)
-    
+
     elements = json.dumps(scorable.get("elements"))
-    #print json.dumps(scorable)
-    #quit()
-    
-    elementstr = elements[1:len(elements)-1]
-    
+    elementstr = elements[1:len(elements)-1]  
     strindex = elementstr.find("event.totalPages")
-    #print strindex
+
     i = 20
     totalPagesStr = ""
     while elementstr[strindex+i] != ",":
     	totalPagesStr = totalPagesStr+elementstr[strindex+i]
     	i += 1
-    #print totalPagesStr[:len(totalPagesStr)-1]   
     totalPages = int(totalPagesStr[:len(totalPagesStr)-1])	
-    #print elementstr[strindex+20]+elementstr[strindex+21]+elementstr[strindex+22]+elementstr[strindex+23]   
-    #quit()  
-    #elementstr.get("event.totalPages")   
-    #json.loads(s.replace('\r\n', '\\r\\n'))  
-    #print elementstr
-    #repelementstr = repr(elementstr)
-    #print repelementstr
-    
-    #repelementstr = fixjson(elementstr)
-    #print repelementstr
-    #totalPagesjson = json.loads(repelementstr)
-    #print totalPagesjson
-    #totalPages = totalPagesjson("event.totalPages")
     print "* TOTAL # OF PAGES = %s" % totalPages
-    #quit()
-    
-    
-    
-    
-    
+ 
+    # looping through each and every available page in a document
     for i in range (0,int(totalPages)):
     	response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
+    	IncrementTestResultsTotals("document page retrieval", response.status_code)
     	print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
 
-
-
-
-
-
-
-
-    #quit()
-    
-    #https://hccstage2.apixio.com/document_page/a5c0f7ba-3b5f-4ba2-9070-1e76b8616c3a/0
-    
-    
     test_counter += 1
-    
-    
-    
+
     if RANDOM_OPPS_ACTION == "1":
    	  CODE_OPPS_ACTION = WeightedRandomCodingAction()
     act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
@@ -1108,7 +1082,12 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
     finding_id = scorable.get("id")
+    #print json.dumps(scorable)
+    #quit()
+    print("* CODER ACTION     = Accept Doc")
     print "* FINDING ID       = %s" % finding_id
+
+
     DATA = 	{ \
 			"opportunity": \
 			{ \
@@ -1156,12 +1135,17 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[ \
 			{ \
-			"flaggedForReview": True, \
-			"changed": True, \
-			"result": "accept", \
-			"encounterType": "Hospital Inpatient Setting: Other Diagnosis", \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":True, \
+			"result":"accept", \
+			"encounterType": \
+			{ \
+			"id":"02", \
+			"name":"Hospital Inpatient Setting: Other Diagnosis" \
+			}, \
 			"icd": \
 			{ \
 			"code_system_name": opportunity.get("suggested_codes")[0].get("code_system_name"), \
@@ -1174,7 +1158,9 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"dateOfService": scorable.get("date_of_service"), \
 			"page": scorable.get("page"), \
 			"comment":"Grinder Flag for Review" \
-			}]}	
+			}}}
+			
+		
     #print json.dumps(DATA)
     #quit()
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
@@ -1186,6 +1172,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
     	print("-------------------------------------------------------------------------------")
     	print("\n")
+    	#quit()
     	
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == ok:
@@ -1196,6 +1183,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       
   elif CODE_OPPS_ACTION == "2": #================================== REJECT DOC ===========
     finding_id = scorable.get("id")
+    print("* CODER ACTION     = Reject Doc")
     print "* FINDING ID       = %s" % finding_id
 
     DATA = { \
@@ -1243,14 +1231,19 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[{ \
-			"flaggedForReview": True, \
-			"changed": True, \
-			"result": "reject", \
-			"rejectReason": "Invalid Date of Service", \
-			"comment": "Grinder Flag for Review Comment", \
+			{ \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":True, \
+			"result":"reject", \
+			"rejectReason":"This document does not mention this HCC for the patient", \
+			"comment":"Grinder Flag for Review Comment", \
 			"page": scorable.get("page") \
-			}]}		
+			}}}
+			
+		
+			
     #print json.dumps(DATA)
     #quit()
 
@@ -1263,6 +1256,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
     	print("-------------------------------------------------------------------------------")
     	print("\n")
+    	#quit()
     
     
     
@@ -1274,6 +1268,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "3": #=========================== SKIP OPP ====================
     finding_id = scorable.get("id")
+    print("* CODER ACTION     = Skip Doc")
     print "* FINDING ID       = %s" % finding_id
     
     DATA = { \
@@ -1321,11 +1316,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[{ \
-			"changed": True, \
-			"result": "skipped", \
-			"flaggedForReview": False \
-			}]}    
+			{ \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":False, \
+			"result":"skipped" \
+			}}}
     #print json.dumps(DATA)
     #quit()    
 
@@ -1338,6 +1335,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
     	print("-------------------------------------------------------------------------------")
     	print("\n")
+    	#quit()
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == ok:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = %s" % response.status_code)
@@ -1371,6 +1369,7 @@ for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX)+1)):
 
 writeReportDetails("coding opportunity check")
 writeReportDetails("coding scorable document check")
+writeReportDetails("document page retrieval")
 writeReportDetails("coding view only")
 writeReportDetails("coding view and accept")
 writeReportDetails("coding view and reject")
