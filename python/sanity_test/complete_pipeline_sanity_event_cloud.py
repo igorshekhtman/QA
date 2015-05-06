@@ -62,6 +62,14 @@ def initializeGlobalVars():
 		ENVIRONMENT="Production"
 		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
 		EVENT_CLOUD_URL="http://eventcloud-pipeline.apixio.com:8076/event/query"
+	elif ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "O")):
+		USERNAME="oreg005"
+		ORGID="10000351"
+		PASSWORD="apixio.123"
+		HOST="https://docreceiver-or.apixio.com"
+		ENVIRONMENT="Oregon"
+		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
+		EVENT_CLOUD_URL="http://event-cloud-or.apixio.com:8076/event/query"
 	else:
 		# STAGING =====================
 		USERNAME="sanitytest1"

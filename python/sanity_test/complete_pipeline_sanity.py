@@ -37,6 +37,13 @@ if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	PASSWORD="Hadoop.4522"
 	HOST="https://dr.apixio.com"
 	ENVIRONMENT="Production"
+elif ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "O")):
+	# OREGON ==================
+	USERNAME="oreg005"
+	ORGID="10000351"
+	PASSWORD="apixio.123"
+	HOST="https://docreceiver-or.apixio.com"
+	ENVIRONMENT="Oregon"			
 else:
 	# STAGING =====================
 	USERNAME="sanitytest1"
