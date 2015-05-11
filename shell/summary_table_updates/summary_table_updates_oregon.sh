@@ -1603,6 +1603,56 @@ from staging_logs_datacheckandrecover_epoch
 where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
 
+insert overwrite table summary_pager_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.document.uuid') as doc_id,
+cast(get_json_object(line, '$.document.totalPages') as int) as page_count,
+cast(get_json_object(line, '$.file.bytes') as int) as doc_bytes,
+get_json_object(line, '$.render.imageType') as image_type,
+get_json_object(line, '$.render.resolution') as resolution,
+cast(get_json_object(line, '$.render.millis') as int) as render_millis,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as jobId,
+get_json_object(line, '$.workId') as workId,
+get_json_object(line, '$.session') as hadoop_job_id,
+get_json_object(line, '$.className') as classname,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_pagerjob_epoch
+where get_json_object(line, '$.level') = "EVENT"
+and get_json_object(line, '$.document') is not null
+and ($dateRange);
+
+insert overwrite table summary_page_persist_staging partition (year, month, day, org_id)
+select get_json_object(line, '$.datestamp') as time,
+get_json_object(line, '$.document.uuid') as doc_id,
+get_json_object(line, '$.input.key') as input_key,
+cast(get_json_object(line, '$.input.bytes') as int) as bytes,
+get_json_object(line, '$.page.imageType') as image_type,
+get_json_object(line, '$.page.resolution') as resolution,
+cast(get_json_object(line, '$.page.number') as int) as page_number,
+get_json_object(line, '$.page.qaFailed') as failed_qa,
+get_json_object(line, '$.batchId') as batch_id,
+get_json_object(line, '$.jobId') as jobId,
+get_json_object(line, '$.workId') as workId,
+get_json_object(line, '$.session') as hadoop_job_id,
+get_json_object(line, '$.className') as classname,
+get_json_object(line, '$.unpack.status') as unpack_status,
+cast(get_json_object(line, '$.unpack.millis') as int) as unpack_millis,
+cast(get_json_object(line, '$.file.millis') as int) as millis,
+get_json_object(line, '$.status') as status,
+get_json_object(line, '$.error.message') as error,
+year, month, day,
+get_json_object(line, '$.orgId') as org_id
+from staging_logs_pagepersistjob_epoch
+where get_json_object(line, '$.level') = "EVENT"
+and get_json_object(line, '$.input.key') is not null
+and ($dateRange);
+
 insert overwrite table summary_careopt_load_staging partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
