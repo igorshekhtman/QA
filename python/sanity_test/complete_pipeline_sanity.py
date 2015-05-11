@@ -37,6 +37,13 @@ if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
 	PASSWORD="Hadoop.4522"
 	HOST="https://dr.apixio.com"
 	ENVIRONMENT="Production"
+elif ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "O")):
+	# OREGON ==================
+	USERNAME="oreg005"
+	ORGID="10000351"
+	PASSWORD="apixio.123"
+	HOST="https://docreceiver-or.apixio.com"
+	ENVIRONMENT="Oregon"			
 else:
 	# STAGING =====================
 	USERNAME="sanitytest1"
@@ -291,6 +298,7 @@ if ENVIRONMENT == "Staging":
 PAUSE_LIMIT = 300
 #Increased for the time being of cluster being 100% occupied ... 10-13-14 Igor
 #PAUSE_LIMIT = 600
+#PAUSE_LIMIT = 216000
 
 
 # wait for PAUSE_LIMIT seconds
@@ -320,15 +328,32 @@ SUBHDR="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3'
 
 QUERY_DESC=""
 COMPONENT_STATUS="PASSED"
-LOGTYPE="24"
+if ENVIRONMENT == "Oregon":
+	LOGTYPE="epoch"
+else:
+	LOGTYPE="24"		
 
 INDEXERLOGFILE="indexer_manifest_epoch"
-DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
-COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
-PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
-OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
-PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
-EVENTSLOGFILE=ENVIRONMENT.lower()+"_logs_eventJob_"+LOGTYPE
+
+if ENVIRONMENT == "Oregon":
+	DOCRECEIVERLOGFILE="production_or_logs_docreceiver_"+LOGTYPE
+	COORDINATORLOGFILE="production_or_logs_coordinator_"+LOGTYPE
+	PARSERLOGFILE="production_or_logs_parserjob_"+LOGTYPE
+	OCRLOGFILE="production_or_logs_ocrjob_"+LOGTYPE
+	PERSISTLOGFILE="production_or_logs_persistjob_"+LOGTYPE
+	EVENTSLOGFILE="production_or_logs_eventJob_"+LOGTYPE
+else:
+	DOCRECEIVERLOGFILE=ENVIRONMENT.lower()+"_logs_docreceiver_"+LOGTYPE
+	COORDINATORLOGFILE=ENVIRONMENT.lower()+"_logs_coordinator_"+LOGTYPE
+	PARSERLOGFILE=ENVIRONMENT.lower()+"_logs_parserjob_"+LOGTYPE
+	OCRLOGFILE=ENVIRONMENT.lower()+"_logs_ocrjob_"+LOGTYPE
+	PERSISTLOGFILE=ENVIRONMENT.lower()+"_logs_persistjob_"+LOGTYPE
+	EVENTSLOGFILE=ENVIRONMENT.lower()+"_logs_eventJob_"+LOGTYPE		
+
+
+
+
+
 # staging_logs_eventJob_24
 
 SENDER="donotreply@apixio.com"

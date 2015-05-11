@@ -62,6 +62,14 @@ def initializeGlobalVars():
 		ENVIRONMENT="Production"
 		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
 		EVENT_CLOUD_URL="http://eventcloud-pipeline.apixio.com:8076/event/query"
+	elif ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "O")):
+		USERNAME="oreg005"
+		ORGID="10000351"
+		PASSWORD="apixio.123"
+		HOST="https://docreceiver-or.apixio.com"
+		ENVIRONMENT="Oregon"
+		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
+		EVENT_CLOUD_URL="http://event-cloud-or.apixio.com:8076/event/query"
 	else:
 		# STAGING =====================
 		USERNAME="sanitytest1"
@@ -432,20 +440,15 @@ def query(stmt, url=None):
 	
 #=========================================================================================
 
-
 def logDetailsIntoReport(p_module, p_state, batch, status, successes, errors, docs, docswithe, patients, patientswithe, events, v5, dict, claims, duration, start, last, max_duration, actual_duration, bg_color):
 	global REPORT
-	
-		
+			
 	REPORT = REPORT+SUBHDR % (p_module.upper(), p_state, batch)
-	
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0' width='800'><tr><td>"
 	
 	#print bg_color
 	#quit() 
-	
-
-	
+		
 	REPORT = REPORT+"<table border='0' width='100%%' ><tr>"
 	
 	REPORT = REPORT+" \
@@ -505,9 +508,9 @@ def componentUploadStatus(p_module, p_state, batch):
 		"Packaged":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"Uploaded":                        [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,     10], \
 		"Submitted":                        [1, 0, 13, None,  0,  None,  0, None,  None, None,  10], \
-		"SentToPersist":                   [12, 0, 12, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"SentToPersist":                   [12, 0, 12, 0,     0,  0,     0, 0,     0,    0,    100], \
 		"Parsed":                          [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    160], \
-		"SentToOCR":                        [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,     10], \
+		"SentToOCR":                        [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,    100], \
 		"OCRed":                            [1, 0,  1, 0,     0,  0,     0, 0,     0,    0,    350], \
 		"PersistMapped":                   [13, 0, 13, 0,     0,  0,     0, 0,     0,    0,    360], \
 		"PersistReduced":                  [13, 0,  0, 0,    13,  0,     0, 0,     0,    0,    200], \

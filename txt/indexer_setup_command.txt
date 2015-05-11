@@ -1,8 +1,77 @@
+============ PROTRACTOR ==============================================
+
+/usr/local/lib/node_modules/protractor/bin/elementexplorer.js
+
+node elementexplorer.js https://hcc.apixio.com/account/login/
+
+node elementexplorer.js https://progressreport-stg.apixio.com/
+
+
+cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
+cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js
+vi /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
+
+
+MAC - 
+$ brew update
+$ brew uninstall node
+$ brew install node
+$ sudo brew postinstall node # brew error message provided this recommendation; only worked with sudo
+to test that npm is working (tho appears to build an index, which not everyone may want):
+$ npm search # returns long list of packages
+
+npm install -g
+
+
+brew install node
+
+yum install npm --enablerepo=epel
+
+it should be v0.10.38 (node)
+
+sudo npm -g update node
+sudo nom cache clean -f
+sudo npm install -g n
+sudo n stable
+node -v
+sudo npm install -g npm
+npm update -g node
+webdriver-manager update
+
+
+http://code.tutsplus.com/tutorials/headless-functional-testing-with-selenium-and-phantomjs--net-30545
+
+export DISPLAY=:1 && protractor protractor.config.firefox.js
+
+
+npm install
+npm install -g protractor
+sudo webdriver-manager update
+npm install -g mocha
+npm install -g lodash —save
+npm install -g q —save
+npm install -g chai
+npm install -g chai-as-promised
+npm install -g moment
+npm install -g jasmine
+npm install -g jasmine-reporters
+npm install protractor-html-screenshot-reporter --save-dev
+
+https://www.npmjs.com/package/protractor-html-screenshot-reporter
+
+
+vi firstTest.spec.js 
+protractor startup.config.js 
+
+
+
 ============= CHECKING FOR AVAILABLE OPPS ============================
 
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=sanitytest001@apixio.net&organizations=MMG&projects=any
 
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=any&projects=any
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=grinderusr1414103999@apixio.net&organizations=MMG&projects=CP_fa7f3247-7877-423c-a260-59a3b02bd6ef
 
 
 ============= PIPELINE CONFIG TOOLS ===================================
@@ -1562,6 +1631,14 @@ uploadurl=https://testdr.apixio.com:8443/
 CARE OPTIMIZER (PRODUCTION):
 https://care.apixio.com/signup.do?action=loadSignup
 uploadurl=https://dr.apixio.com:8443/
+
+
+CARE OPTIMIZER (OREGON):
+https://care-or.apixio.com/signup.do?action=loadSignup
+uploadurl=https://docreceiver-or.apixio.com/
+https://sites.google.com/a/apixio.com/devops/architecture/endpoints-orego
+https://sites.google.com/a/apixio.com/devops/architecture/dns-names-oregon
+
 
 
 HCC (STAGING):

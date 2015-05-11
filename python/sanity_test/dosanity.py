@@ -23,6 +23,15 @@
 #		   * Ensure that dosanity.csv file is located in the same folder as dosanity.py script
 #
 #=========================================================================================
+#
+# UPDATE:		07-May-2015
+# AUTHOR:		Igor Shekhtman ishekhtman@apixio.com
+#
+# DESCRIPTION:	Added a function to cover sanity test for single document page end-point 
+#				Data Orchestrator API functionality.  For simplicity purposes, only 1st 
+#				document page is tested every document contains at least one page.
+#
+#=========================================================================================
 # Global Paramaters descriptions and possible values:
 # These are defined in CSV_CONFIG_FILE_NAME = "dosanity.csv", 
 # Which is located in CSV_CONFIG_FILE_PATH folder
@@ -92,12 +101,13 @@ MODULES = {	"obtain internal token":"0", \
 			"document simpleContent":"10", \
 			"document rawContent":"11", \
 			"document extractedContent":"12", \
-			"document apo":"13" \
+			"document apo":"13", \
+			"document file":"14" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
-for i in range (0, 14):
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+for i in range (0, 15):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
@@ -411,7 +421,7 @@ def emailReport():
 #=========================================================================================
 
 def obtainAuthorizationGetToken():
-	global I_TOKEN, E_TOKEN
+	global I_TOKEN, E_TOKEN, USERNAME, PASSWORD
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> DataOrchestrator - OBTAIN AUTHORIZATION EXCHANGE TOKENS<<<")
 	print ("----------------------------------------------------------------------------")
@@ -450,6 +460,8 @@ def obtainAuthorizationGetToken():
 		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
 		statuscode = response.status_code
 		print ("* STATUS CODE            = %s" % statuscode)
+		USERNAME = value
+		PASSWORD = PASSWORD
 		IncrementTestResultsTotals("obtain internal token", statuscode)
 		#quit()
 	
@@ -533,6 +545,41 @@ def getDocument(endpoint):
 		print ("* STATUS CODE            = %s" % statuscode)
 		IncrementTestResultsTotals("document "+str(endpoint), statuscode)
 		#quit()	
+		
+#=========================================================================================		
+def getDocumentPage(endpoint):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> DataOrchestrator - DOCUMENT PAGE %s ENDPOINT <<<" % str(endpoint).upper())
+	print ("----------------------------------------------------------------------------")
+	print ("* DOCUMENT URL 1         = %s" % DOCUMENT_URL)
+	for i in range(1, 6):
+		var_name=PREFIX+"DOC_UUID_"+str(i)
+		value=globals()[var_name]	
+		statuscode = 500
+		# repeat until successful login is reached
+		#while statuscode != 200:
+		for i in range (0,5):
+  			url = DOCUMENT_URL+'/'+value+'/'+str(endpoint)+'/'+str(i)
+  			referer = DOCUMENT_URL+'/'+value+'/'+str(endpoint) 	
+  			#print ("* DOCUMENT URL 2         = %s" % url)
+  			print ("* PAGE %d URL            = %s" % (i+1, url))			
+  			DATA =    {'Authorization': 'Apixio ' + I_TOKEN} 
+  			HEADERS = {'Authorization': 'Apixio ' + I_TOKEN}
+  			response = requests.get(url, data=DATA, headers=HEADERS)
+  			statuscode = response.status_code
+			print ("* STATUS CODE            = %s" % statuscode)
+			IncrementTestResultsTotals("document "+str(endpoint), statuscode)		
+		print ("* USERNAME               = %s" % USERNAME)
+		print ("* PASSWORD               = %s" % PASSWORD)
+		print ("* EXTERNAL TOKEN         = %s" % E_TOKEN)
+		print ("* INTERNAL TOKEN         = %s" % I_TOKEN)
+		print ("* DOCUMENT UUID          = %s" % value)
+		#statuscode = response.status_code
+		#print ("* STATUS CODE            = %s" % statuscode)
+		#IncrementTestResultsTotals("document "+str(endpoint), statuscode)			
+
+#GET /document/da57f35c-15d0-4175-a572-6ab1d6ce74fb/file/0	
+#DOCUMENT_URL	
 
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
@@ -583,6 +630,8 @@ getDocument("extractedContent")
 writeReportDetails("document extractedContent")
 getDocument("apo")
 writeReportDetails("document apo")
+getDocumentPage("file")
+writeReportDetails("document file")
 
 writeReportFooter()
 

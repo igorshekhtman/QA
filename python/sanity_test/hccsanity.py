@@ -148,12 +148,13 @@ MODULES = {	"login":"0", \
 			"qa report pagination":"13", \
 			"qa report searching":"14", \
 			"qa report filtering":"15", \
-			"logout":"16" \
+			"logout":"16", \
+			"document page retrieval":"17" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-for i in range (0, 17):
+FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+for i in range (0, 18):
 	FAILED_TOT[i] = 0
 	SUCCEEDED_TOT[i] = 0
 	RETRIED_TOT[i] = 0
@@ -315,10 +316,20 @@ def startCoding():
       #https://hccstage2.apixio.com/api/document-text/e9c32605-6db2-428d-ba4f-b7623dd20094
       #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
-      print "* GET SCRBLE DOC   = %s" % response.status_code
-      
-      
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
+      print "* GET SCORABLE DOC = %s" % response.status_code     
+    
+      totalPages = getDocPageTotal(scorable)
+      print "* TOTAL # OF PAGES = %s" % totalPages
+ 
+      # looping through each and every available page in a document
+      for i in range (0,int(totalPages)):
+        response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
+        IncrementTestResultsTotals("document page retrieval", response.status_code)
+        print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
+      
+      
+      
       test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction()
@@ -549,6 +560,20 @@ def logout():
   return 0
 
 # HELPER FUNCTIONS ####################################################################################################
+
+def getDocPageTotal(scorable):
+    elements = json.dumps(scorable.get("elements"))
+    elementstr = elements[1:len(elements)-1]  
+    strindex = elementstr.find("event.totalPages")
+    i = 20
+    totalPagesStr = ""
+    while elementstr[strindex+i] != ",":
+    	totalPagesStr = totalPagesStr+elementstr[strindex+i]
+    	i += 1
+    totalPages = int(totalPagesStr[:len(totalPagesStr)-1])
+    return (totalPages)    	
+
+#=========================================================================================
 
 def WeightedRandomCodingAction():
 	global VOO_W, VAO_W, VRO_W, VSO_W
@@ -894,12 +919,17 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[ \
 			{ \
-			"flaggedForReview": True, \
-			"changed": True, \
-			"result": "accept", \
-			"encounterType": "Hospital Inpatient Setting: Other Diagnosis", \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":True, \
+			"result":"accept", \
+			"encounterType": \
+			{ \
+			"id":"02", \
+			"name":"Hospital Inpatient Setting: Other Diagnosis" \
+			}, \
 			"icd": \
 			{ \
 			"code_system_name": opportunity.get("suggested_codes")[0].get("code_system_name"), \
@@ -912,7 +942,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"dateOfService": scorable.get("date_of_service"), \
 			"page": scorable.get("page"), \
 			"comment":"Grinder Flag for Review" \
-			}]}	
+			}}}
     
     
     
@@ -975,14 +1005,16 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[{ \
-			"flaggedForReview": True, \
-			"changed": True, \
-			"result": "reject", \
-			"rejectReason": "Invalid Date of Service", \
-			"comment": "Grinder Flag for Review Comment", \
+			{ \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":True, \
+			"result":"reject", \
+			"rejectReason":"This document does not mention this HCC for the patient", \
+			"comment":"Grinder Flag for Review Comment", \
 			"page": scorable.get("page") \
-			}]}		
+			}}}
     		   		
     		
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
@@ -1042,11 +1074,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"model_run": opportunity.get("model_run") \
 			}, \
 			"annotations": \
-			[{ \
-			"changed": True, \
-			"result": "skipped", \
-			"flaggedForReview": False \
-			}]}    
+			{ \
+			finding_id: \
+			{ \
+			"changed":True, \
+			"flaggedForReview":False, \
+			"result":"skipped" \
+			}}}
 		
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and skip", response.status_code)
@@ -1077,6 +1111,7 @@ startCoding()
 
 writeReportDetails("coding opportunity check")
 writeReportDetails("coding scorable document check")
+writeReportDetails("document page retrieval")
 writeReportDetails("coding view only")
 writeReportDetails("coding view and accept")
 writeReportDetails("coding view and reject")

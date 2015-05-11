@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+                    Xunit Test Results - For: </title>
+<style type="text/css">
+
+                    .testcases {
+                       border: 1px solid black;
+                       padding: 10px;
+                     }
+
+                    .filters {
+                        margin: 10px 0 0 0;
+                     }
+
+                    .failed {
+                        display:block;
+                    }
+            
+                   .failed a {
+                        color: red;
+                        font-weight: bold;
+                    }
+
+                    .passed {
+                        display: block;
+                    }
+
+                   .passed a {
+                        color: green;
+                        font-weight: bold;
+                    }
+                
+                    .error-message {
+                        border: 1px solid red;
+                    }        
+    
+                
+                </style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script><script type="text/javascript">
+                    $(document).ready(function() {
+                        $(".filter").change(function(event) {
+                            var self = $(this);
+                            $('.filter option:selected').each(function() {
+                                $('.testcases div').show();
+                                if ( $(this).val() != 'all' ) {
+                                    $('.testcases div[class != "' + $(this).val() + '"][class!="error-message"]').each(function() {
+                                    $(this).hide();
+                                    });
+                                }
+                            });
+                        }); 
+                    });
+                </script>
+</head>
+<body>
+<h3 class="divided"><b>Results for nosetests</b></h3>
+<div class="container">
+            Tests run: <a href="#all"><b>6</b></a>
+            Failures: <a href="#failures"><b>1</b></a>,
+            Skipped: <a href="#skipped"><b>0</b></a>,
+            Errors: <a href="#errors"><b>2</b></a><div class="filters">
+<label for="filter">Filter Test cases:</label><select id="filter" class="filter"><option name="all" value="all" selected>All</option>
+<option name="passed" value="passed">Passed</option>
+<option name="failed" value="failed">Failed</option></select>
+</div>
+<hr>
+</div>
+<div class="testcases">
+<div class="passed">
+<pre><b>Class:</b>hcc_front_end.hcc-601.hcc_601</pre>
+<pre><b>Test Name:</b>test_reporting_should_have_limited_pagination_601</pre>
+<pre><b>Running Time:</b>2.006</pre>
+<pre><b>State:</b><a>Passed</a></pre>
+<hr>
+</div>
+<div class="passed">
+<pre><b>Class:</b>hcc_front_end.hcc-602.hcc_602</pre>
+<pre><b>Test Name:</b>test_multiple_test_cases_within_one_python_script_602_1</pre>
+<pre><b>Running Time:</b>2.049</pre>
+<pre><b>State:</b><a>Passed</a></pre>
+<hr>
+</div>
+<div class="passed">
+<pre><b>Class:</b>hcc_front_end.hcc-602.hcc_602</pre>
+<pre><b>Test Name:</b>test_multiple_test_cases_within_one_python_script_602_2</pre>
+<pre><b>Running Time:</b>1.776</pre>
+<pre><b>State:</b><a>Passed</a></pre>
+<hr>
+</div>
+<div class="failed">
+<pre><b>Class:</b>hcc_front_end.hcc-602.hcc_602</pre>
+<pre><b>Test Name:</b>test_multiple_test_cases_within_one_python_script_602_3</pre>
+<pre><b>Running Time:</b>2.140</pre>
+<pre><b>State:</b><a>Failed</a></pre>
+<div class="error-message">
+<pre><a>&gt;&gt;&gt;Error Message</a></pre>18 not less than 13
+-------------------- &gt;&gt; begin captured logging &lt;&lt; --------------------
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/url {"url": "https://hccstage2.apixio.com/account/login/", "sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/element {"using": "name", "sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "value": "username"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/element {"using": "name", "sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "value": "password"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/element/{9e78a87c-cde3-4b00-898c-1ed2eb9ea0c6}/value {"sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "id": "{9e78a87c-cde3-4b00-898c-1ed2eb9ea0c6}", "value": ["s", "a", "n", "i", "t", "y", "t", "e", "s", "t", "0", "0", "1", "@", "a", "p", "i", "x", "i", "o", ".", "n", "e", "t"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/element/{ca564ccf-73bd-448a-a276-c41974731f47}/value {"sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "id": "{ca564ccf-73bd-448a-a276-c41974731f47}", "value": ["a", "p", "i", "x", "i", "o", ".", "1", "2", "3"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/element/{9e78a87c-cde3-4b00-898c-1ed2eb9ea0c6}/submit {"sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "id": "{9e78a87c-cde3-4b00-898c-1ed2eb9ea0c6}"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/url {"url": "https://hccstage2.apixio.com/#/qa", "sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/timeouts/implicit_wait {"sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "ms": 3000.0}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe/elements {"using": "css selector", "sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe", "value": ".pagination &gt; li"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+--------------------- &gt;&gt; end captured logging &lt;&lt; ---------------------</div>
+<hr>
+</div>
+<div class="failed">
+<pre><b>Class:</b>hcc_front_end.hcc-603.TestHCC_603</pre>
+<pre><b>Test Name:</b>test_code_and_accept_10_opportunities_603</pre>
+<pre><b>Running Time:</b>11.905</pre>
+<pre><b>State:</b><a>Failed</a></pre>
+<div class="error-message">
+<pre><a>&gt;&gt;&gt;Error Message</a></pre>Message: 
+Stacktrace:
+    at FirefoxDriver.prototype.findElementInternal_ (file:///tmp/tmppcXyUK/extensions/fxdriver@googlecode.com/components/driver-component.js:10271)
+    at FirefoxDriver.prototype.findElement (file:///tmp/tmppcXyUK/extensions/fxdriver@googlecode.com/components/driver-component.js:10280)
+    at DelayedCommand.prototype.executeInternal_/h (file:///tmp/tmppcXyUK/extensions/fxdriver@googlecode.com/components/command-processor.js:12274)
+    at DelayedCommand.prototype.executeInternal_ (file:///tmp/tmppcXyUK/extensions/fxdriver@googlecode.com/components/command-processor.js:12279)
+    at DelayedCommand.prototype.execute/&lt; (file:///tmp/tmppcXyUK/extensions/fxdriver@googlecode.com/components/command-processor.js:12221)
+-------------------- &gt;&gt; begin captured logging &lt;&lt; --------------------
+selenium.webdriver.remote.remote_connection: DEBUG: DELETE http://127.0.0.1:47686/hub/session/d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe {"sessionId": "d9bfa962-0eb2-43b4-a19b-aeb88dfb2dfe"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session {"desiredCapabilities": {"platform": "ANY", "browserName": "firefox", "version": "", "javascriptEnabled": true}}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/url {"url": "https://hccstage2.apixio.com/account/login/", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "name", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "username"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "name", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "password"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element/{6b04dad3-9f9e-428f-9a10-b6b16dcf16bc}/value {"sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "id": "{6b04dad3-9f9e-428f-9a10-b6b16dcf16bc}", "value": ["s", "a", "n", "i", "t", "y", "t", "e", "s", "t", "0", "0", "1", "@", "a", "p", "i", "x", "i", "o", ".", "n", "e", "t"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element/{a7e0879d-c170-47b6-afe3-6f82dc614fc1}/value {"sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "id": "{a7e0879d-c170-47b6-afe3-6f82dc614fc1}", "value": ["a", "p", "i", "x", "i", "o", ".", "1", "2", "3"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element/{6b04dad3-9f9e-428f-9a10-b6b16dcf16bc}/submit {"sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "id": "{6b04dad3-9f9e-428f-9a10-b6b16dcf16bc}"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/url {"url": "https://hccstage2.apixio.com/#/opportunity", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc/element {"using": "css selector", "sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+--------------------- &gt;&gt; end captured logging &lt;&lt; ---------------------</div>
+<hr>
+</div>
+<div class="failed">
+<pre><b>Class:</b>hcc_front_end.hcc-sanity.hcc_sanity</pre>
+<pre><b>Test Name:</b>test_code_and_accept_opportunities</pre>
+<pre><b>Running Time:</b>11.913</pre>
+<pre><b>State:</b><a>Failed</a></pre>
+<div class="error-message">
+<pre><a>&gt;&gt;&gt;Error Message</a></pre>Message: 
+Stacktrace:
+    at FirefoxDriver.prototype.findElementInternal_ (file:///tmp/tmpFAwH6z/extensions/fxdriver@googlecode.com/components/driver-component.js:10271)
+    at FirefoxDriver.prototype.findElement (file:///tmp/tmpFAwH6z/extensions/fxdriver@googlecode.com/components/driver-component.js:10280)
+    at DelayedCommand.prototype.executeInternal_/h (file:///tmp/tmpFAwH6z/extensions/fxdriver@googlecode.com/components/command-processor.js:12274)
+    at DelayedCommand.prototype.executeInternal_ (file:///tmp/tmpFAwH6z/extensions/fxdriver@googlecode.com/components/command-processor.js:12279)
+    at DelayedCommand.prototype.execute/&lt; (file:///tmp/tmpFAwH6z/extensions/fxdriver@googlecode.com/components/command-processor.js:12221)
+-------------------- &gt;&gt; begin captured logging &lt;&lt; --------------------
+selenium.webdriver.remote.remote_connection: DEBUG: DELETE http://127.0.0.1:57303/hub/session/0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc {"sessionId": "0a8ff0fa-72b8-40af-9e4d-aacbd70aa0dc"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session {"desiredCapabilities": {"platform": "ANY", "browserName": "firefox", "version": "", "javascriptEnabled": true}}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/url {"url": "https://hccstage2.apixio.com/account/login/", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "name", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "username"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "name", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "password"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element/{c66892d7-5a5a-40cf-8cd1-ddeceb72eefe}/value {"sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "id": "{c66892d7-5a5a-40cf-8cd1-ddeceb72eefe}", "value": ["s", "a", "n", "i", "t", "y", "t", "e", "s", "t", "0", "0", "1", "@", "a", "p", "i", "x", "i", "o", ".", "n", "e", "t"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element/{9b3bfae4-35a4-41b0-8223-203ae3577795}/value {"sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "id": "{9b3bfae4-35a4-41b0-8223-203ae3577795}", "value": ["a", "p", "i", "x", "i", "o", ".", "1", "2", "3"]}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element/{c66892d7-5a5a-40cf-8cd1-ddeceb72eefe}/submit {"sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "id": "{c66892d7-5a5a-40cf-8cd1-ddeceb72eefe}"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/url {"url": "https://hccstage2.apixio.com/#/opportunity", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+selenium.webdriver.remote.remote_connection: DEBUG: POST http://127.0.0.1:52754/hub/session/4cab46a5-dc52-4e12-a172-2c5dff8cf083/element {"using": "css selector", "sessionId": "4cab46a5-dc52-4e12-a172-2c5dff8cf083", "value": "td.ng-binding"}
+selenium.webdriver.remote.remote_connection: DEBUG: Finished Request
+--------------------- &gt;&gt; end captured logging &lt;&lt; ---------------------</div>
+<hr>
+</div>
+</div>
+</body>
+</html>

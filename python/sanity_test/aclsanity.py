@@ -525,14 +525,14 @@ def logInToACL():
 		IncrementTestResultsTotals("log into acl", statuscode)	
 #=========================================================================================
 def ACLCreateNewUser(retries):
-	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL
+	global USR_UUID, HCCUSERNAME, TOKEN, ACL_URL, ORG_UUID
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> ACL - CREATE NEW USER <<<")
 	print ("----------------------------------------------------------------------------")
 	HCCUSERNAME = get_new_hcc_user()	
 	url = ACL_URL+'/access/user'
   	referer = ACL_URL+'/admin/'  				
-  	DATA = {'email': HCCUSERNAME, 'session': TOKEN}
+  	DATA = {'email': HCCUSERNAME, 'userOrgId': ORG_UUID, 'session': TOKEN}
 	HEADERS = { 'Connection': 'keep-alive', 'Cookie': 'session='+TOKEN, 'Referer': referer}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
 	userjson = response.json()
