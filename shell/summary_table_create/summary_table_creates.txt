@@ -135,6 +135,18 @@ create table summary_loadapo
 (time string, input_key string, patient_uuids string, uuid_count int, status string, error_message string, jobname string, seqfilename string, hadoopjob_id string, work_id string, job_id string, read_buffer_size string, millis int, class_name string)
 partitioned by (year STRING, month STRING, day STRING, org_id STRING);
 
+create table summary_pager
+(time string, doc_id string, page_count int, doc_bytes int, image_type string, resolution string,
+render_millis int, batch_id string, job_id string, workd_id string, hadoop_job_id string,
+classname string, unpack_status string, unpack_millis int, status string, error string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+create table summary_page_persist
+(time string, doc_id string, input_key string, bytes int, image_type string, resolution string,
+page_number int, failed_qa string, batch_id string, job_id string, workd_id string, hadoop_job_id string,
+classname string, unpack_status string, unpack_millis int, millis int, status string, error string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
 /**********************************Care Optimizer*********************************************************************************/
 create table summary_careopt_load
 (time string, patient_sql_id string, patient_uuid string, cassandra_load_millis int, patient_bytes int, hostname string, patient_cache_size string)
