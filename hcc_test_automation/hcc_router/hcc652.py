@@ -238,7 +238,10 @@ class Hcc652(unittest.TestCase):
             # Success?
             if o[0] == 200:
                 # Unpack the JSON into a dictionary:
-                ojs = json.loads(o[1])
+                #print o[1]
+                #quit()
+                ojs = json.loads(json.dumps(o[1]))
+                #print ojs
                 # Form a FQ-HCC key:
                 key = ojs['patient_id'] + '-' + \
                     str(ojs['hcc']) + '-' + str(ojs['model_year']) + '-' + str(ojs['model_run']) + '-' + \
