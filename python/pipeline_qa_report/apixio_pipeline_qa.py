@@ -27,6 +27,7 @@ ORGMAP = { \
 	"190":"Test Org", \
 	"287":"Test Org", \
 	"277":"Test Org", \
+	"414":"PlainTextPDFOrg", \
 	"10000230":"Sutter Health", \
 	"10000232":"MMG", \
 	"10000235":"GWU", \
@@ -311,10 +312,13 @@ def test(debug_type, debug_msg):
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='10.196.47.205', \
-		port=10000, authMechanism="PLAIN", \
-		user='hive', password='', \
-		database='default')
+	conn = pyhs2.connect(host='54.149.166.25',
+                   port=10000,
+                   authMechanism="PLAIN",
+                   user='hive',
+                   password='',
+                   database='default')
+
 	cur = conn.cursor()
 	print ("Connection to Hive established ...\n")
 
@@ -348,7 +352,8 @@ def wrtRepHdr():
 		REPORT = REPORT + """Organization: <b>%s (%s)</b><br>\n""" % (ORGID, ORGID)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s</font></b><br>\n""" % (ENVIRONMENT)
-	REPORT = REPORT + """Component: <b><font color='green'>%s</font></b><br><br>\n""" % (COMPONENT)
+	REPORT = REPORT + """Component(s): <b><font color='green'>%s</font></b><br><br>\n""" % (COMPONENT)
+	REPORT = REPORT + "<table align='left' width='800' cellpadding='2'><tr><td>"
 	print ("End writing report header ...\n")	
 
 def buildQuery(component, subcomp):
@@ -623,6 +628,7 @@ def wrtRepFootr():
 	REPORT = REPORT+"<tr><td><br>End of %s - %s<br><br></td></tr>" % (REPORT_TYPE, CUR_TIME)
 	REPORT = REPORT+"<tr><td><i>-- Apixio QA Team</i></td></tr>"
 	REPORT = REPORT+"</table>"
+	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")	
 	
 def archiveRep():
