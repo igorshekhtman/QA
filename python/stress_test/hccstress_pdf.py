@@ -389,12 +389,19 @@ def startCoding():
   patient_uuid = opportunity.get("patient_uuid")
   #print "patient uuid: %s" % patient_uuid
   scorables = opportunity.get("scorables")
+  #print json.dumps(opportunity)
+  #quit()
   #print "scorables: %s" % scorables
   print("-------------------------------------------------------------------------------")
   print("PATIENT OPP %d OF %d" % (CODING_OPP_CURRENT, int(CODE_OPPS_MAX)))
   test_counter = 0
   doc_no_current = 0
   doc_no_max = len(scorables)
+  #for scorable in scorables:
+  #  print json.dumps(scorable)
+  #quit()  
+  
+  
   for scorable in scorables:
     patient_org_id   = ""
     finding_id       = ""
@@ -407,6 +414,11 @@ def startCoding():
     document_uuid = scorable.get("document_uuid")
     document_title = scorable.get("document_title")
     date_of_service = scorable.get("date_of_service")
+    mime_type = scorable.get("mimeType")
+    if mime_type == None:
+    	mime_type = "text/plain"
+    #print mime_type
+    #quit()
     if CODING_OPP_CURRENT == 1:
     	PATIENT_ORG_NAME = getOrgName(patient_org_id)
     #* PATIENT ORG ID   = %s\n
@@ -419,7 +431,8 @@ def startCoding():
     print("* FINDING ID       = %s" % (finding_id))
     print("* DOC UUID         = %s" % (document_uuid))
     print("* DOC TITLE        = %s" % (document_title))
-    print("* DOC DATE         = %s"   % (date_of_service))
+    print("* DOC DATE         = %s" % (date_of_service))
+    print("* DOC TYPE         = %s" % (mime_type))
     if patient_uuid    == "":
       print("WARNING : PATIENT UUID is Empty")
     if patient_org_id  == "":
@@ -442,10 +455,17 @@ def startCoding():
     print "* TOTAL # OF PAGES = %s" % totalPages
  
     # looping through each and every available page in a document
-    for i in range (0,int(totalPages)):
-    	response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
-    	IncrementTestResultsTotals("document page retrieval", response.status_code)
-    	print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
+    if mime_type == "application/pdf":
+      for i in range (0,int(totalPages)):
+        response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
+        if response.status_code != ok:
+    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
+    	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  quit()
+        IncrementTestResultsTotals("document page retrieval", response.status_code)
+        print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
 
     test_counter += 1
 
