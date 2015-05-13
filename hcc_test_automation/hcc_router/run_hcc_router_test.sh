@@ -43,7 +43,7 @@ echo "Completed creating new folders..."
 
 # ----- ./Configuration.sh stash
 ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root/Reset; pwd; sh Configurations.sh stash'
-
+sleep 5;
 
 # exit 0
 
@@ -54,7 +54,9 @@ ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root
 
 # ----- ./Configuration.sh test
 ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root/Reset; pwd; sh Configurations.sh test'
-
+sleep 5;
+#echo "Sleeping for 60 seconds ...";
+#sleep 60;
 
 # This command will stop the service, copy the test versions of configuration files to standard locations, inject a standard SQL file to the staging hat’s MySQL server, and restart the sorting hat.  The SQL file in the folder will create a database called “Router_Test” and populate it from scratch.  The sorting hat server configuration will be switched to point at this database so that the main Router database won’t be contaminated with test data all the time.  Multiple invocations of this command will reset the sorting hat database to a pristine test state each time.
 
