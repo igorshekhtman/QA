@@ -232,6 +232,10 @@ class Hcc652(unittest.TestCase):
         # The test should succeed for all tries:
         count = 0
         # Loop:
+        
+        # initialize if the user has not already been initialized.
+        self.initialize()
+        
         for i in range(1, self.check_these):
             # Pull opportunity:
             o = self.getNext()
@@ -247,10 +251,11 @@ class Hcc652(unittest.TestCase):
                     str(ojs['hcc']) + '-' + str(ojs['model_year']) + '-' + str(ojs['model_run']) + '-' + \
                     str(ojs['payment_year'])
                 # Reference opp as a dictionary:
-                r = json.loads(references[key])
+                r = json.loads(json.dumps(references[key]))
                 # compare:
                 if self.comparator.compare(ojs, r):
                     count += 1
+               
         # Done:
         self.failIf(count < self.check_these)
 

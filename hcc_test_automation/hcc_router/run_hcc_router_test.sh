@@ -43,7 +43,8 @@ echo "Completed creating new folders..."
 
 # ----- ./Configuration.sh stash
 ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root/Reset; pwd; sh Configurations.sh stash'
-sleep 5;
+echo "sleeping for 2 seconds ...";
+sleep 2;
 
 # exit 0
 
@@ -54,7 +55,8 @@ sleep 5;
 
 # ----- ./Configuration.sh test
 ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root/Reset; pwd; sh Configurations.sh test'
-sleep 5;
+echo "sleeping for 30 seconds ..."
+sleep 30;
 #echo "Sleeping for 60 seconds ...";
 #sleep 60;
 
@@ -79,6 +81,8 @@ fi;
 # ------ ./Configuration.sh normal
 #ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com "cd Reset; sh Configuration.sh normal"
 ssh -i ~/secrets/staging_new_hcc.pem root@hcc-opprouter-stg.apixio.com 'cd /root/Reset; pwd; sh Configurations.sh normal'
+#echo "sleeping for 10 seconds ..."
+#sleep 10;
 
 # This command will stop the service, copy the normal versions of configuration files to standard locations and restart the service.  This will reset the sorting hat to the configuration just after the last stash command.  Note that it is a good idea to perform a stash before any testing in order pick up any changes to injected outbound rules.
 
@@ -94,7 +98,7 @@ cp -avr /usr/lib/apx-reporting/assets/reports/staging/hccrouterregression/$year/
 # Check if the report line item already exists in txt file or not
 # Append if does not, skip if does
 directory="/usr/lib/apx-reporting/assets/"
-file="hcc_hccrouterregression_reports_staging.txt"
+file="hcc_hcc_router_regression_reports_staging.txt"
 lineitem="reports/staging/hccrouterregression/$year/$month/$day.html"
 #echo directory=$directory
 #echo file=$file
@@ -106,7 +110,7 @@ then
 echo "Report entry already exists, skipping write ..."
 else
 echo "Appending new report entry line to the $File ..."
-echo -n -e "HCC Regression Staging Report - "$(date +"%B %d, %Y")"\treports/staging/hccrouterregression/$year/$month/$day.html\n" >> /usr/lib/apx-reporting/assets/hcc_hccrouterregression_reports_staging.txt
+echo -n -e "HCC Router Regression Staging Report - "$(date +"%B %d, %Y")"\treports/staging/hccrouterregression/$year/$month/$day.html\n" >> /usr/lib/apx-reporting/assets/hcc_router_regression_reports_staging.txt
 fi
 
 echo "Nose Test Completed..."
