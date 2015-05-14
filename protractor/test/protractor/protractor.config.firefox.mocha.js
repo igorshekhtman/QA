@@ -60,34 +60,36 @@ exports.config={
 	frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js',
 	//framework:'mocha',
 	
-	specs:['testsuite/*.spec.js'],
-	//specs:['specs/*.spec.js'],
+	//specs:['testsuite/*.spec.js'],
+	specs:['specs/*.spec.js'],
 	
 	
 	
 	//seleniumAddress:"http://10.250.164.225:39831/wd/hub",
-	plugins:[
-		{
-			path:"mocha-report-with-screenshots-plugin.js",
+	
+	
+	//plugins:[
+	//	{
+	//		path:"mocha-report-with-screenshots-plugin.js",
 			
-			reportPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",			
-			backupPath:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",
+	//		reportPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",			
+	//		backupPath:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/",
 			
-			reportFile:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
-			backupReportFile:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+	//		reportFile:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+	//		backupReportFile:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
 			
-			screenShotFolder:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
-			backupScreenShotFolder:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+	//		screenShotFolder:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+	//		backupScreenShotFolder:"/mnt/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
 			
 			
 			
-			screenShotPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
-			reportLine:"PR Regression Staging Report - "+monthNames[monthIndex]+" "+String(day)+", "+String(year)+"\treports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html\n",
-			partReportLine:"reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
-			reportTxtFolder:"/usr/lib/apx-reporting/assets/",
-			reportTxtFname:"progress_regression_reports_staging.txt"
+	//		screenShotPath:"/usr/lib/apx-reporting/assets/reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+"/",
+	//		reportLine:"PR Regression Staging Report - "+monthNames[monthIndex]+" "+String(day)+", "+String(year)+"\treports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html\n",
+	//		partReportLine:"reports/staging/progressreport/"+String(year)+"/"+String(month)+"/"+String(day)+".html",
+	//		reportTxtFolder:"/usr/lib/apx-reporting/assets/",
+	//		reportTxtFname:"progress_regression_reports_staging.txt"
 			
-		}
-	]  
+	//	}
+	//]  
 
 }

@@ -59,32 +59,42 @@ module.exports={
     },
 //========================================================================================
     teardown:function(config){
-	//anything at the end of the session
-	//for example, creating the final report and putting it in the right place
+	  //anything at the end of the session
+	  //for example, creating the final report and putting it in the right place
+		
+    },
+    
+//========================================================================================
+    postResults:function(config){
+    	//anything at the end of the suite
+    	//copy created reports to backup folder
+    	//append reports line if one does not already exist  
+     //anything at the end of the session
+	  //for example, creating the final report and putting it in the right place
 	
-	//console.log(report);
-	var duration = start_time - new Date();
-	//var duration = moment.duration((start_time - new Date()), "minutes").format("h:mm");
+	  //console.log(report);
+	  var duration = start_time - new Date();
+	  //var duration = moment.duration((start_time - new Date()), "minutes").format("h:mm");
 	
-	// generate report footer
-	report = report + "</table></td></tr>";
-	report = report + "<tr><td><br><h1><u>Results summary</u></h1></td></tr>";
-	report = report + "<tr><td><b>Total tests passed:</b> "+String(total-failed)+"</td></tr>";
-	report = report + "<tr><td><b>Total tests failed:</b> "+String(failed)+"</td></tr>";
-	report = report + "<tr><td><b>Total tests executed:</b> "+String(total)+"</td></tr>";
-	report = report + "<tr><td>This report generated on "+today+"</td></tr>";
-	//report = report + "<tr><td>Test duration was "+duration+"</td></tr>";
-	report = report + "</table>";
+	  // generate report footer
+	  report = report + "</table></td></tr>";
+	  report = report + "<tr><td><br><h1><u>Results summary</u></h1></td></tr>";
+	  report = report + "<tr><td><b>Total tests passed:</b> "+String(total-failed)+"</td></tr>";
+	  report = report + "<tr><td><b>Total tests failed:</b> "+String(failed)+"</td></tr>";
+	  report = report + "<tr><td><b>Total tests executed:</b> "+String(total)+"</td></tr>";
+	  report = report + "<tr><td>This report generated on "+today+"</td></tr>";
+	  //report = report + "<tr><td>Test duration was "+duration+"</td></tr>";
+	  report = report + "</table>";
 	
 
 		
-	fs.writeFile(""+config['reportPath']+""+day+".html", report, function (err) {
-  		if (err) throw err;
+	  fs.writeFile(""+config['reportPath']+""+day+".html", report, function (err) {
+  	  	if (err) throw err;
   		console.log('Test report file is saved...');
-	});
+	  });
 	
-	// appending report line to txt file if does not already exist
-	fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", 'ascii', function (err,data) {
+	  // appending report line to txt file if does not already exist
+	  fs.readFile(""+config['reportTxtFolder']+""+config['reportTxtFname']+"", 'ascii', function (err,data) {
   		if (err) {
     	return console.log(err);
   		}
@@ -98,10 +108,10 @@ module.exports={
   				console.log('New report line was appended to report txt file...');
 			});	
   		}
-	});
+	  });
 	
-	// backup report file to mnt drive
-	exec("cp -avu "+config['reportFile']+" "+config['backupReportFile']+"", function(error, stdout, stderr) {
+	  // backup report file to mnt drive
+	  exec("cp -avu "+config['reportFile']+" "+config['backupReportFile']+"", function(error, stdout, stderr) {
         console.log("stdout: " + stdout);
         console.log("stderr: " + stderr);
         if(error !== null) {
@@ -123,17 +133,7 @@ module.exports={
         else {
 			console.log("Report file backed up...");
         }
-    });   
-    
-		
-    },
-    
-//========================================================================================
-    postResults:function(config){
-    	//anything at the end of the suite
-    	//copy created reports to backup folder
-    	//append reports line if one does not already exist  
-    	
+    });   	
    
 	
    	  	
