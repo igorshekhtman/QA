@@ -53,7 +53,7 @@ else:
 	ENVIRONMENT="Staging"
 #==================================
 
-print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("ENVIRONMENT = %s") % ENVIRONMENT
 # time.sleep(15)
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
@@ -97,7 +97,7 @@ def test(debug_type, debug_msg):
 
 print ("ORGID = %s") % ORGID
 print ("TEST_TYPE = %s") % TEST_TYPE
-print ("ENVIRONMANT = %s") % ENVIRONMENT
+print ("ENVIRONMENT = %s") % ENVIRONMENT
 print ("BATCHID = %s") % BATCHID
 print ("CUR_TIME = %s") % CUR_TIME
 print ("")
@@ -279,7 +279,7 @@ if ENVIRONMENT == "Staging":
 
 # print ("ORGID = %s") % ORGID
 # print ("TEST_TYPE = %s") % TEST_TYPE
-# print ("ENVIRONMANT = %s") % ENVIRONMENT
+# print ("ENVIRONMENT = %s") % ENVIRONMENT
 # print ("BATCHID = %s") % BATCHID
 # print ("")
 # print ("BATCH = %s") % BATCH
@@ -390,7 +390,7 @@ cur = conn.cursor()
 
 # print ("ORGID = %s") % ORGID
 # print ("TEST_TYPE = %s") % TEST_TYPE
-# print ("ENVIRONMANT = %s") % ENVIRONMENT
+# print ("ENVIRONMENT = %s") % ENVIRONMENT
 # print ("BATCHID = %s") % BATCHID
 # print ("")
 # print ("BATCH = %s") % BATCH
