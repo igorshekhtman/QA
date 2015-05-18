@@ -248,8 +248,8 @@ def checkEnvironmentandReceivers():
 		POSTFIX = ""
 		MYSQLDOM = "10.198.2.97"
 		MYSQPW = "J3llyF1sh!"
-		AUTHHOST="https://useraccount-prd.apixio.com:7076"
-		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
+		AUTHHOST="https://useraccount.apixio.com:7076"
+		TOKEHOST="https://tokenizer.apixio.com:7075"
 		AUTH_EMAIL="system_qa@apixio.com"
 		AUTH_PASSW="8p1qa19.."
 	else:
@@ -433,6 +433,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	print ("* External Token Request Response:     %s" % response.status_code)
   	userjson = response.json()
   	if userjson is not None:
   		TOKEN = userjson.get("token")
@@ -450,7 +451,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	#print ("\n")
 	
 
-#-----------------------------------------------------------------------------------------
+#-OLD-------------------------------------------------------------------------------------
 	
 #def getOrgName(id):
 #	global mss_cur, mss_conn, msp_cur, msp_conn
@@ -471,6 +472,8 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	#print env+" Orgname: "+orgname
 	#print ""
 #	return (orgname)
+
+#-NEW-------------------------------------------------------------------------------------
 	
 def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
@@ -488,6 +491,7 @@ def getOrgName(id):
                 'Referer': referer, \
                 'Authorization': 'Apixio ' + TOKEN}
     response = requests.get(url, data={}, headers=HEADERS)
+    print ("* Internal Token Request Response:     %s" % response.status_code)
     statuscode = response.status_code
     if statuscode == ok:
     	customerOrg = response.json()
