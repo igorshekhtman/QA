@@ -398,22 +398,17 @@ def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 	DATA =    {'Referer': referer, 'email': AUTH_EMAIL, 'password': AUTH_PASSW} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
 	
-	response = requests.post(url, data=DATA, headers=HEADERS) 
-
-	statuscode = response.status_code
-	#print statuscode
-	#quit()
+	response = requests.post(url, data=DATA, headers=HEADERS)
+	statuscode = response.status_code 
+	
+	if (statuscode != ok):
+		print ("* External Token Request Response:     %s" % statuscode)
+		print ("* FAILURE OCCURED !!!")
+		quit()
 
 	userjson = response.json()
 	if userjson is not None:
 		external_token = userjson.get("token") 
-		#print ("* USERNAME                 = %s" % un)
-		#print ("* PASSWORD                 = %s" % pw)
-		#print ("* URL                      = %s" % url)
-		#print ("* EXTERNAL TOKEN           = %s" % external_token)
-		#print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
-		#print ("* RECEIVED STATUS CODE     = %s" % statuscode)
-		#print ("****************************************************************************")
 			
 	return (external_token)
 
@@ -433,24 +428,19 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
-  	print ("* External Token Request Response:     %s" % response.status_code)
+  	statuscode = response.status_code
+  	
+  	if (statuscode != created):
+		print ("* Internal Token Request Response:     %s" % statuscode)
+		print ("* FAILURE OCCURED !!!")
+		quit()
+  	
   	userjson = response.json()
   	if userjson is not None:
   		TOKEN = userjson.get("token")
   	else:
   		TOKEN = "Not Available"	
-	statuscode = response.status_code	
-	#print ("* USERNAME                 = %s" % un)
-	#print ("* PASSWORD                 = %s" % pw)
-	#print ("* TOKENIZER URL            = %s" % url)
-	#print ("* EXTERNAL TOKEN           = %s" % external_token)
-	#print ("* INTERNAL TOKEN           = %s" % TOKEN)
-	#print ("* EXPECTED STATUS CODE     = %s" % exp_statuscode)
-	#print ("* RECEIVED STATUS CODE     = %s" % statuscode)
-	#print ("----------------------------------------------------------------------------")
-	#print ("\n")
-	
-
+		
 #-OLD-------------------------------------------------------------------------------------
 	
 #def getOrgName(id):
@@ -491,8 +481,12 @@ def getOrgName(id):
                 'Referer': referer, \
                 'Authorization': 'Apixio ' + TOKEN}
     response = requests.get(url, data={}, headers=HEADERS)
-    print ("* Internal Token Request Response:     %s" % response.status_code)
     statuscode = response.status_code
+    if (statuscode != ok):
+        print ("* Get Org Name Request Response:       %s" % statuscode)
+        print ("* FAILURE OCCURED !!!")
+        quit()
+
     if statuscode == ok:
     	customerOrg = response.json()
     	customerOrgName = customerOrg['name']
