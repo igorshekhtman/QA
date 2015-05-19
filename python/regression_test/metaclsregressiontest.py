@@ -81,7 +81,52 @@
 #          * Run: python2.7 metaclsregressiontest.py staging eng@apixio.com ops@apixio.com
 #          * Results can be accessed through Apixio Reports portal: https://reports.apixio.com/html/meta_acls_regression_reports_staging.html
 #
+# MISC: 
+#			ALEX_EMAIL="ishekhtman@apixio.com"
+#			IGOR_EMAIL="ishekhtman@apixio.com"
+#			IGOR_UUID="U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
+#			GARTH_EMAIL="grinderUSR1416591631@apixio.net"
+#			GARTH_UUID="U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
+#			ERIC_EMAIL="grinderUSR1416591626@apixio.net"
+#			ERIC_UUID="U_f8d8d099-8512-44df-83af-216f0140e758"
+#			BROOKE_EMAIL="grinderUSR1416591636@apixio.net"
+#			BROOKE_UUID="U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
+#			KIM_EMAIL="grinderUSR1416591640@apixio.net"
+#			KIM_UUID="U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
+#			CODEBUSTERS_UUID="G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
+#			SCRIPPS_UUID="X_7040367c-d8fd-411c-b87a-4382bbda4027"
+#			CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
+#
 #=========================================================================================
+#
+# VERSION UPDATE:	1.0.1
+# AUTHOR:			Igor Shekhtman ishekhtman@apixio.com
+# DATE CREATED:		18-May-2015
+#
+# DESCRIPTION:		Adder new endpoints tests related to Users and User Organizations introduced
+#					in user-accounts release version User Account Service v2.1.2-SNAPSHOT.
+# MISC:				See TEST CASE #8.
+#
+#	POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
+#	GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
+#	DELETE:/uorgs/cproperties/ {name} => no equivalent # removes given property definition
+#
+#	* PUT:/uorgs/{id}/properties/{name}
+#	=> POST:/customer/
+#	{id}/{name} # set property value on entity
+#
+#	* DELETE:/uorgs/{id}
+#	/properties/
+#	{name} => DELETE:/customer/{id}/property?name={name}
+# 	remove prop value
+#	GET:/uorgs/ {id}
+#	/properties => no equivalent # get all props on given entity
+#	GET:/uorgs/properties => no equivalent # get all props on all entities
+#	GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
+#	get single prop value on all entities
+#
+#=========================================================================================
+#
 # Global Paramaters descriptions and possible values:
 # These are defined in CSV_CONFIG_FILE_NAME = "aclsanity.csv", 
 # Which is located in CSV_CONFIG_FILE_PATH folder
@@ -96,6 +141,7 @@
 # CSV_FILE_PATH - name for output csv file 
 #
 # MAX_NUM_RETRIES - global limit for number of retries (statuscode = 500)
+#
 #=========================================================================================
 import requests
 import time
@@ -901,6 +947,51 @@ def removeGrants(subject_uuid, op_name):
 	else:
 		print "failure occured removing grants:  %s, %s, %s" % (subject_uuid, op_name, statuscode)
 #=========================================================================================
+# POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
+# GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
+# DELETE:/uorgs/cproperties/ {name} => no equivalent # removes given property definition
+
+# * PUT:/uorgs/{id}/properties/{name}
+# => POST:/customer/
+# {id}/{name} # set property value on entity
+
+# * DELETE:/uorgs/{id}
+# /properties/
+# {name} => DELETE:/customer/{id}/property?name={name}
+# remove prop value
+# GET:/uorgs/ {id}
+# /properties => no equivalent # get all props on given entity
+# GET:/uorgs/properties => no equivalent # get all props on all entities
+# GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
+# get single prop value on all entities
+#=========================================================================================
+
+def userOrg(method, op, name, entityID, orgID, userID, detail):
+	url = ACL_URL+'/uorgs/'+op
+  	referer = ACL_URL 
+  	apixio_token='Apixio '+str(TOKEN) 				
+  	DATA = {'Authorization': apixio_token}
+  	HEADERS = {'Authorization': apixio_token}
+  	if method.upper() == "GET":
+	  	response = requests.get(url, data=DATA, headers=HEADERS)
+	if method.upper() == "POST":   	
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	  	
+
+
+
+
+	return(response)
+
+#=========================================================================================
+
+def userNoOrg():
+
+
+
+
+	return()
+#=========================================================================================
 
 def cleanUp():
 
@@ -1231,58 +1322,119 @@ def testCase6():
 
 def testCase7():
 	global REPORT
-	REPORT = REPORT+(SUBHDR % "Test Case #7")
+	tc=7
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)))
 	REPORT = REPORT+"<table border='0' width='100%'>"
-	print ("Test Case #7")
+	print ('Test Case #'+str(tc))
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	
 	# Login as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 7, 1)	
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
 	acl_operation = ACL_OPERATION
-	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 7, 2)
-	addAndDeleteGrants(BROOKE_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, 7, 3)
+	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, tc, 2)
+	addAndDeleteGrants(BROOKE_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, tc, 3)
 		
 	# Log in as Brooke (Non-root)
-	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, 7, 4)	
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {ok}, 7, 5)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, 7, 6)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {ok}, 7, 7)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "DELETE", {ok}, 7, 8)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {ok}, 7, 9)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, 7, 10)
+	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, tc, 4)	
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {ok}, tc, 5)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, tc, 6)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {ok}, tc, 7)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "DELETE", {ok}, tc, 8)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {ok}, tc, 9)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, tc, 10)
 	
 	# Log in as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 7, 11)	
-	addAndDeleteGrants(BROOKE_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, 7, 12)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 11)	
+	addAndDeleteGrants(BROOKE_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, tc, 12)
 		
 	# Log in as Brooke (Non-root)
-	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, 7, 13)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {forbidden}, 7, 14)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, 7, 15)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, 7, 16)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "DELETE", {forbidden}, 7, 17)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {forbidden}, 7, 18)
-	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, 7, 19)
+	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, tc, 13)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {forbidden}, tc, 14)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, tc, 15)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, tc, 16)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "DELETE", {forbidden}, tc, 17)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {forbidden}, tc, 18)
+	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, tc, 19)
 	REPORT = REPORT+"</table>"		
 									
 #========================================================================================================
-#ALEX_EMAIL="ishekhtman@apixio.com"
-#IGOR_EMAIL="ishekhtman@apixio.com"
-#IGOR_UUID="U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066"
-#GARTH_EMAIL="grinderUSR1416591631@apixio.net"
-#GARTH_UUID="U_7ba7f9e3-8cf5-48e6-b1b1-5d577ef4a72c"
-#ERIC_EMAIL="grinderUSR1416591626@apixio.net"
-#ERIC_UUID="U_f8d8d099-8512-44df-83af-216f0140e758"
-#BROOKE_EMAIL="grinderUSR1416591636@apixio.net"
-#BROOKE_UUID="U_ee7a0cf3-8111-4277-b5ff-d3793159697e"
-#KIM_EMAIL="grinderUSR1416591640@apixio.net"
-#KIM_UUID="U_5ee129d3-2ea3-4ab9-b166-8ddf818cfce6"
-#CODEBUSTERS_UUID="G_db9ffdb6-b9a0-4b8c-b963-2be05a9ecf45"
-#SCRIPPS_UUID="X_7040367c-d8fd-411c-b87a-4382bbda4027"
-#CHMC_UUID="X_1879b8a5-2e6e-4595-9846-eb10048bf5d8"
+# TEST CASE 8 (/users):
 
-#for i in range (1,8):
+
+def testCase8():
+	global REPORT
+	tc=8
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Users'))
+	REPORT = REPORT+"<table border='0' width='100%'>"
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	# Login as Igor (Root)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
+	acl_operation = ACL_OPERATION
+	
+	REPORT = REPORT+"</table>"		
+
+#========================================================================================================
+# TEST CASE 9 (/uorgs):
+# POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
+# GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
+# DELETE:/uorgs/cproperties/ {name} => no equivalent # removes given property definition
+
+# * PUT:/uorgs/{id}/properties/{name}
+# => POST:/customer/
+# {id}/{name} # set property value on entity
+
+# * DELETE:/uorgs/{id}
+# /properties/
+# {name} => DELETE:/customer/{id}/property?name={name}
+# remove prop value
+# GET:/uorgs/ {id}
+# /properties => no equivalent # get all props on given entity
+# GET:/uorgs/properties => no equivalent # get all props on all entities
+# GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
+# get single prop value on all entities
+
+
+def testCase9():
+	global REPORT
+	tc=9
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' User Orgs'))
+	REPORT = REPORT+"<table border='0' width='100%'>"
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	# Login as Igor (Root)
+	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
+	acl_operation = ACL_OPERATION
+	
+	#Creates a new UserOrg entity
+	response = userOrg('post', '', '', '', '', '', '')
+	print response.status_code
+	
+	# Gets ALL custom properties of ALL UserOrg entities in the system
+	response = userOrg('get', 'properties', '', '', '', '', '')
+	print response.status_code
+	print json.dumps(response.json())
+	
+	# Returns the set of all custom UserOrg property definitions (that were created by POST:/uorgs/cproperties).
+	response = userOrg('get', 'cproperties', '', '', '', '', '')
+	print response.status_code
+	print json.dumps(response.json())
+	
+	
+	
+	quit()
+	
+	
+	REPORT = REPORT+"</table>"		
+																											
+#================================= MAIN PROGRAM BODY ====================================================
+# Run cleanUp() routine before every test case execution
+# Test cases to execute 1-8
 for i in range (1,8):
 	cleanUp()
 	exec('testCase' + str(i) + '()')
