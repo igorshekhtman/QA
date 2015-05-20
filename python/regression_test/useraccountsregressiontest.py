@@ -105,7 +105,7 @@ CURYEAR=strftime("%Y", gmtime())
 
 PASSED_STAT="<table width='100%%'><tr><td bgcolor='#00A303' align='center'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED_STAT="<table width='100%%'><tr><td bgcolor='#DF1000' align='center'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<table width='100%%'><tr><td bgcolor='#4E4E4E' align='left'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
+SUBHDR="<br><table width='100%%'><tr><td bgcolor='#4E4E4E' align='left'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
@@ -338,7 +338,7 @@ def writeReportHeader ():
 	#REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (UA_URL)	
 	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='0'>"
-	#REPORT = REPORT + "<tr><td>"	
+	REPORT = REPORT + "<tr><td>"	
 	print ("End writing report header ...\n")	
 	
 #=========================================================================================	
@@ -465,19 +465,19 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 	REPORT = REPORT + "<tr><td colspan='4' bgcolor='#D0D0D0'><font size='4'> %d.%d - <b><i>%s</i></b></font></td></tr>" % (tc, step, function)
 	report_local = ""
 	for i in range (1,8):
-		exec('if p'+str(i)+ ' > "": report_local  = report_local  + "<tr><td>"+p'+str(i)+'+"</td></tr>"')
+		exec('if p'+str(i)+ ' > "": report_local  = report_local  + "<tr><td colspan=4>"+p'+str(i)+'+"</td></tr>"')
 	REPORT = REPORT + report_local
 		
 	if statuscode in exp_statuscode:
 		print ("* TEST STATUS            = PASSED QA")
 		print ("----------------------------------------------------------------------------")
-		REPORT = REPORT + "<tr><td bgcolor='green'><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='green'><font color='#FFFFFF'>%s</td> \
+		REPORT = REPORT + "<tr><td bgcolor='green' ><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='green'><font color='#FFFFFF'>%s</td> \
 			<td bgcolor='green'><font color='#FFFFFF'>%s</td><td bgcolor='green'><font color='#FFFFFF'>PASSED QA</td></tr>"% (tc, step, exp_statuscode, statuscode)
 		#REPORT = REPORT + "<tr><td colspan='4'><hr></td></tr>"
 	else:
 		print ("* TEST STATUS            = FAILED QA")
 		print ("----------------------------------------------------------------------------")
-		REPORT = REPORT + "<tr><td bgcolor='red'><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='red'><font color='#FFFFFF'>%s</td> \
+		REPORT = REPORT + "<tr><td bgcolor='red' ><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='red'><font color='#FFFFFF'>%s</td> \
 			<td bgcolor='red'><font color='#FFFFFF'>%s</td><td bgcolor='red'><font color='#FFFFFF'>FAILED QA</td></tr>"% (tc, step, exp_statuscode, statuscode)
 		#REPORT = REPORT + "<tr><td colspan='4'><hr></td></tr>"
 		if int(PAUSE_FOR_FAILURES) == 1:
@@ -839,7 +839,7 @@ def testCase2():
 																											
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (2,3):
+for i in range (1,3):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
