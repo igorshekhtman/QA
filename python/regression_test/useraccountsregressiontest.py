@@ -879,9 +879,114 @@ def getSinglePropValueOnAllCustomers(type, pname, exp_statuscode, tc, step):
 
 	return()	
 
+#=========================================================================================
+
+def getAccessTypeObject(type, typeName, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	prop_list={}
+	URL = UA_URL+'/'+type+'/'+typeName
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAccessTypeObject", APIXIO_TOKEN, typeName, prop_list, "", "", "", "", "")
+
+	return()
+#=========================================================================================
+
+def postAccessTypeObject(type, atoname, atodescription, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - CRERATE NEW %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'
+	#print URL
+	DATA = {"name": atoname,"description": atodescription}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postAccessTypeObject", APIXIO_TOKEN, atoname, atodescription, "", "", "", "", "")
+
+	return()
+#=========================================================================================
+
+def deleteAccessTypeObject(type, atoname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - DELETE %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'+atoname
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.delete(URL, data=json.dumps(DATA), headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteAccessTypeObject", APIXIO_TOKEN, atoname, "", "", "", "", "", "")
+
+	return()
+
+#=========================================================================================	
 	
+def getSysPassRolUsr(type, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET SYS %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	prop_list={}
+	URL = UA_URL+'/sys/'+type
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSysPassRolUsr", APIXIO_TOKEN, type, "", "", "", "", "", "")
+
+	return()	
 
 #=========================================================================================
+
 
 def cleanUp():
 	acl_operation = ACL_OPERATION
@@ -960,7 +1065,6 @@ def testCase1():
 
 def testCase2():
 	global REPORT
-	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
 	
 	tc=2
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
@@ -997,7 +1101,6 @@ def testCase2():
 
 def testCase3():
 	global REPORT
-	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
 	
 	tc=3
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
@@ -1014,21 +1117,57 @@ def testCase3():
 	setCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 5)
 	removeCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 6)
 	getSinglePropValueOnAllCustomers("customer", "primary_assign_authority", {ok}, tc, 7)
-	
-	
 	setCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 8)
-	
-	
 	setPropertyValueOnEntity("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 9)
-
-
-		
 	REPORT = REPORT+"</td></tr></table>"			
-																							
-																											
+																																															
+#========================================================================================================
+
+def testCase4():
+	global REPORT
+	
+	tc=4
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing ACLAT and ACLOP'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+
+	postAccessTypeObject("aclat", "canTestAnything3", "User has access to test anything", {ok}, tc, 1)
+	getAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 2)
+	deleteAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 3)
+	getAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 4)
+	
+	postAccessTypeObject("aclop", "canTestAnything", "User has access to test anything", {ok}, tc, 5)
+	getAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 6)
+	deleteAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 7)
+	getAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 8)
+	
+
+	REPORT = REPORT+"</td></tr></table>"	
+	
+#========================================================================================================
+
+def testCase5():
+	global REPORT
+	
+	tc=5
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Accessing Sys Passpolicies, Roles and Users'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+
+	getSysPassRolUsr("passpolicies", {ok}, tc, 1)
+	getSysPassRolUsr("roles", {ok}, tc, 2)
+	getSysPassRolUsr("users", {ok}, tc, 3)
+	
+
+	REPORT = REPORT+"</td></tr></table>"						
+
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,4):
+for i in range (1,6):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
