@@ -696,7 +696,29 @@ def removePropertyValueFromEntity(type, entityID, pname, exp_statuscode, tc, ste
 	
 #=========================================================================================	
 	
-def getAllPropertiesOnGivenEntity():
+def getAllPropertiesOnGivenEntity(type, entityID, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - VIEW ALL PROPERTIES ON GIVEN ENTITY %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'+entityID+'/properties'
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else: 
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnGivenEntity", APIXIO_TOKEN, type, entityID, prop_list, "", "", "", "")
+
 	return()
 	
 #=========================================================================================	
@@ -726,7 +748,32 @@ def getAllPropertiesOnAllEntities(type, exp_statuscode, tc, step):
 	
 #=========================================================================================	
 	
-def getSinglePropertyValueOnAllEntities():
+def getSinglePropertyValueOnAllEntities(type, pname, exp_statuscode, tc, step):
+
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - VIEW SINGLE PROPERTY ON ALL ENTITIES %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/properties/'+pname
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else: 
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropertyValueOnAllEntities", APIXIO_TOKEN, type, pname, prop_list, "", "", "", "")
+
+
+
 	return()	
 
 #=========================================================================================
@@ -781,7 +828,6 @@ def testCase1():
 	global REPORT
 	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
 	
-	
 	tc=1
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Creation and Deletion of Custom Property'))
@@ -810,14 +856,12 @@ def testCase2():
 	global REPORT
 	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
 	
-	
 	tc=2
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing Property Value from an Entity'))
 	print ('Test Case #'+str(tc))
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
-	
 
 	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 1)
 	setPropertyValueOnEntity("uorgs", "UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", "codingrate", {ok}, tc, 2)
@@ -825,15 +869,21 @@ def testCase2():
 	setPropertyValueOnEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", "codingrate", {ok}, tc, 4)
 	setPropertyValueOnEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", "codingrate", {ok}, tc, 5)
 	setPropertyValueOnEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 6)
-	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 7)
-	#raw_input("Press Enter to continue...")	
-	removePropertyValueFromEntity("uorgs", "UO_619160fe-4d67-40fb-b1d7-93856dfecf11", "codingrate", {ok}, tc, 8)
-	removePropertyValueFromEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", "codingrate", {ok}, tc, 9)
-	removePropertyValueFromEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", "codingrate", {ok}, tc, 10)
-	removePropertyValueFromEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 11)
-	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 12)
 	
-
+	getAllPropertiesOnGivenEntity("uorgs", "UO_619160fe-4d67-40fb-b1d7-93856dfecf11", {ok}, tc, 7)
+	getAllPropertiesOnGivenEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", {ok}, tc, 8)
+	getAllPropertiesOnGivenEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", {ok}, tc, 9)
+	getAllPropertiesOnGivenEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", {ok}, tc, 10)
+	
+	getSinglePropertyValueOnAllEntities("uorgs", "codingrate", {ok}, tc, 11)
+	
+	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 12)
+	#raw_input("Press Enter to continue...")	
+	removePropertyValueFromEntity("uorgs", "UO_619160fe-4d67-40fb-b1d7-93856dfecf11", "codingrate", {ok}, tc, 13)
+	removePropertyValueFromEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", "codingrate", {ok}, tc, 14)
+	removePropertyValueFromEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", "codingrate", {ok}, tc, 15)
+	removePropertyValueFromEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 16)
+	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 17)
 		
 	REPORT = REPORT+"</td></tr></table>"			
 																											

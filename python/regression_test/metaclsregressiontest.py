@@ -196,9 +196,9 @@ CURDAY=strftime("%d", gmtime())
 CURMONTH=strftime("%m", gmtime())
 CURYEAR=strftime("%Y", gmtime())
 
-PASSED_STAT="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED_STAT="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR="<br><table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
+PASSED_STAT="<table width='100%%'><tr><td bgcolor='#00A303' align='center'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
+FAILED_STAT="<table width='100%%'><tr><td bgcolor='#DF1000' align='center'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
+SUBHDR="<br><table width='100%%'><tr><td bgcolor='#4E4E4E' align='left'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
 #=========================================================================================
 #================== Global variable declaration, initialization ==========================
@@ -554,7 +554,7 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 	REPORT = REPORT + "<tr><td colspan='4' bgcolor='#D0D0D0'><font size='4'> %d.%d - <b><i>%s</i></b></font></td></tr>" % (tc, step, function)
 	report_local = ""
 	for i in range (1,8):
-		exec('if p'+str(i)+ ' > "": report_local  = report_local  + "<tr><td>"+p'+str(i)+'+"</td></tr>"')
+		exec('if p'+str(i)+ ' > "": report_local  = report_local  + "<tr><td colspan=4>"+p'+str(i)+'+"</td></tr>"')
 	REPORT = REPORT + report_local
 		
 	if statuscode in exp_statuscode:
