@@ -240,33 +240,6 @@ def WriteToCsvFile():
 			HCCGRPEMISSIONS[3], HCCGRPEMISSIONS[4]])
 	#f.write('\n')
 	f.close()	
-#=========================================================================================	
-def ListUserGroupOrg():
-	print ("\n")
-	if int(NUMBER_OF_USERS_TO_CREATE) > 0:
-		print ("=================================")
-		print ("List of newly created HCC Users:")
-		print ("=================================")
-		for i in range (0, int(NUMBER_OF_USERS_TO_CREATE)):
-			print (HCCUSERSLIST[i])
-	print ("=================================")
-	print ("List of newly created HCC Orgs:")
-	print ("=================================")
-	for i in range (0, int(NUMBER_OF_ORGS_TO_CREATE)):
-		print (HCCORGLIST[i])
-	print ("=================================")
-	print ("List of newly created HCC Groups:")
-	print ("=================================")
-	for i in range (0, int(NUMBER_OF_GRPS_TO_CREATE)):
-		print (HCCGRPLIST[i])	
-	print ("=================================")
-	print ("Test execution results summary:")
-	print ("=================================")	
-	print ("* RETRIED:    = %s" % RETRIED)			
-	print ("* FAILED:     = %s" % FAILED)
-	print ("* SUCCEEDED:  = %s" % SUCCEEDED)
-	print ("* TOTAL:      = %s" % (RETRIED+FAILED+SUCCEEDED)) 							
-	print ("=================================")		
 
 #=========================================================================================	
 	
@@ -334,8 +307,8 @@ def writeReportHeader ():
 	REPORT = REPORT + "<h1>User Accounts Regression Test Report</h1>"
 	REPORT = REPORT + "Run date & time: <b>%s</b><br>\n" % (CUR_TIME)
 	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
-	#REPORT = REPORT + "ACL Root user name: <b>%s</b><br>\n" % (ACLUSERNAME)
-	#REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (UA_URL)	
+	REPORT = REPORT + "UA Root user name: <b>%s</b><br>\n" % (ACLUSERNAME)
+	REPORT = REPORT + "UA app url: <b>%s</b><br>\n" % (UA_URL)	
 	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='0'>"
 	REPORT = REPORT + "<tr><td>"	
@@ -553,23 +526,16 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 		logTestCaseStatus(exp_statuscode, statuscode, tc, step, "obtainInternalToken", un, pw, external_token, TOKEN, "", "", "", "")
 
 #=========================================================================================
-# POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
-# GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
-# DELETE:/uorgs/cproperties/ {name} => no equivalent # removes given property definition
+# * POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
+# * GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
+# * DELETE:/uorgs/cproperties/{name} => no equivalent # removes given property definition
 
-# * PUT:/uorgs/{id}/properties/{name}
-# => POST:/customer/
-# {id}/{name} # set property value on entity
+# * PUT:/uorgs/{id}/properties/{name} => POST:/customer/{id}/{name} # set property value on entity
 
-# * DELETE:/uorgs/{id}
-# /properties/
-# {name} => DELETE:/customer/{id}/property?name={name}
-# remove prop value
-# GET:/uorgs/ {id}
-# /properties => no equivalent # get all props on given entity
-# GET:/uorgs/properties => no equivalent # get all props on all entities
-# GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
-# get single prop value on all entities
+# * DELETE:/uorgs/{id}/properties/{name} => DELETE:/customer/{id}/property?name={name} # remove prop value
+# * GET:/uorgs/{id}/properties => no equivalent # get all props on given entity
+# * GET:/uorgs/properties => no equivalent # get all props on all entities
+# * GET:/uorgs/properties/{name} => GET:/customer/property/{name} get single prop value on all entities
 #=========================================================================================
 
 #		Type: "uorgs" / "users"
@@ -579,7 +545,10 @@ def viewCustomPropertyDefinition(type, exp_statuscode, tc, step):
 	print (">>> UA - VIEW CUSTOM PROPERTY DEFINITION %s <<<" % type.upper())
 	print ("----------------------------------------------------------------------------")
 	response = ""
-	URL = UA_URL+'/'+type+'/cproperties'
+	if type == "customer":
+		URL = UA_URL+'/'+type+'/properties'
+	else:	
+		URL = UA_URL+'/'+type+'/cproperties'
 	DATA = {}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
 	response = requests.get(URL, data=DATA, headers=HEADERS)
@@ -605,7 +574,10 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 	response = ""
 	#pname = "uatest9"
 	#ptype = "STRING"
-	URL = UA_URL+'/'+type+'/cproperties'
+	if type == "customer":
+		URL = UA_URL+'/'+type+'/property'
+	else:	
+		URL = UA_URL+'/'+type+'/cproperties'
 	DATA = {"name": pname, "type": ptype}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
 
@@ -617,6 +589,10 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 		print ("Name: %s  Type: %s" % (pname, ptype))
 	elif (statuscode == 400):
 		print ("This custom property name already exists.  Skipping ...")
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
 	else:
 		print "Failure occured, exiting now ..."
 		quit()		
@@ -651,6 +627,7 @@ def deleteCustomPropertyDefinition(type, pname, exp_statuscode, tc, step):
 	return(response)	
 
 #=========================================================================================
+# * PUT:/uorgs/{id}/properties/{name} => POST:/customer/{id}/{name} # set property value on entity
 
 def setPropertyValueOnEntity(type, entityID, pname, exp_statuscode, tc, step):
 	print ("\n----------------------------------------------------------------------------")
@@ -658,16 +635,22 @@ def setPropertyValueOnEntity(type, entityID, pname, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 	response = ""
 	value="80"
-	URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname
+	if type == "customer":
+		URL = UA_URL+'/'+type+'/'+entityID+'/'+pname
+	else:
+		URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname	
 	print URL
 	DATA = json.dumps({"value": value})
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.put(URL, data=DATA, headers=HEADERS)
+	if type == "customer":
+		response = requests.post(URL, data=DATA, headers=HEADERS)
+	else:
+		response = requests.put(URL, data=DATA, headers=HEADERS)	
 	statuscode = response.status_code
 	print statuscode
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "setPropertyValueOnEntity", APIXIO_TOKEN, type, entityID, pname, value, "", "", "")
 	return()
@@ -775,6 +758,126 @@ def getSinglePropertyValueOnAllEntities(type, pname, exp_statuscode, tc, step):
 
 
 	return()	
+	
+	
+#=========================================================================================	
+	
+def getCustomerRelatedData(type, option, exp_statuscode, tc, step):
+
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - VIEW CUSTOMER RELATED ALL PROJECTS AND PROPERTIES %s <<<" % option.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'+option
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else: 
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getCustomerRelatedData", APIXIO_TOKEN, type, option, prop_list, "", "", "", "")
+
+
+
+	return()	
+	
+#=========================================================================================	
+# POST:/customer/{id}/{name} # set property value on entity
+# POST:/customer/{customerID}/property/{name}	
+def setCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - SET CUSTOMER PROPERTY VALUE %s <<<" % pname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'+customerID+'/property?name='+pname
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.post(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "setCurtomerPropertyValue", APIXIO_TOKEN, type, customerID, pname, "", "", "", "")
+
+	return()		
+
+#=========================================================================================
+# * DELETE:/uorgs/{id}/properties/{name} => DELETE:/customer/{id}/property?name={name} remove prop value
+def removeCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - REMOVE CUSTOMER PROPERTY VALUE %s <<<" % pname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/'+customerID+'/property?name='+pname
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.delete(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removeCurtomerPropertyValue", APIXIO_TOKEN, type, customerID, pname, "", "", "", "")
+
+	return()	
+
+#=========================================================================================
+# * GET:/uorgs/properties/{name} => GET:/customer/property/{name} get single prop value on all entities
+
+def getSinglePropValueOnAllCustomers(type, pname, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET PROPERTY VALUE ON ALL CUSTOMERS %s <<<" % pname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/property/'+pname
+	#print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropValueOnAllCustomers", APIXIO_TOKEN, type, pname, prop_list, "", "", "", "")
+
+	return()	
+
+	
 
 #=========================================================================================
 
@@ -802,25 +905,19 @@ obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
 
 #========================================================================================================
 # TEST CASE 1 (/uorgs):
-# POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
-# GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
-# DELETE:/uorgs/cproperties/ {name} => no equivalent # removes given property definition
+# * POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
+# * GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
+# * DELETE:/uorgs/cproperties/{name} => no equivalent # removes given property definition
 
-# * PUT:/uorgs/{id}/properties/{name}
-# => POST:/customer/
-# {id}/{name} # set property value on entity
+# * PUT:/uorgs/{id}/properties/{name} => POST:/customer/{id}/{name} # set property value on entity
 
-# * DELETE:/uorgs/{id}/properties/{name} 
-#=> DELETE:/customer/{id}/property?name={name}
-# remove prop value
+# * DELETE:/uorgs/{id}/properties/{name} => DELETE:/customer/{id}/property?name={name} remove prop value
 
-# GET:/uorgs/ {id}
-# /properties => no equivalent # get all props on given entity
+# * GET:/uorgs/{id}/properties => no equivalent # get all props on given entity
 
-# GET:/uorgs/properties => no equivalent # get all props on all entities
+# * GET:/uorgs/properties => no equivalent # get all props on all entities
 
-# GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
-# get single prop value on all entities
+# * GET:/uorgs/properties/{name} => GET:/customer/property/{name} get single prop value on all entities
 
 #========================================================================================================
 
@@ -840,13 +937,20 @@ def testCase1():
 	for ptype in ptypes:
 		createCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", ptype, {ok}, tc, i+1)
 		viewCustomPropertyDefinition("uorgs", {ok}, tc, i+2)
+		
 		deleteCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", {ok}, tc, i+3)
 		viewCustomPropertyDefinition("uorgs", {ok}, tc, i+4)
+		
 		createCustomPropertyDefinition("users", "testprop_"+str(i)+"", ptype, {ok}, tc, i+5)
 		viewCustomPropertyDefinition("users", {ok}, tc, i+6)
+		
 		deleteCustomPropertyDefinition("users", "testprop_"+str(i)+"", {ok}, tc, i+7)
-		viewCustomPropertyDefinition("users", {ok}, tc, i+8)
-		i += 8
+		viewCustomPropertyDefinition("users", {ok}, tc, i+8)		
+		
+		createCustomPropertyDefinition("customer", "testprop_"+str(i)+"", ptype, {ok}, tc, i+9)
+		viewCustomPropertyDefinition("customer", {ok}, tc, i+10)
+		
+		i += 10
 	
 	REPORT = REPORT+"</td></tr></table>"		
 	
@@ -858,7 +962,7 @@ def testCase2():
 	
 	tc=2
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
-	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing Property Value from an Entity'))
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing Property Value from an Entity - uorgs'))
 	print ('Test Case #'+str(tc))
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
@@ -885,11 +989,44 @@ def testCase2():
 	removePropertyValueFromEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 16)
 	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 17)
 		
+	REPORT = REPORT+"</td></tr></table>"	
+	
+#========================================================================================================
+
+def testCase3():
+	global REPORT
+	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
+	
+	tc=3
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing Property Value from an Entity - customer'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+
+	getAllPropertiesOnAllEntities("customer", {ok}, tc, 1)
+	
+	#getCustomerRelatedData("customer", "projects", {ok}, tc, 2)
+	getCustomerRelatedData("customer", "properties", {ok}, tc, 3)
+	#getCustomerRelatedData("customer", "mysql-sync", {ok}, tc, 4)
+	setCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 5)
+	removeCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 6)
+	getSinglePropValueOnAllCustomers("customer", "primary_assign_authority", {ok}, tc, 7)
+	
+	
+	setCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 8)
+	
+	
+	setPropertyValueOnEntity("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 9)
+
+
+		
 	REPORT = REPORT+"</td></tr></table>"			
+																							
 																											
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,3):
+for i in range (1,4):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
