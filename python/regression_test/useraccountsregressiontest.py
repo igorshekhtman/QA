@@ -435,6 +435,7 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 	print ("* TEST CASE NUMBER       = %s" % tc)
 	print ("* TEST STEP NUMBER       = %s" % step)
 	
+	REPORT = REPORT + "<tr><td colspan='4'><table border='1' width='100%%' cellspacing='0' cellpadding='0'><tr><td><table width='100%%'>"
 	REPORT = REPORT + "<tr><td colspan='4' bgcolor='#D0D0D0'><font size='4'> %d.%d - <b><i>%s</i></b></font></td></tr>" % (tc, step, function)
 	report_local = ""
 	for i in range (1,8):
@@ -455,6 +456,7 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 		#REPORT = REPORT + "<tr><td colspan='4'><hr></td></tr>"
 		if int(PAUSE_FOR_FAILURES) == 1:
 			raw_input("Press Enter to continue...")	
+	REPORT = REPORT + "</table></td></tr></table>"		
 	#print ("\n")				
 			
 #=========================================================================================
