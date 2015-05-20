@@ -650,6 +650,84 @@ def deleteCustomPropertyDefinition(type, pname, exp_statuscode, tc, step):
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteCustomPropertyDefinition", APIXIO_TOKEN, type, pname, "", "", "", "", "")
 	return(response)	
 
+#=========================================================================================
+
+def setPropertyValueOnEntity(type, entityID, pname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - SET PROPERTY VALUE ON ENTITY %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	value="80"
+	URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname
+	print URL
+	DATA = json.dumps({"value": value})
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.put(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "setPropertyValueOnEntity", APIXIO_TOKEN, type, entityID, pname, value, "", "", "")
+	return()
+
+#=========================================================================================
+
+def removePropertyValueFromEntity(type, entityID, pname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - REMOVE PROPERTY VALUE ON ENTITY %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	value=""
+	URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname
+	print URL
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.delete(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removePropertyValueFromEntity", APIXIO_TOKEN, type, entityID, pname, "", "", "", "")
+	return()
+	
+#=========================================================================================	
+	
+def getAllPropertiesOnGivenEntity():
+	return()
+	
+#=========================================================================================	
+
+def getAllPropertiesOnAllEntities(type, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - VIEW ALL PROPERTIES FOR ALL ENTITIES %s <<<" % type.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+	URL = UA_URL+'/'+type+'/properties'
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print statuscode
+	if statuscode == ok:
+		prop_list = json.dumps(response.json())
+		print json.dumps(response.json())
+	else: 
+		print "Failure occured, exiting now ..."
+		quit()	
+
+	#GET:/uorgs/properties
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnAllEntities", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
+	return()
+	
+#=========================================================================================	
+	
+def getSinglePropertyValueOnAllEntities():
+	return()	
 
 #=========================================================================================
 
@@ -685,13 +763,15 @@ obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
 # => POST:/customer/
 # {id}/{name} # set property value on entity
 
-# * DELETE:/uorgs/{id}
-# /properties/
-# {name} => DELETE:/customer/{id}/property?name={name}
+# * DELETE:/uorgs/{id}/properties/{name} 
+#=> DELETE:/customer/{id}/property?name={name}
 # remove prop value
+
 # GET:/uorgs/ {id}
 # /properties => no equivalent # get all props on given entity
+
 # GET:/uorgs/properties => no equivalent # get all props on all entities
+
 # GET:/uorgs/properties/ {name} => GET:/customer/property/{name}
 # get single prop value on all entities
 
@@ -738,17 +818,22 @@ def testCase2():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	
+
+	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 1)
+	setPropertyValueOnEntity("uorgs", "UO_7ffb36bb-26c1-439e-b259-9a6db503aa11", "codingrate", {ok}, tc, 2)
+	setPropertyValueOnEntity("uorgs", "UO_619160fe-4d67-40fb-b1d7-93856dfecf11", "codingrate", {ok}, tc, 3)
+	setPropertyValueOnEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", "codingrate", {ok}, tc, 4)
+	setPropertyValueOnEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", "codingrate", {ok}, tc, 5)
+	setPropertyValueOnEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 6)
+	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 7)
+	#raw_input("Press Enter to continue...")	
+	removePropertyValueFromEntity("uorgs", "UO_619160fe-4d67-40fb-b1d7-93856dfecf11", "codingrate", {ok}, tc, 8)
+	removePropertyValueFromEntity("uorgs", "UO_1227d992-f840-40c2-b9d6-1fc1c58186fa", "codingrate", {ok}, tc, 9)
+	removePropertyValueFromEntity("uorgs", "UO_6be18216-61fd-4db7-923f-3820946cb253", "codingrate", {ok}, tc, 10)
+	removePropertyValueFromEntity("uorgs", "UO_8054804d-69c2-4ff9-84a3-5c12ef9c5ef2", "codingrate", {ok}, tc, 11)
+	getAllPropertiesOnAllEntities("uorgs", {ok}, tc, 12)
 	
-	i = 0
-	
-	#createCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", ptype, {ok}, tc, i+1)
-	#viewCustomPropertyDefinition("uorgs", {ok}, tc, i+2)
-	#deleteCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", {ok}, tc, i+3)
-	#viewCustomPropertyDefinition("uorgs", {ok}, tc, i+4)
-	#createCustomPropertyDefinition("users", "testprop_"+str(i)+"", ptype, {ok}, tc, i+5)
-	#viewCustomPropertyDefinition("users", {ok}, tc, i+6)
-	#deleteCustomPropertyDefinition("users", "testprop_"+str(i)+"", {ok}, tc, i+7)
-	#viewCustomPropertyDefinition("users", {ok}, tc, i+8)
+
 		
 	REPORT = REPORT+"</td></tr></table>"			
 																											
