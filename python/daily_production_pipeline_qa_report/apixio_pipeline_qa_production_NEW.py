@@ -108,10 +108,14 @@ UPLOADED_DR = 0
 ARCHTOS3 = 0
 ADDTOSF = 0
 #===== MySQL Authentication============
+#------- STAGING ----------------------
 STDOM = "mysqltest-stg1.apixio.net" 
 STPW = "M8ng0St33n!"
-PRDOM = "10.198.2.97"
-PRPW = "J3llyF1sh!"
+STUSR = "qa"
+#------- PRODUCTION -------------------
+PRDOM = "mysql-co-1.apixio.com"
+PRPW = "kZt937V6"
+PRUSR = "apxDB"
 #======================================
 
 ok = 200
@@ -246,8 +250,11 @@ def checkEnvironmentandReceivers():
 		HOST="https://dr.apixio.com:8443"
 		ENVIRONMENT = "production"
 		POSTFIX = ""
-		MYSQLDOM = "10.198.2.97"
-		MYSQPW = "J3llyF1sh!"
+		#MYSQLDOM = "10.198.2.97"
+		#MYSQPW = "J3llyF1sh!"
+		PRDOM = "mysql-co-1.apixio.com"
+		PRPW = "kZt937V6"
+		PRUSR= "apxDB"
 		AUTHHOST="https://useraccount.apixio.com:7076"
 		TOKEHOST="https://tokenizer.apixio.com:7075"
 		AUTH_EMAIL="system_qa@apixio.com"
@@ -259,6 +266,9 @@ def checkEnvironmentandReceivers():
 		HOST="https://testdr.apixio.com:8443"
 		ENVIRONMENT = "staging"
 		POSTFIX = "_staging"
+		STDOM = "mysqltest-stg1.apixio.net"
+		STPW = "M8ng0St33n!"
+		STUSR= "qa"
 		MYSQLDOM = "mysqltest-stg1.apixio.net"
 		MYSQPW = "M8ng0St33n!"
 		AUTHHOST="https://useraccount-stg.apixio.com:7076"
@@ -368,12 +378,12 @@ def connectToMySQL():
 	print ("Connecing to MySQL ...\n")
 	global mss_cur, mss_conn, msp_cur, msp_conn
 	mss_conn = MySQLdb.connect(host=STDOM, \
-		user='qa', \
+		user=STUSR, \
 		passwd=STPW, \
 		db='apixiomain')		
 	mss_cur = mss_conn.cursor() 
 	msp_conn = MySQLdb.connect(host=PRDOM, \
-		user='qa', \
+		user=PRUSR, \
 		passwd=PRPW, \
 		db='apixiomain')		
 	msp_cur = msp_conn.cursor()
@@ -482,15 +492,17 @@ def getOrgName(id):
                 'Authorization': 'Apixio ' + TOKEN}
     response = requests.get(url, data={}, headers=HEADERS)
     statuscode = response.status_code
-    if (statuscode != ok):
-        print ("* Get Org Name Request Response:       %s" % statuscode)
-        print ("* FAILURE OCCURED !!!")
-        quit()
-
     if statuscode == ok:
     	customerOrg = response.json()
     	customerOrgName = customerOrg['name']
-    else:
+    elif statuscode == intserveror:
+     	print ("*-------------------------------------------------------")
+        print ("* Get Org Name Request Response:       %s" % statuscode)
+        print ("* Could not locate OrgName for OrgID:  %s" % id)
+        print ("*-------------------------------------------------------")
+        customerOrgName = "OrgNotFound"
+        #quit()   
+    else:	    
     	customerOrgName = id	    
     return (customerOrgName)	
 	
@@ -511,6 +523,7 @@ def setHiveParameters():
 	print ("Hadoop queue was set to: %s\n") % hadoopqueuename	
 	print ("Completed assigning Hive paramaters ...\n")
 
+#-----------------------------------------------------------------------------------------
 
 def obtainFailedJobs(table):
 	global REPORT, cur, conn
@@ -547,7 +560,7 @@ def obtainFailedJobs(table):
 		REPORT = REPORT+"<tr><td colspan='6'><i>There were no failed jobs</i></td></tr>"
 	REPORT = REPORT+"</table>"
 	
-
+#-----------------------------------------------------------------------------------------
 
 def obtainErrors(activity, summary_table_name, unique_id):
 	global REPORT, cur, conn
@@ -591,11 +604,14 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'>There were no "+activity+" "+summary_table_name+" specific errors</td></tr>"
 	REPORT = REPORT+"</table><br>" 
+
+#-----------------------------------------------------------------------------------------
 	
 def removeHtmlTags(data):
     p = re.compile(r'<.*?>')
     return p.sub('', data)
-	
+
+#-----------------------------------------------------------------------------------------	
 
 def dataOrchestratorAcls(table):
 	global REPORT, cur, conn
@@ -624,15 +640,19 @@ def dataOrchestratorAcls(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
-		#REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
-		#getOrgName(str(i[1]))
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[:92]+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+ \
+			" ("+str(i[5])+")</td></tr>"
+					
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------
 
 def dataOrchestratorLookups(table):
 	global REPORT, cur, conn
@@ -661,15 +681,18 @@ def dataOrchestratorLookups(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[4]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[4])]+" ("+str(i[4])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])+" ("+str(i[4])+")</td></tr>"
-		#REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[4]))+" ("+str(i[4])+")</td></tr>"
-		#getOrgName(str(i[1]))
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])[21:92]+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[4]))+ \
+			" ("+str(i[4])+")</td></tr>"
+		
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='5'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------
 
 def dataOrchestratorRequests(table):
 	global REPORT, cur, conn
@@ -698,15 +721,19 @@ def dataOrchestratorRequests(table):
 		else:
 			BG_COLOR="#FFFFFF"
 
-		if str(i[5]) in ORGMAP:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[5])]+" ("+str(i[5])+")</td></tr>"
-		else:
-			REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[5])+" ("+str(i[5])+")</td></tr>"
-		#REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+" ("+str(i[5])+")</td></tr>"
-		#getOrgName(str(i[1]))
+		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[2])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[4])[28:92]+ \
+			"</td><td bgcolor='"+BG_COLOR+"'>"+getOrgName(str(i[5]))+ \
+			" ("+str(i[5])+")</td></tr>"
+		
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------
 
 def userAccountsRequests(table):
 	global REPORT, cur, conn
@@ -740,6 +767,8 @@ def userAccountsRequests(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+#-----------------------------------------------------------------------------------------
+
 def bundlerSequence(table):
 	global REPORT, cur, conn
 	global DAY, MONTH, COMPONENT_STATUS
@@ -771,6 +800,8 @@ def bundlerSequence(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------
 	
 def bundlerHistorical(table):
 	global REPORT, cur, conn
@@ -803,6 +834,8 @@ def bundlerHistorical(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------
 	
 def bundlerDocuments(table):
 	global REPORT, cur, conn
@@ -827,6 +860,8 @@ def bundlerDocuments(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='2'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
+
+#-----------------------------------------------------------------------------------------	
 		
 def loaderSummary(table):
 	global REPORT, cur, conn
@@ -857,6 +892,7 @@ def loaderSummary(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='6'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"	
 
+#-----------------------------------------------------------------------------------------
 
 def eventAMR(table):
 	global REPORT, cur, conn
@@ -899,7 +935,7 @@ def eventAMR(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 	
-	
+#-----------------------------------------------------------------------------------------	
 	
 def careOptimizerErrors(table):
 	global REPORT, cur, conn
@@ -944,6 +980,7 @@ def careOptimizerErrors(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+#-----------------------------------------------------------------------------------------
 
 def careOptimizerLoad(table):
 	global REPORT, cur, conn
@@ -1000,6 +1037,7 @@ def careOptimizerLoad(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='12'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+#-----------------------------------------------------------------------------------------
 	
 def careOptimizerSearch(table):
 	global REPORT, cur, conn
@@ -1058,6 +1096,7 @@ def careOptimizerSearch(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 
+#-----------------------------------------------------------------------------------------
 	
 def summaryLogstrafficTotals(table):
 	global REPORT, cur, conn
@@ -1093,7 +1132,7 @@ def summaryLogstrafficTotals(table):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
 	
-	
+#-----------------------------------------------------------------------------------------	
 	
 def uploadSummary(activity, summary_table_name, unique_id):
 	global REPORT, cur, conn
@@ -1138,6 +1177,7 @@ def uploadSummary(activity, summary_table_name, unique_id):
 		REPORT = REPORT+"<tr><td colspan='5'><i>There were no "+activity+" "+summary_table_name+" errors</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
 
+#-----------------------------------------------------------------------------------------
 
 def jobSummary(table):
 	global REPORT, cur, conn
@@ -1194,7 +1234,8 @@ def jobSummary(table):
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'><i>There were no Jobs</i></td></tr>"
 	REPORT = REPORT+"</table><br>" 	
-
+	
+#-----------------------------------------------------------------------------------------
 
 def failedJobsRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1208,6 +1249,8 @@ def failedJobsRD():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 	print ("Completed failed jobs query ... \n")
+	
+#-----------------------------------------------------------------------------------------	
 	
 def errorMessagesRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1223,15 +1266,14 @@ def errorMessagesRD():
 	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
 	obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
-	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")
-	
-	
-		
+	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")		
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
+	
+#-----------------------------------------------------------------------------------------	
 
 def uploadSummaryRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1246,6 +1288,8 @@ def uploadSummaryRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
+	
+#-----------------------------------------------------------------------------------------	
 
 def jobSummaryRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1258,6 +1302,8 @@ def jobSummaryRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
+	
+#-----------------------------------------------------------------------------------------	
 
 def careOptimizerErrorsRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1273,6 +1319,8 @@ def careOptimizerErrorsRD():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
 	
+#-----------------------------------------------------------------------------------------	
+	
 def logsTrafficRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
@@ -1284,6 +1332,8 @@ def logsTrafficRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"
+
+#-----------------------------------------------------------------------------------------
 	
 def dataOrchestratorRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1299,6 +1349,8 @@ def dataOrchestratorRD():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
 
+#-----------------------------------------------------------------------------------------
+
 def userAccountsRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "USER ACCOUNTS"
@@ -1310,6 +1362,8 @@ def userAccountsRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
+
+#-----------------------------------------------------------------------------------------	
 
 def bundlerRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1324,6 +1378,8 @@ def bundlerRD():
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
 	
+#-----------------------------------------------------------------------------------------	
+	
 def loaderRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT+SUBHDR % "LOADER"
@@ -1335,6 +1391,8 @@ def loaderRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"	
+
+#-----------------------------------------------------------------------------------------	
 	
 def eventsRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
@@ -1349,7 +1407,8 @@ def eventsRD():
 	else:
 		REPORT = REPORT+FAILED
 	REPORT = REPORT+"<br><br>"		
-	
+
+#-----------------------------------------------------------------------------------------	
 
 def writeReportDetails():
 	if (REPSECTORUN == 1) or (REPSECTORUN == 0):
@@ -1375,10 +1434,14 @@ def writeReportDetails():
 	if (REPSECTORUN == 11) or (REPSECTORUN == 0):
 		loaderRD()					
 
+#-----------------------------------------------------------------------------------------
+
 def closeHiveConnection():
 	global cur, conn
 	cur.close()
 	conn.close()
+
+#-----------------------------------------------------------------------------------------
 	
 def closeMySQLConnection():
 	global mss_cur, mss_conn, msp_cur, msp_conn
@@ -1387,6 +1450,7 @@ def closeMySQLConnection():
 	msp_cur.close()
 	msp_conn.close()
 		
+#-----------------------------------------------------------------------------------------		
 
 def writeReportFooter():
 	print ("Write report footer ...\n")
@@ -1397,6 +1461,7 @@ def writeReportFooter():
 	REPORT = REPORT+"</table>"
 	print ("Finished writing report ...\n")
 
+#-----------------------------------------------------------------------------------------
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT
@@ -1438,6 +1503,7 @@ def archiveReport():
 		os.chdir("/mnt/automation/python/daily_production_pipeline_qa_report")
 		print ("Finished archiving report ... \n")
 
+#-----------------------------------------------------------------------------------------
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2, REPORT_EMAIL
@@ -1468,6 +1534,7 @@ def emailReport():
 	#os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
+#-----------------------------------------------------------------------------------------
 
 #def emailReport():
 #	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
