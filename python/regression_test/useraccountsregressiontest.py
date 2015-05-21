@@ -577,7 +577,7 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 	#pname = "uatest9"
 	#ptype = "STRING"
 	if type == "customer":
-		URL = UA_URL+'/'+type+'/property'
+		URL = UA_URL+'/'+type+'/property?name='+pname+'&type='+ptype
 	else:	
 		URL = UA_URL+'/'+type+'/cproperties'
 	DATA = {"name": pname, "type": ptype}
@@ -638,7 +638,7 @@ def setPropertyValueOnEntity(type, entityID, pname, exp_statuscode, tc, step):
 	response = ""
 	value="80"
 	if type == "customer":
-		URL = UA_URL+'/'+type+'/'+entityID+'/'+pname
+		URL = UA_URL+'/'+type+'/'+entityID+'/property/'+pname
 	else:
 		URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname	
 	print URL
@@ -803,7 +803,8 @@ def setCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, step):
 	response = ""
 	URL = UA_URL+'/'+type+'/'+customerID+'/property?name='+pname
 	#print URL
-	DATA = {}
+	#DATA = {}
+	DATA = json.dumps({"value":"paa"})
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
 	response = requests.post(URL, data=DATA, headers=HEADERS)
 	statuscode = response.status_code
@@ -923,6 +924,7 @@ def postAccessTypeObject(type, atoname, atodescription, exp_statuscode, tc, step
 	print statuscode
 	if statuscode != ok:		
 		print "Failure occured, exiting now ..."
+		print json.dumps(response.json())
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
 		print "HEADERS = %s" % HEADERS
@@ -1127,21 +1129,24 @@ def testCase4():
 	global REPORT
 	
 	tc=4
+	#--------------------------
+	pname="canTestAnything6"
+	#--------------------------
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing ACLAT and ACLOP'))
 	print ('Test Case #'+str(tc))
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 
-	postAccessTypeObject("aclat", "canTestAnything3", "User has access to test anything", {ok}, tc, 1)
-	getAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 2)
-	deleteAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 3)
-	getAccessTypeObject("aclat", "canTestAnything3", {ok}, tc, 4)
+	postAccessTypeObject("aclat", pname, "User has access to test anything", {ok}, tc, 1)
+	getAccessTypeObject("aclat", pname, {ok}, tc, 2)
+	deleteAccessTypeObject("aclat", pname, {ok}, tc, 3)
+	getAccessTypeObject("aclat", pname, {ok}, tc, 4)
 	
-	postAccessTypeObject("aclop", "canTestAnything", "User has access to test anything", {ok}, tc, 5)
-	getAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 6)
-	deleteAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 7)
-	getAccessTypeObject("aclop", "canTestAnything", {ok}, tc, 8)
+	postAccessTypeObject("aclop", pname, "User has access to test anything", {ok}, tc, 5)
+	getAccessTypeObject("aclop", pname, {ok}, tc, 6)
+	deleteAccessTypeObject("aclop", pname, {ok}, tc, 7)
+	getAccessTypeObject("aclop", pname, {ok}, tc, 8)
 	
 
 	REPORT = REPORT+"</td></tr></table>"	
