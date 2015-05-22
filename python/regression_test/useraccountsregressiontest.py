@@ -141,6 +141,7 @@ nocontent = 204
 movedperm = 301
 redirect = 302
 requestdenied = 400
+unauthorized = 401
 forbidden = 403
 notfound = 404
 intserveror = 500
@@ -755,10 +756,7 @@ def getSinglePropertyValueOnAllEntities(type, pname, exp_statuscode, tc, step):
 		#quit()	
 
 	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropertyValueOnAllEntities", APIXIO_TOKEN, type, pname, prop_list, "", "", "", "")
-
-
-
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropertyValueOnAllEntities", APIXIO_TOKEN, type, pname, "", "", "", "", "")
 	return()	
 	
 	
@@ -786,10 +784,7 @@ def getCustomerRelatedData(type, option, exp_statuscode, tc, step):
 		#quit()	
 
 	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getCustomerRelatedData", APIXIO_TOKEN, type, option, prop_list, "", "", "", "")
-
-
-
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getCustomerRelatedData", APIXIO_TOKEN, type, option, "", "", "", "", "")
 	return()	
 	
 #=========================================================================================	
@@ -882,7 +877,7 @@ def getSinglePropValueOnAllCustomers(type, pname, exp_statuscode, tc, step):
 
 #=========================================================================================
 
-def getAccessTypeObject(type, typeName, exp_statuscode, tc, step):
+def getObject(type, typeName, exp_statuscode, tc, step):
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> UA - GET %s <<<" % type.upper())
 	print ("----------------------------------------------------------------------------")
@@ -905,12 +900,12 @@ def getAccessTypeObject(type, typeName, exp_statuscode, tc, step):
 		print "HEADERS = %s" % HEADERS
 		#quit()
 
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAccessTypeObject", APIXIO_TOKEN, typeName, prop_list, "", "", "", "", "")
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "get"+type+"Object", APIXIO_TOKEN, type, typeName, prop_list, "", "", "", "")
 
 	return()
 #=========================================================================================
 
-def postAccessTypeObject(type, atoname, atodescription, exp_statuscode, tc, step):
+def postObject(type, atoname, atodescription, exp_statuscode, tc, step):
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> UA - CRERATE NEW %s <<<" % type.upper())
 	print ("----------------------------------------------------------------------------")
@@ -930,12 +925,12 @@ def postAccessTypeObject(type, atoname, atodescription, exp_statuscode, tc, step
 		print "HEADERS = %s" % HEADERS
 		#quit()
 
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postAccessTypeObject", APIXIO_TOKEN, atoname, atodescription, "", "", "", "", "")
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "post"+type+"Object", APIXIO_TOKEN, type, atoname, atodescription, "", "", "", "")
 
 	return()
 #=========================================================================================
 
-def deleteAccessTypeObject(type, atoname, exp_statuscode, tc, step):
+def deleteObject(type, atoname, exp_statuscode, tc, step):
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> UA - DELETE %s <<<" % type.upper())
 	print ("----------------------------------------------------------------------------")
@@ -954,7 +949,7 @@ def deleteAccessTypeObject(type, atoname, exp_statuscode, tc, step):
 		print "HEADERS = %s" % HEADERS
 		#quit()
 
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteAccessTypeObject", APIXIO_TOKEN, atoname, "", "", "", "", "", "")
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "delete"+type+"Object", APIXIO_TOKEN, type, atoname, "", "", "", "", "")
 
 	return()
 
@@ -986,7 +981,78 @@ def getSysPassRolUsr(type, exp_statuscode, tc, step):
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSysPassRolUsr", APIXIO_TOKEN, type, "", "", "", "", "", "")
 
 	return()	
+	
+#=========================================================================================
 
+def authenticateUser(etoken, type, email, password, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - AUTHENTICATE USER %s <<<" % email.upper())
+	print ("----------------------------------------------------------------------------")
+	prop_list = {}
+	response = ""
+	itoken = ""
+	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	if type == "external":
+		URL = UA_URL+'/auths'
+		DATA = {'email': email, 'password': password}
+		HEADERS = {"Content-Type": "application/json"}
+	else:
+		URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+		DATA = {'Referer': TOKEN_URL, 'Authorization': 'Apixio ' + etoken}	
+		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': TOKEN_URL, 'Authorization': 'Apixio ' + etoken}	
+	
+	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	if statuscode == created or statuscode == ok:
+		prop_list = json.dumps(response.json())
+		#print json.dumps(response.json())
+		userjson = response.json()
+		if type == "external":
+			etoken = userjson.get("token")
+		else:
+			itoken = userjson.get("token")	
+		print ("* EXTERNAL TOKEN VALUE   = %s" % etoken)
+		print ("* INTERNAL TOKEN VALUE   = %s" % itoken)	
+	elif statuscode == unauthorized:
+		print ("* EXTERNAL TOKEN VALUE   = %s" % etoken)
+		print ("* INTERNAL TOKEN VALUE   = %s" % itoken)	
+	else:		
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		#quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "authenticateUser", etoken, itoken, email, prop_list, "", "", "", "")	
+
+	return(etoken)
+	
+#=========================================================================================	
+	
+def deleteExternalToken(etoken, email, password, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - DELETE USER TOKEN %s <<<" % email.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	URL = UA_URL+'/auths/?id='+etoken
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json"}
+	
+	response = requests.delete(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteExternalToken", etoken, email, "", "", "", "", "", "")	
+
+	return(etoken)	
 #=========================================================================================
 
 
@@ -1113,9 +1179,9 @@ def testCase3():
 
 	getAllPropertiesOnAllEntities("customer", {ok}, tc, 1)
 	
-	#getCustomerRelatedData("customer", "projects", {ok}, tc, 2)
+	getCustomerRelatedData("customer", "projects", {ok}, tc, 2)
 	getCustomerRelatedData("customer", "properties", {ok}, tc, 3)
-	#getCustomerRelatedData("customer", "mysql-sync", {ok}, tc, 4)
+	getCustomerRelatedData("customer", "mysql-sync", {ok}, tc, 4)
 	setCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 5)
 	removeCurtomerPropertyValue("customer", "O_00000000-0000-0000-0000-000000000414", "primary_assign_authority", {ok}, tc, 6)
 	getSinglePropValueOnAllCustomers("customer", "primary_assign_authority", {ok}, tc, 7)
@@ -1138,17 +1204,15 @@ def testCase4():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 
-	postAccessTypeObject("aclat", pname, "User has access to test anything", {ok}, tc, 1)
-	getAccessTypeObject("aclat", pname, {ok}, tc, 2)
-	deleteAccessTypeObject("aclat", pname, {ok}, tc, 3)
-	getAccessTypeObject("aclat", pname, {requestdenied}, tc, 4)
+	postObject("aclat", pname, "User has access to test anything", {ok}, tc, 1)
+	getObject("aclat", pname, {ok}, tc, 2)
+	deleteObject("aclat", pname, {ok}, tc, 3)
+	getObject("aclat", pname, {requestdenied}, tc, 4)
 	
-	postAccessTypeObject("aclop", pname, "User has access to test anything", {ok}, tc, 5)
-	getAccessTypeObject("aclop", pname, {ok}, tc, 6)
-	deleteAccessTypeObject("aclop", pname, {ok}, tc, 7)
-	getAccessTypeObject("aclop", pname, {requestdenied}, tc, 8)
-	
-
+	postObject("aclop", pname, "User has access to test anything", {ok}, tc, 5)
+	getObject("aclop", pname, {ok}, tc, 6)
+	deleteObject("aclop", pname, {ok}, tc, 7)
+	getObject("aclop", pname, {requestdenied}, tc, 8)
 	REPORT = REPORT+"</td></tr></table>"	
 	
 #========================================================================================================
@@ -1166,13 +1230,42 @@ def testCase5():
 	getSysPassRolUsr("passpolicies", {ok}, tc, 1)
 	getSysPassRolUsr("roles", {ok}, tc, 2)
 	getSysPassRolUsr("users", {ok}, tc, 3)
+	REPORT = REPORT+"</td></tr></table>"		
 	
 
-	REPORT = REPORT+"</td></tr></table>"						
+#========================================================================================================
+
+def testCase6():
+	global REPORT
+	
+	tc=6
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Authentications plus Token Deletion'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+
+	token = authenticateUser("", "external", IGOR_EMAIL, "apixio.123", {ok}, tc, 1)
+	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 2)
+	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 3)
+	deleteExternalToken(token, IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
+	#deleteExternalToken("U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066", IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
+	#U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066
+	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 5)
+	
+	
+	#quit()
+	#deleteAuthenticationToken("passpolicies", {ok}, tc, 1)
+
+
+
+
+
+	REPORT = REPORT+"</td></tr></table>"							
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,6):
+for i in range (6,7):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
