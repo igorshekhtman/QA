@@ -561,7 +561,7 @@ def viewCustomPropertyDefinition(type, exp_statuscode, tc, step):
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "viewCustomPropertyDefinition", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
 	return(response)
@@ -597,7 +597,7 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 		#quit()
 	else:
 		print "Failure occured, exiting now ..."
-		quit()		
+		#quit()		
 	
 	
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "createCustomPropertyDefinition", APIXIO_TOKEN, type, pname, ptype, "", "", "", "")
@@ -622,7 +622,7 @@ def deleteCustomPropertyDefinition(type, pname, exp_statuscode, tc, step):
 	print statuscode
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
-		quit()		
+		#quit()		
 	
 	
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteCustomPropertyDefinition", APIXIO_TOKEN, type, pname, "", "", "", "", "")
@@ -674,7 +674,7 @@ def removePropertyValueFromEntity(type, entityID, pname, exp_statuscode, tc, ste
 	print statuscode
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removePropertyValueFromEntity", APIXIO_TOKEN, type, entityID, pname, "", "", "", "")
 	return()
@@ -699,7 +699,7 @@ def getAllPropertiesOnGivenEntity(type, entityID, exp_statuscode, tc, step):
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	#GET:/uorgs/properties
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnGivenEntity", APIXIO_TOKEN, type, entityID, prop_list, "", "", "", "")
@@ -725,7 +725,7 @@ def getAllPropertiesOnAllEntities(type, exp_statuscode, tc, step):
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	#GET:/uorgs/properties
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnAllEntities", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
@@ -752,7 +752,7 @@ def getSinglePropertyValueOnAllEntities(type, pname, exp_statuscode, tc, step):
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	#GET:/uorgs/properties
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropertyValueOnAllEntities", APIXIO_TOKEN, type, pname, prop_list, "", "", "", "")
@@ -783,7 +783,7 @@ def getCustomerRelatedData(type, option, exp_statuscode, tc, step):
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		quit()	
+		#quit()	
 
 	#GET:/uorgs/properties
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getCustomerRelatedData", APIXIO_TOKEN, type, option, prop_list, "", "", "", "")
@@ -841,7 +841,7 @@ def removeCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, ste
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
 		print "HEADERS = %s" % HEADERS
-		quit()	
+		#quit()	
 
 	#GET:/uorgs/properties
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removeCurtomerPropertyValue", APIXIO_TOKEN, type, customerID, pname, "", "", "", "")
@@ -872,7 +872,7 @@ def getSinglePropValueOnAllCustomers(type, pname, exp_statuscode, tc, step):
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
 		print "HEADERS = %s" % HEADERS
-		quit()
+		#quit()
 
 
 	#GET:/uorgs/properties
@@ -1130,7 +1130,7 @@ def testCase4():
 	
 	tc=4
 	#--------------------------
-	pname="canTestAnything6"
+	pname="canTestAnything8"
 	#--------------------------
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing ACLAT and ACLOP'))
