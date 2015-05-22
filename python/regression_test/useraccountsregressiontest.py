@@ -1056,7 +1056,7 @@ def testCase1():
 		deleteCustomPropertyDefinition("users", "testprop_"+str(i)+"", {ok}, tc, i+7)
 		viewCustomPropertyDefinition("users", {ok}, tc, i+8)		
 		
-		createCustomPropertyDefinition("customer", "testprop_"+str(i)+"", ptype, {ok}, tc, i+9)
+		createCustomPropertyDefinition("customer", "testprop_"+str(i)+"", ptype, {requestdenied}, tc, i+9)
 		viewCustomPropertyDefinition("customer", {ok}, tc, i+10)
 		
 		i += 10
@@ -1130,7 +1130,7 @@ def testCase4():
 	
 	tc=4
 	#--------------------------
-	pname="canTestAnything8"
+	pname="canTestAnything"
 	#--------------------------
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing ACLAT and ACLOP'))
@@ -1141,12 +1141,12 @@ def testCase4():
 	postAccessTypeObject("aclat", pname, "User has access to test anything", {ok}, tc, 1)
 	getAccessTypeObject("aclat", pname, {ok}, tc, 2)
 	deleteAccessTypeObject("aclat", pname, {ok}, tc, 3)
-	getAccessTypeObject("aclat", pname, {ok}, tc, 4)
+	getAccessTypeObject("aclat", pname, {requestdenied}, tc, 4)
 	
 	postAccessTypeObject("aclop", pname, "User has access to test anything", {ok}, tc, 5)
 	getAccessTypeObject("aclop", pname, {ok}, tc, 6)
 	deleteAccessTypeObject("aclop", pname, {ok}, tc, 7)
-	getAccessTypeObject("aclop", pname, {ok}, tc, 8)
+	getAccessTypeObject("aclop", pname, {requestdenied}, tc, 8)
 	
 
 	REPORT = REPORT+"</td></tr></table>"	
