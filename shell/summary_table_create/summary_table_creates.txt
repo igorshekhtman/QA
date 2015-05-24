@@ -220,5 +220,13 @@ create table summary_logstraffic
 (total int, discarded int, infos int, events int, warnings int, errors int)
 partitioned by (app_name STRING, month STRING, day STRING, year STRING);
 
+/**********************************Gold Standard*********************************************************************************/
+create table summary_goldstandard_results
+(timestamp bigint, time string , session string, user string, document_uuid string, type string, total_pages int, page int, hcc string, version string, dos string, icd string)
+partitioned by (year STRING, month STRING, day STRING);
+
+create table summary_goldstandard_pages
+(timestamp bigint, time string , session string, user string, document_uuid string, type string, total_pages int, page int, page_time int, codes int)
+partitioned by (year STRING, month STRING, day STRING);
 
 _staging is appended to every table of staging

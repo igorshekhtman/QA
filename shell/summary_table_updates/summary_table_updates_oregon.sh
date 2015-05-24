@@ -1036,6 +1036,55 @@ WHERE
 get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
 
+insert overwrite table summary_goldstandard_pages (year, month, day)
+select max(timestamp) as timestamp, max(time) as time, session,
+max(user) user, document_uuid, max(type) type, max(total_pages) total_pages, cast(page as int) page, 
+sum(page_time) page_time,
+max(timestamp *100 + codes) - (max(timestamp) * 100) codes, 
+max(year) year, max(month) month, max(day) day
+from (
+select 
+get_json_object(line,"$.unixtime") timestamp,
+get_json_object(line,"$.isotime") time,
+get_json_object(line,"$.goldstandard.app_user_info.session") session,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.user") user,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.type") type,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.total") total_pages,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.page") page,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.page_time") page_time,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.codes") codes,
+year,
+month,
+day
+from production_logs_goldstandard_epoch
+where get_json_object(line,'$.goldstandard.goldstandard.event_name')like'app_hcc_page') a
+where page > 0 and ($daterange)
+group by session, document_uuid, page
+order by session, document_uuid, page;
+
+insert overwrite table summary_goldstandard_results (year, month, day)
+select 
+get_json_object(line,"$.unixtime") timestamp,
+get_json_object(line,"$.isotime") time,
+get_json_object(line,"$.goldstandard.app_user_info.session") session,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.user") user,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.type") type,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.total") total_pages,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.page") page,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.code") hcc,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.version") version,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.dos") dos,
+get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.icd") icd,
+year,
+month,
+day
+from production_logs_goldstandard_epoch
+where get_json_object(line,'$.goldstandard.goldstandard.event_name')like'app_hcc_final' and
+($daterange); 
+
+
 ###################################Staging#########################################################
 ! echo Loading Staging partitions
 
