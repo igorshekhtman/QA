@@ -1036,7 +1036,7 @@ WHERE
 get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
 
-insert overwrite table summary_goldstandard_pages (year, month, day)
+insert overwrite table summary_goldstandard_pages partition (year, month, day)
 select max(timestamp) as timestamp, max(time) as time, session,
 max(user) user, document_uuid, max(type) type, max(total_pages) total_pages, cast(page as int) page, 
 sum(page_time) page_time,
@@ -1063,7 +1063,7 @@ where page > 0 and ($daterange)
 group by session, document_uuid, page
 order by session, document_uuid, page;
 
-insert overwrite table summary_goldstandard_results (year, month, day)
+insert overwrite table summary_goldstandard_results partition (year, month, day)
 select 
 get_json_object(line,"$.unixtime") timestamp,
 get_json_object(line,"$.isotime") time,

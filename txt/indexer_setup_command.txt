@@ -400,10 +400,23 @@ cp -av /usr/lib/apx-reporting/html/assets/reports/* /mnt/reports
 
 =========================== GRINDER FUNCTIONS LIST =================================================
 
+DITING HOSTS FILE on a MACBOOK PRO 05-26-2015
+
+1.) copy file to a temp folder 1st
+2.) Edit file
+3.) Copy back to /etc/ folder
+
+sudo vi /etc/hosts
+
+
 http://grinder.sourceforge.net/g3/script-javadoc/index-all.html
 
 [10/1/14, 10:58:18 AM] Alex Beyk: To edit the server name:
 [10/1/14, 10:58:31 AM] Alex Beyk:   vi /etc/hosts
+
+
+
+
     127.0.0.1   grinder2   localhost.localdomain
   vi /etc/sysconfig/network
     HOSTNAME=grinder2
