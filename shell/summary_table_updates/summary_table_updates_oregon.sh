@@ -105,12 +105,11 @@ year,
 month,
 day
 from production_logs_goldstandard_epoch
-where get_json_object(line,'$.goldstandard.goldstandard.event_name')like'app_hcc_final' and
-($dateRange); 
+where get_json_object(line,'$.goldstandard.goldstandard.event_name') like 'app_hcc_final'
+and ($dateRange);
 
-
-
-
+! echo end of gold standard
+ 
 insert overwrite table summary_docreceiver_archive partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
