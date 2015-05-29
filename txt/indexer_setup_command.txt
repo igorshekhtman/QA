@@ -184,6 +184,10 @@ AllEsperErrors
 
 ================ BUNDLING INSTRUCTIONS - STAGING =========================
 
+—————————
+BUNDLE:
+—————————
+
 LOG INTO: bundler-stg.apixio.com
 cd /usr/lib/apx-bundler/conf
 nano bundler.conf
@@ -197,14 +201,26 @@ service apx-bundler stop
 service apx-bundler start
 service apx-bundler status
 
+old:
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "https://bundler-stg.apixio.com:8444/hcc/bundler/get_historical?lo=0&hi=0&bundle=true"
 
-reload data-set:
+curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle"
+
+new:
+http://cmp-stg.apixio.com:8087/cmp/v1/project/%7BprojectId%7D/bundle
+http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle
+CP_04694605-98dd-40e6-ad8f-73c1a3cd7504
+with optional batch id: ?batch_id={batchId} if you want to limit bundling to a particular run of events
+
+———————————————————
+RE-LOAD DATA SET:
+———————————————————
 
 obtain “guid” from MySQL STAGE_HCC table Router_stg.DataSet;
 
 deeb9b09-3ad7-4240-b6a8-95de6325507e - Automated Bundling Set for Hometown Health
 2d69873e-3b92-4586-bfc0-a3abbdb5b890 - Automated Bundling Set for MMG
+
 '8629001', 'Automated Bundling Set for MMG', '2d69873e-3b92-4586-bfc0-a3abbdb5b890', 'Auto-Bundled 372', '2015-04-09T17:42:09.309Z', 'CP_005fab57-fbec-4475-a15e-71b7b43b321e'
 
 

@@ -1051,8 +1051,55 @@ def deleteExternalToken(etoken, email, password, exp_statuscode, tc, step):
 		quit()
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteExternalToken", etoken, email, "", "", "", "", "", "")	
-
 	return(etoken)	
+
+#=========================================================================================
+
+def postCustomer(link, exp_statuscode, tc, step):
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
+	return()
+
+#=========================================================================================
+
+def getCustomer(link, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET CUSTOMER %s <<<" % link.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	URL = UA_URL+'/customer/'+link
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", link, "", "", "", "", "", "", "")
+	return()
+
+#=========================================================================================
+
+def putCustomer(link, exp_statuscode, tc, step):
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
+	return()
+
+#=========================================================================================	
+	
+def deleteCustomer(link, exp_statuscode, tc, step):
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
+	return()
+
+
 #=========================================================================================
 
 
@@ -1248,24 +1295,47 @@ def testCase6():
 	token = authenticateUser("", "external", IGOR_EMAIL, "apixio.123", {ok}, tc, 1)
 	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 2)
 	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 3)
-	deleteExternalToken(token, IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
+	#deleteExternalToken(token, IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
 	#deleteExternalToken("U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066", IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
 	#U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066
-	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 5)
-	
-	
+	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 4)
+
 	#quit()
 	#deleteAuthenticationToken("passpolicies", {ok}, tc, 1)
 
-
-
-
-
 	REPORT = REPORT+"</td></tr></table>"							
+
+#========================================================================================================
+
+def testCase7():
+	global REPORT
+	
+	tc=7
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Customer API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+
+	
+	
+	getCustomer("mysql-sync", {ok}, tc, 1 )
+	getCustomer("projects", {ok}, tc, 2 )
+	getCustomer("properties", {ok}, tc, 3 )
+	#quit()
+	
+	#postCustomer()
+	
+	#putCustomer()
+	
+	#deleteCustomer()
+
+
+	REPORT = REPORT+"</td></tr></table>"		
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (6,7):
+for i in range (1,8):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
