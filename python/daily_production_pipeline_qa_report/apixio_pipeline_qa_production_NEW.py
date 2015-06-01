@@ -56,7 +56,7 @@ REPSECTORUN=0
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=bool(0)
+DEBUG_MODE=False
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
 
@@ -578,6 +578,17 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			GROUP BY error_name, \
 			if (error_message like '%%401 while submitting%%','Received error: 401 while submitting reject or accept', error_message) \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))				
+	elif (summary_table_name == "summary_page_persist") or (summary_table_name == "summary_pager"):	
+		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
+			if (error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) as message \
+			FROM %s \
+			WHERE \
+			%s is not null and \
+			status != 'success' and \
+			day=%s and month=%s and year=%s \
+			GROUP BY org_id, \
+			if(error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) \
+			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))	
 	else:	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
 			if (error_message like '/mnt%%','No space left on device', error_message) as message \
@@ -594,7 +605,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'>"+activity+" "+summary_table_name+"</td>"
+		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'><b>"+activity+"</b> "+summary_table_name+"</td>"
 		if summary_table_name == "summary_hcc_error":
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		else:
@@ -602,7 +613,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
-		REPORT = REPORT+"<tr><td colspan='4'>There were no "+activity+" "+summary_table_name+" specific errors</td></tr>"
+		REPORT = REPORT+"<tr><td colspan='4'>There were no <b>"+activity+"</b> "+summary_table_name+" specific errors</td></tr>"
 	REPORT = REPORT+"</table><br>" 
 
 #-----------------------------------------------------------------------------------------
@@ -1266,7 +1277,9 @@ def errorMessagesRD():
 	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
 	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
 	obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
-	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")		
+	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")
+	obtainErrors("Page Extraction","summary_page_persist"+POSTFIX, "doc_id")	
+	obtainErrors("Page Extraction","summary_pager"+POSTFIX, "doc_id")	
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:

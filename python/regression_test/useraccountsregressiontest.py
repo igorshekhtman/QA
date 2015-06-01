@@ -1053,12 +1053,6 @@ def deleteExternalToken(etoken, email, password, exp_statuscode, tc, step):
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteExternalToken", etoken, email, "", "", "", "", "", "")	
 	return(etoken)	
 
-#=========================================================================================
-
-def postCustomer(link, exp_statuscode, tc, step):
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
-	return()
 
 #=========================================================================================
 
@@ -1085,18 +1079,62 @@ def getCustomer(link, exp_statuscode, tc, step):
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", link, "", "", "", "", "", "", "")
 	return()
 
+
 #=========================================================================================
 
-def putCustomer(link, exp_statuscode, tc, step):
+def postFilter(link, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - POST FILTER %s <<<" % link.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
 
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
+	URL = UA_URL+'/filter/'+link
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.post(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postFilter", link, "", "", "", "", "", "", "")
+	return()
+
+#=========================================================================================
+
+def getFilter(link, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET FILTER %s <<<" % link.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	URL = UA_URL+'/filter/'+link
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getFilter", link, "", "", "", "", "", "", "")
 	return()
 
 #=========================================================================================	
 	
-def deleteCustomer(link, exp_statuscode, tc, step):
+def deleteFilter(link, exp_statuscode, tc, step):
 
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postCustomer", "", "", "", "", "", "", "", "")
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteFilter", link, "", "", "", "", "", "", "")
 	return()
 
 
@@ -1316,26 +1354,46 @@ def testCase7():
 	print ('Test Case #'+str(tc))
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
-
-	
 	
 	getCustomer("mysql-sync", {ok}, tc, 1 )
 	getCustomer("projects", {ok}, tc, 2 )
 	getCustomer("properties", {ok}, tc, 3 )
-	#quit()
-	
-	#postCustomer()
-	
-	#putCustomer()
-	
-	#deleteCustomer()
 
+	REPORT = REPORT+"</td></tr></table>"	
+	
+	
+#========================================================================================================
 
-	REPORT = REPORT+"</td></tr></table>"		
+def testCase8():
+	global REPORT
+	
+	tc=8
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Filter API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	postFilter("customer/O_00000000-0000-0000-0000-000000000414", {ok}, tc, 1 )
+	getFilter("customer/O_00000000-0000-0000-0000-000000000414", {ok}, tc, 2)
+	quit()
+	
+	getFilter("group/customer/{customerId}", {ok}, tc, 3 )
+	postFilter("group/customer/{customerId}", {ok}, tc, 4 )
+	
+	deleteFilter("group/{groupId}/customer/{customerId}", {ok}, tc, 5 )
+	
+	deleteFilter("{filterId}", {ok}, tc, 6 )
+	
+	postFilter("{filterId}/customer/{customerId}", {ok}, tc, 7 )
+	deleteFilter("{filterId}/customer/{customerId}", {ok}, tc, 8 )
+	
+
+	REPORT = REPORT+"</td></tr></table>"			
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,8):
+for i in range (8,9):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
