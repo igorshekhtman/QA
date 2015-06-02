@@ -21,8 +21,8 @@ echo "==========================================================================
 echo "To avoid a collision, please select Indexer and it's related work folders."
 echo "Please select Indexer folder # you are planning to use for this test:"
 echo "==========================================================================="
-echo "0. Indexer0"
-echo "1. Indexer1"
+echo "0. Indexer0 (staging)"
+echo "1. Indexer1 (production)"
 echo "2. Indexer2"
 echo "3. Indexer3"
 echo "4. Indexer4"
@@ -72,12 +72,12 @@ fi
 echo "==========================================================================="
 echo "Removing old and re-creating new work folders, please wait ..."
 echo "==========================================================================="
-rm -rf /mnt/indexer$i/WORK
-mkdir /mnt/indexer$i/WORK
-rm -rf /mnt/indexer$i/TRANSMIT
-mkdir /mnt/indexer$i/TRANSMIT
-rm -rf /mnt/indexer$i/SOURCE
-mkdir /mnt/indexer$i/SOURCE
+rm -rf /mnt/indexer$i/work
+mkdir /mnt/indexer$i/work
+rm -rf /mnt/indexer$i/transmit
+mkdir /mnt/indexer$i/transmit
+rm -rf /mnt/indexer$i/source
+mkdir /mnt/indexer$i/source
 echo "==========================================================================="
 echo "Clean up from previous test execution is now completed ..."
 echo "==========================================================================="
@@ -104,35 +104,39 @@ echo "18. STRESS TEST (MEDIUM) - 5,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "19. STRESS TEST (SMALL) - 1,000 PATIENTS 1 TXT DOCUMENT EACH"
 echo "20. CARE OPTIMIZER TEST - ONE LARGE PATIENT WITH 5000 TXT DOCUMENTS"
 echo "21. OCR SANITY TEST - 5 PDF DOCUMENTS LESS THAN 10 PAGES EACH"
+echo "22. KELSEY - BAD TXT"
+echo "23. COFFEE STAIN - BLANK PDF ISSUE"
 echo "==========================================================================="
 read -p "Select test number to run: " test
 
 case $test in
-	1) cp -avr /mnt/testdata/SanityTwoPatientsAllFileTypesNoOCR/Catalogs/20131025_105656 /mnt/indexer$i/SOURCE/ ;;
-	2) cp -avr /mnt/testdata/SanityTwoPatientsAllFileTypes/Catalogs/20131024_024747 /mnt/indexer$i/SOURCE/ ;;
-	3) cp -avr /mnt/testdata/CoordinatorTest1000TXT1000PDFOrg1/catalog/201312030511258541 /mnt/indexer$i/SOURCE/ ;;
-	4) cp -avr /mnt/testdata/CoordinatorTest1000TXT1000PDFOrg2/catalog/201312030519356111 /mnt/indexer$i/SOURCE/ ;;
-	5) cp -avr /mnt/testdata/100CCRs/catalog/20131127_025742 /mnt/indexer$i/SOURCE/ ;;
-	6) cp -avr /mnt/testdata/100CCDs/catalog/20131127_033223 /mnt/indexer$i/SOURCE/ ;;
-	7) cp -avr /mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/catalog/123456789012345678 /mnt/indexer$i/SOURCE/ ;;
-	8) cp -avr /mnt/testdata/300_400_500_600_700_800Mb_PDFs/catalog/123456789012345679 /mnt/indexer$i/SOURCE/ ;;
-	9) cp -avr /mnt/testdata/1Patient2000EachTxtDocRtfDocuments/catalog/201312040831097892 /mnt/indexer$i/SOURCE/ ;;
-	10) cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312040241295911 /mnt/indexer$i/SOURCE/ 
-	    cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312051119133009 /mnt/indexer$i/SOURCE/
-	    cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312050842107850 /mnt/indexer$i/SOURCE/	;;
-	11) cp -avr /mnt/testdata/50Patients200Txt200PdfEach/catalog/201312060250197522 /mnt/indexer$i/SOURCE/ ;;
-	12) cp -avr /mnt/testdata/HCC_Demo/catalog /mnt/indexer$i/SOURCE/ ;;
-	13) cp -avr /mnt/testdata/HCC_Training/catalog /mnt/indexer$i/SOURCE/ ;;
-	14) cp -avr /mnt/testdata/500Patients15000DocumentsTotal/catalog/201312170839136460 /mnt/indexer$i/SOURCE/ ;;
-	15) cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312180923217633 /mnt/indexer$i/SOURCE/ 
-           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191043091606 /mnt/indexer$i/SOURCE/		
-           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191051107481 /mnt/indexer$i/SOURCE/ ;;
-	16) cp -avr /mnt/testdata/NegativeTestData-1/catalog /mnt/indexer$i/SOURCE/ ;;
-	17) cp -avr /mnt/testdata/10000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
-	18) cp -avr /mnt/testdata/5000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
-	19) cp -avr /mnt/testdata/1000Patients1TxtDocumentEach/catalog /mnt/indexer$i/SOURCE/ ;;
-	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog/201404070121338174 /mnt/indexer$i/SOURCE/ ;;
-	21) cp -avr /mnt/testdata/OcrSanityTest/Catalogs/20140707022526 /mnt/indexer$i/SOURCE/ ;;
+	1) cp -avr /mnt/testdata/SanityTwoPatientsAllFileTypesNoOCR/Catalogs/20131025_105656 /mnt/indexer$i/source/ ;;
+	2) cp -avr /mnt/testdata/SanityTwoPatientsAllFileTypes/Catalogs/20131024_024747 /mnt/indexer$i/source/ ;;
+	3) cp -avr /mnt/testdata/CoordinatorTest1000TXT1000PDFOrg1/catalog/201312030511258541 /mnt/indexer$i/source/ ;;
+	4) cp -avr /mnt/testdata/CoordinatorTest1000TXT1000PDFOrg2/catalog/201312030519356111 /mnt/indexer$i/source/ ;;
+	5) cp -avr /mnt/testdata/100CCRs/catalog/20131127_025742 /mnt/indexer$i/source/ ;;
+	6) cp -avr /mnt/testdata/100CCDs/catalog/20131127_033223 /mnt/indexer$i/source/ ;;
+	7) cp -avr /mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/catalog/123456789012345678 /mnt/indexer$i/source/ ;;
+	8) cp -avr /mnt/testdata/300_400_500_600_700_800Mb_PDFs/catalog/123456789012345679 /mnt/indexer$i/source/ ;;
+	9) cp -avr /mnt/testdata/1Patient2000EachTxtDocRtfDocuments/catalog/201312040831097892 /mnt/indexer$i/source/ ;;
+	10) cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312040241295911 /mnt/indexer$i/source/ 
+	    cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312051119133009 /mnt/indexer$i/source/
+	    cp -avr /mnt/testdata/20000Patients1TxtDocumentEach/catalog/201312050842107850 /mnt/indexer$i/source/	;;
+	11) cp -avr /mnt/testdata/50Patients200Txt200PdfEach/catalog/201312060250197522 /mnt/indexer$i/source/ ;;
+	12) cp -avr /mnt/testdata/HCC_Demo/catalog /mnt/indexer$i/source/ ;;
+	13) cp -avr /mnt/testdata/HCC_Training/catalog /mnt/indexer$i/source/ ;;
+	14) cp -avr /mnt/testdata/500Patients15000DocumentsTotal/catalog/201312170839136460 /mnt/indexer$i/source/ ;;
+	15) cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312180923217633 /mnt/indexer$i/source/ 
+           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191043091606 /mnt/indexer$i/source/		
+           cp -avr /mnt/testdata/500Patients15000DocumentsTotal-2/catalog/201312191051107481 /mnt/indexer$i/source/ ;;
+	16) cp -avr /mnt/testdata/NegativeTestData-1/catalog /mnt/indexer$i/source/ ;;
+	17) cp -avr /mnt/testdata/10000Patients1TxtDocumentEach/catalog /mnt/indexer$i/source/ ;;
+	18) cp -avr /mnt/testdata/5000Patients1TxtDocumentEach/catalog /mnt/indexer$i/source/ ;;
+	19) cp -avr /mnt/testdata/1000Patients1TxtDocumentEach/catalog /mnt/indexer$i/source/ ;;
+	20) cp -avr /mnt/testdata/Largepatient_5000_Txt_Documents/catalog/201404070121338174 /mnt/indexer$i/source/ ;;
+	21) cp -avr /mnt/testdata/OcrSanityTest/Catalogs/20140707022526 /mnt/indexer$i/source/ ;;
+	22) cp -avr /mnt/testdata/HCC-724/catalog /mnt/indexer$i/source/ ;;
+	23) cp -avr /mnt/testdata/CoffeeStainPDF/catalog/12345 /mnt/indexer$i/source/ ;;
 	*) 	echo "==========================================================================="
 		echo "Error: Invalid test number selection, exiting script" 
 		echo "==========================================================================="
@@ -166,7 +170,7 @@ else
 fi
 echo "  "
 echo "==========================================================================="
-cd /mnt/indexer$i/V30
+cd /mnt/indexer$i/v30
 java -cp apixio-indexer-3.1.0.jar com.apixio.indexer.util.Setup
 echo "==========================================================================="
 echo "Username, password and key values are now updated ..."
@@ -177,7 +181,7 @@ fi
 echo "============================================================================"
 echo "Starting Indexer$i <Cltr-C> to exit ..."
 echo "============================================================================" 
-cd /mnt/indexer$i/V30
+cd /mnt/indexer$i/v30
 java -jar apixio-indexer-3.1.0.jar
 echo "  "
 echo "Indexer$i is now stopped ..."
