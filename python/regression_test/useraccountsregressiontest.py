@@ -1095,6 +1095,7 @@ def postFilter(link, exp_statuscode, tc, step):
 	response = requests.post(URL, data=DATA, headers=HEADERS)
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
@@ -1120,6 +1121,7 @@ def getFilter(link, exp_statuscode, tc, step):
 	response = requests.get(URL, data=DATA, headers=HEADERS)
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
@@ -1135,8 +1137,145 @@ def getFilter(link, exp_statuscode, tc, step):
 def deleteFilter(link, exp_statuscode, tc, step):
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteFilter", link, "", "", "", "", "", "", "")
+	return()	
+		
+#=========================================================================================
+
+def getGroups(link, groupID, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET GROUPS %s <<<" % groupID.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if link > "":
+		URL = UA_URL+'/groups/'+groupID+'/'+link
+	else:
+		URL = UA_URL+'/groups'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+		
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getGroups", link, groupID, grp_list, "", "", "", "", "")
+	return()	
+
+#=========================================================================================
+
+def postPasspolicies(polname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - POST PASSPOLICIES %s <<<" % polname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if polname > "":
+		URL = UA_URL+'/passpolicies/'+polname
+	else:
+		URL = UA_URL+'/passpolicies'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.post(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postPasspolicies", polname, "", "", "", "", "", "", "")
 	return()
 
+#=========================================================================================
+
+def getPasspolicies(polname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET PASSPOLICIES %s <<<" % polname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if polname > "":
+		URL = UA_URL+'/passpolicies/'+polname
+	else:
+		URL = UA_URL+'/passpolicies'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getPasspolicies", polname, "", "", "", "", "", "", "")
+	return()
+
+#=========================================================================================
+
+def putPasspolicies(polname, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - PUT PASSPOLICIES %s <<<" % polname.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if polname > "":
+		URL = UA_URL+'/passpolicies/'+polname
+	else:
+		URL = UA_URL+'/passpolicies'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.put(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode != ok:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "putPasspolicies", polname, "", "", "", "", "", "", "")
+	return()
 
 #=========================================================================================
 
@@ -1220,6 +1359,7 @@ def testCase2():
 	global REPORT
 	
 	tc=2
+
 	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
 	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Setting and Removing Property Value from an Entity - uorgs'))
 	print ('Test Case #'+str(tc))
@@ -1374,26 +1514,71 @@ def testCase8():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	
-	postFilter("customer/O_00000000-0000-0000-0000-000000000414", {ok}, tc, 1 )
+	#--------Currently this is not functioning-------------
+	#postFilter("customer/O_00000000-0000-0000-0000-000000000414", {ok}, tc, 1 )
 	getFilter("customer/O_00000000-0000-0000-0000-000000000414", {ok}, tc, 2)
-	quit()
+	#quit()
 	
-	getFilter("group/customer/{customerId}", {ok}, tc, 3 )
-	postFilter("group/customer/{customerId}", {ok}, tc, 4 )
+	#getFilter("group/customer/{customerId}", {ok}, tc, 3 )
+	#postFilter("group/customer/{customerId}", {ok}, tc, 4 )
 	
-	deleteFilter("group/{groupId}/customer/{customerId}", {ok}, tc, 5 )
+	#deleteFilter("group/{groupId}/customer/{customerId}", {ok}, tc, 5 )
 	
-	deleteFilter("{filterId}", {ok}, tc, 6 )
+	#deleteFilter("{filterId}", {ok}, tc, 6 )
 	
-	postFilter("{filterId}/customer/{customerId}", {ok}, tc, 7 )
-	deleteFilter("{filterId}/customer/{customerId}", {ok}, tc, 8 )
+	#postFilter("{filterId}/customer/{customerId}", {ok}, tc, 7 )
+	#deleteFilter("{filterId}/customer/{customerId}", {ok}, tc, 8 )
 	
 
-	REPORT = REPORT+"</td></tr></table>"			
+	REPORT = REPORT+"</td></tr></table>"
+	
+#========================================================================================================
+
+def testCase9():
+	global REPORT
+	
+	tc = 9
+	groupIDs = ["G_eaccf2c9-d592-48cc-88da-43efa57ea830", \
+				"G_7759ea27-eb06-4aa1-8cd3-adfe72676bfc", \
+				"G_6fe5b84c-0681-48a2-a52b-daaf0d035594"]
+				
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Groups API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	getGroups("", "", {ok}, tc, 1)
+	for groupID in groupIDs:
+		getGroups("members", groupID, {ok}, tc, groupIDs.index(groupID)+2)
+	
+
+	REPORT = REPORT+"</td></tr></table>"	
+
+#========================================================================================================
+
+def testCase10():
+	global REPORT
+	
+	tc = 10
+				
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Passpolicies API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	#-------- currently not functioning -------------
+	#postPasspolicies("", {ok}, tc, 1)
+	#getPasspolicies("policyName", {ok}, tc, 2)
+	#putPasspolicies("policyName", {ok}, tc, 3)
+
+	REPORT = REPORT+"</td></tr></table>"		
+						
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (8,9):
+for i in range (1,11):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
