@@ -29,3 +29,8 @@ Meta ACLs Regression Staging Report - March 13, 2015	reports/staging/metaclsregr
 Meta ACLs Regression Staging Report - March 16, 2015	reports/staging/metaclsregression/2015/03/16.html
 Meta ACLs Regression Staging Report - April 01, 2015	reports/staging/metaclsregression/2015/04/01.html
 Meta ACLs Regression Staging Report - April 29, 2015	reports/staging/metaclsregression/2015/04/29.html
+Meta ACLs Regression Staging Report - May 18, 2015	reports/staging/metaclsregression/2015/05/18.html
+Meta ACLs Regression Staging Report - May 19, 2015	reports/staging/metaclsregression/2015/05/19.html
+Meta ACLs Regression Staging Report - May 20, 2015	reports/staging/metaclsregression/2015/05/20.html
+Meta ACLs Regression Staging Report - May 21, 2015	reports/staging/metaclsregression/2015/05/21.html
+Meta ACLs Regression Staging Report - May 28, 2015	reports/staging/metaclsregression/2015/05/28.html

@@ -1,0 +1,2 @@
+HCC Regression Staging Report - May 12, 2015	reports/staging/hccrouterregression/2015/05/12.html
+HCC Regression Staging Report - May 13, 2015	reports/staging/hccrouterregression/2015/05/13.html

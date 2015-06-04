@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>
+                    Xunit Test Results - For: </title>
+<style type="text/css">
+
+                    .testcases {
+                       border: 1px solid black;
+                       padding: 10px;
+                     }
+
+                    .filters {
+                        margin: 10px 0 0 0;
+                     }
+
+                    .failed {
+                        display:block;
+                    }
+            
+                   .failed a {
+                        color: red;
+                        font-weight: bold;
+                    }
+
+                    .passed {
+                        display: block;
+                    }
+
+                   .passed a {
+                        color: green;
+                        font-weight: bold;
+                    }
+                
+                    .error-message {
+                        border: 1px solid red;
+                    }        
+    
+                
+                </style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script><script type="text/javascript">
+                    $(document).ready(function() {
+                        $(".filter").change(function(event) {
+                            var self = $(this);
+                            $('.filter option:selected').each(function() {
+                                $('.testcases div').show();
+                                if ( $(this).val() != 'all' ) {
+                                    $('.testcases div[class != "' + $(this).val() + '"][class!="error-message"]').each(function() {
+                                    $(this).hide();
+                                    });
+                                }
+                            });
+                        }); 
+                    });
+                </script>
+</head>
+<body>
+<h3 class="divided"><b>Results for nosetests</b></h3>
+<div class="container">
+            Tests run: <a href="#all"><b>1</b></a>
+            Failures: <a href="#failures"><b>0</b></a>,
+            Skipped: <a href="#skipped"><b>0</b></a>,
+            Errors: <a href="#errors"><b>1</b></a><div class="filters">
+<label for="filter">Filter Test cases:</label><select id="filter" class="filter"><option name="all" value="all" selected>All</option>
+<option name="passed" value="passed">Passed</option>
+<option name="failed" value="failed">Failed</option></select>
+</div>
+<hr>
+</div>
+<div class="testcases"><div class="failed">
+<pre><b>Class:</b>hcc_router.hcc652.Hcc652</pre>
+<pre><b>Test Name:</b>test_get_set</pre>
+<pre><b>Running Time:</b>0.696</pre>
+<pre><b>State:</b><a>Failed</a></pre>
+<div class="error-message">
+<pre><a>&gt;&gt;&gt;Error Message</a></pre>No JSON object could be decoded
+-------------------- &gt;&gt; begin captured logging &lt;&lt; --------------------
+requests.packages.urllib3.connectionpool: INFO: Starting new HTTPS connection (1): authentication-stg.apixio.com
+requests.packages.urllib3.connectionpool: DEBUG: "POST /auths HTTP/1.1" 200 None
+requests.packages.urllib3.connectionpool: INFO: Starting new HTTP connection (1): authentication-stg.apixio.com
+requests.packages.urllib3.connectionpool: DEBUG: "POST /tokens HTTP/1.1" 201 None
+requests.packages.urllib3.connectionpool: INFO: Starting new HTTPS connection (1): hcc-opprouter-stg.apixio.com
+requests.packages.urllib3.connectionpool: DEBUG: "GET /hcc/grinderusr1416591626@apixio.net/next_work_item HTTP/1.1" 404 0
+--------------------- &gt;&gt; end captured logging &lt;&lt; ---------------------</div>
+<hr>
+</div></div>
+</body>
+</html>

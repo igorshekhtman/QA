@@ -8,3 +8,8 @@ Pipeline Sanity Production Report - March 13, 2015	reports/Production/pipelinesa
 Pipeline Sanity Production Report - March 17, 2015	reports/Production/pipelinesanity/2015/03/17.html
 Pipeline Sanity Production Report - April 05, 2015	reports/Production/pipelinesanity/2015/04/05.html
 Pipeline Sanity Production Report - April 06, 2015	reports/Production/pipelinesanity/2015/04/06.html
+Pipeline Sanity Production Report - May 06, 2015	reports/Production/pipelinesanity/2015/05/06.html
+Pipeline Sanity Production Report - May 11, 2015	reports/Production/pipelinesanity/2015/05/11.html
+Pipeline Sanity Production Report - May 17, 2015	reports/Production/pipelinesanity/2015/05/17.html
+Pipeline Sanity Production Report - May 19, 2015	reports/Production/pipelinesanity/2015/05/19.html
+Pipeline Sanity Production Report - May 22, 2015	reports/Production/pipelinesanity/2015/05/22.html

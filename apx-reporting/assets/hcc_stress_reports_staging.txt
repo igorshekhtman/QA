@@ -6,3 +6,8 @@ HCC Stress Staging Report - March 31, 2015	reports/staging/hccstress/2015/03/31.
 HCC Stress Staging Report - April 02, 2015	reports/staging/hccstress/2015/04/02.html
 HCC Stress Staging Report - April 08, 2015	reports/staging/hccstress/2015/04/08.html
 HCC Stress Staging Report - April 11, 2015	reports/staging/hccstress/2015/04/11.html
+HCC Stress Staging Report - May 04, 2015	reports/staging/hccstress/2015/05/04.html
+HCC Stress Staging Report - May 05, 2015	reports/staging/hccstress/2015/05/05.html
+HCC Stress Staging Report - May 06, 2015	reports/staging/hccstress/2015/05/06.html
+HCC Stress Staging Report - May 13, 2015	reports/staging/hccstress/2015/05/13.html
+HCC Stress Staging Report - June 01, 2015	reports/staging/hccstress/2015/06/01.html
