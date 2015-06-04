@@ -144,6 +144,7 @@ requestdenied = 400
 unauthorized = 401
 forbidden = 403
 notfound = 404
+unprocessablentity = 422
 intserveror = 500
 servunavail = 503
 
@@ -1096,7 +1097,7 @@ def postFilter(link, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1122,7 +1123,7 @@ def getFilter(link, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1158,7 +1159,7 @@ def getGroups(link, groupID, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1192,7 +1193,7 @@ def postPasspolicies(polname, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1226,7 +1227,7 @@ def getPasspolicies(polname, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1260,7 +1261,7 @@ def putPasspolicies(polname, exp_statuscode, tc, step):
 	statuscode = response.status_code
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 	print ("* URL                    = %s" % URL)
-	if statuscode != ok:
+	if statuscode not in exp_statuscode:
 		print "Failure occured, exiting now ..."
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
@@ -1279,6 +1280,137 @@ def putPasspolicies(polname, exp_statuscode, tc, step):
 
 #=========================================================================================
 
+def postVerifications(id, link, exp_statuscode, tc, step):
+
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - POST VERIFICATIONS %s <<<" % id.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	URL = UA_URL+'/verifications/'+id+'/'+link
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.post(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode not in exp_statuscode:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	elif statuscode == notfound:
+		print ("* STATUS                 = %s verification not found" % id)
+	elif statuscode == intserveror:
+		print ("* STATUS                 = Internal Server Occurred")	
+	else:	
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postVerifications", id, link, "", "", "", "", "", "")
+	return()
+
+#=========================================================================================
+
+def	postRoles(rolename, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - POST ROLES %s <<<" % rolename.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if rolename > "":
+		URL = UA_URL+'/roles/'+rolename
+	else:
+		URL = UA_URL+'/roles'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.post(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode not in exp_statuscode:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "postRoles", rolename, "", "", "", "", "", "", "")
+	return()
+#=========================================================================================
+def	putRoles(rolename, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - PUT ROLES %s <<<" % rolename.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if rolename > "":
+		URL = UA_URL+'/roles/'+rolename
+	else:
+		URL = UA_URL+'/roles'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.put(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode not in exp_statuscode:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	else:
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "putRoles", rolename, "", "", "", "", "", "", "")
+	return()
+#=========================================================================================
+def	getRoles(rolename, exp_statuscode, tc, step):
+	print ("\n----------------------------------------------------------------------------")
+	print (">>> UA - GET ROLES %s <<<" % rolename.upper())
+	print ("----------------------------------------------------------------------------")
+	response = ""
+
+	if rolename > "":
+		URL = UA_URL+'/roles/'+rolename
+	else:
+		URL = UA_URL+'/roles'	
+	DATA = {}
+	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	response = requests.get(URL, data=DATA, headers=HEADERS)
+	statuscode = response.status_code
+	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* URL                    = %s" % URL)
+	if statuscode not in exp_statuscode:
+		print "Failure occured, exiting now ..."
+		print "URL = %s" % URL
+		print "DATA = %s" % DATA
+		print "HEADERS = %s" % HEADERS
+		quit()
+	elif statuscode == notfound:
+		print ("* STATUS                 = %s role not found" % rolename)
+	elif statuscode == intserveror:
+		print ("* STATUS                 = Internal Server Occurred")	
+	else:	
+		grp_list = json.dumps(response.json())
+		print json.dumps(response.json())
+
+
+	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getRoles", rolename, "", "", "", "", "", "", "")
+	return()
+#=========================================================================================
 
 def cleanUp():
 	acl_operation = ACL_OPERATION
@@ -1574,11 +1706,50 @@ def testCase10():
 	#putPasspolicies("policyName", {ok}, tc, 3)
 
 	REPORT = REPORT+"</td></tr></table>"		
+	
+#========================================================================================================
+
+def testCase11():
+	global REPORT
+	
+	tc = 11
+				
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Verifications API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	postVerifications("id", "fogot", {notfound}, tc, 1)
+	postVerifications("id", "valid", {notfound, intserveror}, tc, 2)
+
+
+	REPORT = REPORT+"</td></tr></table>"		
+	
+#========================================================================================================
+
+def testCase12():
+	global REPORT
+	
+	tc = 12
+				
+	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
+	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Roles API endpoint'))
+	print ('Test Case #'+str(tc))
+	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
+		raw_input("Press Enter to continue...")		
+	
+	postRoles("", {ok, unprocessablentity}, tc, 1)
+	putRoles("rolename", {ok, unprocessablentity}, tc, 2)
+	getRoles("rolename", {ok, notfound}, tc, 3)
+
+
+	REPORT = REPORT+"</td></tr></table>"					
 						
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,11):
+for i in range (1,13):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
