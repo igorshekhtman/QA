@@ -104,7 +104,8 @@ import mmap
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
+#CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
+CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Git/QA/python/sanity_test/"
 CSV_CONFIG_FILE_NAME = "hccsanity.csv"
 VERSION = "1.0.3"
 # Email reports to eng@apixio.com and archive report html file:
