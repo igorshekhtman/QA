@@ -527,7 +527,7 @@ def componentUploadStatus(p_module, p_state, batch):
 		"trace_hadoop_job":                 [4, 0,  0, 0,     0,  0,     0, 0,     0,    0,     90] }
 		
 	
-	statuses = {"started", "inclomete", "failed", "passed"}
+	#statuses = {'started', 'inclomete', 'failed', 'passed'}
 			
 	status = "started"	
 	print ("-----------------------------------------------------------------------------")
@@ -629,9 +629,7 @@ def componentUploadStatus(p_module, p_state, batch):
 
 def generateReportDetails():
 	global REPORT, cur, conn, BATCH, observed_durations
-	components = { \
-		"indexer", "docreceiver", "coordinator", "parser", "ocr", "persist", "event" \
-		}	
+	components = ('indexer', 'docreceiver', 'coordinator', 'parser', 'ocr', 'persist', 'event')
 		
 	print ("Start generating Report Details ...")
 	print ("===================================================================================\n")
