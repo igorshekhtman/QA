@@ -300,6 +300,9 @@ def startCoding():
       document_uuid = scorable.get("document_uuid")
       document_title = scorable.get("document_title")
       date_of_service = scorable.get("date_of_service")
+      mime_type = scorable.get("mimeType")
+      if mime_type == None:
+    	mime_type = "text/plain"
       print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
       if patient_uuid    == "":
         print("WARNING : PATIENT UUID is Empty")
@@ -314,8 +317,7 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
-      #https://hccstage2.apixio.com/api/document-text/e9c32605-6db2-428d-ba4f-b7623dd20094
-      #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
+
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       print "* GET SCORABLE DOC = %s" % response.status_code     
@@ -324,9 +326,16 @@ def startCoding():
       print "* TOTAL # OF PAGES = %s" % totalPages
  
       # looping through each and every available page in a document
+    if mime_type == "application/pdf":
       for i in range (0,int(totalPages)):
         response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
-        IncrementTestResultsTotals("document page retrieval", response.status_code)
+        if response.status_code != ok:
+    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
+    	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    	  #quit()
+        #IncrementTestResultsTotals("document page retrieval", response.status_code)
         print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
       
       
