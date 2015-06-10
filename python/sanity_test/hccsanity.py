@@ -104,8 +104,8 @@ import mmap
 
 # GLOBAL VARIABLES #######################################################################
 
-#CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
-CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Git/QA/python/sanity_test/"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
+#CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Git/QA/python/sanity_test/"
 CSV_CONFIG_FILE_NAME = "hccsanity.csv"
 VERSION = "1.0.3"
 # Email reports to eng@apixio.com and archive report html file:
@@ -335,7 +335,7 @@ def startCoding():
     	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     	  #quit()
-        #IncrementTestResultsTotals("document page retrieval", response.status_code)
+        IncrementTestResultsTotals("document page retrieval", response.status_code)
         print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
       
       
@@ -368,13 +368,26 @@ def historyReport():
   for view_history_count in range(1, (int(VIEW_HISTORY_MAX)+1)):
     print("-------------------------------------------------------------------------------")
     print("Report %d OF %d" % (view_history_count, int(VIEW_HISTORY_MAX)))  
+    
+    #https://hccstage2.apixio.com/api/report/qa_report?end=2015-06-11T06:59:59.999Z&page=1&result=all&start=2015-06-03T07:00:00.000Z&terms=&user=sanitytest001@apixio.net
+    
+    
+    
     now = datetime.datetime.now()    
-    report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
+    #report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
+    
+    #print report_range
+    
+    
+    #report_range = """/api/report/qa_report?end=2015-06-11T06:59:59.999Z&page=1&result=all&start=2015-06-03T07:00:00.000Z&terms=&user=sanitytest001@apixio.net"""
+    
+    #report_range = """/api/report/qa_report?end=%d-%d-%dT06:59:59.999Z&page=1&result=all&start=2015-06-03T07:00:00.000Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
+    
+    report_range = """/api/report/qa_report?end=%d-%d-%dT06:59:59.999Z&page=1&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
+    
     
     #response = create_request(Test(testCode, "View History Report")).GET(URL + report_range)
-    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
-    
-    
+    response = requests.get(URL + report_range, data=DATA, headers=HEADERS)    
     IncrementTestResultsTotals("history report pagination", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = View History Report\n* PAGE NUMBER      = [1]\n* HCC RESPONSE     = 200 OK")
@@ -388,7 +401,7 @@ def historyReport():
     		VIEW_HISTORY_PAGES_MAX = pages
     	for page in range (2, int(VIEW_HISTORY_PAGES_MAX)+1):
     		testCode += 1
-    		report_range = """/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
+    		report_range = """/api/report/qa_report?page=%s&result=all&start=start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (page, now.year, now.month, now.day, USERNAME.lower())
     		#response = create_request(Test(testCode, "View History Report Pagination")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
@@ -403,7 +416,7 @@ def historyReport():
     	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
     	for term in terms:
     		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
+    		report_range = """/api/report/qa_report?page=1&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s&terms=%s""" % (now.year, now.month, now.day, USERNAME.lower(), term)
     		#response = create_request(Test(testCode, "View History Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
@@ -418,7 +431,7 @@ def historyReport():
     	results = ['reject', 'accept', 'all']
     	for result in results:
     		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
+    		report_range = """/api/report/qa_report?page=1&result=%s&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, USERNAME.lower())
     		#response = create_request(Test(testCode, "View History Report Filtering")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
@@ -495,7 +508,7 @@ def qaReport():
     print("-------------------------------------------------------------------------------")
     print("Report %d OF %d" % (qa_report_count, int(QA_REPORT_MAX)))
     now = datetime.datetime.now()
-    report_range = "/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
+    report_range = "/api/report/qa_report?page=1&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (now.year, now.month, now.day)
     #response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     IncrementTestResultsTotals("qa report pagination", response.status_code)
@@ -511,7 +524,7 @@ def qaReport():
     		QA_REPORT_PAGES_MAX = pages
     	for page in range (2, int(QA_REPORT_PAGES_MAX)+1):
     		testCode += 1
-    		report_range = "/api/report/qa_report?page=%s&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
+    		report_range = "/api/report/qa_report?page=%s&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT06%%3A59%%3A59.999Z" % (page, now.year, now.month, now.day)
     		#response = create_request(Test(testCode, "QA Report")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
@@ -526,7 +539,7 @@ def qaReport():
     	terms = ['2012', '2013', '2014', 'Robert', 'George', 'John', 'Diabetes', 'Diarrhea', 'DM']
     	for term in terms:
     		testCode += 1
-    		report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
+    		report_range = """/api/report/qa_report?page=1&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=%s""" % (now.year, now.month, now.day, term)
     		#response = create_request(Test(testCode, "QA Report Searching")).GET(URL + report_range)
     		response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     		print("-------------------------------------------------------------------------------")
@@ -542,7 +555,7 @@ def qaReport():
     	for coder in coders:
     		for result in results:
     			testCode += 1
-    			report_range = """/api/report/qa_report?page=1&result=%s&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
+    			report_range = """/api/report/qa_report?page=1&result=%s&start=2015-06-03T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&user=%s""" % (result, now.year, now.month, now.day, coder.lower())
     			#response = create_request(Test(testCode, "QA Report Filtering")).GET(URL + report_range)
     			response = requests.get(URL + report_range, data=DATA, headers=HEADERS)
     			print("-------------------------------------------------------------------------------")
