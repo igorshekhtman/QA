@@ -1,3 +1,15 @@
+============= INDEXING ORG INSTRUCTIONS (SEAN) ==================================
+
+[6/9/15, 2:19:30 PM] Sean Lydon - Apixio: Have the services up on staging for output report
+[6/9/15, 2:19:50 PM] Sean Lydon - Apixio: The indexer is http://spark-stg.apixio.net:8087
+[6/9/15, 2:20:04 PM] Sean Lydon - Apixio: The report server is http://spark-stg.apixio.net:8097
+[6/9/15, 2:20:30 PM] Sean Lydon - Apixio: There is https enabled on 70*7 but since this is a .net address the cert doesn't work
+[6/9/15, 2:21:13 PM] Sean Lydon - Apixio: can answer questions and/or provide more details for the API as needed
+[6/9/15, 3:50:49 PM] Sean Lydon - Apixio:  s.post("http://spark-stg.apixio.net:8087/index/outputreport/372")
+[6/9/15, 3:55:45 PM] Sean Lydon - Apixio: s.get("http://spark-stg.apixio.net:8097/outputreport/count/CP_e65587fa-01e5-4b14-88d1-5362b0412811").text
+[6/9/15, 3:56:00 PM] Sean Lydon - Apixio: print s.get("http://spark-stg.apixio.net:8097/outputreport/CP_e65587fa-01e5-4b14-88d1-5362b0412811", params={"format":"csv"}).text
+
+
 ============= DATA ORCHESTRATOR VERSION AND HEALTH CHECK ========================
 
 https://test-data-orch.apixio.com:7085/util/version
@@ -79,6 +91,8 @@ https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=sanity
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=any&projects=any
 
 https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=grinderusr1414103999@apixio.net&organizations=MMG&projects=CP_fa7f3247-7877-423c-a260-59a3b02bd6ef
+
+https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/routing_summary?users=any&organizations=MMG&projects=any
 
 
 ============= PIPELINE CONFIG TOOLS ===================================
@@ -214,8 +228,16 @@ curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle"
 
 new:
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+USE: /mnt/automation/python/bundling_tools/python2.6 bundle.py UTILITY !!!!
+—————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
 http://cmp-stg.apixio.com:8087/cmp/v1/project/%7BprojectId%7D/bundle
 http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle
+http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_109cf444-0de6-426d-a1f2-122b3c30308b/bundle
+
+curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_109cf444-0de6-426d-a1f2-122b3c30308b/bundle"
+
 CP_04694605-98dd-40e6-ad8f-73c1a3cd7504
 with optional batch id: ?batch_id={batchId} if you want to limit bundling to a particular run of events
 
@@ -237,10 +259,15 @@ deeb9b09-3ad7-4240-b6a8-95de6325507e - Automated Bundling Set for Hometown Healt
 CP_fa7f3247-7877-423c-a260-59a3b02bd6ef - Project: The Super Every Patient MMG Massive Scale Test Project - 2
 c11999bb-0a63-4649-be1c-5b01286e0e5d
 
+f1591672-df04-45fe-a554-3d8ba5937ac0 - MMG Project 3 guid 
+
+
 
 
 '8629001', 'Automated Bundling Set for MMG', '2d69873e-3b92-4586-bfc0-a3abbdb5b890', 'Auto-Bundled 372', '2015-04-09T17:42:09.309Z', 'CP_005fab57-fbec-4475-a15e-71b7b43b321e'
 
+
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f1591672-df04-45fe-a554-3d8ba5937ac0/reload" 
 
 curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-5104-4469-9d9a-3ef91be27254/reload" 
 
