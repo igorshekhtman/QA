@@ -1,3 +1,9 @@
+============= HEADLESS CHROME INSTALLATION INSTRUCTIONS - REZA =================
+
+http://chrome.richardlloyd.org.uk/
+http://tobyho.com/2015/01/09/headless-browser-testing-xvfb/
+
+
 ============= INDEXING ORG INSTRUCTIONS (SEAN) ==================================
 
 [6/9/15, 2:19:30 PM] Sean Lydon - Apixio: Have the services up on staging for output report
@@ -230,11 +236,15 @@ curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3
 new:
 —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 USE: /mnt/automation/python/bundling_tools/python2.6 bundle.py UTILITY !!!!
+
+
+
 —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 
 http://cmp-stg.apixio.com:8087/cmp/v1/project/%7BprojectId%7D/bundle
 http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle
 http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_109cf444-0de6-426d-a1f2-122b3c30308b/bundle
+
 
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_109cf444-0de6-426d-a1f2-122b3c30308b/bundle"
 

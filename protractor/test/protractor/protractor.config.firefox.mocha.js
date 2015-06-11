@@ -23,7 +23,8 @@ exports.config={
 	chromeOnly: false,
 	
 	capabilities: {
-        browserName: 'firefox'        
+        //browserName: 'firefox'
+        browserName: 'google-chrome'        
     },
     
     onPrepare: function() {
@@ -60,7 +61,7 @@ exports.config={
 	frameworkPath:'/usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js',
 	//framework:'mocha',
 	
-	//specs:['testsuite/*.spec.js'],
+	//specs:['testsuite/03*.spec.js'],
 	specs:['specs/*.spec.js'],
 	
 	
