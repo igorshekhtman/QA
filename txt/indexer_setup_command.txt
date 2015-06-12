@@ -3,6 +3,8 @@
 http://chrome.richardlloyd.org.uk/
 http://tobyho.com/2015/01/09/headless-browser-testing-xvfb/
 
+rpm -Uvh chromium-browser-38.0.2125.111-1.el6.centos.x86_64.rpm
+
 
 ============= INDEXING ORG INSTRUCTIONS (SEAN) ==================================
 

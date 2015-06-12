@@ -569,7 +569,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	print ("Executing %s query %s ...\n") % (activity, summary_table_name)
 	REPORT = REPORT+"<table border='1' width='800' cellspacing='0'>"
 	
-	if summary_table_name == "summary_hcc_error":
+	if (summary_table_name == "summary_hcc_error") or (summary_table_name == "summary_hcc_error_staging"):
 		cur.execute("""SELECT count(*) as count, error_name, \
 			if (error_message like '%%401 while submitting%%','Received error: 401 while submitting reject or accept', error_message) as message \
 			FROM %s \
@@ -578,7 +578,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			GROUP BY error_name, \
 			if (error_message like '%%401 while submitting%%','Received error: 401 while submitting reject or accept', error_message) \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))				
-	elif (summary_table_name == "summary_page_persist") or (summary_table_name == "summary_pager"):	
+	elif (summary_table_name == "summary_page_persist") or (summary_table_name == "summary_pager") or (summary_table_name == "summary_page_persist_staging") or (summary_table_name == "summary_pager_staging"):	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
 			if (error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) as message \
 			FROM %s \
