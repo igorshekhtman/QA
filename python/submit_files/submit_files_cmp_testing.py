@@ -26,8 +26,8 @@ PASSWORD="apixio.123"
 #HOST="https://testdr.apixio.com:8443"
 HOST="https://stagedr.apixio.com:8443"
 
-#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
+DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
 
 
 
@@ -103,14 +103,12 @@ def uploadData():
 
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
-#FILE = FILES[0]
-#print FILE
-#quit()
+patlist = open('patlist', 'w')
 
-print ("Uploading ...")
-print (" ")
 
-#for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):	
+
+
+print ("Uploading ...\n")	
 for FILE in FILES:	
 		DOCUMENTCOUNTER += 1
 		ORGANIZATION=obj["organization"]
@@ -122,6 +120,7 @@ for FILE in FILES:
 		TRACE_COLFAM=obj["trace_colFam"]
 		DOCUMENT_ID=uuid.uuid1()
 		PATIENT_ID=uuid.uuid1()
+		patlist.write(str(PATIENT_ID)+"\n")
 		PATIENT_ID_AA="PATIENT_ID_1"
 		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()));
 		PATIENT_MIDDLE_NAME="MiddleName";
@@ -187,7 +186,7 @@ for FILE in FILES:
 		obju=json.loads(bufu.getvalue())	
 		UUID=obju["uuid"]
 		# print (obju)
-		print ("Document UUID: %s" % (UUID));
+		print ("Document Number %d \t\t Document UUID: %s" % (DOCUMENTCOUNTER, UUID));
 
 		#print (TOKEN), (ORGANIZATION), (ORG_ID), (CODE), (USER_ID), (S3_BUCKET), (ROLES), (TRACE_COLFAM), (DOCUMENT_ID)
 		#print (PATIENT_ID), (PATIENT_ID_AA), (PATIENT_FIRST_NAME), (PATIENT_LAST_NAME), (PATIENT_MIDDLE_NAME), (PATIENT_DOB), (PATIENT_GENDER), (ORGANIZATION)
@@ -198,6 +197,7 @@ for FILE in FILES:
 		#print (" ")
 
 # ========================================================== Finish by closing batch ======================================================================================
+patlist.close()
 print (" ")	
 print ("TOTAL NUMBER OF DOCUMENTS UPLOADED: %s" % (DOCUMENTCOUNTER));
 print (" ")
