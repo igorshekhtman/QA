@@ -1581,7 +1581,7 @@ def emailReport():
 
 	message['From'] = 'Apixio QA <QA@apixio.com>'
 	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
-	message['Subject'] = 'Apixio %s QA Report - %s\n\n' % (ENVIRONMENT.upper(), START_TIME)
+	message['Subject'] = 'Apixio %s Daily QA Report - %s\n\n' % (ENVIRONMENT.upper(), START_TIME)
 	msg_full = message.as_string()
 		
 	s=smtplib.SMTP()
