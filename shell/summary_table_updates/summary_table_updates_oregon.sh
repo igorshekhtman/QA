@@ -60,53 +60,58 @@ SET mapred.output.compression.type=BLOCK;
 
 ! echo Loading Production partitions
 
-insert overwrite table summary_goldstandard_pages partition (year, month, day)
+insert overwrite table summary_goldstandard_pages_production partition (year, month, day)
 select max(timestamp) as timestamp, max(time) as time, session,
 max(user) user, document_uuid, max(type) type, max(total_pages) total_pages, cast(page as int) page, 
 sum(page_time) page_time,
-max(timestamp *100 + codes) - (max(timestamp) * 100) codes, 
+max(timestamp *100 + codes) - (max(timestamp) * 100) codes, org_id, patient_id,
 max(year) year, max(month) month, max(day) day
 from (
 select 
 get_json_object(line,"$.unixtime") timestamp,
 get_json_object(line,"$.isotime") time,
 get_json_object(line,"$.goldstandard.app_user_info.session") session,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.user") user,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.document_uuid") document_uuid,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.type") type,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.total") total_pages,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.page") page,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.page_time") page_time,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_page.codes") codes,
+get_json_object(line,"$.goldstandard.app_data.event_data.user") user,
+get_json_object(line,"$.goldstandard.app_data.event_data.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.app_data.event_data.type") type,
+get_json_object(line,"$.goldstandard.app_data.event_data.total") total_pages,
+get_json_object(line,"$.goldstandard.app_data.event_data.page") page,
+get_json_object(line,"$.goldstandard.app_data.event_data.page_time") page_time,
+get_json_object(line,"$.goldstandard.app_data.event_data.codes") codes,
+get_json_object(line,"$.goldstandard.app_data.event_data.orgId") org_id,
+get_json_object(line,"$.goldstandard.app_data.event_data.patientId") patient_id,
 year,
 month,
 day
 from production_logs_goldstandard_epoch
-where get_json_object(line,'$.goldstandard.goldstandard.event_name')like'app_hcc_page') a
+where get_json_object(line,'$.goldstandard.app_data.event_name')like'app_hcc_page') a
 where page > 0 and ($dateRange)
-group by session, document_uuid, page
-order by session, document_uuid, page;
+group by session, document_uuid, page, patient_id,org_id
+order by session, org_id, patient_id, document_uuid, page;
 
-insert overwrite table summary_goldstandard_results partition (year, month, day)
+insert overwrite table summary_goldstandard_annotations_production partition (year, month, day)
 select 
 get_json_object(line,"$.unixtime") timestamp,
 get_json_object(line,"$.isotime") time,
 get_json_object(line,"$.goldstandard.app_user_info.session") session,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.user") user,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.document_uuid") document_uuid,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.type") type,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.total") total_pages,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.page") page,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.code") hcc,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.version") version,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.dos") dos,
-get_json_object(line,"$.goldstandard.goldstandard.frontend.app_hcc_final.icd") icd,
+get_json_object(line,"$.goldstandard.app_data.event_data.user") user,
+get_json_object(line,"$.goldstandard.app_data.event_data.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.app_data.event_data.type") type,
+get_json_object(line,"$.goldstandard.app_data.event_data.total") total_pages,
+get_json_object(line,"$.goldstandard.app_data.event_data.page") page,
+get_json_object(line,"$.goldstandard.app_data.event_data.code") hcc,
+get_json_object(line,"$.goldstandard.app_data.event_data.version") version,
+get_json_object(line,"$.goldstandard.app_data.event_data.dos") dos,
+get_json_object(line,"$.goldstandard.app_data.event_data.icd") icd,
+get_json_object(line,"$.goldstandard.app_data.event_data.orgId") org_id,
+get_json_object(line,"$.goldstandard.app_data.event_data.patientId") patient_id,
 year,
 month,
 day
 from production_logs_goldstandard_epoch
-where get_json_object(line,'$.goldstandard.goldstandard.event_name') like 'app_hcc_final'
+where get_json_object(line,'$.goldstandard.app_data.event_name') like 'app_hcc_final'
 and ($dateRange);
+
 
 ! echo end of gold standard
  
@@ -1090,6 +1095,58 @@ get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 
 ###################################Staging#########################################################
 ! echo Loading Staging partitions
+insert overwrite table summary_goldstandard_pages_staging partition (year, month, day)
+select max(timestamp) as timestamp, max(time) as time, session,
+max(user) user, document_uuid, max(type) type, max(total_pages) total_pages, cast(page as int) page, 
+sum(page_time) page_time,
+max(timestamp *100 + codes) - (max(timestamp) * 100) codes, org_id, patient_id,
+max(year) year, max(month) month, max(day) day
+from (
+select 
+get_json_object(line,"$.unixtime") timestamp,
+get_json_object(line,"$.isotime") time,
+get_json_object(line,"$.goldstandard.app_user_info.session") session,
+get_json_object(line,"$.goldstandard.app_data.event_data.user") user,
+get_json_object(line,"$.goldstandard.app_data.event_data.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.app_data.event_data.type") type,
+get_json_object(line,"$.goldstandard.app_data.event_data.total") total_pages,
+get_json_object(line,"$.goldstandard.app_data.event_data.page") page,
+get_json_object(line,"$.goldstandard.app_data.event_data.page_time") page_time,
+get_json_object(line,"$.goldstandard.app_data.event_data.codes") codes,
+get_json_object(line,"$.goldstandard.app_data.event_data.orgId") org_id,
+get_json_object(line,"$.goldstandard.app_data.event_data.patientId") patient_id,
+year,
+month,
+day
+from staging_logs_goldstandard_epoch
+where get_json_object(line,'$.goldstandard.app_data.event_name')like'app_hcc_page') a
+where page > 0 and ($dateRange)
+group by session, document_uuid, page, patient_id,org_id
+order by session, org_id, patient_id, document_uuid, page;
+
+insert overwrite table summary_goldstandard_annotations_staging partition (year, month, day)
+select 
+get_json_object(line,"$.unixtime") timestamp,
+get_json_object(line,"$.isotime") time,
+get_json_object(line,"$.goldstandard.app_user_info.session") session,
+get_json_object(line,"$.goldstandard.app_data.event_data.user") user,
+get_json_object(line,"$.goldstandard.app_data.event_data.document_uuid") document_uuid,
+get_json_object(line,"$.goldstandard.app_data.event_data.type") type,
+get_json_object(line,"$.goldstandard.app_data.event_data.total") total_pages,
+get_json_object(line,"$.goldstandard.app_data.event_data.page") page,
+get_json_object(line,"$.goldstandard.app_data.event_data.code") hcc,
+get_json_object(line,"$.goldstandard.app_data.event_data.version") version,
+get_json_object(line,"$.goldstandard.app_data.event_data.dos") dos,
+get_json_object(line,"$.goldstandard.app_data.event_data.icd") icd,
+get_json_object(line,"$.goldstandard.app_data.event_data.orgId") org_id,
+get_json_object(line,"$.goldstandard.app_data.event_data.patientId") patient_id,
+year,
+month,
+day
+from staging_logs_goldstandard_epoch
+where get_json_object(line,'$.goldstandard.app_data.event_name') like 'app_hcc_final'
+and ($dateRange);
+
 
 insert overwrite table summary_docreceiver_archive_staging partition (year, month, day, org_id)
 select
