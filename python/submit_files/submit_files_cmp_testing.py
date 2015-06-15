@@ -26,8 +26,8 @@ PASSWORD="apixio.123"
 #HOST="https://testdr.apixio.com:8443"
 HOST="https://stagedr.apixio.com:8443"
 
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
+#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
 
 
 
@@ -103,12 +103,14 @@ def uploadData():
 
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
+TOTAL_DOCS = len(FILES)
 patlist = open('patlist', 'w')
+#print TOTAL_DOCS
+#quit()
 
 
 
-
-print ("Uploading ...\n")	
+print ("Uploading total of %d documents ...\n" % TOTAL_DOCS)	
 for FILE in FILES:	
 		DOCUMENTCOUNTER += 1
 		ORGANIZATION=obj["organization"]
@@ -186,7 +188,7 @@ for FILE in FILES:
 		obju=json.loads(bufu.getvalue())	
 		UUID=obju["uuid"]
 		# print (obju)
-		print ("Document Number %d \t\t Document UUID: %s" % (DOCUMENTCOUNTER, UUID));
+		print ("Document %d out of %d \t\t Document UUID: %s" % (DOCUMENTCOUNTER, TOTAL_DOCS, UUID));
 
 		#print (TOKEN), (ORGANIZATION), (ORG_ID), (CODE), (USER_ID), (S3_BUCKET), (ROLES), (TRACE_COLFAM), (DOCUMENT_ID)
 		#print (PATIENT_ID), (PATIENT_ID_AA), (PATIENT_FIRST_NAME), (PATIENT_LAST_NAME), (PATIENT_MIDDLE_NAME), (PATIENT_DOB), (PATIENT_GENDER), (ORGANIZATION)
@@ -222,7 +224,8 @@ print ("* USERNAME               = %s" % USERNAME)
 print ("* PASSWORD:              = %s" % PASSWORD)
 print ("* HOST:                  = %s" % HOST)
 print ("* SOURCE FOLDER          = %s" % DIR)
-print ("* TOTAL DOCS UPLOADED    = %d" % DOCUMENTCOUNTER);
+print ("* TOTAL DOCS UPLOADED    = %d" % DOCUMENTCOUNTER)
+print ("* TOTAL DOCS EXPECTED    = %d" % TOTAL_DOCS)
 print ("================================================================================")
 # =========================================================================================================================================================================
 
