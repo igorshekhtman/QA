@@ -84,7 +84,7 @@ import mmap
 
 os.system('clear')
 
-#================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===========================================================
+#================================= CONTROLS TO WORK ON ONE SPECIFIC QUERY AND DEBUG SPECIFIC SECTIONS OF CODE ===============================
 # Specific Report Section to Run:
 #  0 - All
 #  1 - failedJobsRD()
@@ -105,7 +105,7 @@ REPSECTORUN=0
 # 1 - True
 DEBUG_MODE=False
 
-# ============================ INITIALIZING GLOBAL VARIABLES VALUES =====================================================================================================
+# ============================ INITIALIZING GLOBAL VARIABLES VALUES ==========================================================================
 
 TEST_TYPE="SanityTest"
 REPORT_TYPE="Daily engineering QA"
@@ -268,9 +268,8 @@ ORGMAP = { \
 	"__HIVE_DEFAULT_PARTITION__":"Unknown", \
 	"None":"Unknown", \
 }
-#===================================================================================
-#===================================================================================
-#===================================================================================
+
+#-----------------------------------------------------------------------------------------
 
 def checkEnvironmentandReceivers():
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
@@ -347,10 +346,12 @@ def checkEnvironmentandReceivers():
 	print ("Version 1.0.1\n")
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")
-			
+
+#-----------------------------------------------------------------------------------------
+# Obtain day and month for previous from current day and month
 
 def identifyReportDayandMonth():
-#======== obtain day and month for previous from current day and month ===========================================
+
 	global DAYSBACK, DATERANGE, CURDAY, CURMONTH, DAY, MONTH, YEAR, CURYEAR
 	print ("Day and month values before %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY = %s, MONTH = %s, YEAR = %s\n") % (CURDAY, CURMONTH, CURYEAR)
@@ -387,12 +388,13 @@ def identifyReportDayandMonth():
 	print ("Day and month values after %s day(s) back adjustment ...") % (DAYSBACK)
 	print ("DAY: %s, MONTH: %s, YEAR: %s, SPELLED MONTH: %s\n") % (DAY, MONTH, YEAR, MONTH_FMN)
 	#time.sleep(45)
-	
+
+#-----------------------------------------------------------------------------------------	
 
 def test(debug_type, debug_msg):
 	print "debug(%d): %s" % (debug_type, debug_msg)
 
-#========================================================================================================================================================
+#-----------------------------------------------------------------------------------------
 
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
@@ -409,7 +411,8 @@ def writeReportHeader ():
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	print ("End writing report header ...\n")
-	
+
+#-----------------------------------------------------------------------------------------	
 
 def connectToHive():
 	print ("Connecing to Hive ...\n")
@@ -420,6 +423,8 @@ def connectToHive():
 		database='default')
 	cur = conn.cursor()
 	print ("Connection to Hive established ...\n")
+
+#-----------------------------------------------------------------------------------------
 
 def connectToMySQL():
 	print ("Connecing to MySQL ...\n")
