@@ -221,12 +221,70 @@ create table summary_logstraffic
 partitioned by (app_name STRING, month STRING, day STRING, year STRING);
 
 /**********************************Gold Standard*********************************************************************************/
-create table summary_goldstandard_results
-(timestamp bigint, time string , session string, user string, document_uuid string, type string, total_pages int, page int, hcc string, version string, dos string, icd string)
+create table summary_goldstandard_annotations_production
+(timestamp bigint, 
+ time string , 
+ session string, 
+ user string, 
+ document_uuid string, 
+ type string, 
+ total_pages int, 
+ page int, 
+ hcc string, 
+ version string,
+ dos string, 
+ icd string,
+ org_id string,
+ patient_id string)
 partitioned by (year STRING, month STRING, day STRING);
 
-create table summary_goldstandard_pages
-(timestamp bigint, time string , session string, user string, document_uuid string, type string, total_pages int, page int, page_time int, codes int)
+create table summary_goldstandard_annotations_staging
+(timestamp bigint, 
+ time string , 
+ session string, 
+ user string, 
+ document_uuid string, 
+ type string, 
+ total_pages int, 
+ page int, 
+ hcc string, 
+ version string,
+ dos string, 
+ icd string,
+ org_id string,
+ patient_id string)
+partitioned by (year STRING, month STRING, day STRING);
+
+create table summary_goldstandard_pages_staging
+(timestamp bigint,
+ time string , 
+ session string,
+ user string,
+ document_uuid string,
+ type string,
+ total_pages int,
+ page int,
+ page_time int,
+ codes int,
+ org_id string,
+ patient_id string
+)
+partitioned by (year STRING, month STRING, day STRING);
+
+create table summary_goldstandard_pages_production
+(timestamp bigint,
+ time string , 
+ session string,
+ user string,
+ document_uuid string,
+ type string,
+ total_pages int,
+ page int,
+ page_time int,
+ codes int,
+ org_id string,
+ patient_id string
+)
 partitioned by (year STRING, month STRING, day STRING);
 
 _staging is appended to every table of staging
