@@ -50,6 +50,12 @@
 #
 ####################################################################################################
 #
+# EDITED:		June 15th, 2015
+# EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
+# PURPOSE:		Considering that this report has evolved from being strictly Pipeline to muti-usage
+#				report.  All referenced to Pipeline were removed from report headers.
+#
+####################################################################################################
 import requests
 import pyhs2
 import os
@@ -1587,19 +1593,6 @@ def emailReport():
 	# Delete graph image file from stress_test folder
 	#os.remove(IMAGEFILENAME)
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
-
-#-----------------------------------------------------------------------------------------
-
-#def emailReport():
-#	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
-#	print ("Emailing report ...\n")
-#	s=smtplib.SMTP()
-#	s.connect("smtp.gmail.com",587)
-#	s.starttls()
-#	s.login("donotreply@apixio.com", "apx.mail47")	        
-#	s.sendmail(SENDER, RECEIVERS, REPORT)	
-#	s.sendmail(SENDER, RECEIVERS2, REPORT)
-#	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 	
 #================ START OF MAIN BODY =================================================================	
 	
