@@ -1,17 +1,14 @@
 ####################################################################################################
 #
-# PROGRAM: apixio_daily_qa_report.py
-# AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
-# DATE:    2013.01.01 Initial Version
+# PROGRAM: 	apixio_daily_qa_report.py
+# AUTHOR:  	Igor Shekhtman ishekhtman@apixio.com
+# DATE:    	2013.01.01 Initial Version
 #
-# REVISIONS:
-# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
-# DATE: 2013.01.01
 #
 # PURPOSE:
-#          Purpose of this program is to query summary tables related to HCC and Platform applications,
-#		   prepare summary report in HTML format, email one copy to designated recipients and archive
-#		   another copy for future observation and analysis:
+#          	Purpose of this program is to query summary tables related to HCC and Platform applications,
+#		   	prepare summary report in HTML format, email one copy to designated recipients and archive
+#		   	another copy for future observation and analysis:
 #		   
 # REPORT INCLUDES FOLLOWING SECTIONS:
 #		   * 1 - failedJobsRD()
@@ -31,29 +28,31 @@
 #		   python2.7 apixio_daily_qa_report.py production eng@apixio.com ops@apixio.com 1 2014
 #
 # REQUIRED and OPTIONAL PARAMETERS:
-#		   Arg1 - environment
-# 		   Arg2 - report recepient #1
-#          Arg3 - report recepient #2
-#          Arg4 - DAYSBACK
-#          Arg5 - CURYEAR			
+#		   	Arg1 - environment
+# 		   	Arg2 - report recepient #1
+#          	Arg3 - report recepient #2
+#          	Arg4 - DAYSBACK
+#          	Arg5 - CURYEAR			
 #
 #
 # SETUP:
-#          * Assumes a summary tables and Hive environment is available
-#          * Assumes a Python 2.7 environment is available
-#          * From QA2 server (54.176.225.214) /mnt/automation/python/daily_production_pipeline_qa_report folder enter "python2.7 apixio_daily_qa_report.py"
+#          	* Assumes a summary tables and Hive environment is available
+#          	* Assumes a Python 2.7 environment is available
+#          	* From QA2 server (54.176.225.214) 
+#			* /mnt/automation/python/daily_production_pipeline_qa_report folder enter "python2.7 apixio_daily_qa_report.py"
 #
 # USAGE:
-#          * Archived report summary can be viewed here:
-#		   https://qa-reports.apixio.com/html/reports_production.html (production)
-#		   https://qa-reports.apixio.com/html/reports_staging.html (staging)	
+#          	Archived report summary can be viewed at the following location:
+#		   	https://qa-reports.apixio.com/html/reports_production.html (production)
+#		   	https://qa-reports.apixio.com/html/reports_staging.html (staging)	
 #
 ####################################################################################################
 #
 # EDITED:		June 15th, 2015
 # EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
 # PURPOSE:		Considering that this report has evolved from being strictly Pipeline to muti-usage
-#				report.  All referenced to Pipeline were removed from report headers.
+#				report, including HCC, Uploader as well as additional Apixio products/applications,
+#				all references to Pipeline were removed from report headers, sub-headers and names.
 #
 ####################################################################################################
 import requests
@@ -340,9 +339,6 @@ def checkEnvironmentandReceivers():
 		
 	print "DAYS BACK = %s" % DAYSBACK
 	print "YEAR CURYEAR = %s %s" % (YEAR, CURYEAR)	
-	#quit()		
-	# overwite any previous ENVIRONMENT settings
-	#ENVIRONMENT = "Production"
 	print ("Version 1.0.1\n")
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")
@@ -399,11 +395,6 @@ def test(debug_type, debug_msg):
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
-	#REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	#REPORT = REPORT + HTML_RECEIVERS
-	#REPORT = REPORT + """MIME-Version: 1.0\n"""
-	#REPORT = REPORT + """Content-type: text/html\n"""
-	#REPORT = REPORT + """Subject: Daily %s Pipeline QA Report - %s\n\n""" % (ENVIRONMENT, CUR_TIME)
 	REPORT = """ """
 	REPORT = REPORT + """<h1>Apixio Daily QA Report</h1>\n"""
 	REPORT = REPORT + """Date & Time (run): <b>%s</b><br>\n""" % (CUR_TIME)
@@ -445,21 +436,12 @@ def connectToMySQL():
 
 def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 
-	#print ("\n----------------------------------------------------------------------------")
-	#print (">>> OBTAIN EXTERNAL TOKEN <<<")
-	#print ("----------------------------------------------------------------------------")
-
-	#8076
-	#7076
 	external_token = ""
 	url = AUTHHOST+"/auths"
-	#url = 'https://useraccount-stg.apixio.com:7076/auths'
 	referer = AUTHHOST  	
-	#token=$(curl -v --data email=$email --data password="$passw" ${authhost}/auths | cut -c11-49)
 	
 	DATA =    {'Referer': referer, 'email': AUTH_EMAIL, 'password': AUTH_PASSW} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
-	
 	response = requests.post(url, data=DATA, headers=HEADERS)
 	statuscode = response.status_code 
 	
@@ -478,12 +460,6 @@ def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	global TOKEN
 	
-	#print ("----------------------------------------------------------------------------")
-	#print (">>> OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
-	#print ("----------------------------------------------------------------------------")
-	
-	
-	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
 	url = TOKEHOST+"/tokens"
   	referer = TOKEHOST 				
@@ -553,7 +529,6 @@ def getOrgName(id):
         print ("* Could not locate OrgName for OrgID:  %s" % id)
         print ("*-------------------------------------------------------")
         customerOrgName = "OrgNotFound"
-        #quit()   
     else:	    
     	customerOrgName = id	    
     return (customerOrgName)	
@@ -600,12 +575,7 @@ def obtainFailedJobs(table):
 			<td>"+str(i[0])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[1])+"&nbsp;&nbsp;</td> \
 			<td>"+str(i[2])+"&nbsp;&nbsp;</td>"
-		#if str(i[3]) in ORGMAP:
-		#	REPORT = REPORT + "<td>"+ORGMAP[str(i[3])]+" ("+str(i[3])+")</td>"
-		#else:
-		#	REPORT = REPORT + "<td>"+str(i[3])+" ("+str(i[3])+")</td>"
 		REPORT = REPORT + "<td>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td>"
-		#getOrgName(str(i[2]))
 		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
 		COMPONENT_STATUS="FAILED"
 	if (ROW == 0):
@@ -1606,8 +1576,6 @@ checkEnvironmentandReceivers()
 identifyReportDayandMonth()
 
 writeReportHeader()	
-
-#obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
 
 connectToMySQL()
 
