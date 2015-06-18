@@ -27,8 +27,9 @@ PASSWORD="apixio.123"
 HOST="https://stagedr.apixio.com:8443"
 
 #DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
-
+#/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
+#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
+DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
 
 
 
