@@ -78,7 +78,8 @@ from email.mime.image import MIMEImage
 import string
 from datetime import datetime
 import datetime as DT
-import MySQLdb
+#import MySQLdb
+#import mysqldb
 import mmap
 
 os.system('clear')
@@ -507,7 +508,7 @@ def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
     # If orgName is not retrievable for any reason, return orgID
     
-    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, ok, 0, 0)
     
     idString = str(id)
     blankUUID = 'O_00000000-0000-0000-0000-000000000000'
@@ -1577,7 +1578,7 @@ identifyReportDayandMonth()
 
 writeReportHeader()	
 
-connectToMySQL()
+#connectToMySQL()
 
 connectToHive()
 
@@ -1587,7 +1588,7 @@ writeReportDetails()
 
 closeHiveConnection()
 
-closeMySQLConnection()
+#closeMySQLConnection()
 
 writeReportFooter()
 
