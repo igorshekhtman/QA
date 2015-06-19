@@ -322,7 +322,8 @@ def startCoding():
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       print "* GET SCORABLE DOC = %s" % response.status_code     
     
-      totalPages = getDocPageTotal(scorable)
+      #totalPages = getDocPageTotal(scorable)
+      totalPages = 1
       print "* TOTAL # OF PAGES = %s" % totalPages
  
       # looping through each and every available page in a document
@@ -658,8 +659,8 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT = "production"
 		DOMAIN="hcc.apixio.com"
 		URL="https://hcc.apixio.com"
-		USERNAME="root@api.apixio.com"
-		PASSWORD="thePassword"
+		USERNAME="grinderusr1414166341@apixio.net"
+		PASSWORD="apixio.123"
 		#USERNAME="apxdemot0500@apixio.net"
 		#PASSWORD="apixio.123"
 	else:
@@ -972,6 +973,13 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     
     print "* ANNOTATE FINDING = %s" % response.status_code
+    if response.status_code == 500:
+    	print response.text
+    	#print response.json()
+    	#print response.raw
+    	#quit()
+    
+    
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
