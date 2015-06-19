@@ -54,6 +54,10 @@ cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib
 cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/mocha-apixio.js
 vi /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
 
+/usr/lib/node_modules/protractor/lib/frameworks
+
+/home/protractor/ptc/results
+
 
 MAC - 
 $ brew update
