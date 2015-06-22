@@ -97,12 +97,12 @@ os.system('clear')
 #  9 - userAccountsRD()
 # 10 - bundlerRD()
 # 11 - loaderRD()
-REPSECTORUN=2
+REPSECTORUN=0
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=True
+DEBUG_MODE=False
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==========================================================================
 
