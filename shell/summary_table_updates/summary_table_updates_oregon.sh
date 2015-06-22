@@ -58,6 +58,10 @@ SET mapred.output.compression.type=BLOCK;
 
 -- note: all partition values must be in order as well as by name
 
+########################################################################################################
+################################### Production #########################################################
+########################################################################################################
+
 ! echo Loading Production partitions
 
 insert overwrite table summary_goldstandard_pages_production partition (year, month, day)
@@ -204,6 +208,22 @@ get_json_object(line, '$.submit.post.orgid') as org_id
 FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.submit.post') is not null
 and ($dateRange);
+
+
+INSERT OVERWRITE table summary_coordinator_errors partition(year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time, 
+get_json_object(line, '$.level') as level, 
+get_json_object(line, '$.source') as source,
+get_json_object(line, '$.loggerName') as loggername,
+get_json_object(line, '$.message') as message, 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, 
+day
+FROM production_logs_coordinator_epoch 
+WHERE get_json_object(line, '$.level')='ERROR'
+and ($dateRange);
+
 
 insert overwrite table summary_coordinator_workrequest partition (year, month, day, org_id)
 SELECT
@@ -1092,8 +1112,10 @@ get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
 
 
+########################################################################################################
+##################################### Staging ##########################################################
+########################################################################################################
 
-###################################Staging#########################################################
 ! echo Loading Staging partitions
 insert overwrite table summary_goldstandard_pages_staging partition (year, month, day)
 select max(timestamp) as timestamp, max(time) as time, session,
@@ -1237,6 +1259,22 @@ get_json_object(line, '$.submit.post.orgid') as org_id
 FROM staging_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.submit.post') is not null
 and ($dateRange);
+
+
+INSERT OVERWRITE table summary_coordinator_errors_staging partition(year, month, day)
+SELECT
+get_json_object(line, '$.datestamp') as time, 
+get_json_object(line, '$.level') as level, 
+get_json_object(line, '$.source') as source,
+get_json_object(line, '$.loggerName') as loggername,
+get_json_object(line, '$.message') as message, 
+substr(get_json_object(line, '$.datestamp'),0,4) as year,
+month, 
+day
+FROM staging_logs_coordinator_epoch 
+WHERE get_json_object(line, '$.level')='ERROR'
+and ($dateRange);
+
 
 insert overwrite table summary_coordinator_workrequest_staging partition (year, month, day, org_id)
 SELECT

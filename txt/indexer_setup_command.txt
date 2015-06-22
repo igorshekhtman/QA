@@ -1450,6 +1450,33 @@ hadoop distcp hdfs://10.176.235.204:8020/user/apxqueue/saved/APXDEMOT87187250MB2
 
 ============================================================== SQUIRREL + HIVE ===============================================================
 
+
+======================================================= CREATING NEW HIVE TABLE =============================================================
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set mapred.reduce.tasks=16;
+set hive.exec.max.dynamic.partitions.pernode = 10000;
+set mapred.output.compress=true;
+set hive.exec.compress.output=true;
+set mapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCodec;
+set io.compression.codecs=org.apache.hadoop.io.compress.GzipCodec;
+set mapred.output.compression.type=BLOCK;
+
+
+create table summary_page_persist_staging
+(time string, doc_id string, input_key string, bytes int, image_type string, resolution string,
+page_number int, failed_qa string, batch_id string, job_id string, workd_id string, hadoop_job_id string,
+classname string, unpack_status string, unpack_millis int, millis int, status string, error string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+==============================================================================================================================================
+
+
+
+
+
+
 Parser Table - staging_logs_doc2apo_epoch
 
 Ocr Table - staging_logs_ocr2apo_epoch
