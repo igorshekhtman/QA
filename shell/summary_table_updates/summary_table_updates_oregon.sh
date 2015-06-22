@@ -62,7 +62,7 @@ SET mapred.output.compression.type=BLOCK;
 ################################### Production #########################################################
 ########################################################################################################
 
-! echo "Loading Production partitions"
+!echo "Loading Production partitions"
 
 insert overwrite table summary_goldstandard_pages_production partition (year, month, day)
 select max(timestamp) as timestamp, max(time) as time, session,
@@ -93,7 +93,7 @@ where page > 0 and ($dateRange)
 group by session, document_uuid, page, patient_id,org_id
 order by session, org_id, patient_id, document_uuid, page;
 
-! echo "end of summary_goldstandard_pages_production"
+!echo "end of summary_goldstandard_pages_production"
 
 insert overwrite table summary_goldstandard_annotations_production partition (year, month, day)
 select 
@@ -119,7 +119,7 @@ where get_json_object(line,'$.goldstandard.app_data.event_name') like 'app_hcc_f
 and ($dateRange);
 
 
-! echo "end of summary_goldstandard_annotations_production"
+!echo "end of summary_goldstandard_annotations_production"
  
 insert overwrite table summary_docreceiver_archive partition (year, month, day, org_id)
 select
