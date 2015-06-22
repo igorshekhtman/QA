@@ -26,6 +26,10 @@ https://test-data-orch.apixio.com:7085/util/healthcheck
 
 
 ============ PROTRACTOR ==============================================
+protractor server:
+/root
+testProgressReport.sh
+
 
 ——running headless on chrome—————
 
