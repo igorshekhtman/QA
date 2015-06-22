@@ -140,6 +140,8 @@ from production_logs_docreceiver_epoch
 where get_json_object(line, '$.archive') is not null
 and ($dateRange);
 
+! echo end of summary_docreceiver_archive
+
 insert overwrite table summary_docreceiver_seqfile partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -162,6 +164,8 @@ get_json_object(line, '$.seqfile.file.document.orgid') as org_id
 FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.seqfile.file.document') is not null
 and ($dateRange);
+
+! echo end of summary_docreceiver_seqfile
 
 insert overwrite table summary_docreceiver_upload partition (year, month, day, org_id)
 SELECT
@@ -186,6 +190,8 @@ FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.upload.document') is not null
 and ($dateRange);
 
+! echo end of summary_docreceiver_upload
+
 insert overwrite table summary_docreceiver_seqfile_post partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -209,6 +215,7 @@ FROM production_logs_docreceiver_epoch
 WHERE get_json_object(line, '$.submit.post') is not null
 and ($dateRange);
 
+! echo end of summary_docreceiver_seqfile_post
 
 INSERT OVERWRITE table summary_coordinator_errors partition(year, month, day)
 SELECT
@@ -224,6 +231,7 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='ERROR'
 and ($dateRange);
 
+! echo end of summary_coordinator_errors
 
 insert overwrite table summary_coordinator_workrequest partition (year, month, day, org_id)
 SELECT
@@ -240,6 +248,8 @@ get_json_object(line, '$.work.context.organization') as org_id
 FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.work') is not null
 and ($dateRange);
+
+! echo end of summary_coordinator_workrequest
 
 insert overwrite table summary_coordinator_movefiles partition (year, month, day, org_id)
 SELECT
@@ -259,6 +269,8 @@ get_json_object(line, '$.job.context.organization') as org_id
 FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.filesmoved') is not null
 and ($dateRange);
+
+! echo end of summary_coordinator_movefiles
 
 insert overwrite table summary_coordinator_jobrequest partition (year, month, day, org_id)
 SELECT
@@ -281,6 +293,8 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.files') is not null and get_json_object(line, '$.job.status') is null
 and ($dateRange);
 
+! echo end of summary_coordinator_jobrequest
+
 insert overwrite table summary_coordinator_jobstart partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -299,6 +313,8 @@ get_json_object(line, '$.job.context.organization') as org_id
 FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')='start'
 and ($dateRange);
+
+! echo end of summary_coordinator_jobstart
 
 insert overwrite table summary_coordinator_jobfinish partition (year, month, day, org_id)
 select
@@ -321,6 +337,8 @@ FROM production_logs_coordinator_epoch
 WHERE get_json_object(line, '$.level')='EVENT' and get_json_object(line, '$.job.status')!='start' and get_json_object(line, '$.job.status') is not null
 and ($dateRange);
 
+! echo end of summary_coordinator_jobfinish
+
 insert overwrite table summary_coordinator_stats partition(year, month, day)
 select 
 get_json_object(line, '$.datestamp') as time, 
@@ -330,6 +348,8 @@ month,
 day
 from production_logs_coordinator_epoch where get_json_object(line, '$.coordinator.stats.parser.queuedCount') is not null
 and ($dateRange);
+
+! echo end of summary_coordinator_stats
 
 insert overwrite table summary_afsdownload partition (year, month, day, org_id)
 SELECT
@@ -349,6 +369,8 @@ get_json_object(line, '$.input.orgId') as org_id
 FROM production_logs_afsDownload_epoch
 WHERE get_json_object(line, '$.level') != "INFO"
 and ($dateRange);
+
+! echo end of summary_afsdownload
 
 insert overwrite table summary_parser partition (year, month, day, org_id)
 SELECT
@@ -377,6 +399,8 @@ WHERE get_json_object(line, '$.level') != "INFO"
 and (get_json_object(line, '$.documentuuid') is not null or get_json_object(line, '$.status') is not null)
 and ($dateRange);
 
+! echo end of summary_parser
+
 insert overwrite table summary_ocr partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -403,6 +427,8 @@ WHERE get_json_object(line, '$.level') != "INFO"
 and (get_json_object(line, '$.jobname') is not null or get_json_object(line, '$.orgId') is not null)
 and ($dateRange);
 
+! echo end of summary_ocr
+
 insert overwrite table summary_persist_mapper partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -426,6 +452,8 @@ get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistMapper"
 and ($dateRange);
+
+! echo end of summary_persist_mapper
 
 insert overwrite table summary_persist_reducer partition (year, month, day, org_id)
 SELECT
@@ -452,6 +480,8 @@ get_json_object(line, '$.orgId')) as org_id
 FROM production_logs_persistjob_epoch
 WHERE get_json_object(line, '$.level') != "INFO" and get_json_object(line, '$.className') like "%PersistReducer"
 and ($dateRange);
+
+! echo end of summary_persist_reducer
 
 insert overwrite table summary_qafromseqfile partition(year, month, day, org_id)
 select
@@ -482,6 +512,8 @@ get_json_object(line, '$.input.orgid') as org_id
 from production_logs_dataCheckAndRecover_epoch where get_json_object(line, '$.output') is not null
 and ($dateRange);
 
+! echo end of summary_qafromseqfile
+
 insert overwrite table summary_qapatientuuid partition(year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -503,6 +535,8 @@ get_json_object(line, '$.orgId')) as org_id
 from production_logs_qapatientuuid_epoch where get_json_object(line, '$.level')='EVENT'
 and get_json_object(line, '$.writeTo') is null
 and ($dateRange);
+
+! echo end of summary_qapatientuuid
 
 insert overwrite table summary_event_mapper partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -530,6 +564,8 @@ and get_json_object(line, '$.className') like "%EventMapper"
 and get_json_object(line, '$.eventAddress') is null
 and ($dateRange);
 
+! echo end of summary_event_mapper
+
 insert overwrite table summary_event_reducer partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientUUID') as patient_uuid,
@@ -554,6 +590,8 @@ and get_json_object(line, '$.className') like "%EventReducer"
 and get_json_object(line, '$.eventAddress') is null
 and ($dateRange);
 
+! echo end of summary_event_reducer
+
 insert overwrite table summary_event_address partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.patientUUID') as patient_uuid,
@@ -577,6 +615,8 @@ where get_json_object(line, '$.level')="EVENT"
 and get_json_object(line, '$.className') like "%EventMapper" 
 and get_json_object(line, '$.eventAddress') is not null
 and ($dateRange);
+
+! echo end of summary_event_address
 
 insert overwrite table summary_qa_event partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -608,6 +648,8 @@ from production_logs_qaeventjob_epoch
 where get_json_object(line, '$.level')="EVENT"
 and ($dateRange);
 
+! echo end of summary_qa_event
+
 insert overwrite table summary_summary partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -633,6 +675,8 @@ where get_json_object(line, '$.level')='EVENT'
 and get_json_object(line, '$.className') like "%SummaryMapper"
 and ($dateRange);
 
+! echo end of summary_summary
+
 insert overwrite table summary_merge_summary partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -654,6 +698,8 @@ from production_logs_summaryjob_epoch
 where get_json_object(line, '$.level')='EVENT' 
 and get_json_object(line, '$.className') like "%SummaryReducer"
 and ($dateRange);
+
+! echo end of summary_merge_summary
 
 insert overwrite table summary_qa_summary partition (year, month, day, org_id)
 select
@@ -683,6 +729,8 @@ where get_json_object(line, '$.level')='EVENT'
 and get_json_object(line, '$.className') like "%QASummaryMapper"
 and ($dateRange);
 
+! echo end of summary_qa_summary
+
 insert overwrite table summary_qa_merge_summary partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -708,6 +756,8 @@ from production_logs_qasummaryjob_epoch
 where get_json_object(line, '$.level')='EVENT' 
 and get_json_object(line, '$.className') like "%QAAggregateSummaryMapper"
 and ($dateRange);
+
+! echo end of summary_qa_merge_summary
 
 insert overwrite table summary_loadapo partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -735,6 +785,8 @@ from production_logs_loadapo_epoch
 where get_json_object(line, '$.level') = "EVENT"
 and ($dateRange);
 
+! echo end of summary_loadapo
+
 insert overwrite table summary_doc_manifest partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.document.uuid') as apixio_uuid,
@@ -752,6 +804,8 @@ get_json_object(line, '$.orgId') as org_id
 from production_logs_datacheckandrecover_epoch
 where get_json_object(line, '$.docManifest') is not null
 and ($dateRange);
+
+! echo end of summary_doc_manifest
 
 insert overwrite table summary_pager partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -776,6 +830,8 @@ from production_logs_pagerjob_epoch
 where get_json_object(line, '$.level') = "EVENT"
 and get_json_object(line, '$.document') is not null
 and ($dateRange);
+
+! echo end of summary_pager
 
 insert overwrite table summary_page_persist partition (year, month, day, org_id)
 select get_json_object(line, '$.datestamp') as time,
@@ -803,6 +859,8 @@ where get_json_object(line, '$.level') = "EVENT"
 and get_json_object(line, '$.input.key') is not null
 and ($dateRange);
 
+! echo end of summary_page_persist
+
 
 insert overwrite table summary_careopt_load partition (year, month, day, org_id)
 select
@@ -822,6 +880,8 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.patient.cassandraload.millis') is not null 
 and ($dateRange);
 
+! echo end of summary_careopt_load
+
 insert overwrite table summary_careopt_search partition (year, month, day, org_id)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -840,6 +900,8 @@ production_logs_careopt_epoch
 where get_json_object(line, '$.patientaccess.patient.id') is not null 
 and ($dateRange);
 
+! echo end of summary_careopt_search
+
 insert overwrite table summary_careopt_errors partition (year, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -852,6 +914,8 @@ from
 production_logs_careopt_epoch 
 where get_json_object(line, '$.level') = 'ERROR' 
 and ($dateRange);
+
+! echo end of summary_careopt_errors
 
 insert overwrite table summary_careopt_login partition (year, month, day, org_id)
 select
@@ -895,6 +959,7 @@ production_logs_careopt_epoch
 where (get_json_object(line, '$.logout') is not null or get_json_object(line, '$.login') is not null)  
 and ($dateRange);
 
+! echo end of summary_careopt_login
 
 insert overwrite table summary_bundler_document partition (year, month, day, org_id)
 select
@@ -908,6 +973,8 @@ month, day,
 get_json_object(line, '$.hcc.bundler.receive.org_id') as org_id
 from production_logs_bundler_epoch where get_json_object(line, '$.hcc.bundler.receive') is not null
 and ($dateRange);
+
+! echo end of summary_bundler_document
 
 insert overwrite table summary_bundler_historical partition (year, month, day)
 select
@@ -928,6 +995,8 @@ get_json_object(line, '$.level') = 'EVENT' and
 get_json_object(line, '$.hcc.bundler.historicalEvents') is not null
 and ($dateRange);
 
+! echo end of summary_bundler_historical
+
 insert overwrite table summary_bundler_sequence partition (year, month, day)
 select
 get_json_object(line, '$.datestamp') as time,
@@ -946,6 +1015,7 @@ get_json_object(line, '$.level') = 'EVENT' and
 get_json_object(line, '$.hcc.bundler.get_sequence') is not null
 and ($dateRange);
 
+! echo end of summary_bundler_sequence
 
 insert overwrite table summary_dataorchestrator_request partition (year, month, day, org_id)
 SELECT
@@ -974,6 +1044,8 @@ FROM production_logs_dataorchestrator_epoch
 WHERE get_json_object(line, '$.app.data_orchestrator.request') is not null
 and ($dateRange);
 
+! echo end of summary_dataorchestrator_request
+
 insert overwrite table summary_dataorchestrator_lookup partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -994,6 +1066,8 @@ FROM production_logs_dataorchestrator_epoch
 WHERE get_json_object(line, '$.app.data_orchestrator.lookup') is not null
 and ($dateRange);
 
+! echo end of summary_dataorchestrator_lookup
+
 insert overwrite table summary_dataorchestrator_acl partition (year, month, day, org_id)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -1013,6 +1087,7 @@ FROM production_logs_dataorchestrator_epoch
 WHERE get_json_object(line, '$.app.data_orchestrator.acl') is not null
 and ($dateRange);
 
+! echo end of summary_dataorchestrator_acl
 
 insert overwrite table summary_useraccount_request partition (year, month, day)
 SELECT
@@ -1041,6 +1116,8 @@ FROM production_logs_useraccount_epoch
 WHERE get_json_object(line, '$.app.user_account.request') is not null
 and ($dateRange);
 
+! echo end of summary_useraccount_request
+
 insert overwrite table summary_tokenizer_request partition (year, month, day)
 SELECT
 get_json_object(line, '$.datestamp') as time,
@@ -1062,6 +1139,7 @@ FROM production_logs_tokenizer_epoch
 WHERE get_json_object(line, '$.app.user_account.request') is not null
 and ($dateRange);
 
+! echo end of summary_tokenizer_request
 
 insert overwrite table summary_loader_upload partition (year, month, day, org_id)
 SELECT
@@ -1085,6 +1163,8 @@ FROM production_logs_loader_epoch
 WHERE get_json_object(line, '$.level') = 'EVENT' and 
 get_json_object(line, '$.org_id') is not NULL and
 ($dateRange);
+
+! echo end of summary_loader_upload
 
 insert overwrite table summary_hcc_error partition (year, month, day)
 SELECT
@@ -1110,7 +1190,6 @@ WHERE
 (get_json_object(line, '$.app.hcc.error_name') is not NULL or
 get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
-
 
 ########################################################################################################
 ##################################### Staging ##########################################################
