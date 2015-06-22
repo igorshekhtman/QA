@@ -97,12 +97,12 @@ os.system('clear')
 #  9 - userAccountsRD()
 # 10 - bundlerRD()
 # 11 - loaderRD()
-REPSECTORUN=2
+REPSECTORUN=0
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=True
+DEBUG_MODE=False
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==========================================================================
 
@@ -1299,20 +1299,20 @@ def errorMessagesRD():
 	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
-	#obtainErrors("DR","summary_docreceiver_upload"+POSTFIX, "doc_id")
-	#obtainErrors("DR","summary_docreceiver_archive"+POSTFIX, "doc_id")
-	#obtainErrors("DR","summary_docreceiver_seqfile"+POSTFIX, "doc_id")
+	obtainErrors("DR","summary_docreceiver_upload"+POSTFIX, "doc_id")
+	obtainErrors("DR","summary_docreceiver_archive"+POSTFIX, "doc_id")
+	obtainErrors("DR","summary_docreceiver_seqfile"+POSTFIX, "doc_id")
 	obtainErrors("Coordinator", "summary_coordinator_errors"+POSTFIX, "")
-	#obtainErrors("Parser","summary_parser"+POSTFIX, "doc_id")
-	#obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
-	#obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
-	#obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_key")
-	#obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
-	#obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
-	#obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
-	#obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")
-	#obtainErrors("Page Extraction","summary_page_persist"+POSTFIX, "doc_id")	
-	#obtainErrors("Page Extraction","summary_pager"+POSTFIX, "doc_id")	
+	obtainErrors("Parser","summary_parser"+POSTFIX, "doc_id")
+	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
+	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
+	obtainErrors("Persist Reducer","summary_persist_reducer"+POSTFIX, "patient_key")
+	obtainErrors("Event Mapper","summary_event_mapper"+POSTFIX, "doc_id")
+	obtainErrors("Event Reducer","summary_event_reducer"+POSTFIX, "patient_uuid")
+	obtainErrors("Load APO","summary_loadapo"+POSTFIX, "input_key")
+	obtainErrors("HCC","summary_hcc_error"+POSTFIX, "session")
+	obtainErrors("Page Extraction","summary_page_persist"+POSTFIX, "doc_id")	
+	obtainErrors("Page Extraction","summary_pager"+POSTFIX, "doc_id")	
 	if (COMPONENT_STATUS=="PASSED"):
 		REPORT = REPORT+PASSED
 	else:
