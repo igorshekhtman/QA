@@ -78,8 +78,7 @@ from email.mime.image import MIMEImage
 import string
 from datetime import datetime
 import datetime as DT
-#import MySQLdb
-#import mysqldb
+import MySQLdb
 import mmap
 
 os.system('clear')
@@ -98,12 +97,12 @@ os.system('clear')
 #  9 - userAccountsRD()
 # 10 - bundlerRD()
 # 11 - loaderRD()
-REPSECTORUN=0
+REPSECTORUN=2
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
 # 1 - True
-DEBUG_MODE=False
+DEBUG_MODE=True
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==========================================================================
 
@@ -508,7 +507,7 @@ def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
     # If orgName is not retrievable for any reason, return orgID
     
-    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, ok, 0, 0)
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
     
     idString = str(id)
     blankUUID = 'O_00000000-0000-0000-0000-000000000000'
@@ -611,7 +610,15 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			day=%s and month=%s and year=%s \
 			GROUP BY org_id, \
 			if(error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) \
-			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))	
+			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
+	elif (summary_table_name == "production_logs_coordinator_epoch") or (summary_table_name == "staging_logs_coordinator_epoch"):
+		cur.execute("""SELECT count(get_json_object(line,"$.message")) as count, get_json_object(line,"$.message") as message \
+			FROM %s \
+			WHERE \
+			get_json_object(line,"$.level")='ERROR' and \
+			day=%s and month=%s and year=%s \
+			GROUP BY get_json_object(line,"$.message") \
+			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))			
 	else:	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
 			if (error_message like '/mnt%%','No space left on device', error_message) as message \
@@ -631,6 +638,8 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		REPORT = REPORT+"<tr><td bgcolor='#FFFF00'><b>"+activity+"</b> "+summary_table_name+"</td>"
 		if summary_table_name == "summary_hcc_error":
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		elif (summary_table_name == "production_logs_coordinator_epoch") or (summary_table_name == "staging_logs_coordinator_epoch"):
+			REPORT = REPORT+"<td bgcolor='#FFFF00' colspan='2'>"+str(i[0])+"</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[1])+"</i></td></tr>"	
 		else:
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		
@@ -1293,6 +1302,7 @@ def errorMessagesRD():
 	obtainErrors("DR","summary_docreceiver_upload"+POSTFIX, "doc_id")
 	obtainErrors("DR","summary_docreceiver_archive"+POSTFIX, "doc_id")
 	obtainErrors("DR","summary_docreceiver_seqfile"+POSTFIX, "doc_id")
+	obtainErrors("Coordinator", ENVIRONMENT.lower()+"_logs_coordinator_epoch", "")
 	obtainErrors("Parser","summary_parser"+POSTFIX, "doc_id")
 	obtainErrors("OCR","summary_ocr"+POSTFIX, "doc_id")
 	obtainErrors("Persist Mapper","summary_persist_mapper"+POSTFIX, "doc_id")
@@ -1578,7 +1588,7 @@ identifyReportDayandMonth()
 
 writeReportHeader()	
 
-#connectToMySQL()
+connectToMySQL()
 
 connectToHive()
 
@@ -1588,7 +1598,7 @@ writeReportDetails()
 
 closeHiveConnection()
 
-#closeMySQLConnection()
+closeMySQLConnection()
 
 writeReportFooter()
 
