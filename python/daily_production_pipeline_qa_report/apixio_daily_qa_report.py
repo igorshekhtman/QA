@@ -1386,7 +1386,7 @@ def careOptimizerErrorsRD():
 #-----------------------------------------------------------------------------------------	
 	
 def logsTrafficRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "LOGS TRAFFIC"
 	COMPONENT_STATUS="PASSED"
 	summaryLogstrafficTotals("summary_logstraffic"+POSTFIX)
