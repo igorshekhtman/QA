@@ -1295,7 +1295,7 @@ def jobSummary(table):
 #-----------------------------------------------------------------------------------------
 
 def failedJobsRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT + SUBHDR % "FAILED JOBS"
 	COMPONENT_STATUS="PASSED"
 	obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
@@ -1310,7 +1310,7 @@ def failedJobsRD():
 #-----------------------------------------------------------------------------------------	
 	
 def errorMessagesRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT + SUBHDR % "SPECIFIC ERRORS"
 	COMPONENT_STATUS="PASSED"
 	obtainErrors("DR","summary_docreceiver_upload"+POSTFIX, "doc_id")
@@ -1337,7 +1337,7 @@ def errorMessagesRD():
 #-----------------------------------------------------------------------------------------	
 
 def uploadSummaryRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "UPLOAD SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	uploadSummary("Doc-Receiver","summary_docreceiver_upload"+POSTFIX, "doc_id")
@@ -1354,7 +1354,7 @@ def uploadSummaryRD():
 #-----------------------------------------------------------------------------------------	
 
 def jobSummaryRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "JOB SUMMARY"
 	COMPONENT_STATUS="PASSED"
 	jobSummary("summary_coordinator_jobfinish"+POSTFIX)
@@ -1369,7 +1369,7 @@ def jobSummaryRD():
 #-----------------------------------------------------------------------------------------	
 
 def careOptimizerErrorsRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "CARE OPTIMIZER"
 	COMPONENT_STATUS="PASSED"
 	careOptimizerErrors("summary_careopt_errors"+POSTFIX)
@@ -1401,7 +1401,7 @@ def logsTrafficRD():
 #-----------------------------------------------------------------------------------------
 	
 def dataOrchestratorRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "DATA ORCHESTRATOR"
 	COMPONENT_STATUS="PASSED"
 	dataOrchestratorAcls("summary_dataorchestrator_acl"+POSTFIX)
@@ -1418,7 +1418,7 @@ def dataOrchestratorRD():
 #-----------------------------------------------------------------------------------------
 
 def userAccountsRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "USER ACCOUNTS"
 	COMPONENT_STATUS="PASSED"
 	userAccountsRequests("summary_useraccount_request"+POSTFIX)
@@ -1433,7 +1433,7 @@ def userAccountsRD():
 #-----------------------------------------------------------------------------------------	
 
 def bundlerRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "BUNDLER"
 	COMPONENT_STATUS="PASSED"
 	bundlerSequence("summary_bundler_sequence"+POSTFIX)
@@ -1449,7 +1449,7 @@ def bundlerRD():
 #-----------------------------------------------------------------------------------------	
 	
 def loaderRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "LOADER"
 	COMPONENT_STATUS="PASSED"
 	print "Loader Report"
@@ -1464,7 +1464,7 @@ def loaderRD():
 #-----------------------------------------------------------------------------------------	
 	
 def eventsRD():
-	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX
+	global SUBHDR, COMPONENT_STATUS, REPORT, COMPONENT_STATUS, POSTFIX, GS_INDEX
 	REPORT = REPORT+SUBHDR % "EVENTS"
 	COMPONENT_STATUS="PASSED"
 	eventAMR("summary_event_address"+POSTFIX)
@@ -1577,6 +1577,7 @@ def archiveReport():
 
 def emailReport():
 	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2, REPORT_EMAIL
+	global GLOBAL_STATUS, GS_INDEX
 	
 	print ("Emailing report ...\n")
 	REPORT_EMAIL = REPORT
