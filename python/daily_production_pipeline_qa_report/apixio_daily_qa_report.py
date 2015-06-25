@@ -580,7 +580,6 @@ def obtainFailedJobs(table):
 		REPORT = REPORT + "<td>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td>"
 		REPORT = REPORT + "<td>"+FORMATEDTIME+"</td></tr>"	
 		COMPONENT_STATUS="FAILED"
-		GS_INDEX=1
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='6'><i>There were no failed jobs</i></td></tr>"
 	REPORT = REPORT+"</table>"
@@ -645,7 +644,6 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+getOrgName(str(i[1]))+" ("+str(i[1])+")</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
 		
 		COMPONENT_STATUS="FAILED"
-		GS_INDEX=1
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'>There were no <b>"+activity+"</b> "+summary_table_name+" specific errors</td></tr>"
 	REPORT = REPORT+"</table><br>" 
@@ -681,7 +679,6 @@ def dataOrchestratorAcls(table):
 		print i
 		if (str(i[3]) == "error") or (str(i[2]) == "FORBIDDEN") :
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -723,7 +720,6 @@ def dataOrchestratorLookups(table):
 		print i
 		if str(i[2]) == "error":
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -764,7 +760,6 @@ def dataOrchestratorRequests(table):
 		print i
 		if str(i[3]) == "error":
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -806,7 +801,6 @@ def userAccountsRequests(table):
 		print i
 		if str(i[4]) == "error":
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -841,7 +835,6 @@ def bundlerSequence(table):
 		print i
 		if str(i[3]) == "error":
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -876,7 +869,6 @@ def bundlerHistorical(table):
 		print i
 		if str(i[3]) == "error":
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		else:
 			BG_COLOR="#FFFFFF"
@@ -935,7 +927,6 @@ def loaderSummary(table):
 			BG_COLOR="#FFFFFF"
 		else:
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td>"
 		REPORT = REPORT+"<td bgcolor='"+BG_COLOR+"'>"+str(i[2])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td>"
@@ -975,7 +966,6 @@ def eventAMR(table):
 			BG_COLOR="#FFFFFF"
 		else:
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			BG_COLOR="#FFFF00"
 		#if str(i[2]) in ORGMAP:
 		#	REPORT = REPORT+"<tr><td bgcolor='"+BG_COLOR+"'>"+str(i[0])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[1])+"</td><td bgcolor='"+BG_COLOR+"'>"+str(i[3])+"</td><td bgcolor='"+BG_COLOR+"'>"+ORGMAP[str(i[2])]+" ("+str(i[2])+")</td></tr>"
@@ -1029,7 +1019,6 @@ def careOptimizerErrors(table):
 		else:
 			REPORT = REPORT+"<tr><td>"+str(i[3])+"</td><td>"+removeHtmlTags(str(i[0]))+"</td><td>"+str(i[1])+"</td><td>"+str(i[2])+"</td></tr>"
 		COMPONENT_STATUS="FAILED"
-		GS_INDEX=1
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='4'><i>Logs data is missing</i></td></tr>"
 	REPORT = REPORT+"</table><br>"
@@ -1181,7 +1170,6 @@ def summaryLogstrafficTotals(table):
 		REPORT = REPORT + "<tr><td bgcolor="+BG_COLOR+">"+str(i[0])+"</td><td bgcolor="+BG_COLOR+">"+str(i[1])+"</td><td bgcolor="+BG_COLOR+">"+str(i[2])+"</td><td bgcolor="+BG_COLOR+">"+str(i[3])+"</td><td bgcolor="+BG_COLOR+">"+str(i[4])+"</td><td bgcolor="+BG_COLOR+">"+str(i[5])+"</td></tr>"	
 		if (int(i[1]) > 0):
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 			
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td align='center' colspan='11'><i>Logs data is missing</i></td></tr>"
@@ -1219,7 +1207,6 @@ def uploadSummary(activity, summary_table_name, unique_id):
 			REPORT = REPORT+"<td width='20%' bgcolor='#FFFF00'>"+getOrgName(str(i[2]))+" ("+str(i[2])+")</td></tr>"
 			#getOrgName(10000289)
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 		else:
 			REPORT = REPORT+"<tr><td width='50%'>"+activity+"</td><td width='10%'>"+str(i[0])+"</td>"
 			REPORT = REPORT+"<td width='10%'>"+str(i[1])+"</td>"
@@ -1275,7 +1262,6 @@ def jobSummary(table):
 			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+getOrgName(str(i[3]))+" ("+str(i[3])+")</td></tr>"
 			#getOrgName(str(i[1]))
 			COMPONENT_STATUS="FAILED"
-			GS_INDEX=1
 		else:
 			REPORT = REPORT+"<tr><td>"+str(i[0])+"</td><td>"+str(i[1])+"</td>"
 			REPORT = REPORT+"<td>"+str(i[2])+"</td>"
@@ -1304,6 +1290,7 @@ def failedJobsRD():
 		REPORT = REPORT+PASSED
 	else:
 		REPORT = REPORT+FAILED
+		GS_INDEX=1
 	REPORT = REPORT+"<br><br>"
 	print ("Completed failed jobs query ... \n")
 	
