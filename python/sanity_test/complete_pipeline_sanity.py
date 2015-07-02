@@ -358,7 +358,7 @@ else:
 
 SENDER="donotreply@apixio.com"
 # RECEIVERS="ishekhtman@apixio.com"
-RECEIVERS="eng@apixio.com"
+RECEIVERS="aaitken@apixio.com"
 
 
 REPORT = """From: Apixio QA <QA@apixio.com>

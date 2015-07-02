@@ -465,8 +465,8 @@ def startCoding():
     	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
     	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  quit()
-        IncrementTestResultsTotals("document page retrieval", response.status_code)
+    	  #quit()
+        #IncrementTestResultsTotals("document page retrieval", response.status_code)
         print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
 
     test_counter += 1

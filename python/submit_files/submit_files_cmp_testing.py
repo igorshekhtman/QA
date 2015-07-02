@@ -18,18 +18,21 @@ import uuid
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
 #USERNAME="apxdemot0216"
-USERNAME="cmptest001"
+#USERNAME="cmptest003"
+USERNAME="testorg10"
 
 #PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
 
 #HOST="https://testdr.apixio.com:8443"
-HOST="https://stagedr.apixio.com:8443"
+#HOST="https://stagedr.apixio.com:8443"
+HOST="https://dr.apixio.com"
 
 #DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 #/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
 #DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
 DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
+#DIR="/mnt/testdata/HCC-724/data"
 
 
 
@@ -125,23 +128,24 @@ for FILE in FILES:
 		PATIENT_ID=uuid.uuid1()
 		patlist.write(str(PATIENT_ID)+"\n")
 		PATIENT_ID_AA="PATIENT_ID_1"
-		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()));
-		PATIENT_MIDDLE_NAME="MiddleName";
-		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()));
-		PATIENT_DOB="19880706";
-		PATIENT_GENDER="M";
-		ORGANIZATION="ORGANIZATION_VALUE";
-		PRACTICE_NAME="PRACTICE_NAME_VALUE";
-		FILE_LOCATION=("%s" % (FILE));
+		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+		PATIENT_MIDDLE_NAME="MiddleName"
+		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		PATIENT_DOB="19880706"
+		PATIENT_GENDER="M"
+		ORGANIZATION="ORGANIZATION_VALUE"
+		PRACTICE_NAME="PRACTICE_NAME_VALUE"
+		FILE_LOCATION=("%s" % (FILE))
 		FILE_FORMAT_TEMP=FILE.split(".")
 		FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
-		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE";
-		CREATION_DATE="2014-05-11T10:00:47-07:00";
-		MODIFIED_DATE="2014-05-11T10:00:47-07:00";
-		DESCRIPTION=("%s" % (FILE));
-		METATAGS="METATAGS_VALUE";
-		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
-		TOKEN_URL="%s/auth/token/" % (HOST);
+		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
+		CREATION_DATE="2014-06-12T10:00:47-07:00"
+		MODIFIED_DATE="2014-06-12T10:00:47-07:00"
+		DESCRIPTION=("%s" % (FILE))
+		METATAGS="METATAGS_VALUE"
+		MIME_TYPE="""text/plain"""
+		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE"
+		TOKEN_URL="%s/auth/token/" % (HOST)
 		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
 		
 		CATALOG_FILE=("	<ApxCatalog> \
@@ -165,14 +169,16 @@ for FILE in FILES:
 						<Description>%s</Description> \
 						<MetaTags>%s</MetaTags> \
 						<SourceSystem>%s</SourceSystem> \
-						<MimeType /> \
+						<MimeType>%s</MimeType> \
 						</CatalogEntry> \
 						</ApxCatalog>" % ( \
 						DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, \
 						PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, \
 						FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, \
-						DESCRIPTION, METATAGS, SOURCE_SYSTEM \
-						));
+						DESCRIPTION, METATAGS, SOURCE_SYSTEM, MIME_TYPE \
+						))
+		#print CATALOG_FILE
+		#quit()						
 		
 		# ============================== Uploading Data =================================================================================================================
 		import cStringIO

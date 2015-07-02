@@ -1,0 +1,9 @@
+#Tue Mar 24 23:15:53 UTC 2015
+$propertyVersion=1426207831614
+validation=true
+force_date_extraction=false
+model_filename=production_model_with_dateextraction_20141028b1426207831614
+$modelFile=production_model_with_dateextraction_20141028b.zip
+$version=1426207831614
+extract_dates=true
+extractors=com.apixio.extractor.event.extractors.StructuredConditionEventExtractor|com.apixio.extractor.event.extractors.DictionaryBasedEventExtractor|com.apixio.extractor.event.extractors.MaxentV5Extractor

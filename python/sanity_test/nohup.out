@@ -1,0 +1,29 @@
+[H[2J* About to connect() to docreceiver-or.apixio.com port 443 (#0)
+*   Trying 52.11.224.153... * connected
+* Connected to docreceiver-or.apixio.com (52.11.224.153) port 443 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+*   CAfile: /etc/pki/tls/certs/ca-bundle.crt
+  CApath: none
+* SSL connection using TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+* Server certificate:
+* 	subject: CN=*.apixio.com,OU=Domain Control Validated
+* 	start date: Jul 24 23:21:01 2014 GMT
+* 	expire date: Aug 01 18:22:00 2017 GMT
+* 	common name: *.apixio.com
+* 	issuer: CN=Go Daddy Secure Certificate Authority - G2,OU=http://certs.godaddy.com/repository/,O="GoDaddy.com, Inc.",L=Scottsdale,ST=Arizona,C=US
+> POST /auth/token/ HTTP/1.1
+User-Agent: PycURL/7.19.3.1 libcurl/7.19.7 NSS/3.16.2.3 Basic ECC zlib/1.2.3 libidn/1.18 libssh2/1.4.2
+Host: docreceiver-or.apixio.com
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 36
+
+< HTTP/1.1 200 OK
+< Date: Fri, 08 May 2015 09:48:15 GMT
+< Set-Cookie: X-Apixio-Token=3235313831333737393530303234363931373532393656303178326C386F4C76746F4876534A4E2B65487175686A6E4D4F4E56367A4E4C474246354D61456C744E37746165513676436530475A5A55757A2B496A6541494D714A6576642F6A72533239436531446E30633674397043747044684E635549506B50544E4538637944695168546E58324F3170486A51685338353349504164476A33;Secure;HttpOnly
+< Expires: Thu, 01 Jan 1970 00:00:00 GMT
+< Content-Type: application/json
+< Transfer-Encoding: chunked
+< 
+* Connection #0 to host docreceiver-or.apixio.com left intact
+* Closing connection #0

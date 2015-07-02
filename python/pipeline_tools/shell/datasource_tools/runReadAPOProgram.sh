@@ -1,0 +1,1 @@
+java -cp apixio-datasource-1.1.3.jar:lib/* com.apixio.dao.cmdline.ReadApo -a 10.222.101.109,10.222.139.147,10.174.77.69 -g $1 -c cf$1 -k patientUUID -i cf$1_patKeys_grouped/$2/cf$1-patientUUIDList -o $1_apo-noDups_$2.output -d false

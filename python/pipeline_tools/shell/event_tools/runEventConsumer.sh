@@ -1,0 +1,1 @@
+java -cp apixio-datasource-1.5.0-SNAPSHOT.jar:lib/* com.apixio.dao.cmdline.EventConsumerTool --cassandraHost 10.199.22.32,10.199.52.19,10.196.81.90 --redisHost localhost --prefix Staging --channel ScienceProject --mysqlHost mysql.stg1.apixio.net --mysqlUser apxDB --mysqlPwd 2518151802496110413072V01xHZ27yWvIJnuc3WFLQfexFA==
