@@ -7,3 +7,5 @@ User Accounts Regression Staging Report - May 22, 2015	reports/staging/useraccou
 User Accounts Regression Staging Report - May 28, 2015	reports/staging/useraccountsregression/2015/05/28.html
 User Accounts Regression Staging Report - May 29, 2015	reports/staging/useraccountsregression/2015/05/29.html
 User Accounts Regression Staging Report - June 03, 2015	reports/staging/useraccountsregression/2015/06/03.html
+User Accounts Regression Staging Report - June 04, 2015	reports/staging/useraccountsregression/2015/06/04.html
+User Accounts Regression Staging Report - June 26, 2015	reports/staging/useraccountsregression/2015/06/26.html

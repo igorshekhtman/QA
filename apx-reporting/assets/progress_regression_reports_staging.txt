@@ -11,3 +11,6 @@ PR Regression Staging Report - May 12, 2015	reports/staging/progressreport/2015/
 PR Regression Staging Report - May 14, 2015	reports/staging/progressreport/2015/05/14.html
 PR Regression Staging Report - May 15, 2015	reports/staging/progressreport/2015/05/15.html
 PR Regression Staging Report - May 26, 2015	reports/staging/progressreport/2015/05/26.html
+PR Regression Staging Report - June 10, 2015	reports/staging/progressreport/2015/06/10.html
+PR Regression Staging Report - June 11, 2015	reports/staging/progressreport/2015/06/11.html
+PR Regression Staging Report - June 19, 2015	reports/staging/progressreport/2015/06/19.html

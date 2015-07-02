@@ -7,3 +7,4 @@ UA Sanity Staging Report - March 03, 2015	reports/staging/uasanity/2015/03/03.ht
 UA Sanity Staging Report - March 16, 2015	reports/staging/uasanity/2015/03/16.html
 UA Sanity Staging Report - April 01, 2015	reports/staging/uasanity/2015/04/01.html
 UA Sanity Staging Report - April 29, 2015	reports/staging/uasanity/2015/04/29.html
+UA Sanity Staging Report - June 26, 2015	reports/staging/uasanity/2015/06/26.html

@@ -24,3 +24,4 @@ DO Sanity Staging Report - May 08, 2015	reports/staging/dosanity/2015/05/08.html
 DO Sanity Staging Report - June 01, 2015	reports/staging/dosanity/2015/06/01.html
 DO Sanity Staging Report - June 02, 2015	reports/staging/dosanity/2015/06/02.html
 DO Sanity Staging Report - June 03, 2015	reports/staging/dosanity/2015/06/03.html
+DO Sanity Staging Report - June 26, 2015	reports/staging/dosanity/2015/06/26.html

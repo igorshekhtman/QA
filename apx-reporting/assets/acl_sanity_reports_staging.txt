@@ -22,3 +22,4 @@ ACL Sanity Staging Report - February 01, 2015	reports/staging/aclsanity/2015/02/
 ACL Sanity Staging Report - March 03, 2015	reports/staging/aclsanity/2015/03/03.html
 ACL Sanity Staging Report - April 01, 2015	reports/staging/aclsanity/2015/04/01.html
 ACL Sanity Staging Report - April 29, 2015	reports/staging/aclsanity/2015/04/29.html
+ACL Sanity Staging Report - June 26, 2015	reports/staging/aclsanity/2015/06/26.html

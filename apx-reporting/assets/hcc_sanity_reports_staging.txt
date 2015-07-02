@@ -37,3 +37,7 @@ HCC Sanity Staging Report - April 13, 2015	reports/staging/hccsanity/2015/04/13.
 HCC Sanity Staging Report - May 04, 2015	reports/staging/hccsanity/2015/05/04.html
 HCC Sanity Staging Report - May 06, 2015	reports/staging/hccsanity/2015/05/06.html
 HCC Sanity Staging Report - May 07, 2015	reports/staging/hccsanity/2015/05/07.html
+HCC Sanity Staging Report - June 09, 2015	reports/staging/hccsanity/2015/06/09.html
+HCC Sanity Staging Report - June 10, 2015	reports/staging/hccsanity/2015/06/10.html
+HCC Sanity Staging Report - June 18, 2015	reports/staging/hccsanity/2015/06/18.html
+HCC Sanity Staging Report - June 19, 2015	reports/staging/hccsanity/2015/06/19.html

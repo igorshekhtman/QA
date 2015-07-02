@@ -61,3 +61,5 @@ Pipeline Sanity Staging Report - May 11, 2015	reports/Staging/pipelinesanity/201
 Pipeline Sanity Staging Report - May 13, 2015	reports/Staging/pipelinesanity/2015/05/13.html
 Pipeline Sanity Staging Report - May 14, 2015	reports/Staging/pipelinesanity/2015/05/14.html
 Pipeline Sanity Staging Report - June 02, 2015	reports/Staging/pipelinesanity/2015/06/02.html
+Pipeline Sanity Staging Report - June 22, 2015	reports/Staging/pipelinesanity/2015/06/22.html
+Pipeline Sanity Staging Report - June 30, 2015	reports/Staging/pipelinesanity/2015/06/30.html
