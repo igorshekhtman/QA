@@ -1600,7 +1600,7 @@ identifyReportDayandMonth()
 
 writeReportHeader()	
 
-connectToMySQL()
+#connectToMySQL()
 
 connectToHive()
 
@@ -1610,7 +1610,7 @@ writeReportDetails()
 
 closeHiveConnection()
 
-closeMySQLConnection()
+#closeMySQLConnection()
 
 writeReportFooter()
 
