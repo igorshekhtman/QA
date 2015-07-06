@@ -49,7 +49,8 @@ else:
 	USERNAME="sanitytest1"
 	ORGID="370"
 	PASSWORD="Hadoop.4522"
-	HOST="https://stagedr.apixio.com:8443"
+	#HOST="https://stagedr.apixio.com:8443"
+	HOST="https://dr-stg.apixio.com"
 	ENVIRONMENT="Staging"
 #==================================
 
