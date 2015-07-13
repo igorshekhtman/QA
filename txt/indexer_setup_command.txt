@@ -1,3 +1,14 @@
+=============== SSO Testing - Reza - Password Policy Creation =================
+
+
+cd /Users/ishekhtman/Git/user-account/cmdline/tools
+
+java -cp apixio-useracct-roletool*.jar com.apixio.useracct.cmdline.PassPolicyToolCmd -c roletool.yaml -shell
+
+java -cp apixio-useracct-roletool*.jar com.apixio.useracct.cmdline.PassPolicyToolCmd -c config.yaml -shell
+
+vi roletool.yaml
+
 
 ======================= SSH from COMMAND LINE =================================
 
