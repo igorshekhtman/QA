@@ -1,3 +1,13 @@
+
+======================= SSH from COMMAND LINE =================================
+
+sudo ssh -i ishekhtman.pem ishekhtman@accounts-stg.apixio.com
+
+sudo reboot -f
+
+===============================================================================
+
+
 LIST OF PATIENT IDs:
 
 Data check and recover
@@ -327,6 +337,10 @@ curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/f7fb88f0-510
 
 curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/c11999bb-0a63-4649-be1c-5b01286e0e5d/reload"
 
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/3576a6a6-0391-4b3e-8e73-9c6ccf6deb21/reload"
+
+3576a6a6-0391-4b3e-8e73-9c6ccf6deb21
+
 *** REMEMBER:
 in ACLADMIN:
 "ViewDocuments" permission must exist for "System Users" coding group and system_hccreporting@apixio.net user
@@ -445,6 +459,8 @@ tail -f /var/log/apx-opprouter/apx-opprouter-console.log
 tail -f /var/log/apx-opprouter/apx-opprouter-console.log 
 
 tail -f /var/log/apx-hcc/apx-hcc-error.log
+
+tail -f /var/log/apx-accounts//apx-accounts.log
 
 
 ============================ HCC Available Opportunities per specific user ======================

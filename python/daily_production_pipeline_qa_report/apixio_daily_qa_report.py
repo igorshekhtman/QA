@@ -410,7 +410,7 @@ def writeReportHeader ():
 def connectToHive():
 	print ("Connecing to Hive ...\n")
 	global cur, conn
-	conn = pyhs2.connect(host='54.149.166.25', \
+	conn = pyhs2.connect(host='10.0.2.12', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
@@ -1614,8 +1614,10 @@ closeHiveConnection()
 
 writeReportFooter()
 
+emailReport()
+
 archiveReport()
 
-emailReport()
+
 
 #================ END OF MAIN BODY ===================================================================
