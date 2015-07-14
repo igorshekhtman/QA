@@ -446,7 +446,7 @@ def startDrService():
 def connectToHive():
 	global cur, conn
 	print ("Connecing to Hive ...\n")
-	conn = pyhs2.connect(host='54.149.166.25', \
+	conn = pyhs2.connect(host='10.0.2.12', \
 		port=10000, authMechanism="PLAIN", \
 		user='hive', password='', \
 		database='default')
