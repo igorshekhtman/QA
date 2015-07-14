@@ -380,7 +380,7 @@ def generateReportHeader():
 def connectToHive():
 	global conn, cur
 	print ("Establishing Hive connection ...\n")
-	conn = pyhs2.connect(host='54.149.166.25',
+	conn = pyhs2.connect(host='10.0.2.12',
                    port=10000,
                    authMechanism="PLAIN",
                    user='hive',
