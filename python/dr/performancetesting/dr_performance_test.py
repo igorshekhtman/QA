@@ -168,7 +168,7 @@ def checkEnvironment():
 		ORGID="315"
 		PASSWORD="Hadoop.4522"
 		# main staging DR upload url
-		HOST="https://stagedr.apixio.com:8443"
+		HOST="https://dr-stg.apixio.com"
 		# alternative staging DR upload url
 		#HOST="https://stagedr.apixio.com:8443"
 		ENVIRONMENT="Staging"

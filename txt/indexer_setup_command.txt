@@ -9,6 +9,16 @@ java -cp apixio-useracct-roletool*.jar com.apixio.useracct.cmdline.PassPolicyToo
 
 vi roletool.yaml
 
+Python Class:
+- Check Coding Org (if exists)
+- Check Policy (if exists)
+- Assign Policy
+- Create User, Assign to Org.
+
+(single layer of abstraction)
+
+http://learnpythonthehardway.org/book/ex40.html
+
 
 ======================= SSH from COMMAND LINE =================================
 
