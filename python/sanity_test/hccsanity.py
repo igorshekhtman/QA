@@ -665,8 +665,8 @@ def checkEnvironmentandReceivers():
 		#PASSWORD="apixio.123"
 	else:
 		ENVIRONMENT = "staging"
-		DOMAIN="hccstage2.apixio.com"
-		URL="https://hccstage2.apixio.com"
+		DOMAIN="hcc-stg.apixio.com"
+		URL="https://hcc-stg.apixio.com"
 		USERNAME="sanitytest001@apixio.net"
 		PASSWORD="apixio.123"
 	
