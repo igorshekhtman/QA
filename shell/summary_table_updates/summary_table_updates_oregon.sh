@@ -120,6 +120,7 @@ and ($dateRange);
 
 
 !echo "end of summary_goldstandard_annotations_production"
+
  
 insert overwrite table summary_docreceiver_archive partition (year, month, day, org_id)
 select
@@ -1193,6 +1194,46 @@ WHERE
 get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
 
+! echo end of summary_hcc_error
+
+
+INSERT OVERWRITE table summary_sso partition(year, month, day)
+SELECT
+get_json_object(line, '$.unixtime') as time, 
+get_json_object(line, '$.level') as level, 
+get_json_object(line, '$.request_info.end_point') as source,
+get_json_object(line, '$.request_info.end_point') as end_point,
+get_json_object(line, '$.request_info.session') as session,
+get_json_object(line, '$.request_info.query') as query,
+get_json_object(line, '$.request_info.host') as host,
+get_json_object(line, '$.request_info.client') as client,
+get_json_object(line, '$.request_info.user_agent') as user_agent,
+get_json_object(line, '$.isotime') as isotime,
+get_json_object(line, '$.app_data.app_name') as app_name,
+get_json_object(line, '$.app_data.component_name') as component_name,
+get_json_object(line, '$.app_data.event_name') as event_name,
+get_json_object(line, '$.event_data.mode') as mode,
+get_json_object(line, '$.event_data.msg') as msg,
+get_json_object(line, '$.event_data.upstreamError') as upstream_error,
+get_json_object(line, '$.event_data.emailAddress') as email_address,
+get_json_object(line, '$.event_data.error_id') as error_id,
+get_json_object(line, '$.event_data.pageTitle') as page_title,
+get_json_object(line, '$.event_data.lastEmail') as last_email,
+get_json_object(line, '$.event_data.action') as action,
+get_json_object(line, '$.event_data.angularApp') as angular_app,
+get_json_object(line, '$.event_data.category') as category,
+get_json_object(line, '$.event_data.error') as error,
+get_json_object(line, '$.event_data.version') as version, 
+substr(get_json_object(line, '$.isotime'),0,4) as year,
+month, 
+day
+FROM production_logs_sso_epoch 
+WHERE get_json_object(line, '$.level')='EVENT'
+and ($dateRange);
+
+! echo end of summary_sso
+
+
 ########################################################################################################
 ##################################### Staging ##########################################################
 ########################################################################################################
@@ -2240,6 +2281,44 @@ WHERE
 (get_json_object(line, '$.app.hcc.error_name') is not NULL or
 get_json_object(line, '$.app.hcc.frontend.login_failure') is not NULL) and
 ($dateRange);
+
+
+INSERT OVERWRITE table summary_sso_staging partition(year, month, day)
+SELECT
+get_json_object(line, '$.unixtime') as time, 
+get_json_object(line, '$.level') as level, 
+get_json_object(line, '$.request_info.end_point') as source,
+get_json_object(line, '$.request_info.end_point') as end_point,
+get_json_object(line, '$.request_info.session') as session,
+get_json_object(line, '$.request_info.query') as query,
+get_json_object(line, '$.request_info.host') as host,
+get_json_object(line, '$.request_info.client') as client,
+get_json_object(line, '$.request_info.user_agent') as user_agent,
+get_json_object(line, '$.isotime') as isotime,
+get_json_object(line, '$.app_data.app_name') as app_name,
+get_json_object(line, '$.app_data.component_name') as component_name,
+get_json_object(line, '$.app_data.event_name') as event_name,
+get_json_object(line, '$.event_data.mode') as mode,
+get_json_object(line, '$.event_data.msg') as msg,
+get_json_object(line, '$.event_data.upstreamError') as upstream_error,
+get_json_object(line, '$.event_data.emailAddress') as email_address,
+get_json_object(line, '$.event_data.error_id') as error_id,
+get_json_object(line, '$.event_data.pageTitle') as page_title,
+get_json_object(line, '$.event_data.lastEmail') as last_email,
+get_json_object(line, '$.event_data.action') as action,
+get_json_object(line, '$.event_data.angularApp') as angular_app,
+get_json_object(line, '$.event_data.category') as category,
+get_json_object(line, '$.event_data.error') as error,
+get_json_object(line, '$.event_data.version') as version, 
+substr(get_json_object(line, '$.isotime'),0,4) as year,
+month, 
+day
+FROM staging_logs_sso_epoch 
+WHERE get_json_object(line, '$.level')='EVENT'
+and ($dateRange);
+
+! echo end of summary_sso_staging
+
 
 EOF
 
