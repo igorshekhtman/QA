@@ -1496,6 +1496,57 @@ hadoop distcp hdfs://10.176.235.204:8020/user/apxqueue/saved/APXDEMOT87187250MB2
 
 ======================================================= CREATING NEW HIVE TABLE =============================================================
 
+======================================================= LILITH's INSTRUCTIONS ===============================================================
+==============================================================================================================================================
+==============================================================================================================================================
+
+
+
+[6/22/15, 11:28:33 AM] Lilith Schneider - Apixio: I don't normally have that 'stored as' bit...
+[6/22/15, 11:28:42 AM] Lilith Schneider - Apixio: but did you set all the options correctly?
+[6/22/15, 11:29:34 AM] Lilith Schneider - Apixio: here is a create that I saved
+[6/22/15, 11:29:35 AM] Lilith Schneider - Apixio: 
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set mapred.reduce.tasks=16;
+set hive.exec.max.dynamic.partitions.pernode = 10000;
+set mapred.output.compress=true;
+set hive.exec.compress.output=true;
+set mapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCodec;
+set io.compression.codecs=org.apache.hadoop.io.compress.GzipCodec;
+set mapred.output.compression.type=BLOCK;
+
+
+create table summary_page_persist_staging
+(time string, doc_id string, input_key string, bytes int, image_type string, resolution string,
+page_number int, failed_qa string, batch_id string, job_id string, workd_id string, hadoop_job_id string,
+classname string, unpack_status string, unpack_millis int, millis int, status string, error string)
+partitioned by (year STRING, month STRING, day STRING, org_id STRING);
+
+
+CREATE TABLE summary_sso_staging
+(time STRING, level STRING, source STRING, end_point STRING, session STRING, query STRING, 
+host STRING, client STRING, user_agent STRING, isotime STRING, app_name STRING, component_name STRING,
+event_name STRING, mode STRING, msg STRING, upstream_error STRING, email_address STRING,
+error_id STRING, page_title STRING, last_email STRING, action STRING, angular_app STRING,
+category STRING, error STRING, version STRING)
+PARTITIONED BY(year STRING, month STRING, day STRING);
+
+
+
+create table summary_sso
+(time STRING, level STRING, source STRING, end_point STRING, session STRING, query STRING, 
+host STRING, client STRING, user_agent STRING, isotime STRING, app_name STRING, component_name STRING,
+event_name STRING, mode STRING, msg STRING, upstream_error STRING, email_address STRING,
+error_id STRING, page_title STRING, last_email STRING, action STRING, angular_app STRING,
+category STRING, error STRING, version STRING)
+PARTITIONED BY(year STRING, month STRING, day STRING);
+
+==============================================================================================================================================
+==============================================================================================================================================
+==============================================================================================================================================
+
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set mapred.reduce.tasks=16;
