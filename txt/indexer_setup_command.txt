@@ -274,6 +274,132 @@ AllEsperErrors
 
 ================ BUNDLING INSTRUCTIONS - STAGING =========================
 
+================= NEW BUNDLER (ELASTIC SEARCH) - REICHARD ================
+
+OK… that seemed to succeed.  I will send you the JSON and the curl.
+
+{
+  "org": "372",
+  "orgName": "MMG",
+  "codeFilter": "V12-initial-2014;V12-midYear-2014;V12-finalReconciliation-2014;V22-initial-2014;V22-midYear-2014;V22-finalReconciliation-2014",
+  "annotationFiltering": "false",
+  "projectId": "CP_de921ffc-8186-45cc-a2a4-30ce683c91b7",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+    "Type": "RichClassifier",
+    "classifier": {
+      "Type": "ruleSet",
+      "rules": [
+        {
+          "Type": "all",
+          "tests": [
+            "NARRATIVE",
+            "bucketType"
+          ],
+          "result": "ADD",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "01/01/2014",
+              "result": "ADD"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "CMS_KNOWN"
+          ],
+          "result": "CLAIM",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "01/01/2014",
+              "result": "CLAIM"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "annotation.type",
+            "reject"
+          ],
+          "result": "REJECT_DOC_ANNOTATION"
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "annotation.type",
+            "accept"
+          ],
+          "result": "ACCEPT_CODE_ANNOTATION"
+        },
+        {
+          "Type": "single",
+          "test": "MA_Eligible",
+          "result": "ELIGIBILITY"
+        }
+      ]
+    }
+  },
+  "patients": [
+    "a7daef72-bae8-4fb5-8a45-27d92c24f59f",
+    "dcfb9913-4c37-43f7-a74e-caa353293dcb",
+    "8abd1125-730b-4081-a67a-7aa19073d3f6",
+    "d97f7a68-37eb-4235-b654-30c6ed0e5646",
+    "a30ad7cc-ced1-43ac-8dd8-145c2713a93f",
+    "2a90ab1e-2786-4017-8e2b-f9daf7dc5834",
+    "54364a52-49c9-4c2f-a3db-b2a5fbc693c9",
+    "6046ff25-5d25-4b8f-a921-4853d158ad0f",
+    "6e2ce1e2-f86d-48c0-8547-ec730701c2a9",
+    "bddeab45-3956-44b9-a37e-e6c124ebd9c7"
+  ]
+}
+
+==========================================================================================
+
+{
+  "org": "372",
+  "orgName": "MMG",
+  "annotationFiltering": "false",
+  "projectId": "CP_de921ffc-8186-45cc-a2a4-30ce683c91b7",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+    "Type": "RichClassifier"
+  },
+  "patients": [
+    "a7daef72-bae8-4fb5-8a45-27d92c24f59f",
+    "dcfb9913-4c37-43f7-a74e-caa353293dcb",
+    "8abd1125-730b-4081-a67a-7aa19073d3f6",
+    "d97f7a68-37eb-4235-b654-30c6ed0e5646",
+    "a30ad7cc-ced1-43ac-8dd8-145c2713a93f",
+    "2a90ab1e-2786-4017-8e2b-f9daf7dc5834",
+    "54364a52-49c9-4c2f-a3db-b2a5fbc693c9",
+    "6046ff25-5d25-4b8f-a921-4853d158ad0f",
+    "6e2ce1e2-f86d-48c0-8547-ec730701c2a9",
+    "bddeab45-3956-44b9-a37e-e6c124ebd9c7"
+  ]
+}
+
+curl -k -X PUT -d @paramfile https://52.11.138.4:8443/hcc/bundler/bundle
+
+curl -k -X PUT -d @paramfile -H "Content-Type: application/json" https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle
+
+
+where @paramfile is a file that contains the above JSON
+
+
+
+
+http://elasticsearch-stg.apixio.com/#/discover?_g=()&_a=(columns:!(_source),index:'org-*',interval:auto,query:(query_string:(analyze_wildcard:!t,query:'*')),sort:!(_score,desc))
+
+
+==========================================================================
+
+
 —————————
 BUNDLE:
 —————————
