@@ -1,5 +1,11 @@
 =============== SSO Testing - Reza - Password Policy Creation =================
 
+================ REDIS =========================================================
+
+redis-cli hget sso_results 1437497972410
+
+==============================================================================
+
 
 cd /Users/ishekhtman/Git/user-account/cmdline/tools
 
