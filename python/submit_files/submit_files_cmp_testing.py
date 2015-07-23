@@ -19,20 +19,26 @@ import uuid
 
 #USERNAME="apxdemot0216"
 #USERNAME="cmptest003"
-USERNAME="testorg10"
+#USERNAME="testorg10"
+#USERNAME="abcdemo"
+#USERNAME="control"
+USERNAME="newtestorg"
+
 
 #PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
 
 #HOST="https://testdr.apixio.com:8443"
 #HOST="https://stagedr.apixio.com:8443"
-HOST="https://dr.apixio.com"
+#HOST="https://dr.apixio.com"
+HOST="https://dr-stg.apixio.com"
 
 #DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 #/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
 #DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
-DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
+#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
 #DIR="/mnt/testdata/HCC-724/data"
+DIR="/mnt/testdata/20Patients1TxtDocumentEach/docs/201312050842104039"
 
 
 
@@ -128,9 +134,9 @@ for FILE in FILES:
 		PATIENT_ID=uuid.uuid1()
 		patlist.write(str(PATIENT_ID)+"\n")
 		PATIENT_ID_AA="PATIENT_ID_1"
-		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
-		PATIENT_MIDDLE_NAME="MiddleName"
-		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		PATIENT_FIRST_NAME=("First_Name_%s" % (DOCUMENTCOUNTER))
+		PATIENT_MIDDLE_NAME=("Middle_Name_%s" % (DOCUMENTCOUNTER))
+		PATIENT_LAST_NAME=("Last_Name_%s" % (DOCUMENTCOUNTER))
 		PATIENT_DOB="19880706"
 		PATIENT_GENDER="M"
 		ORGANIZATION="ORGANIZATION_VALUE"

@@ -1300,11 +1300,15 @@ def obtainSSODetails(activity, summary_table_name, unique_id):
 	for i in cur.fetch():
 		ROW = ROW + 1
 		print i
-		REPORT = REPORT+"<tr><td bgcolor='#FFFFFF'><b>"+activity+"</b> "+summary_table_name+"</td>"
-		REPORT = REPORT+"<td bgcolor='#FFFFFF'>"+str(i[0])+"</td><td bgcolor='#FFFFFF'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFFFF'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		if str(i[2]) == "None":
+			REPORT = REPORT+"<tr><td bgcolor='#FFFFFF'><b>"+activity+"</b> "+summary_table_name+"</td>"
+			REPORT = REPORT+"<td bgcolor='#FFFFFF'>"+str(i[0])+"</td><td bgcolor='#FFFFFF'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFFFF'>Error: <i>"+str(i[2])+"</i></td></tr>"
+		else:		
+			REPORT = REPORT+"<tr><td bgcolor='#FFFF00'><b>"+activity+"</b> "+summary_table_name+"</td>"
+			REPORT = REPORT+"<td bgcolor='#FFFF00'>"+str(i[0])+"</td><td bgcolor='#FFFF00'>"+str(i[1])+"</td></tr><tr><td colspan='4' bgcolor='#FFFF00'>Error: <i>"+str(i[2])+"</i></td></tr>"
+			COMPONENT_STATUS="FAILED"
 		
-		
-		COMPONENT_STATUS="FAILED"
+
 	if (ROW == 0):
 		REPORT = REPORT+"<tr><td colspan='4'>There were no <b>"+activity+"</b> "+summary_table_name+" specific errors</td></tr>"
 	REPORT = REPORT+"</table><br>" 

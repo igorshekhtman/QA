@@ -1,3 +1,10 @@
+
+select get_json_object(line,"$.patient.uuid") as patient_uuids from production_logs_datacheckandrecover_24 where day='26' and month='06' and year = '2015' and get_json_object(line,"$.batchId") like '10000353%' order by patient_uuids asc
+
+
+select get_json_object(line,"$.patient.uuid") as patient_uuids from staging_logs_datacheckandrecover_24 where day='22' and month='07' and year = '2015' and get_json_object(line,"$.batchId") like '10000427%' order by patient_uuids asc
+
+
 =============== SSO Testing - Reza - Password Policy Creation =================
 
 ================ REDIS =========================================================
@@ -330,7 +337,7 @@ OK… that seemed to succeed.  I will send you the JSON and the curl.
         {
           "Type": "all",
           "tests": [
-            "annotation.type",
+            "USER_ANNOTATION",
             "reject"
           ],
           "result": "REJECT_DOC_ANNOTATION"
@@ -338,7 +345,7 @@ OK… that seemed to succeed.  I will send you the JSON and the curl.
         {
           "Type": "all",
           "tests": [
-            "annotation.type",
+            "USER_ANNOTATION",
             "accept"
           ],
           "result": "ACCEPT_CODE_ANNOTATION"
@@ -364,33 +371,8 @@ OK… that seemed to succeed.  I will send you the JSON and the curl.
     "bddeab45-3956-44b9-a37e-e6c124ebd9c7"
   ]
 }
-
 ==========================================================================================
-
-{
-  "org": "372",
-  "orgName": "MMG",
-  "annotationFiltering": "false",
-  "projectId": "CP_de921ffc-8186-45cc-a2a4-30ce683c91b7",
-  "firstPassSemantics": "false",
-  "eventClassifier": {
-    "Type": "RichClassifier"
-  },
-  "patients": [
-    "a7daef72-bae8-4fb5-8a45-27d92c24f59f",
-    "dcfb9913-4c37-43f7-a74e-caa353293dcb",
-    "8abd1125-730b-4081-a67a-7aa19073d3f6",
-    "d97f7a68-37eb-4235-b654-30c6ed0e5646",
-    "a30ad7cc-ced1-43ac-8dd8-145c2713a93f",
-    "2a90ab1e-2786-4017-8e2b-f9daf7dc5834",
-    "54364a52-49c9-4c2f-a3db-b2a5fbc693c9",
-    "6046ff25-5d25-4b8f-a921-4853d158ad0f",
-    "6e2ce1e2-f86d-48c0-8547-ec730701c2a9",
-    "bddeab45-3956-44b9-a37e-e6c124ebd9c7"
-  ]
-}
-
-curl -k -X PUT -d @paramfile https://52.11.138.4:8443/hcc/bundler/bundle
+good, working new bundler command:
 
 curl -k -X PUT -d @paramfile -H "Content-Type: application/json" https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle
 
@@ -398,9 +380,11 @@ curl -k -X PUT -d @paramfile -H "Content-Type: application/json" https://bundler
 where @paramfile is a file that contains the above JSON
 
 
-
+KIBANA
 
 http://elasticsearch-stg.apixio.com/#/discover?_g=()&_a=(columns:!(_source),index:'org-*',interval:auto,query:(query_string:(analyze_wildcard:!t,query:'*')),sort:!(_score,desc))
+Username: apixio
+Password: apixio.321
 
 
 ==========================================================================
