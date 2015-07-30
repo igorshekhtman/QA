@@ -10,6 +10,8 @@ select get_json_object(line,"$.patient.uuid") as patient_uuids from staging_logs
 
 =============== SSO Testing - Reza - Password Policy Creation =================
 
+../run_protractor_local.sh sso
+
 ================ REDIS =========================================================
 
 redis-cli hget sso_results 1437497972410

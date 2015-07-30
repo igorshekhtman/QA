@@ -821,8 +821,8 @@ def checkEnvironmentandReceivers():
 		RECEIVERS=str(sys.argv[2])
 		RECEIVERS2=str(sys.argv[3])
 		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
-		if (len(sys.argv) > 3):
-			USERNAME=str(sys.argv[4])
+		if (len(sys.argv) > 4):
+			USERNAME = str(sys.argv[4])
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
 		RECEIVERS2="abeyk@apixio.com"
@@ -843,9 +843,9 @@ def writeReportHeader ():
 	REPORT = REPORT + HTML_RECEIVERS
 	REPORT = REPORT + """MIME-Version: 1.0\n"""
 	REPORT = REPORT + """Content-type: text/html\n"""
-	REPORT = REPORT + """Subject: HCC %s stress Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
+	REPORT = REPORT + """Subject: HCC ES %s stress Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 
-	REPORT = REPORT + """<h1>Apixio HCC Stress Test Report</h1>\n"""
+	REPORT = REPORT + """<h1>Apixio ES HCC Stress Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
@@ -1197,68 +1197,66 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     print("* CODER ACTION     = Reject Doc")
     print "* FINDING ID       = %s" % finding_id
 
+			
     DATA = { \
 			"opportunity": \
 			{ \
-			"model_year": opportunity.get("model_year"), \
-			"hash": opportunity.get("hash"), \
-			"scorables": \
-			[{ \
-			"mimeType": finding.get("mimeType"), \
-			"document_title": finding.get("document_title"), \
+			"status":opportunity.get("status"), \
+			"possibleCodes": opportunity.get("possibleCodes"), \
 			"code": \
 			{ \
-			"code_system_name": finding.get("code").get("code_system_name"), \
-			"code": finding.get("code").get("code"), \
-			"display_name": finding.get("code").get("display_name"), \
-			"code_system": finding.get("code").get("code_system"), \
-			"code_system_version": finding.get("code").get("code_system_version") \
+			"labelSetVersion": opportunity.get("code").get("labelSetVersion"), \
+			"displayName": opportunity.get("code").get("displayName"), \
+			"description": opportunity.get("code").get("description"), \
+			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
+			"sweep": opportunity.get("code").get("sweep"), \
+			"hcc": opportunity.get("code").get("labelSetVersion") \
 			}, \
-			"end": finding.get("end"), \
-			"start": finding.get("start"), \
-			"conditionSet": finding.get("conditionSet"), \
-			"patient_org_id": finding.get("patient_org_id"), \
-			"patient_id": finding.get("patient_id"), \
-			"source_type": finding.get("source_type"), \
-			"document_uuid": finding.get("document_uuid"), \
+			"patient": \
+			{ \
+			"first_name": opportunity.get("patient").get("first_name"), \
+			"last_name": opportunity.get("patient").get("last_name"), \
+			"middle_name": opportunity.get("patient").get("middle_name"), \
+			"dob": opportunity.get("patient").get("dob"), \
+			"gender": opportunity.get("patient").get("gender"), \
+			"org_id": opportunity.get("patient").get("org_id") \
+			}, \
+			"findings": \
+			[ \
+			{ \
+			"document_title": finding.get("document_title"), \
 			"elements": finding.get("elements"), \
-			"source_id": finding.get("source_id"), \
-			"date_of_service": finding.get("date_of_service"), \
-			"id": finding.get("id"), \
-			"page": finding.get("page"), \
-			"list_position": str(doc_no_current) \
-			}], \
-			"hcc_description": opportunity.get("hcc_description"), \
-			"payment_year": opportunity.get("payment_year"), \
-			"patient_id": opportunity.get("patient_id"), \
+			"sourceType": finding.get("sourceType"), \
+			"sourceId": finding.get("sourceId"), \
+			"patient_org_id": finding.get("patient_org_id"), \
+			"doc_date": finding.get("doc_date"), \
+			"pages": finding.get("pages"), \
+			"list_position":0, \
+			"lifecycle_id":"4af87d4c-9aad-4a55-d238-31bff01390a9", \
+			"text":{} \
+			} \
+			], \
+			"patientId": opportunity.get("patientId"), \
 			"project": opportunity.get("project"), \
-			"hcc": opportunity.get("hcc"), \
-			"get_id": opportunity.get("get_id"), \
-			"label_set_version": opportunity.get("label_set_version"), \
-			"suggested_codes": opportunity.get("suggested_codes"), \
-			"rule_hash": opportunity.get("rule_hash"), \
-			"patient": opportunity.get("patient"), \
-			"patient_uuid": opportunity.get("patient_uuid"), \
-			"model_run": opportunity.get("model_run") \
+			"finding_ids":opportunity.get("finding_ids"), \
+			"user": opportunity.get("user"), \
+			"organization": opportunity.get("organization"), \
+			"transactionId": opportunity.get("transactionId") \
 			}, \
 			"annotations": \
 			{ \
-			finding_id: \
+			finding.get("sourceId"): \
 			{ \
-			"changed":True, \
-			"flaggedForReview":True, \
-			"result":"reject", \
-			"rejectReason":"This document does not mention this HCC for the patient", \
-			"comment":"Grinder Flag for Review Comment", \
-			"page": finding.get("page") \
-			}}}
+			"changed": True, \
+			"flaggedForReview": True, \
+			"result": "reject", \
+			"rejectReason": "This document does not mention this HCC for the patient", \
+			"comment": "Grinder Flag for Review Comment" \
+			}}}						
 			
-		
-			
-    #print json.dumps(DATA)
-    #quit()
 
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
+    
     if response.status_code == ok:
     	print "* ANNOTATE FINDING = %s" % response.status_code
     else:
@@ -1268,7 +1266,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     	print("-------------------------------------------------------------------------------")
     	print("\n")
     	#quit()
-    
     
     
     IncrementTestResultsTotals("coding view and reject", response.status_code)
@@ -1285,57 +1282,56 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     DATA = { \
 			"opportunity": \
 			{ \
-			"model_year": opportunity.get("model_year"), \
-			"hash": opportunity.get("hash"), \
-			"scorables": \
-			[ \
-			{ \
-			"mimeType": finding.get("mimeType"), \
-			"document_title": finding.get("document_title"), \
+			"status":opportunity.get("status"), \
+			"possibleCodes": opportunity.get("possibleCodes"), \
 			"code": \
 			{ \
-			"code_system_name": finding.get("code").get("code_system_name"), \
-			"code": finding.get("code").get("code"), \
-			"display_name": finding.get("code").get("display_name"), \
-			"code_system": finding.get("code").get("code_system"), \
-			"code_system_version": finding.get("code").get("code_system_version") \
+			"labelSetVersion": opportunity.get("code").get("labelSetVersion"), \
+			"displayName": opportunity.get("code").get("displayName"), \
+			"description": opportunity.get("code").get("description"), \
+			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
+			"sweep": opportunity.get("code").get("sweep"), \
+			"hcc": opportunity.get("code").get("labelSetVersion") \
 			}, \
-			"end": finding.get("end"), \
-			"start": finding.get("start"), \
-			"conditionSet": finding.get("conditionSet"), \
-			"patient_org_id": finding.get("patient_org_id"), \
-			"patient_id": finding.get("patient_id"), \
-			"source_type": finding.get("source_type"), \
-			"document_uuid": finding.get("document_uuid"), \
+			"patient":{ \
+			"first_name": opportunity.get("patient").get("first_name"), \
+			"last_name": opportunity.get("patient").get("last_name"), \
+			"middle_name": opportunity.get("patient").get("middle_name"), \
+			"dob": opportunity.get("patient").get("dob"), \
+			"gender": opportunity.get("patient").get("gender"), \
+			"org_id": opportunity.get("patient").get("org_id") \
+			}, \
+			"findings": \
+			[ \
+			{ \
+			"document_title": finding.get("document_title"), \
 			"elements": finding.get("elements"), \
-			"source_id": finding.get("source_id"), \
-			"date_of_service": finding.get("date_of_service"), \
-			"id": finding.get("id"), \
-			"page": finding.get("page") \
-			}], \
-			"hcc_description": opportunity.get("hcc_description"), \
-			"payment_year": opportunity.get("payment_year"), \
-			"patient_id": opportunity.get("patient_id"), \
+			"sourceType": finding.get("sourceType"), \
+			"sourceId": finding.get("sourceId"), \
+			"patient_org_id": finding.get("patient_org_id"), \
+			"doc_date": finding.get("doc_date"), \
+			"pages": finding.get("pages"), \
+			"list_position":0, \
+			"lifecycle_id":"4af87d4c-9aad-4a55-d238-31bff01390a9", \
+			"text":{} \
+			} \
+			], \
+			"patientId": opportunity.get("patientId"), \
 			"project": opportunity.get("project"), \
-			"hcc": opportunity.get("hcc"), \
-			"get_id": opportunity.get("get_id"), \
-			"label_set_version": opportunity.get("label_set_version"), \
-			"suggested_codes": opportunity.get("suggested_codes"), \
-			"rule_hash": opportunity.get("rule_hash"), \
-			"patient": opportunity.get("patient"), \
-			"patient_uuid": opportunity.get("patient_uuid"), \
-			"model_run": opportunity.get("model_run") \
+			"finding_ids":opportunity.get("finding_ids"), \
+			"user": opportunity.get("user"), \
+			"organization": opportunity.get("organization"), \
+			"transactionId": opportunity.get("transactionId") \
 			}, \
 			"annotations": \
 			{ \
-			finding_id: \
+			finding.get("sourceId"): \
 			{ \
 			"changed":True, \
 			"flaggedForReview":False, \
 			"result":"skipped" \
-			}}}
-    #print json.dumps(DATA)
-    #quit()    
+			}}}			
+   
 
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
     if response.status_code == ok:
