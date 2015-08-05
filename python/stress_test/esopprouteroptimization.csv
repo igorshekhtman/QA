@@ -5,10 +5,10 @@ REVISION=1.0.1
 #ENVIRONMENT=Production
 ENVIRONMENT=Staging
 ######################################
-DOMAIN=hccstage2.apixio.com
-URL=https://hccstage2.apixio.com
+DOMAIN=hcceng.apixio.com
+URL=https://hcceng.apixio.com
 ######################################
-USERNAME=opprtroptusr0001@apixio.net
+USERNAME=newtest4@apixio.net
 PASSWORD=apixio.123
 ######################################
 #### 0 = DO NOT CODE OPPS, 1 = CODE OPPS

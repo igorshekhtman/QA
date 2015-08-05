@@ -81,7 +81,7 @@ DEBUG_MODE=bool(0)
 REPORT = ""
 # HTML report version to email
 REPORT_EMAIL = ""
-REPORT_TYPE = "Opp Router Optimization Test"
+REPORT_TYPE = "ES Energy Routing Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
@@ -133,10 +133,11 @@ TOTAL_OPPS_SERVED = 0
 TOTAL_DOCS_REJECTED = 0
 TOTAL_DOCS_ACCEPTED = 0
 
-MODEL_YEAR = {str(key): 0 for key in range(2000, 2040)}
-PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
+
 HCC = {str(key): 0 for key in range(0, 200)}
-MODEL_RUN = {'Final': 0, 'Initial': 0}
+LABEL_SET_VERSION = {str(key): 0 for key in range(2000, 2040)}
+SWEEP = {'Final': 0, 'Initial': 0}
+MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
@@ -288,26 +289,31 @@ def logInToHCC():
   	
 ###########################################################################################################################################  	
   
-def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
+def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
-  HEADERS = {'Connection': 'keep-alive', \
-    	'Content-Length': '14340', \
-    	'Accept': 'application/json, text/plain, */*', \
-    	'Origin': 'https://hccstage2.apixio.com', \
-    	'X-CSRFToken': TOKEN, \
-    	'Content-Type': 'application/json;charset=UTF-8', \
-    	'Referer': 'https://hccstage2.apixio.com/', \
-    	'Accept-Encoding': 'gzip, deflate', \
-    	'Accept-Language': 'en-US,en;q=0.8'}
+  
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+  		'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8', \
+  		'Connection': 'keep-alive', \
+    	'Content-Type': 'application/json', \
+    	'Referer': URL+'/', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
+    	'X-CSRFToken': TOKEN \
+    	}	
+  
+  
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
-  elif CODE_OPPS_ACTION == "1": # Accept Doc
+  elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
     TOTAL_DOCS_ACCEPTED += 1
-    finding_id = scorable.get("id")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = { \
 			"opportunity": \
@@ -378,7 +384,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"dateOfService": finding.get("doc_date"), \
 			"comment": "Grinder Flag for Review" \
 			}}}
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
@@ -386,10 +392,10 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "2": # Reject Doc
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+  elif CODE_OPPS_ACTION == "2": #================================== REJECT DOC ===========
     TOTAL_DOCS_REJECTED += 1
-    finding_id = scorable.get("id")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = { \
 			"opportunity": \
@@ -446,17 +452,17 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"rejectReason": "This document does not mention this HCC for the patient", \
 			"comment": "Grinder Flag for Review Comment" \
 			}}}						
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)	
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "3": # Skip Opp
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+  elif CODE_OPPS_ACTION == "3": #=========================== SKIP OPP ====================
     TOTAL_OPPS_SKIPPED += 1
-    finding_id = scorable.get("id")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
     DATA = { \
 			"opportunity": \
@@ -510,14 +516,14 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			"flaggedForReview":False, \
 			"result":"skipped" \
 			}}}			
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=DATA, headers=HEADERS)		
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
   else:
     print("* CODER ACTION     = Unknown\n")
   return 0
@@ -525,7 +531,7 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 ###########################################################################################################################################
   
 def startCoding():
-  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
+  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
   #global model_year, payment_year, hcc, model_run
@@ -545,21 +551,37 @@ def startCoding():
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print "* GET CODNG OPP    = %s" % response.status_code
     opportunity = response.json()
-    ######################################################################################         
-    model_year = opportunity.get("model_year")
-    tallyDetails("model_year", opportunity.get("model_year"))
-    payment_year = opportunity.get("payment_year")
-    tallyDetails("payment_year", opportunity.get("payment_year"))
-    hcc = opportunity.get("hcc")
-    tallyDetails("hcc", opportunity.get("hcc"))
-    model_run = opportunity.get("model_run")
-    tallyDetails("model_run", opportunity.get("model_run"))
+    ######################################################################################
+    
+    #hcc, label, sweep, payment year
+        
+    #print json.dumps(opportunity)         
+    
+    #model_year = opportunity.get("code").get("modelPaymentYear")
+    #tallyDetails("model_year", opportunity.get("model_year"))
+    #payment_year = opportunity.get("payment_year")
+    #tallyDetails("payment_year", opportunity.get("payment_year"))
+    #hcc = opportunity.get("hcc")
+    #tallyDetails("hcc", opportunity.get("hcc"))
+    #model_run = opportunity.get("model_run")
+    #tallyDetails("model_run", opportunity.get("model_run"))
+    
+    hcc = opportunity.get("code").get("hcc")
+    tallyDetails("hcc", hcc)
+    label_set_version = opportunity.get("code").get("labelSetVersion")
+    tallyDetails("label_set_version", label_set_version)
+    sweep = opportunity.get("code").get("sweep")
+    tallyDetails("sweep", sweep)
+    model_payment_year = opportunity.get("code").get("modelPaymentYear")
+    tallyDetails("model_payment_year", model_payment_year)
+
+    
     print "\n"
     print "********************************************************************************************"
     print "********************************************************************************************"
     print "********************************************************************************************"
     print "\n"
-    print "* HCC CODE         = %s" % hcc+"-"+model_year+"-"+model_run+"-"+payment_year
+    print "* HCC CODE         = %s" % hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
     print "\n"
     print "********************************************************************************************"
     print "********************************************************************************************"
@@ -571,11 +593,21 @@ def startCoding():
     if opportunity == None:
       print("ERROR : Login Failed or No More Opportunities For This Coder")
       return 1
-    patient_uuid = ""
-    patient_uuid = opportunity.get("patient_uuid")
-    #print "patient uuid: %s" % patient_uuid
-    scorables = opportunity.get("scorables")
-    #print "scorables: %s" % scorables
+      
+      
+      
+    status = opportunity.get("status")
+    possiblecodes = opportunity.get("possibleCodes") 
+    numpossiblecodes = len(possiblecodes) 
+    code = opportunity.get("code") 
+    patient = opportunity.get("patient") 
+    findings = opportunity.get("findings")
+    patient_id = opportunity.get("patientId")
+    project = opportunity.get("project")
+    finding_ids = opportunity.get("finding_ids")
+    user = opportunity.get("user")
+    organization = opportunity.get("organization")
+    transaction_id = opportunity.get("transactionId")
     print("-------------------------------------------------------------------------------")
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     TOTAL_OPPS_SERVED = coding_opp_current   
@@ -588,29 +620,36 @@ def startCoding():
     		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
     	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
     	
-    	#quit()    
+
     test_counter = 0
     doc_no_current = 0
-    # adjust to only one doc per opp for this test
-    #doc_no_max = len(scorables)
     doc_no_max = 1
-    #for (scorable in scorables) and (i<2):
     for i in range (0,1):
-      scorable = scorables[i]
-      patient_org_id  = ""
-      finding_id      = ""
-      document_uuid   = ""
-      document_title  = ""
-      date_of_service = ""
+      finding = findings[i]
+      finding_id = finding_ids[doc_no_current]
       doc_no_current = doc_no_current + 1
-      patient_org_id = scorable.get("patient_org_id")
-      finding_id = scorable.get("id")
-      document_uuid = scorable.get("document_uuid")
-      document_title = scorable.get("document_title")
-      date_of_service = scorable.get("date_of_service")
-      print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
-      #quit()
-      if patient_uuid    == "":
+      patient_org_id = finding.get("patient_org_id")  
+      document_uuid = finding.get("sourceId")
+      document_title = finding.get("document_title")
+      date_of_service = finding.get("doc_date")
+      mime_type = finding.get("mimeType")
+      if mime_type == None:
+    	  mime_type = "text/plain"
+      #if CODING_OPP_CURRENT == 1:
+    	#  PATIENT_ORG_NAME = getOrgName(patient_org_id)
+      
+      print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
+      print("* STATUS           = %s" % (status))
+      print("* PATIENT ORG      = %s" % (patient_org_id))
+      print("* PATIENT ID       = %s" % (patient_id))
+      print("* FINDING ID       = %s" % (finding_id))
+      print("* AVAILABLE CODES  = %s" % (numpossiblecodes))
+      print("* PROJECT ID       = %s" % (project))
+      print("* DOC UUID         = %s" % (document_uuid))
+      print("* DOC TITLE        = %s" % (document_title))
+      print("* DOC DATE         = %s" % (date_of_service))
+      print("* DOC TYPE         = %s" % (mime_type))
+      if patient_id    == "":
         print("WARNING : PATIENT UUID is Empty")
       if patient_org_id  == "":
         print("WARNING : ORG ID is Empty")
@@ -623,14 +662,13 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
-      #response = requests.get(URL + "/api/document/" + document_uuid, data=DATA, headers=HEADERS)
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
       print "* GET SCRBLE DOC   = %s" % response.status_code      
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction(hcc)
-      act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
 
   return 0
 
@@ -784,7 +822,7 @@ def writeReportHeader ():
 	#REPORT = REPORT + """Content-type: text/html\n"""
 	#REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 	REPORT = """ """
-	REPORT = REPORT + """<h1>Apixio Opp Router Optimization Test Report</h1>\n"""
+	REPORT = REPORT + """<h1>Apixio ES Energy Routing Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
 	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
@@ -907,6 +945,8 @@ def extractTargetedHccData(targhcc, srcedict):
 ###########################################################################################################################################
 def writeReportFooter():
 	global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
+	
+
 	print ("Write report footer ...\n")
 	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
@@ -934,18 +974,15 @@ def writeReportFooter():
 		(TARGET_HCC, VRO_W2)					
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 		
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model year:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(MODEL_YEAR, "key")
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
+	convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
 	REPORT = REPORT+"</td></tr>"
-	#	(dict((key, value) for key, value in MODEL_YEAR.items() if (value > 0)))
-	REPORT = REPORT+"<tr><td nowrap>Model run:</td><td>"
-	convertJsonToTable(MODEL_RUN, "key")
+	REPORT = REPORT+"<tr><td nowrap>Sweep:</td><td>"
+	convertJsonToTable(SWEEP, "key")
 	REPORT = REPORT+"</td></tr>"
-	#	(dict((key, value) for key, value in MODEL_RUN.items() if (value > 0)))		
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Payment year:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(PAYMENT_YEAR, "key")
+	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
+	convertJsonToTable(LABEL_SET_VERSION, "key")
 	REPORT = REPORT+"</td></tr>"
-	#	(dict((key, value) for key, value in PAYMENT_YEAR.items() if (value > 0)))
 	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
 	###############################################################################################################
 	# Sort all dictionaries here
@@ -1065,7 +1102,7 @@ def emailReport():
 
 	message['From'] = 'Apixio QA <QA@apixio.com>'
 	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
-	message['Subject'] = 'OppRouter %s Optimization Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
+	message['Subject'] = 'ES %s Energy Routing Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
 	msg_full = message.as_string()
 		
 	s=smtplib.SMTP()
