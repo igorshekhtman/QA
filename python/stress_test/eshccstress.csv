@@ -16,7 +16,7 @@ URL=https://hcceng.apixio.com
 ######################################
 #### PRODUCTION
 #### STAGING
-USERNAME=newtest4@apixio.net
+USERNAME=newtest@apixio.net
 PASSWORD=apixio.123
 ######################################
 #####grinderUSR1416591626@apixio.net
@@ -56,7 +56,7 @@ VAO_W=34
 VRO_W=33
 #View and Skip
 VSO_W=33
-CODE_OPPS_MAX=20800
+CODE_OPPS_MAX=200
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0
