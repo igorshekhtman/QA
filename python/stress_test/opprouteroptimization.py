@@ -246,72 +246,69 @@ VOO = VAO = VRO = VSO = 0
 ###########################################################################################################################################
  
 def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS, COOKIES
+  global TOKEN, SESSID, COOKIES
+  
   response = requests.get(URL+'/')
-  print "* Connect to host    = "+str(response.status_code)
+  print("-------------------------------------------------------------------------------")
+  print "* Connect to host  = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	quit()
-#-----------------------------------------------------------------------------------------  	
-  # Original - url = referer = URL+'/account/login/?next=/'
-  url = URL+'/account/login/'
-  referer = URL+'/account/login/'
-  #Accept:*/*
-  #Accept-Encoding:gzip, deflate
-  #Accept-Language:en-US,en;q=0.8
-  #Connection:keep-alive
-  #Content-Length:377
-  #Content-Type:application/x-www-form-urlencoded
-  #Cookie:csrftoken=SXc1KEAOnaAsT1AA7b1zpQBgCR8u1mPJ; sessionid=4jtrl3lh28kdb5m3013ta5rk6ctaje6g
-  #Host:hccstage2.apixio.com
-  #Origin:https://hccstage2.apixio.com
-  #Referer:https://hccstage2.apixio.com/
-  #User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.91 Safari/537.36
-  
+  url = referer = URL+'/account/login/'
   response = requests.get(url)
   IncrementTestResultsTotals("login", response.status_code)
-  print "* Login page         = "+str(response.status_code)
+  print "* Login page       = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	logInToHCC()
-#-----------------------------------------------------------------------------------------  	
-  TOKEN = response.cookies["csrftoken"]
-  SESSID = response.cookies["sessionid"]
+
+  TOKEN = response.cookies["JSESSIONID"]
+  SESSID = response.cookies["JSESSIONID"]
   COOKIES = dict(csrftoken=''+TOKEN+'')
-  #Request URL:https://hccstage2.apixio.com/account/login/
-  #Host:hccstage2.apixio.com
-  #Origin:https://hccstage2.apixio.com
-  #Referer:https://hccstage2.apixio.com/account/login/
-  url = URL+'/account/login/'
-  referer = URL+'/account/login/'
-  host = DOMAIN
+  
+ 
+  url = URL+"/account/login/"
   origin = URL
-  
-  DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
-  
+  referer = URL+"/account/login/"
+  host = URL[8:]
+ 
+  DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD, 'login': 'Log+In' } 
+	
   HEADERS = { \
-  			'Accept': '*/*', \
-  			'Accept-Encoding': 'gzip, deflate', \
-  			'Accept-Language': 'en-US,en;q=0.8', \
-  			'Connection': 'keep-alive', \
-  			'Content-Length': '1105', \
-			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-			'Host': host, \
-			'Origin': origin, \
-			'Referer': referer \
-			}	
+  		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', \
+		'Accept-Encoding': 'gzip, deflate', \
+		'Accept-Language': 'en-US,en;q=0.8', \
+		'Cache-Control': 'max-age=0', \
+		'Connection': 'keep-alive', \
+		'Content-Length': '121', \
+		'Content-Type': 'application/x-www-form-urlencoded', \
+		'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+		'Host': host, \
+		'Origin': origin, \
+		'Referer': referer \
+		}	
+						
+  response = requests.post(url, cookies=COOKIES, data=DATA, headers=HEADERS) 
   
-  #print ">>> TOKEN   = %s" % TOKEN
-  #print ">>> SESSID  = %s" % SESSID
-  #print ">>> DATA    = %s" % DATA
-  #print ">>> HEADERS = %s" % HEADERS					
-  response = requests.post(url, data=DATA, headers=HEADERS) 
-  IncrementTestResultsTotals("login", response.status_code)
-  print "* Log in user        = "+str(response.status_code)
+  #TOKEN = response.cookies["csrftoken"]
+  #SESSID = response.cookies["sessionid"]
+  #COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'')
+  
+  print "* Log in user      = "+str(response.status_code)
+  print "* Token            = %s" % TOKEN
+  print "* Session id       = %s" % SESSID
+  print "* Cookies          = %s" % COOKIES
+  #print "* Staus code       = %s" % response.status_code
   #quit()
+  
+  
+
+  IncrementTestResultsTotals("login", response.status_code)
+  #print "* Log in user      = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
+  print("-------------------------------------------------------------------------------")	
   	
 ###########################################################################################################################################  	
   
@@ -501,8 +498,23 @@ def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
-  #global model_year, payment_year, hcc, model_run
-  #print("-------------------------------------------------------------------------------")
+  
+  url = URL+"/api/next-work-item/"
+  referer = URL+"/"
+  host = URL[8:]
+   
+  DATA = {}
+	
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+		'Accept-Encoding': 'gzip, deflate, sdch', \
+		'Accept-Language': 'en-US,en;q=0.8', \
+		'Connection': 'keep-alive', \
+		'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+		'Host': host, \
+		'Referer': referer \
+		}	
+
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
   print("-------------------------------------------------------------------------------")

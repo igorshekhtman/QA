@@ -5,11 +5,11 @@ REVISION=1.0.3
 #ENVIRONMENT=Production
 ENVIRONMENT=Staging
 ######################################
-DOMAIN=hccstage2.apixio.com
-URL=https://hccstage2.apixio.com
+DOMAIN=hcc-stg.apixio.com
+URL=https://hcc-stg.apixio.com
 ######################################
 USERNAME=opprtroptusr0001@apixio.net
-PASSWORD=apixio.123
+PASSWORD=apixio.321
 ######################################
 #### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
 CODE_OPPS=1
@@ -33,7 +33,7 @@ VAO_W2=15
 VRO_W2=85
 VSO_W2=0
 #### Must be divisible by 10
-CODE_OPPS_MAX=10000
+CODE_OPPS_MAX=10
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0
@@ -56,5 +56,5 @@ QA_REPORT_PAGES_MAX=1
 #### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
-MAX_NUM_RETRIES=500
+MAX_NUM_RETRIES=1
 ######################################

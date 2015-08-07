@@ -55,6 +55,10 @@ Data check and recover
 
 ============= HEADLESS CHROME INSTALLATION INSTRUCTIONS - REZA =================
 
+https://angular.github.io/protractor/#/api?view=ProtractorBy.prototype.buttonText
+
+document.querySelector("span.glypicon-flag")
+
 http://chrome.richardlloyd.org.uk/
 http://tobyho.com/2015/01/09/headless-browser-testing-xvfb/
 

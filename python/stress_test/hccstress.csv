@@ -9,8 +9,8 @@ ENVIRONMENT=Staging
 #DOMAIN=hcc.apixio.com
 #URL=https://hcc.apixio.com
 #### STAGING
-DOMAIN=hccstage2.apixio.com
-URL=https://hccstage2.apixio.com
+DOMAIN=hcc-stg.apixio.com
+URL=https://hcc-stg.apixio.com
 #DOMAIN=hcceng.apixio.com
 #URL=https://hcceng.apixio.com
 ######################################
