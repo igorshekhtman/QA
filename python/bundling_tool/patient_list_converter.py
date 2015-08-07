@@ -97,10 +97,13 @@ def ReadConvertWriteFile(in_filename, out_filename):
 	csvfile_in = open(in_filename, 'rb')
 	csvfile_out = open(out_filename, 'w')
 	reader = csv.reader(csvfile_in, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
+	counter = 0
 	for row in reader:
 		result = result + "\t\t\"" + row[0] + "\"" + ",\n"
 		csvfile_out.write("\t\t\"" + row[0] + "\"" + ",\n")
-	print result
+		counter += 1
+		print (counter * (counter%10))
+	#print result
 	csvfile_in.close()
 	csvfile_out.close()
 	return (result)    	
