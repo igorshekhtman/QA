@@ -135,20 +135,24 @@ TOTAL_DOCS_ACCEPTED = 0
 
 
 HCC = {str(key): 0 for key in range(0, 200)}
-LABEL_SET_VERSION = {str(key): 0 for key in range(2000, 2040)}
-SWEEP = {'Final': 0, 'Initial': 0}
+#LABEL_SET_VERSION = {str(key): 0 for key in range(2000, 2040)}
+#SWEEP = {'Final': 0, 'Initial': 0}
 MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
+LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
+SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 
 # This list of codes will overwrite random choice function to accept an opportunity
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
 #HCC_CODES_TO_ACCEPT = {'27'}
-HCC_CODES_TO_ACCEPT = {'131'}
+#HCC_CODES_TO_ACCEPT = {'131'}
+HCC_CODES_TO_ACCEPT = {'130'}
 
 #TARGET_HCC = '27'
 #TARGET_HCC = '177'
 #TARGET_HCC = '32'
 #TARGET_HCC = '131'
 #TARGET_HCC = '29'
+#TARGET_HCC = '150'
 TARGET_HCC = '130'
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
@@ -294,6 +298,11 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
   
+  hcc = opportunity.get("code").get("hcc")
+  label_set_version = opportunity.get("code").get("labelSetVersion")
+  sweep = opportunity.get("code").get("sweep")
+  model_payment_year = opportunity.get("code").get("modelPaymentYear")
+  
   HEADERS = { \
   		'Accept': 'application/json, text/plain, */*', \
   		'Accept-Encoding': 'gzip, deflate', \
@@ -308,7 +317,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
   
   
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
+    print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
@@ -388,7 +397,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -455,7 +464,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -519,7 +528,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(opportunity.get("hcc"))+"-"+str(opportunity.get("model_year"))+"-"+str(opportunity.get("model_run"))+"-"+str(opportunity.get("payment_year"))
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
@@ -692,6 +701,8 @@ def logout():
 
 def tallyDetails(item, value):
 	global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
+	global MODEL_PAYMENT_YEAR, SWEEP, LABEL_SET_VERSION
+	
 	if item == "model_year":
 		MODEL_YEAR[value] += 1
 	elif item == "payment_year":	
@@ -700,6 +711,12 @@ def tallyDetails(item, value):
 		HCC[value] += 1
 	elif item == "model_run":	
 		MODEL_RUN[value] += 1
+	elif item == "model_payment_year":
+		MODEL_PAYMENT_YEAR[value] += 1
+	elif item == "sweep":
+		SWEEP[value] += 1
+	elif item == "label_set_version":
+		LABEL_SET_VERSION[value] += 1			
 	return 0
 
 ###########################################################################################################################################

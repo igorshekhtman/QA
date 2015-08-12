@@ -494,8 +494,10 @@ curl -k -X PUT "https://hcc-opprouter-stg.apixio.net:8443/ctrl/data/e00dc493-c6a
 =============
 curl -k -X PUT "https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/590b118c-6567-4f48-9519-8480ae5608d3/reload"
 
+curl -k -X PUT "https://hcc-opprouter-stg.apixio.com:8443/ctrl/data/3bcc8c21-e31b-4788-b620-0c1620f20497/reload"
 
 
+3bcc8c21-e31b-4788-b620-0c1620f20497
 
 e00dc493-c6a9-4bd0-8bf8-b79e4443cff5
 
