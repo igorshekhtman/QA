@@ -155,16 +155,17 @@ def readConfigurationFile(filename):
   return result
 ##########################################################################################
 
-ok = 200
-created = 201
-accepted = 202
-nocontent = 204
-movedperm = 301
-redirect = 302
-forbidden = 403
-notfound = 404
-intserveror = 500
-servunavail = 503
+ok           = 200
+created      = 201
+accepted     = 202
+nocontent    = 204
+movedperm    = 301
+redirect     = 302
+unauthorized = 401
+forbidden    = 403
+notfound     = 404
+intserveror  = 500
+servunavail  = 503
 
 FAILED = SUCCEEDED = RETRIED = 0
 VOO = VAO = VRO = VSO = 0
@@ -205,107 +206,131 @@ def logInToHCC():
 #----------------------------------------------------------------------------------------------------------------------  
   
 def startCoding():
-  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION
-  global VOO, VAO, VRO, VSO
-  print("-------------------------------------------------------------------------------")
-  if RANDOM_OPPS_ACTION == "1":
-    CODE_OPPS_ACTION = str(random.randint(0,3))
-    action = "Random Accept/Reject/Skip Doc"    
-  elif CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    action = "Do NOT Accept or Reject Doc"
-  elif CODE_OPPS_ACTION == "1": # Accept Doc
-    action = "Accept Docs"
-  elif CODE_OPPS_ACTION == "2": # Reject Doc
-    action = "Reject Docs"
-  elif CODE_OPPS_ACTION == "3": # Skip Opp
-    action = "Skip Opp"
-  else:
-    action = "Unknown"
-  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* CODER ACTION       = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, action, CODE_OPPS_MAX))
-  print("-------------------------------------------------------------------------------")
-  coding_opp_current = 1
-  for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
-    testCode = 10 + (1 * coding_opp_current)
-    #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
-    #https://hccstage2.apixio.com/api/next-work-item/
-    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
-    print "* GET CODNG OPP    = %s" % response.status_code
-    opportunity = response.json()
-    #opportunity = response.text
-    patient_details = response.text
-    IncrementTestResultsTotals("coding opportunity check", response.status_code)
-    if opportunity == None:
-      print("ERROR : Login Failed or No More Opportunities For This Coder")
-      return 1
-    patient_uuid = ""
-    patient_uuid = opportunity.get("patient_uuid")
-    #patient_uuid = opportunity("patient_uuid")
-    #print "patient uuid: %s" % patient_uuid
-    #quit()
-    scorables = opportunity.get("scorables")
-    #print "scorables: %s" % scorables
-    print("-------------------------------------------------------------------------------")
-    print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
-    test_counter = 0
-    doc_no_current = 0
-    doc_no_max = len(scorables)
-    for scorable in scorables:
-      patient_org_id  = ""
-      finding_id      = ""
-      document_uuid   = ""
-      document_title  = ""
-      date_of_service = ""
-      doc_no_current = doc_no_current + 1
-      patient_org_id = scorable.get("patient_org_id")
-      finding_id = scorable.get("id")
-      document_uuid = scorable.get("document_uuid")
-      document_title = scorable.get("document_title")
-      date_of_service = scorable.get("date_of_service")
-      mime_type = scorable.get("mimeType")
-      if mime_type == None:
-    	mime_type = "text/plain"
-      print("PATIENT DOC %d OF %d\n* PATIENT ORG ID   = %s\n* PATIENT UUID     = %s\n* FINDING ID       = %s\n* DOC UUID         = %s\n* DOC TITLE        = %s\n* DOC DATE         = %s" % (doc_no_current, doc_no_max, patient_org_id, patient_uuid, finding_id, document_uuid, document_title, date_of_service))
-      if patient_uuid    == "":
-        print("WARNING : PATIENT UUID is Empty")
-      if patient_org_id  == "":
-        print("WARNING : ORG ID is Empty")
-      if finding_id      == "":
-        print("WARNING : FINDING ID is Empty")
-      if document_uuid   == "":
-        print("WARNING : DOC UUID is Empty")
-      if document_title  == "":
-        print("WARNING : DOC TITLE is Empty")
-      if date_of_service == "":
-        print("WARNING : DOC DATE is Empty")
-      test_counter = test_counter + 1
+  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, CODING_OPP_CURRENT
+  global VOO, VAO, VRO, VSO, PATIENT_ORG_NAME
+  global FAILED, SUCCEEDED, RETRIED, MODULES, MAX_NUM_RETRIES
+  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
 
-      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
-      IncrementTestResultsTotals("coding scorable document check", response.status_code)
-      print "* GET SCORABLE DOC = %s" % response.status_code     
+
+  url = URL+"/api/next-work-item/"
+  referer = URL+"/"
+  host = URL[8:]
+   
+  DATA = {}
+	
+  HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+		'Accept-Encoding': 'gzip, deflate, sdch', \
+		'Accept-Language': 'en-US,en;q=0.8', \
+		'Connection': 'keep-alive', \
+		'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+		'Host': host, \
+		'Referer': referer \
+		}	
+
+  testCode = 10 + (1 * CODING_OPP_CURRENT)
+
+  response = requests.get(url, cookies=COOKIES, data=DATA, headers=HEADERS)
+  if response.status_code == unauthorized:
+    if RETRIED < MAX_NUM_RETRIES:
+      FAILED += 1
+      RETRIED += 1
+      logInToHCC()
+      chooseCodingAction()
+      startCoding()
+    else:
+      print ("Number of retries %s exceeded limit of %s, exiting now ..." % (RETRIED, MAX_NUM_RETRIES)) 
+      quit()
+
+  IncrementTestResultsTotals("coding opportunity check", response.status_code)
+  print "* GET CODNG OPP    = %s" % response.status_code
+  opportunity = response.json()
+  patient_details = response.text
     
-      #totalPages = getDocPageTotal(scorable)
-      totalPages = 1
-      print "* TOTAL # OF PAGES = %s" % totalPages
+  if opportunity == None:
+    print("ERROR : Login Failed or No More Opportunities For This Coder")
+    return 1
+  status = opportunity.get("status")
+  possiblecodes = opportunity.get("possibleCodes") 
+  numpossiblecodes = len(possiblecodes) 
+  code = opportunity.get("code") 
+  patient = opportunity.get("patient") 
+  findings = opportunity.get("findings")
+  patient_id = opportunity.get("patientId")
+  project = opportunity.get("project")
+  finding_ids = opportunity.get("finding_ids")
+  user = opportunity.get("user")
+  organization = opportunity.get("organization")
+  transaction_id = opportunity.get("transactionId")
+  print("-------------------------------------------------------------------------------")
+  print("PATIENT OPP %d OF %d" % (CODING_OPP_CURRENT, int(CODE_OPPS_MAX)))
+  test_counter = 0
+  doc_no_current = 0
+  doc_no_max = len(findings)
+  
+  for finding in findings:
+    finding_id = finding_ids[doc_no_current]
+    doc_no_current = doc_no_current + 1
+    patient_org_id = finding.get("patient_org_id")  
+    document_uuid = finding.get("sourceId")
+    document_title = finding.get("document_title")
+    date_of_service = finding.get("doc_date")
+    mime_type = finding.get("mimeType")
+    if mime_type == None:
+    	mime_type = "text/plain"
+    #if CODING_OPP_CURRENT == 1:
+    #	PATIENT_ORG_NAME = getOrgName(patient_org_id)
+      
+    print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
+    print("* STATUS           = %s" % (status))
+    print("* PATIENT ORG      = %s" % (patient_org_id))
+    print("* PATIENT ID       = %s" % (patient_id))
+    print("* FINDING ID       = %s" % (finding_id))
+    print("* AVAILABLE CODES  = %s" % (numpossiblecodes))
+    print("* PROJECT ID       = %s" % (project))
+    print("* DOC UUID         = %s" % (document_uuid))
+    print("* DOC TITLE        = %s" % (document_title))
+    print("* DOC DATE         = %s" % (date_of_service))
+    print("* DOC TYPE         = %s" % (mime_type))
+    if patient_id    == "":
+      print("WARNING : PATIENT UUID is Empty")
+    if patient_org_id  == "":
+      print("WARNING : ORG ID is Empty")
+    if finding_id      == "":
+      print("WARNING : FINDING ID is Empty")
+    if document_uuid   == "":
+      print("WARNING : DOC UUID is Empty")
+    if document_title  == "":
+      print("WARNING : DOC TITLE is Empty")
+    if date_of_service == "":
+      print("WARNING : DOC DATE is Empty")
+    test_counter = test_counter + 1
+      
+    response = requests.get(URL + "/api/document-text/" + document_uuid, cookies=COOKIES, data=DATA, headers=HEADERS)
+    IncrementTestResultsTotals("coding scorable document check", response.status_code)
+    print "* GET SCORABLE DOC = %s" % response.status_code     
+    
+    totalPages = getDocPageTotal(finding)
+    print "* TOTAL # OF PAGES = %s" % totalPages
  
-      # looping through each and every available page in a document
-    if mime_type == "application/pdf":
-      for i in range (0,int(totalPages)):
-        response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
-        if response.status_code != ok:
-    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
-    	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  #quit()
-        IncrementTestResultsTotals("document page retrieval", response.status_code)
-        print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
-      
-      
-      
-      test_counter += 1
-      if RANDOM_OPPS_ACTION == "1":
-      	CODE_OPPS_ACTION = WeightedRandomCodingAction()
-      act_on_doc(opportunity, scorable, testCode + test_counter, doc_no_current, doc_no_max)
+    # looping through each and every available page in a document
+    #if mime_type == "application/pdf":
+    #  for i in range (0,int(totalPages)):
+    #    response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
+    #    if response.status_code != ok:
+   # 	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+   # 	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
+   # 	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+   # 	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+   # 	  #quit()
+   #     #IncrementTestResultsTotals("document page retrieval", response.status_code)
+   #     print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
+
+    test_counter += 1
+
+    if RANDOM_OPPS_ACTION == "1":
+   	  CODE_OPPS_ACTION = WeightedRandomCodingAction()
+    act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
   return 0
 
 #---------------------------------------------------------------------------------------------------------------------- 
@@ -552,6 +577,32 @@ def getDocPageTotal(scorable):
 
 #=========================================================================================
 
+def getOrgName(id):
+    # TODO: hit a customer endpoint on the user account service for the customer org name
+    # If orgName is not retrievable for any reason, return orgID
+    
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    
+    idString = str(id)
+    blankUUID = 'O_00000000-0000-0000-0000-000000000000'
+    url = AUTHHOST+"/customer/"+blankUUID[0:-(len(idString))]+idString
+    
+    referer = AUTHHOST
+    #Content-Type header in your request, or it's incorrect. In your case it must be application/xml
+    HEADERS = { 'Content-Type': 'application/json', \
+                'Referer': referer, \
+                'Authorization': 'Apixio ' + ORG_TOKEN}
+    response = requests.get(url, data={}, headers=HEADERS)
+    statuscode = response.status_code
+    if statuscode == ok:
+    	customerOrg = response.json()
+    	customerOrgName = customerOrg['name']
+    else:
+    	customerOrgName = id   
+    return (customerOrgName)	
+
+#=========================================================================================
+
 def WeightedRandomCodingAction():
 	global VOO_W, VAO_W, VRO_W, VSO_W
 	global VOO, VAO, VRO, VSO
@@ -669,7 +720,7 @@ def writeReportDetails(module):
 		REPORT = REPORT+FAILED_STAT
 	else:
 		REPORT = REPORT+PASSED_STAT
-	print ("Completed writeReportDetails ... \n")
+	#print ("Completed writeReportDetails ... \n")
 		
 #=========================================================================================
 	
@@ -822,7 +873,7 @@ def log(text):
 
 #=========================================================================================
 
-def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
+def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
   global TOKEN, SESSID, COOKIES
 
@@ -837,62 +888,65 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
     	'X-CSRFToken': TOKEN \
     	}	
-  
-  if CODE_OPPS_ACTION == "0": # ================== DO NOT ACCEPT OR REJECT DOC =============
+    	
+ 	 	   	    	  
+  if CODE_OPPS_ACTION == "0": #=== DO NOT ACCEPT OR REJECT, JUST VIEW ====================
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
-  elif CODE_OPPS_ACTION == "1": # ================= ACCEPT DOC =============================
-    finding_id = scorable.get("id")
+  elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
+    #finding_id = finding.get("id")
+    print("* CODER ACTION     = Accept Doc")
     print "* FINDING ID       = %s" % finding_id
-    DATA = 	{ \
+
+			
+    DATA = { \
 			"opportunity": \
 			{ \
-			"model_year": opportunity.get("model_year"), \
-			"hash": opportunity.get("hash"), \
-			"scorables": \
-			[ \
-			{ \
-			"mimeType": scorable.get("mimeType"), \
-			"document_title": scorable.get("document_title"), \
+			"status":opportunity.get("status"), \
+			"possibleCodes": opportunity.get("possibleCodes"), \
 			"code": \
 			{ \
-			"code_system_name": scorable.get("code").get("code_system_name"), \
-			"code": scorable.get("code").get("code"), \
-			"display_name": scorable.get("code").get("display_name"), \
-			"code_system": scorable.get("code").get("code_system"), \
-			"code_system_version": scorable.get("code").get("code_system_version") \
+			"labelSetVersion": opportunity.get("code").get("labelSetVersion"), \
+			"displayName": opportunity.get("code").get("displayName"), \
+			"description": opportunity.get("code").get("description"), \
+			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
+			"sweep": opportunity.get("code").get("sweep"), \
+			"hcc": opportunity.get("code").get("labelSetVersion") \
 			}, \
-			"end": scorable.get("end"), \
-			"start": scorable.get("start"), \
-			"conditionSet": scorable.get("conditionSet"), \
-			"patient_org_id": scorable.get("patient_org_id"), \
-			"patient_id": scorable.get("patient_id"), \
-			"source_type": scorable.get("source_type"), \
-			"document_uuid": scorable.get("document_uuid"), \
-			"elements": scorable.get("elements"), \
-			"source_id": scorable.get("source_id"), \
-			"date_of_service": scorable.get("date_of_service"), \
-			"id": scorable.get("id"), \
-			"page": scorable.get("page"), \
-			"list_position": str(doc_no_current) \
+			"patient": \
+			{ \
+			"first_name": opportunity.get("patient").get("first_name"), \
+			"last_name": opportunity.get("patient").get("last_name"), \
+			"middle_name": opportunity.get("patient").get("middle_name"), \
+			"dob": opportunity.get("patient").get("dob"), \
+			"gender": opportunity.get("patient").get("gender"), \
+			"org_id": opportunity.get("patient").get("org_id") \
+			}, \
+			"findings": \
+			[ \
+			{ \
+			"document_title": finding.get("document_title"), \
+			"elements": finding.get("elements"), \
+			"sourceType": finding.get("sourceType"), \
+			"sourceId": finding.get("sourceId"), \
+			"patient_org_id": finding.get("patient_org_id"), \
+			"doc_date": finding.get("doc_date"), \
+			"pages": finding.get("pages"), \
+			"list_position":0, \
+			"lifecycle_id":"4af87d4c-9aad-4a55-d238-31bff01390a9", \
+			"text":{} \
 			} \
 			], \
-			"hcc_description": opportunity.get("hcc_description"), \
-			"payment_year": opportunity.get("payment_year"), \
-			"patient_id": opportunity.get("patient_id"), \
+			"patientId": opportunity.get("patientId"), \
 			"project": opportunity.get("project"), \
-			"hcc": opportunity.get("hcc"), \
-			"get_id": opportunity.get("get_id"), \
-			"label_set_version": opportunity.get("label_set_version"), \
-			"suggested_codes": opportunity.get("suggested_codes"), \
-			"rule_hash": opportunity.get("rule_hash"), \
-			"patient": opportunity.get("patient"), \
-			"patient_uuid": opportunity.get("patient_uuid"), \
-			"model_run": opportunity.get("model_run") \
+			"finding_ids":opportunity.get("finding_ids"), \
+			"user": opportunity.get("user"), \
+			"organization": opportunity.get("organization"), \
+			"transactionId": opportunity.get("transactionId") \
 			}, \
 			"annotations": \
 			{ \
-			finding_id: \
+			finding.get("sourceId"): \
 			{ \
 			"changed":True, \
 			"flaggedForReview":True, \
@@ -904,173 +958,197 @@ def act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max):
 			}, \
 			"icd": \
 			{ \
-			"code_system_name": opportunity.get("suggested_codes")[0].get("code_system_name"), \
-			"code": opportunity.get("suggested_codes")[0].get("code"), \
-			"display_name": opportunity.get("suggested_codes")[0].get("display_name"), \
-			"code_system": opportunity.get("suggested_codes")[0].get("code_system"), \
-			"code_system_version": opportunity.get("suggested_codes")[0].get("code_system_version") \
+			"codeSystemVersion": opportunity.get("possibleCodes")[0].get("codeSystemVersion"), \
+			"codeSystemName": opportunity.get("possibleCodes")[0].get("codeSystemName"), \
+			"code": opportunity.get("possibleCodes")[0].get("code"), \
+			"displayName": opportunity.get("possibleCodes")[0].get("displayName"), \
+			"codeSystem":opportunity.get("possibleCodes")[0].get("codeSystem") \
 			}, \
 			"provider": "Dr. Grinder", \
-			"dateOfService": scorable.get("date_of_service"), \
-			"page": scorable.get("page"), \
-			"comment":"Grinder Flag for Review" \
+			"dateOfService": finding.get("doc_date"), \
+			"comment": "Grinder Flag for Review" \
 			}}}
-    
-    
-    
+			
+			
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
+    if response.status_code == ok:
+    	print "* ANNOTATE FINDING = %s" % response.status_code
+    else:
+    	print("\n")
+    	print("-------------------------------------------------------------------------------")
+    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
+    	print("-------------------------------------------------------------------------------")
+    	print("\n")
+    	#quit()
+    	
+    IncrementTestResultsTotals("coding view and accept", response.status_code)
+    if response.status_code == ok:
+      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = %s" % response.status_code)
+    else:
+      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+      
+  elif CODE_OPPS_ACTION == "2": #================================== REJECT DOC ===========
+    #finding_id = finding.get("id")
+    print("* CODER ACTION     = Reject Doc")
+    print "* FINDING ID       = %s" % finding_id
+
+			
+    DATA = { \
+			"opportunity": \
+			{ \
+			"status":opportunity.get("status"), \
+			"possibleCodes": opportunity.get("possibleCodes"), \
+			"code": \
+			{ \
+			"labelSetVersion": opportunity.get("code").get("labelSetVersion"), \
+			"displayName": opportunity.get("code").get("displayName"), \
+			"description": opportunity.get("code").get("description"), \
+			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
+			"sweep": opportunity.get("code").get("sweep"), \
+			"hcc": opportunity.get("code").get("labelSetVersion") \
+			}, \
+			"patient": \
+			{ \
+			"first_name": opportunity.get("patient").get("first_name"), \
+			"last_name": opportunity.get("patient").get("last_name"), \
+			"middle_name": opportunity.get("patient").get("middle_name"), \
+			"dob": opportunity.get("patient").get("dob"), \
+			"gender": opportunity.get("patient").get("gender"), \
+			"org_id": opportunity.get("patient").get("org_id") \
+			}, \
+			"findings": \
+			[ \
+			{ \
+			"document_title": finding.get("document_title"), \
+			"elements": finding.get("elements"), \
+			"sourceType": finding.get("sourceType"), \
+			"sourceId": finding.get("sourceId"), \
+			"patient_org_id": finding.get("patient_org_id"), \
+			"doc_date": finding.get("doc_date"), \
+			"pages": finding.get("pages"), \
+			"list_position":0, \
+			"lifecycle_id":"4af87d4c-9aad-4a55-d238-31bff01390a9", \
+			"text":{} \
+			} \
+			], \
+			"patientId": opportunity.get("patientId"), \
+			"project": opportunity.get("project"), \
+			"finding_ids":opportunity.get("finding_ids"), \
+			"user": opportunity.get("user"), \
+			"organization": opportunity.get("organization"), \
+			"transactionId": opportunity.get("transactionId") \
+			}, \
+			"annotations": \
+			{ \
+			finding.get("sourceId"): \
+			{ \
+			"changed": True, \
+			"flaggedForReview": True, \
+			"result": "reject", \
+			"rejectReason": "This document does not mention this HCC for the patient", \
+			"comment": "Grinder Flag for Review Comment" \
+			}}}						
+			
+
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     
-    print "* ANNOTATE FINDING = %s" % response.status_code
-    if response.status_code == 500:
-    	print response.text
-    	#print response.json()
-    	#print response.raw
+    if response.status_code == ok:
+    	print "* ANNOTATE FINDING = %s" % response.status_code
+    else:
+    	print("\n")
+    	print("-------------------------------------------------------------------------------")
+    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
+    	print("-------------------------------------------------------------------------------")
+    	print("\n")
     	#quit()
     
     
-    IncrementTestResultsTotals("coding view and accept", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
-    else:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()  
-  elif CODE_OPPS_ACTION == "2": # ======================= REJECT DOC =========================
-    finding_id = scorable.get("id")
-    #annotation = create_request(Test(testname, "Annotate Finding"))
-    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
-    print "* FINDING ID       = %s" % finding_id
-    DATA = { \
-			"opportunity": \
-			{ \
-			"model_year": opportunity.get("model_year"), \
-			"hash": opportunity.get("hash"), \
-			"scorables": \
-			[{ \
-			"mimeType": scorable.get("mimeType"), \
-			"document_title": scorable.get("document_title"), \
-			"code": \
-			{ \
-			"code_system_name": scorable.get("code").get("code_system_name"), \
-			"code": scorable.get("code").get("code"), \
-			"display_name": scorable.get("code").get("display_name"), \
-			"code_system": scorable.get("code").get("code_system"), \
-			"code_system_version": scorable.get("code").get("code_system_version") \
-			}, \
-			"end": scorable.get("end"), \
-			"start": scorable.get("start"), \
-			"conditionSet": scorable.get("conditionSet"), \
-			"patient_org_id": scorable.get("patient_org_id"), \
-			"patient_id": scorable.get("patient_id"), \
-			"source_type": scorable.get("source_type"), \
-			"document_uuid": scorable.get("document_uuid"), \
-			"elements": scorable.get("elements"), \
-			"source_id": scorable.get("source_id"), \
-			"date_of_service": scorable.get("date_of_service"), \
-			"id": scorable.get("id"), \
-			"page": scorable.get("page"), \
-			"list_position": str(doc_no_current) \
-			}], \
-			"hcc_description": opportunity.get("hcc_description"), \
-			"payment_year": opportunity.get("payment_year"), \
-			"patient_id": opportunity.get("patient_id"), \
-			"project": opportunity.get("project"), \
-			"hcc": opportunity.get("hcc"), \
-			"get_id": opportunity.get("get_id"), \
-			"label_set_version": opportunity.get("label_set_version"), \
-			"suggested_codes": opportunity.get("suggested_codes"), \
-			"rule_hash": opportunity.get("rule_hash"), \
-			"patient": opportunity.get("patient"), \
-			"patient_uuid": opportunity.get("patient_uuid"), \
-			"model_run": opportunity.get("model_run") \
-			}, \
-			"annotations": \
-			{ \
-			finding_id: \
-			{ \
-			"changed":True, \
-			"flaggedForReview":True, \
-			"result":"reject", \
-			"rejectReason":"This document does not mention this HCC for the patient", \
-			"comment":"Grinder Flag for Review Comment", \
-			"page": scorable.get("page") \
-			}}}
-    		   		
-    		
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
     IncrementTestResultsTotals("coding view and reject", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
+    if response.status_code == ok:
+      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = %s" % response.status_code)
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()      
-  elif CODE_OPPS_ACTION == "3": # ================== SKIP DOC ====================================
-    finding_id = scorable.get("id")
-    #annotation = create_request(Test(testname, "Annotate Finding"))
-    #response = annotation.POST(URL+ "/api/annotate/" + str(finding_id) + "/", (
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+  elif CODE_OPPS_ACTION == "3": #=========================== SKIP OPP ====================
+    #finding_id = finding.get("id")
+    print("* CODER ACTION     = Skip Doc")
     print "* FINDING ID       = %s" % finding_id
+    
     DATA = { \
 			"opportunity": \
 			{ \
-			"model_year": opportunity.get("model_year"), \
-			"hash": opportunity.get("hash"), \
-			"scorables": \
-			[ \
-			{ \
-			"mimeType": scorable.get("mimeType"), \
-			"document_title": scorable.get("document_title"), \
+			"status":opportunity.get("status"), \
+			"possibleCodes": opportunity.get("possibleCodes"), \
 			"code": \
 			{ \
-			"code_system_name": scorable.get("code").get("code_system_name"), \
-			"code": scorable.get("code").get("code"), \
-			"display_name": scorable.get("code").get("display_name"), \
-			"code_system": scorable.get("code").get("code_system"), \
-			"code_system_version": scorable.get("code").get("code_system_version") \
+			"labelSetVersion": opportunity.get("code").get("labelSetVersion"), \
+			"displayName": opportunity.get("code").get("displayName"), \
+			"description": opportunity.get("code").get("description"), \
+			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
+			"sweep": opportunity.get("code").get("sweep"), \
+			"hcc": opportunity.get("code").get("labelSetVersion") \
 			}, \
-			"end": scorable.get("end"), \
-			"start": scorable.get("start"), \
-			"conditionSet": scorable.get("conditionSet"), \
-			"patient_org_id": scorable.get("patient_org_id"), \
-			"patient_id": scorable.get("patient_id"), \
-			"source_type": scorable.get("source_type"), \
-			"document_uuid": scorable.get("document_uuid"), \
-			"elements": scorable.get("elements"), \
-			"source_id": scorable.get("source_id"), \
-			"date_of_service": scorable.get("date_of_service"), \
-			"id": scorable.get("id"), \
-			"page": scorable.get("page") \
-			}], \
-			"hcc_description": opportunity.get("hcc_description"), \
-			"payment_year": opportunity.get("payment_year"), \
-			"patient_id": opportunity.get("patient_id"), \
+			"patient":{ \
+			"first_name": opportunity.get("patient").get("first_name"), \
+			"last_name": opportunity.get("patient").get("last_name"), \
+			"middle_name": opportunity.get("patient").get("middle_name"), \
+			"dob": opportunity.get("patient").get("dob"), \
+			"gender": opportunity.get("patient").get("gender"), \
+			"org_id": opportunity.get("patient").get("org_id") \
+			}, \
+			"findings": \
+			[ \
+			{ \
+			"document_title": finding.get("document_title"), \
+			"elements": finding.get("elements"), \
+			"sourceType": finding.get("sourceType"), \
+			"sourceId": finding.get("sourceId"), \
+			"patient_org_id": finding.get("patient_org_id"), \
+			"doc_date": finding.get("doc_date"), \
+			"pages": finding.get("pages"), \
+			"list_position":0, \
+			"lifecycle_id":"4af87d4c-9aad-4a55-d238-31bff01390a9", \
+			"text":{} \
+			} \
+			], \
+			"patientId": opportunity.get("patientId"), \
 			"project": opportunity.get("project"), \
-			"hcc": opportunity.get("hcc"), \
-			"get_id": opportunity.get("get_id"), \
-			"label_set_version": opportunity.get("label_set_version"), \
-			"suggested_codes": opportunity.get("suggested_codes"), \
-			"rule_hash": opportunity.get("rule_hash"), \
-			"patient": opportunity.get("patient"), \
-			"patient_uuid": opportunity.get("patient_uuid"), \
-			"model_run": opportunity.get("model_run") \
+			"finding_ids":opportunity.get("finding_ids"), \
+			"user": opportunity.get("user"), \
+			"organization": opportunity.get("organization"), \
+			"transactionId": opportunity.get("transactionId") \
 			}, \
 			"annotations": \
 			{ \
-			finding_id: \
+			finding.get("sourceId"): \
 			{ \
 			"changed":True, \
 			"flaggedForReview":False, \
 			"result":"skipped" \
-			}}}
-		
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
+			}}}			
+   
+
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
+    if response.status_code == ok:
+    	print "* ANNOTATE FINDING = %s" % response.status_code
+    else:
+    	print("\n")
+    	print("-------------------------------------------------------------------------------")
+    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
+    	print("-------------------------------------------------------------------------------")
+    	print("\n")
+    	#quit()
     IncrementTestResultsTotals("coding view and skip", response.status_code)
-    if response.status_code == 200:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
+    if response.status_code == ok:
+      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = %s" % response.status_code)
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-    #quit()  
+      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
   else:
     print("* CODER ACTION     = Unknown\n")
   return 0
+
 
 # MAIN FUNCTION CALLER ####################################################################################################
 
@@ -1086,7 +1164,8 @@ logInToHCC()
 
 writeReportDetails("login")
 
-startCoding()
+for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX)+1)):
+	startCoding()
 
 writeReportDetails("coding opportunity check")
 writeReportDetails("coding scorable document check")
