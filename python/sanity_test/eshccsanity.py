@@ -61,7 +61,6 @@ import mmap
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/python/sanity_test/"
-#CSV_CONFIG_FILE_PATH = "/Users/ishekhtman/Git/QA/python/sanity_test/"
 CSV_CONFIG_FILE_NAME = "eshccsanity.csv"
 VERSION = "1.0.3"
 # Email reports to eng@apixio.com and archive report html file:
@@ -183,6 +182,9 @@ def logInToHCC():
   print "* Host Url           = "+str(url)
   print "* Login page         = "+str(response.status_code)
   
+  
+  #print response.cookies
+  
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
   COOKIES = dict(csrftoken=''+TOKEN+'')
@@ -190,11 +192,10 @@ def logInToHCC():
   HEADERS = {'Connection': 'keep-alive', 'Content-Length': '115', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
 			'Referer': referer}	
-  			
-  
+ 		 
   response = requests.post(url, data=DATA, headers=HEADERS) 
   IncrementTestResultsTotals("login", response.status_code)
-  print ("* Host Url           = %s" % (url)
+  print ("* Host Url           = %s" % (url))
   print ("* Log in user        = %s" % (response.status_code))
   print ("* Token              = %s" % TOKEN)
   print ("* Session ID         = %s" % SESSID)
@@ -335,15 +336,7 @@ def historyReport():
     
     
     now = datetime.datetime.now()    
-    #report_range = """/api/report/qa_report?page=1&result=all&start=2014-01-01T07%%3A00%%3A00.000Z&end=%d-%d-%dT07%%3A59%%3A59.999Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
-    
-    #print report_range
-    
-    
-    #report_range = """/api/report/qa_report?end=2015-06-11T06:59:59.999Z&page=1&result=all&start=2015-06-03T07:00:00.000Z&terms=&user=sanitytest001@apixio.net"""
-    
-    #report_range = """/api/report/qa_report?end=%d-%d-%dT06:59:59.999Z&page=1&result=all&start=2015-06-03T07:00:00.000Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
-    
+
     report_range = """/api/report/qa_report?end=%d-%d-%dT06:59:59.999Z&page=1&result=all&start=2015-06-03T07%%3A00%%3A00.000Z&terms=&user=%s""" % (now.year, now.month, now.day, USERNAME.lower())
     
     
@@ -625,9 +618,9 @@ def checkEnvironmentandReceivers():
 		#PASSWORD="apixio.123"
 	else:
 		ENVIRONMENT = "staging"
-		DOMAIN="hcc-stg.apixio.com"
-		URL="https://hcc-stg.apixio.com"
-		USERNAME="sanitytest001@apixio.net"
+		DOMAIN="hcceng.apixio.com"
+		URL="https://hcceng.apixio.com"
+		USERNAME="mmgenergyes@apixio.net"
 		PASSWORD="apixio.123"
 	
 	if (len(sys.argv) > 2):
