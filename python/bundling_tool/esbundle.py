@@ -191,11 +191,9 @@ def printGlobalParamaterSettings():
 	print ("\n")
 	print ("* Version                = %s"%VERSION)
 	print ("* Environment            = %s"%ENVIRONMENT)
-	print ("* ACL URL                = %s"%UA_URL)
-	print ("* HCC URL                = %s"%HCC_URL)
+	print ("* UA  URL                = %s"%UA_URL)
 	print ("* ACL Admin User Name    = %s"%ACLUSERNAME)
 	print ("* PARMFILE               = %s"%PARMFILE)
-	print ("* Batch ID               = %s"%BATCHID)
 
 #=========================================================================================
 def IncrementTestResultsTotals(module, code):
@@ -237,7 +235,7 @@ def checkEnvironmentandReceivers():
 	
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS, PROJECTID, BATCHID, BUNDL_URL
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global PARMFILE
+	global PARMFILE, BNDL_URL, UA_URL, HCC_URL, ACLUSERNAME, ACLPASSWORD, TOKEN_URL
 	
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	
@@ -252,14 +250,16 @@ def checkEnvironmentandReceivers():
 		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
 		ACL_DOMAIN="acladmin.apixio.com"
-		UA_URL="https://acladmin.apixio.com"
+		UA_URL="https://useraccount.apixio.com:7076"
 		HCC_DOMAIN="hcc.apixio.com"
 		HCC_URL="https://hcc.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="root@api.apixio.com"
-		ACLPASSWORD="thePassword"
+		ACLUSERNAME="system_qa@apixio.com"
+		ACLPASSWORD="9p2qa20.."
 		BUNDL_URL="http://52.11.138.4:8087"
+		BNDL_URL="https://bundler-2.apixio.com:8443/hcc/bundler/bundle"
+		TOKEN_URL="https://tokenizer.apixio.com:7075/tokens"
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
@@ -273,20 +273,18 @@ def checkEnvironmentandReceivers():
 		ACLUSERNAME="ishekhtman@apixio.com"
 		ACLPASSWORD="apixio.123"
 		BUNDL_URL="http://52.11.138.4:8087"
+		BNDL_URL="https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
 	
 	if (len(sys.argv) > 2):
-		PROJECTID=str(sys.argv[2])
+		PARMFILE=str(sys.argv[2])
 	else:
 		print "Missing project ID, aborting now ..."
 		print "Proper use instructions:"
-		print "python2.7 bundle.py <environment> <projectID (required)> <batchID (optional)>"
+		print "python2.7 esbundle.py <environment> <parm-file-name (required)>"
 		quit()
 
-	if (len(sys.argv) > 3):
-		BATCHID=str(sys.argv[3])
-	else:
-		BATCHID=""
-	
+
 				
 	# overwite any previous ENVIRONMENT settings
 	#ENVIRONMENT = "Production"
@@ -294,168 +292,8 @@ def checkEnvironmentandReceivers():
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	print ("Completed setting of enviroment and report receivers ...\n")		
 
-#=========================================================================================	
-	
-def writeReportHeader ():
-	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
-	
-	print ("Begin writing report header ...\n")
-	# REPORT = MIMEMultipart()
-	REPORT = ""
-	REPORT = REPORT + "<h1>User Accounts Regression Test Report</h1>"
-	REPORT = REPORT + "Run date & time: <b>%s</b><br>\n" % (CUR_TIME)
-	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
-	REPORT = REPORT + "UA Root user name: <b>%s</b><br>\n" % (ACLUSERNAME)
-	REPORT = REPORT + "UA app url: <b>%s</b><br>\n" % (UA_URL)	
-	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
-	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='0'>"
-	REPORT = REPORT + "<tr><td>"	
-	print ("End writing report header ...\n")	
-	
-#=========================================================================================	
-	
-def writeReportDetails(module):	
-	global REPORT
-	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	
-	REPORT = REPORT + SUBHDR % module.upper()
-	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
-	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
-	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+FAILED_STAT
-	else:
-		REPORT = REPORT+PASSED_STAT
-	print ("Completed writeReportDetails ... \n")
 
-#=========================================================================================			
-	
-def writeReportFooter():
-	global REPORT
-	print ("Write report footer ...\n")
-	#REPORT = REPORT+"</td></tr></table>"
-	REPORT = REPORT+"<table>"
-	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-	REPORT = REPORT+"<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-	REPORT = REPORT+"<tr><td>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
-	TIME_END = time.time()
-	TIME_TAKEN = TIME_END - TIME_START
-	hours, REST = divmod(TIME_TAKEN,3600)
-	minutes, seconds = divmod(REST, 60)
-	REPORT = REPORT+"<tr><td>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-	REPORT = REPORT+"<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
-	REPORT = REPORT+"</table>"
-	REPORT = REPORT+"</td></tr></table>"
-	print ("Finished writing report ...\n")
 
-#=========================================================================================	
-
-def archiveReport():
-	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY
-	if not DEBUG_MODE:
-		print ("Archiving report ...\n")
-		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/useraccountsregression/"+str(YEAR)+"/"+str(CURMONTH)
-		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/useraccountsregression/"+str(YEAR)+"/"+str(CURMONTH)
-		# ------------- Create new folder if one does not exist already -------------------------------
-		print ("creating report backup folder if do not exist already ...")
-		if not os.path.exists(BACKUPREPORTFOLDER):
-			os.makedirs(BACKUPREPORTFOLDER)
-			os.chmod(BACKUPREPORTFOLDER, 0777)	
-		if not os.path.exists(REPORTFOLDER):
-			os.makedirs(REPORTFOLDER)
-			os.chmod(REPORTFOLDER, 0777)
-		print ("Backup Folder: %s" % BACKUPREPORTFOLDER)
-		print ("Report Folder: %s" % REPORTFOLDER)	
-		print ("completed creating report backup folders ...")	
-		# ---------------------------------------------------------------------------------------------
-		REPORTFILENAME=str(CURDAY)+".html"
-		REPORTXTSTRING="User Accounts Regression "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/useraccountsregression/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
-		REPORTXTFILENAME="user_accounts_regression_reports_"+ENVIRONMENT.lower()+".txt"
-		# Old location 
-		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-		# New location 
-		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
-		os.chdir(BACKUPREPORTFOLDER)
-		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
-		REPORTFILE.close()
-		os.chdir(REPORTFOLDER)
-		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
-		REPORTFILE.close()		
-		os.chdir(REPORTXTFILEFOLDER)
-		f = open(REPORTXTFILENAME)
-		s = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
-		if s.find(REPORTXTSTRING) != -1:
-			print ("Report entry found, skipping append ...\n")
-		else:
-			print ("Report entry not found, appending new entry ...\n")
-			REPORTFILETXT = open(REPORTXTFILENAME, 'a')
-			REPORTFILETXT.write(REPORTXTSTRING)
-			REPORTFILETXT.close()
-		os.chdir("/mnt/automation/python/regression_test")
-		print ("Finished archiving report ... \n")
-
-#=========================================================================================	
-
-def emailReport():
-	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
-	
-	print ("Emailing report ...\n")
-	IMAGEFILENAME=str(CURDAY)+".png" 
-	message = MIMEMultipart('related')
-	message.attach(MIMEText((REPORT), 'html'))
-	#with open(IMAGEFILENAME, 'rb') as image_file:
-	#	image = MIMEImage(image_file.read())
-	#image.add_header('Content-ID', '<picture@example.com>')
-	#image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
-	#message.attach(image)
-
-	message['From'] = 'Apixio QA <QA@apixio.com>'
-	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
-	message['Subject'] = 'User Accounts %s Regression Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
-	msg_full = message.as_string()
-		
-	s=smtplib.SMTP()
-	s.connect("smtp.gmail.com",587)
-	s.starttls()
-	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
-	s.quit()
-	# Delete graph image file from stress_test folder
-	#os.remove(IMAGEFILENAME)
-	print ("Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2))	
-
-#=========================================================================================
-def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3, p4, p5, p6, p7, p8):
-	global REPORT
-	print ("* TEST CASE NUMBER       = %s" % tc)
-	print ("* TEST STEP NUMBER       = %s" % step)
-	
-	REPORT = REPORT + "<tr><td colspan='4'><table border='1' width='100%%' cellspacing='0' cellpadding='0'><tr><td><table width='100%%'>"
-	REPORT = REPORT + "<tr><td colspan='4' bgcolor='#D0D0D0'><font size='4'> %d.%d - <b><i>%s</i></b></font></td></tr>" % (tc, step, function)
-	report_local = ""
-	for i in range (1,8):
-		exec('if p'+str(i)+ ' > "": report_local  = report_local  + "<tr><td colspan=4>"+p'+str(i)+'+"</td></tr>"')
-	REPORT = REPORT + report_local
-		
-	if statuscode in exp_statuscode:
-		print ("* TEST STATUS            = PASSED QA")
-		print ("----------------------------------------------------------------------------")
-		REPORT = REPORT + "<tr><td bgcolor='green' ><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='green'><font color='#FFFFFF'>%s</td> \
-			<td bgcolor='green'><font color='#FFFFFF'>%s</td><td bgcolor='green'><font color='#FFFFFF'>PASSED QA</td></tr>"% (tc, step, exp_statuscode, statuscode)
-		#REPORT = REPORT + "<tr><td colspan='4'><hr></td></tr>"
-	else:
-		print ("* TEST STATUS            = FAILED QA")
-		print ("----------------------------------------------------------------------------")
-		REPORT = REPORT + "<tr><td bgcolor='red' ><font color='#FFFFFF'>End test case: %s step: %s</td><td bgcolor='red'><font color='#FFFFFF'>%s</td> \
-			<td bgcolor='red'><font color='#FFFFFF'>%s</td><td bgcolor='red'><font color='#FFFFFF'>FAILED QA</td></tr>"% (tc, step, exp_statuscode, statuscode)
-		#REPORT = REPORT + "<tr><td colspan='4'><hr></td></tr>"
-		if int(PAUSE_FOR_FAILURES) == 1:
-			raw_input("Press Enter to continue...")	
-	REPORT = REPORT + "</table></td></tr></table>"		
-	#print ("\n")				
 			
 #=========================================================================================
 #===================== Main Functions ====================================================
@@ -499,7 +337,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 	
 	
-	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
@@ -521,543 +359,6 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 
-	# skip this step for tc or step of zero, which is indication of a cleanup process	
-	if (step > 0):
-		logTestCaseStatus(exp_statuscode, statuscode, tc, step, "obtainInternalToken", un, pw, external_token, TOKEN, "", "", "", "")
-
-#=========================================================================================
-# * POST:/uorgs/cproperties => POST:/customer/property # creates a new custom property definition
-# * GET:/uorgs/cproperties => GET:/customer/properties # gets list of property definitions
-# * DELETE:/uorgs/cproperties/{name} => no equivalent # removes given property definition
-
-# * PUT:/uorgs/{id}/properties/{name} => POST:/customer/{id}/{name} # set property value on entity
-
-# * DELETE:/uorgs/{id}/properties/{name} => DELETE:/customer/{id}/property?name={name} # remove prop value
-# * GET:/uorgs/{id}/properties => no equivalent # get all props on given entity
-# * GET:/uorgs/properties => no equivalent # get all props on all entities
-# * GET:/uorgs/properties/{name} => GET:/customer/property/{name} get single prop value on all entities
-#=========================================================================================
-
-#		Type: "uorgs" / "users"
-def viewCustomPropertyDefinition(type, exp_statuscode, tc, step):
-	
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - VIEW CUSTOM PROPERTY DEFINITION %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	if type == "customer":
-		URL = UA_URL+'/'+type+'/properties'
-	else:	
-		URL = UA_URL+'/'+type+'/cproperties'
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else: 
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "viewCustomPropertyDefinition", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
-	return(response)
-	
-#=========================================================================================
-#		Type: "uorgs" / "users"
-def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step):
-	
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - CREATE NEW CUSTOM PROPERTY DEFINITION %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	#pname = "uatest9"
-	#ptype = "STRING"
-	if type == "customer":
-		URL = UA_URL+'/'+type+'/property?name='+pname+'&type='+ptype
-	else:	
-		URL = UA_URL+'/'+type+'/cproperties'
-	DATA = {"name": pname, "type": ptype}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-
-	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if (statuscode == 200):
-		print ("New custom propery definition was successfully created ...")
-		print ("Name: %s  Type: %s" % (pname, ptype))
-	elif (statuscode == 400):
-		print ("This custom property name already exists.  Skipping ...")
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-	else:
-		print "Failure occured, exiting now ..."
-		#quit()		
-	
-	
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "createCustomPropertyDefinition", APIXIO_TOKEN, type, pname, ptype, "", "", "", "")
-	return(response)
-
-#=========================================================================================
-	
-#		Type: "uorgs" / "users"
-def deleteCustomPropertyDefinition(type, pname, exp_statuscode, tc, step):
-	
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - DELETE CUSTOM PROPERTY DEFINITION %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/cproperties/'+pname+''
-	print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-
-	response = requests.delete(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		#quit()		
-	
-	
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteCustomPropertyDefinition", APIXIO_TOKEN, type, pname, "", "", "", "", "")
-	return(response)	
-
-#=========================================================================================
-# * PUT:/uorgs/{id}/properties/{name} => POST:/customer/{id}/{name} # set property value on entity
-
-def setPropertyValueOnEntity(type, entityID, pname, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - SET PROPERTY VALUE ON ENTITY %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	value="80"
-	if type == "customer":
-		URL = UA_URL+'/'+type+'/'+entityID+'/property/'+pname
-	else:
-		URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname	
-	print URL
-	DATA = json.dumps({"value": value})
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	if type == "customer":
-		response = requests.post(URL, data=DATA, headers=HEADERS)
-	else:
-		response = requests.put(URL, data=DATA, headers=HEADERS)	
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "setPropertyValueOnEntity", APIXIO_TOKEN, type, entityID, pname, value, "", "", "")
-	return()
-
-#=========================================================================================
-
-def removePropertyValueFromEntity(type, entityID, pname, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - REMOVE PROPERTY VALUE ON ENTITY %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	value=""
-	URL = UA_URL+'/'+type+'/'+entityID+'/properties/'+pname
-	print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.delete(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removePropertyValueFromEntity", APIXIO_TOKEN, type, entityID, pname, "", "", "", "")
-	return()
-	
-#=========================================================================================	
-	
-def getAllPropertiesOnGivenEntity(type, entityID, exp_statuscode, tc, step):
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - VIEW ALL PROPERTIES ON GIVEN ENTITY %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'+entityID+'/properties'
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else: 
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnGivenEntity", APIXIO_TOKEN, type, entityID, prop_list, "", "", "", "")
-
-	return()
-	
-#=========================================================================================	
-
-def getAllPropertiesOnAllEntities(type, exp_statuscode, tc, step):
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - VIEW ALL PROPERTIES FOR ALL ENTITIES %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/properties'
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else: 
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getAllPropertiesOnAllEntities", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
-	return()
-	
-#=========================================================================================	
-	
-def getSinglePropertyValueOnAllEntities(type, pname, exp_statuscode, tc, step):
-
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - VIEW SINGLE PROPERTY ON ALL ENTITIES %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/properties/'+pname
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else: 
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropertyValueOnAllEntities", APIXIO_TOKEN, type, pname, "", "", "", "", "")
-	return()	
-	
-	
-#=========================================================================================	
-	
-def getCustomerRelatedData(type, option, exp_statuscode, tc, step):
-
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - VIEW CUSTOMER RELATED ALL PROJECTS AND PROPERTIES %s <<<" % option.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'+option
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else: 
-		print "Failure occured, exiting now ..."
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getCustomerRelatedData", APIXIO_TOKEN, type, option, "", "", "", "", "")
-	return()	
-	
-#=========================================================================================	
-# POST:/customer/{id}/{name} # set property value on entity
-# POST:/customer/{customerID}/property/{name}	
-def setCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, step):
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - SET CUSTOMER PROPERTY VALUE %s <<<" % pname.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'+customerID+'/property?name='+pname
-	#print URL
-	#DATA = {}
-	DATA = json.dumps({"value":"paa"})
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.post(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "setCurtomerPropertyValue", APIXIO_TOKEN, type, customerID, pname, "", "", "", "")
-
-	return()		
-
-#=========================================================================================
-# * DELETE:/uorgs/{id}/properties/{name} => DELETE:/customer/{id}/property?name={name} remove prop value
-def removeCurtomerPropertyValue(type, customerID, pname, exp_statuscode, tc, step):
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - REMOVE CUSTOMER PROPERTY VALUE %s <<<" % pname.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'+customerID+'/property?name='+pname
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.delete(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()	
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "removeCurtomerPropertyValue", APIXIO_TOKEN, type, customerID, pname, "", "", "", "")
-
-	return()	
-
-#=========================================================================================
-# * GET:/uorgs/properties/{name} => GET:/customer/property/{name} get single prop value on all entities
-
-def getSinglePropValueOnAllCustomers(type, pname, exp_statuscode, tc, step):
-
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - GET PROPERTY VALUE ON ALL CUSTOMERS %s <<<" % pname.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/property/'+pname
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else:		
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-
-	#GET:/uorgs/properties
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSinglePropValueOnAllCustomers", APIXIO_TOKEN, type, pname, prop_list, "", "", "", "")
-
-	return()	
-
-#=========================================================================================
-
-def getObject(type, typeName, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - GET %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	prop_list={}
-	URL = UA_URL+'/'+type+'/'+typeName
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else:		
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "get"+type+"Object", APIXIO_TOKEN, type, typeName, prop_list, "", "", "", "")
-
-	return()
-#=========================================================================================
-
-def postObject(type, atoname, atodescription, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - CRERATE NEW %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'
-	#print URL
-	DATA = {"name": atoname,"description": atodescription}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:		
-		print "Failure occured, exiting now ..."
-		print json.dumps(response.json())
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "post"+type+"Object", APIXIO_TOKEN, type, atoname, atodescription, "", "", "", "")
-
-	return()
-#=========================================================================================
-
-def deleteObject(type, atoname, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - DELETE %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	URL = UA_URL+'/'+type+'/'+atoname
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.delete(URL, data=json.dumps(DATA), headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode != ok:		
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "delete"+type+"Object", APIXIO_TOKEN, type, atoname, "", "", "", "", "")
-
-	return()
-
-#=========================================================================================	
-	
-def getSysPassRolUsr(type, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - GET SYS %s <<<" % type.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-	prop_list={}
-	URL = UA_URL+'/sys/'+type
-	#print URL
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.get(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print statuscode
-	if statuscode == ok:
-		prop_list = json.dumps(response.json())
-		print json.dumps(response.json())
-	else:		
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "getSysPassRolUsr", APIXIO_TOKEN, type, "", "", "", "", "", "")
-
-	return()	
-	
-#=========================================================================================
-
-def authenticateUser(etoken, type, email, password, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - AUTHENTICATE USER %s <<<" % email.upper())
-	print ("----------------------------------------------------------------------------")
-	prop_list = {}
-	response = ""
-	itoken = ""
-	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
-	if type == "external":
-		URL = UA_URL+'/auths'
-		DATA = {'email': email, 'password': password}
-		HEADERS = {"Content-Type": "application/json"}
-	else:
-		URL = "https://tokenizer-stg.apixio.com:7075/tokens"
-		DATA = {'Referer': TOKEN_URL, 'Authorization': 'Apixio ' + etoken}	
-		HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': TOKEN_URL, 'Authorization': 'Apixio ' + etoken}	
-	
-	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
-	statuscode = response.status_code
-	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-	if statuscode == created or statuscode == ok:
-		prop_list = json.dumps(response.json())
-		#print json.dumps(response.json())
-		userjson = response.json()
-		if type == "external":
-			etoken = userjson.get("token")
-		else:
-			itoken = userjson.get("token")	
-		print ("* EXTERNAL TOKEN VALUE   = %s" % etoken)
-		print ("* INTERNAL TOKEN VALUE   = %s" % itoken)	
-	elif statuscode == unauthorized:
-		print ("* EXTERNAL TOKEN VALUE   = %s" % etoken)
-		print ("* INTERNAL TOKEN VALUE   = %s" % itoken)	
-	else:		
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		#quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "authenticateUser", etoken, itoken, email, prop_list, "", "", "", "")	
-
-	return(etoken)
-	
-#=========================================================================================	
-	
-def deleteExternalToken(etoken, email, password, exp_statuscode, tc, step):
-	print ("\n----------------------------------------------------------------------------")
-	print (">>> UA - DELETE USER TOKEN %s <<<" % email.upper())
-	print ("----------------------------------------------------------------------------")
-	response = ""
-
-	URL = UA_URL+'/auths/?id='+etoken
-	DATA = {}
-	HEADERS = {"Content-Type": "application/json"}
-	
-	response = requests.delete(URL, data=DATA, headers=HEADERS)
-	statuscode = response.status_code
-	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		print "URL = %s" % URL
-		print "DATA = %s" % DATA
-		print "HEADERS = %s" % HEADERS
-		quit()
-
-	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "deleteExternalToken", etoken, email, "", "", "", "", "", "")	
-
-	return(etoken)	
-#=========================================================================================
-
-
-def cleanUp():
-	acl_operation = ACL_OPERATION
-	# log-in as a Root-User
-	# obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
-	return()
 	
 #=========================================================================================
 
@@ -1067,6 +368,7 @@ def bundleDataSet():
 	print ("----------------------------------------------------------------------------")
 	response = ""
 	URL = "https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle"
+	URL = BNDL_URL
 
 	
 	print ("\n")
@@ -1077,10 +379,10 @@ def bundleDataSet():
 	print ("* Internal Token         = %s"%TOKEN)
 	print ("* Apixio Token           = %s"%APIXIO_TOKEN)
 	
-	DATA = {}
+	DATA = json.load(open(PARMFILE))
 	FILES = {'file': (PARMFILE, open(PARMFILE, 'rb'), 'application/json', {'Expires': '0'})}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	response = requests.post(URL, data=DATA, files=FILES, headers=HEADERS)
+	response = requests.put(URL, data=json.dumps(DATA), files={}, headers=HEADERS)
 	statuscode = response.status_code
 
 	print ("* Status Code            = %s"%statuscode)
@@ -1100,13 +402,13 @@ def bundleDataSet():
 
 os.system('clear')
 
-ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+#ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
 
 checkEnvironmentandReceivers()
 
 printGlobalParamaterSettings()
 
-obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
+obtainInternalToken(ACLUSERNAME, ACLPASSWORD, {ok, created}, 0, 0)
 
 bundleDataSet()
 	

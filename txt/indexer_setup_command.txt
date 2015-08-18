@@ -99,6 +99,10 @@ cd /home/protractor/ptc
 sudo -u protractor DISPLAY=:1 LD_LIBRARY_PATH=/opt/google/chrome/lib protractor protractor.config.js
 
 
+ELEMENT LOCATOR TOOL:
+node_modules/protractor/bin/elementexplorer.js
+
+node elementexplorer.js
 ——————————————————————————
 
 
@@ -526,6 +530,8 @@ curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3
 
 system_qa@apixio.com
 8p1qa19..
+
+9p2qa20..
 
 ====================== CANCELLEING SCREENS ======================
 
