@@ -404,6 +404,11 @@ Password: apixio.321
 
 [8/13/15, 1:30:36 PM] Richard Belcinski - Apixio: you can now monitor progress on bundler jobs using an endpoint
 [8/13/15, 1:30:38 PM] Richard Belcinski - Apixio: curl -k https://52.11.138.4:8443/hcc/bundler/jobs
+
+KIBANA SEACHES
+organization: 10000353 AND "testorg10@apixio.net" AND patientId:4938bc3b-4fca-46e4-8373-4114add413bf AND "66b5cde3-d9a9-486a-b832-b5dca8dc4b6b"
+
+
 ==========================================================================
 
 

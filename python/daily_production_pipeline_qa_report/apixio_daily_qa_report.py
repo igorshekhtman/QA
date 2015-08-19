@@ -305,7 +305,8 @@ def checkEnvironmentandReceivers():
 		AUTHHOST="https://useraccount.apixio.com:7076"
 		TOKEHOST="https://tokenizer.apixio.com:7075"
 		AUTH_EMAIL="system_qa@apixio.com"
-		AUTH_PASSW="8p1qa19.."
+		#AUTH_PASSW="8p1qa19.."
+		AUTH_PASSW="9p2qa20.."
 	else:
 		USERNAME="apxdemot0182"
 		ORGID="190"
@@ -449,7 +450,7 @@ def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 	
 	if (statuscode != ok):
 		print ("* External Token Request Response:     %s" % statuscode)
-		print ("* FAILURE OCCURED !!!")
+		print ("* FAILURE OCCURED - obtainExternalToken() !!!")
 		quit()
 
 	userjson = response.json()
@@ -472,7 +473,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
   	
   	if (statuscode != created):
 		print ("* Internal Token Request Response:     %s" % statuscode)
-		print ("* FAILURE OCCURED !!!")
+		print ("* FAILURE OCCURED - obtainInternalToken() !!!")
 		quit()
   	
   	userjson = response.json()
