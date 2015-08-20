@@ -265,7 +265,7 @@ def checkEnvironmentandReceivers():
 		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
 		ACL_DOMAIN="acladmin-stg.apixio.com"
-		UA_URL="https://acladmin-stg.apixio.com"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
 		HCC_DOMAIN="hccstage2.apixio.com"
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"

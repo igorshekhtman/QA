@@ -1,5 +1,14 @@
-SELECT * from Router_stg.Opportunity where project="CP_b5400285-2d3d-44f8-bf10-d11a339fa9e0"
-SELECT * from Router_stg.Opportunity where project="CP_2a9a4534-5e8e-4f64-9512-343ca379a8df"
+=============== PORTAL-STG.APIXIO.COM ==============================================
+ishekhtman@apixio.com
+apixio.123
+
+apxapi
+
+
+
+
+
+======================================================================================
 
 
 select get_json_object(line,"$.patient.uuid") as patient_uuids from production_logs_datacheckandrecover_24 where day='26' and month='06' and year = '2015' and get_json_object(line,"$.batchId") like '10000353%' order by patient_uuids asc
@@ -407,6 +416,8 @@ Password: apixio.321
 
 KIBANA SEACHES
 organization: 10000353 AND "testorg10@apixio.net" AND patientId:4938bc3b-4fca-46e4-8373-4114add413bf AND "66b5cde3-d9a9-486a-b832-b5dca8dc4b6b"
+SELECT * from Router_stg.Opportunity where project="CP_b5400285-2d3d-44f8-bf10-d11a339fa9e0"
+SELECT * from Router_stg.Opportunity where project="CP_2a9a4534-5e8e-4f64-9512-343ca379a8df"
 
 
 ==========================================================================
