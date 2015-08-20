@@ -88,7 +88,7 @@ SUBHDR="<br><table width='100%%'><tr><td bgcolor='#4E4E4E' align='left'><font si
 #
 #=========================================================================================
 
-INPUT_FILE = "MMG_372_01f8d7fb-ae83-48a9-82da-5d7f5e199c45"
+INPUT_FILE = "Kelsey_409_100_patients"
 OUTPUT_FILE = "output_"+INPUT_FILE
 
 def ReadConvertWriteFile(in_filename, out_filename):
@@ -97,13 +97,10 @@ def ReadConvertWriteFile(in_filename, out_filename):
 	csvfile_in = open(in_filename, 'rb')
 	csvfile_out = open(out_filename, 'w')
 	reader = csv.reader(csvfile_in, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
-	counter = 0
 	for row in reader:
 		result = result + "\t\t\"" + row[0] + "\"" + ",\n"
 		csvfile_out.write("\t\t\"" + row[0] + "\"" + ",\n")
-		counter += 1
-		print (counter * (counter%10))
-	#print result
+	print result
 	csvfile_in.close()
 	csvfile_out.close()
 	return (result)    	
