@@ -54,14 +54,12 @@ def initializeGlobalVars():
 	
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	if ((len(sys.argv) > 1) and (str(sys.argv[1])[:1].upper() == "P")):
-		USERNAME="oreg005"
-		ORGID="10000351"
-		PASSWORD="apixio.123"
-		#HOST="https://docreceiver-or.apixio.com"
+		# PRODUCTION =================
+		USERNAME="apxdemot0138"
+		ORGID="10000279"
+		PASSWORD="Hadoop.4522"
 		HOST="https://dr.apixio.com"
 		ENVIRONMENT="Production"
-		#EVENT_CLOUD_URL="http://10.234.129.89:8076/event/query"
-		#EVENT_CLOUD_URL="http://event-cloud-or.apixio.com:8076/event/query"
 		EVENT_CLOUD_URL="http://event-cloud.apixio.com:8076/event/query"
 	else:
 		# STAGING =====================
@@ -70,7 +68,6 @@ def initializeGlobalVars():
 		PASSWORD="Hadoop.4522"
 		HOST="https://dr-stg.apixio.com"
 		ENVIRONMENT="Staging"
-		#EVENT_CLOUD_URL="http://dashboard-development.apixio.net:8075/event/query"
 		EVENT_CLOUD_URL="http://event-cloud-stg.apixio.com:8076/event/query"
 	#==================================
 	if (len(sys.argv) > 3):

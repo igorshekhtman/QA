@@ -4,6 +4,8 @@ apixio.123
 
 apxapi
 
+git reset --hard
+
 
 
 
