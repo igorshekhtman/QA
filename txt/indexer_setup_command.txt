@@ -1,3 +1,10 @@
+=============== RULES INJECTOR ====================================================
+
+cd /Users/ishekhtman/Documents/Apixio/utility
+
+python ./other_scripts/prj_mgmnt.py
+
+
 =============== PORTAL-STG.APIXIO.COM ==============================================
 ishekhtman@apixio.com
 apixio.123
@@ -6,7 +13,11 @@ apxapi
 
 git reset --hard
 
+ps ax  | grep java
 
+ps aux | less
+
+ps -aux | grep java
 
 
 
@@ -116,16 +127,28 @@ node_modules/protractor/bin/elementexplorer.js
 node elementexplorer.js
 ——————————————————————————
 
+Running node server:
+--------------------
+cd /qaserver
+bin/www
+
+Running specific protractor test suite:
+---------------------------------------
+cd /qaserver
+../run_protractor_local.sh hcc_logs
 
 
-
-
-
+Using ElementExplorer to assist with finding elements:
+-------------------------------------------------------
 /usr/local/lib/node_modules/protractor/bin/elementexplorer.js
 
 node elementexplorer.js https://hcc.apixio.com/account/login/
 
+node elementexplorer.js https://hcc-stg.apixio.com/account/login/
+
 node elementexplorer.js https://progressreport-stg.apixio.com/
+
+browser.ignoreSynchronization=true
 
 
 cp /usr/local/lib/node_modules/protractor/lib/frameworks/mocha.js /usr/local/lib/node_modules/protractor/lib/frameworks/igor.js
@@ -422,9 +445,45 @@ SELECT * from Router_stg.Opportunity where project="CP_b5400285-2d3d-44f8-bf10-d
 SELECT * from Router_stg.Opportunity where project="CP_2a9a4534-5e8e-4f64-9512-343ca379a8df"
 
 
+DELETING INDEX (first delete alias, then delete index):
+
+curl "http://elasticsearch-stg.apixio.com:9200/_cat/aliases"
+
+curl -X DELETE "http://elasticsearch-stg.apixio.com:9200/org-454"
+
+curl -X DELETE "http://elasticsearch-stg.apixio.com:9200/org-454-1"
+
+
+searching indexes:
+organization: 372 AND _type:opportunity AND project:CP_fc5161b6-0647-41e4-8f15-ef7218c9c1fa
+
+
 ==========================================================================
+-----------------------------------
+OPP-ROUTER ENERGY ROUTING SWITCH
 
+> Get the energy mode:
 
+host: bundler-stg2.apixio.com
+host: 52.27.69.195 or hcc-opprouter-stg2.apixio.com
+
+curl -k https://bundler-stg2.apixio.com:8443/ctrl/router/energy/energyMode
+
+curl -k -X GET https://52.27.69.195:8443/ctrl/router/energy/energyMode
+
+Get the energy mode:
+
+curl -k -X GET https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode
+
+Turn on energy routing:
+
+curl -k -X PUT https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode/true
+
+Turn off energy routing:
+
+curl -k -X PUT https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode/false
+
+-----------------------------------
 —————————
 BUNDLE:
 —————————
