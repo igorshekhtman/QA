@@ -66,6 +66,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import numpy as np
+import apxapi
+requests.packages.urllib3.disable_warnings()
 #from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
@@ -224,7 +226,7 @@ VOO = VAO = VRO = VSO = 0
 ###########################################################################################################################################
  
 def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS, COOKIES
+  global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
@@ -234,17 +236,6 @@ def logInToHCC():
   # Original - url = referer = URL+'/account/login/?next=/'
   url = URL+'/account/login/'
   referer = URL+'/account/login/'
-  #Accept:*/*
-  #Accept-Encoding:gzip, deflate
-  #Accept-Language:en-US,en;q=0.8
-  #Connection:keep-alive
-  #Content-Length:377
-  #Content-Type:application/x-www-form-urlencoded
-  #Cookie:csrftoken=SXc1KEAOnaAsT1AA7b1zpQBgCR8u1mPJ; sessionid=4jtrl3lh28kdb5m3013ta5rk6ctaje6g
-  #Host:hccstage2.apixio.com
-  #Origin:https://hccstage2.apixio.com
-  #Referer:https://hccstage2.apixio.com/
-  #User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.91 Safari/537.36
   
   response = requests.get(url)
   IncrementTestResultsTotals("login", response.status_code)
@@ -253,19 +244,31 @@ def logInToHCC():
   	print "* Connection to host = FAILED QA"
   	logInToHCC()
 #-----------------------------------------------------------------------------------------  	
-  TOKEN = response.cookies["csrftoken"]
-  SESSID = response.cookies["sessionid"]
-  COOKIES = dict(csrftoken=''+TOKEN+'')
-  #Request URL:https://hccstage2.apixio.com/account/login/
-  #Host:hccstage2.apixio.com
-  #Origin:https://hccstage2.apixio.com
-  #Referer:https://hccstage2.apixio.com/account/login/
-  url = URL+'/account/login/'
-  referer = URL+'/account/login/'
-  host = DOMAIN
-  origin = URL
   
-  DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
+  
+  #TOKEN = response.cookies["csrftoken"]
+  #SESSID = response.cookies["sessionid"]
+  #COOKIES = dict(csrftoken=''+TOKEN+'')
+  
+  TOKEN = response.cookies["JSESSIONID"]
+  SESSID = response.cookies["JSESSIONID"]
+  COOKIES = dict(csrftoken=''+TOKEN+'')
+  
+  
+  #url = URL+'/account/login/'
+  #referer = URL+'/account/login/'
+  #host = DOMAIN
+  #origin = URL
+
+  origin = "https://accounts-stg.apixio.com"
+  referer = "https://accounts-stg.apixio.com/?caller=hcc_eng"
+  host = "accounts-stg.apixio.com"
+  url = "https://accounts-stg.apixio.com/"
+  
+  #DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
+  
+  DATA = {'username': USERNAME, 'password': PASSWORD, 'hash':'', 'caller':'hcc_eng', 'log_ref':'1441056621484', 'origin':'loging' }
+  
   
   HEADERS = { \
   			'Accept': '*/*', \
@@ -273,17 +276,31 @@ def logInToHCC():
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
   			'Content-Length': '1105', \
-			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+			#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+			'Cookie': 'JSESSIONID='+TOKEN, \
 			'Host': host, \
 			'Origin': origin, \
 			'Referer': referer \
 			}	
-  
-  #print ">>> TOKEN   = %s" % TOKEN
-  #print ">>> SESSID  = %s" % SESSID
-  #print ">>> DATA    = %s" % DATA
-  #print ">>> HEADERS = %s" % HEADERS					
+  					
   response = requests.post(url, data=DATA, headers=HEADERS) 
+  
+  TOKEN = response.cookies["csrftoken"]
+  SESSID = response.cookies["sessionid"]
+  APXTOKEN = apxapi.APXSession(USERNAME,PASSWORD).external_token()
+  COOKIES = json.dumps(dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN))
+  
+  print("* URL                = %s" % url)
+  print("* USER               = %s" % USERNAME)
+  print("* PASSWORD           = %s" % PASSWORD)
+  print("* TOKEN              = %s" % TOKEN)
+  print("* APXTOKEN           = %s" % APXTOKEN)
+  print("* SESSID             = %s" % SESSID)
+  print("* COOKIES            = %s" % COOKIES)
+  print("* RESPONSE CODE      = %s" % response.status_code)
+  
+  
+  
   IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
   #quit()
@@ -554,11 +571,49 @@ def startCoding():
   # main loop controlling number of OPPS to process
   #====================================================
   buckets = -1
+  
+  #Host: hcceng.apixio.com
+  #Connection: keep-alive
+  #Accept: application/json, text/plain, */*
+  #X-REQUESTED-WITH: XMLHttpRequest
+  #User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36
+  #Referer: https://hcceng.apixio.com/
+  #Accept-Encoding: gzip, deflate, sdch
+  #Accept-Language: en-US,en;q=0.8
+  #Cookie: SS_MID=93555fab-4853-4a24-ab6f-eedb8cac1c0diar9bgxa; ss_cid=396c3902-defc-4e80-aba1-dd22809d28cf; ApxToken=TA_3d87c4ea-7299-492f-b175-019a61f51ee4; csrftoken=iPt7GVUjjLjTRxe4V6Yg7qQrdoc9B6ml; sessionid=nel0hbg9qx663qbdfk04o2x2lrxqugdm
+  
+  HEADERS = { \
+  			'Accept': 'application/json, text/plain, */*', \
+  			'Accept-Encoding': 'gzip, deflate, sdch', \
+  			'Accept-Language': 'en-US,en;q=0.8', \
+  			'Connection': 'keep-alive', \
+			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+'; ApxToken='+APXTOKEN+' ', \
+			#'Cookie': 'JSESSIONID='+TOKEN, \
+			#'Cookie': COOKIES, \
+			'Host': 'hcceng.apixio.com', \
+			'Referer': 'https://hcceng.apixio.com/' \
+			}	
+			
+  DATA = {}
+  
+  
+  
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
-    #response = requests.get(URL + "/api/coding-opportunity/", data=DATA, headers=HEADERS)
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
-    print "* GET CODNG OPP    = %s" % response.status_code
+    print ("* URL              = %s" % URL)
+    print ("* GET CODNG OPP    = %s" % response.status_code)
+    
+    print response.cookies.list_domains()
+    print response.cookies.list_paths()
+    print response.cookies.get_dict()
+    print response.status_code
+    print response.headers
+    print response.text
+    print response.json()
+    quit()
+    
+    
     opportunity = response.json()
     ######################################################################################
     
