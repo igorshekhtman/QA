@@ -457,6 +457,8 @@ curl -X DELETE "http://elasticsearch-stg.apixio.com:9200/org-454-1"
 searching indexes:
 organization: 372 AND _type:opportunity AND project:CP_fc5161b6-0647-41e4-8f15-ef7218c9c1fa
 
+_type:opportunity AND CP_fc5161b6-0647-41e4-8f15-ef7218c9c1fa AND "mmgenergyes@apixio.net"      ----> number of annotations for project
+
 
 ==========================================================================
 -----------------------------------

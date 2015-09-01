@@ -1000,7 +1000,7 @@ def convertJsonToTable(srcedict, sortby):
 					b_color = '#FFFF00'
 					most_served = item[1]
 				else:
-					if item[1] == most_served:
+					if (item[1] == most_served) or (item[0] == TARGET_HCC):
 						b_color = '#FFFF00'
 					else:
 						b_color = '#FFFFFF'
