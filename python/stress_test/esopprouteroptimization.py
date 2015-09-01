@@ -226,7 +226,7 @@ VOO = VAO = VRO = VSO = 0
 ###########################################################################################################################################
  
 def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN
+  global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN, JSESSIONID
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
@@ -253,6 +253,7 @@ def logInToHCC():
   TOKEN = response.cookies["JSESSIONID"]
   SESSID = response.cookies["JSESSIONID"]
   COOKIES = dict(csrftoken=''+TOKEN+'')
+  JSESSIONID = response.cookies["JSESSIONID"]
   
   
   #url = URL+'/account/login/'
@@ -287,19 +288,16 @@ def logInToHCC():
   
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
-  APXTOKEN = apxapi.APXSession(USERNAME,PASSWORD).external_token()
+  APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
   COOKIES = json.dumps(dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN))
   
   print("* URL                = %s" % url)
   print("* USER               = %s" % USERNAME)
   print("* PASSWORD           = %s" % PASSWORD)
-  print("* TOKEN              = %s" % TOKEN)
+  print("* CSRFTOKEN          = %s" % TOKEN)
   print("* APXTOKEN           = %s" % APXTOKEN)
   print("* SESSID             = %s" % SESSID)
-  print("* COOKIES            = %s" % COOKIES)
-  print("* RESPONSE CODE      = %s" % response.status_code)
-  
-  
+  print("* JSESSIONID         = %s" % JSESSIONID)
   
   IncrementTestResultsTotals("login", response.status_code)
   print "* Log in user        = "+str(response.status_code)
@@ -582,14 +580,19 @@ def startCoding():
   #Accept-Language: en-US,en;q=0.8
   #Cookie: SS_MID=93555fab-4853-4a24-ab6f-eedb8cac1c0diar9bgxa; ss_cid=396c3902-defc-4e80-aba1-dd22809d28cf; ApxToken=TA_3d87c4ea-7299-492f-b175-019a61f51ee4; csrftoken=iPt7GVUjjLjTRxe4V6Yg7qQrdoc9B6ml; sessionid=nel0hbg9qx663qbdfk04o2x2lrxqugdm
   
+  
+  print("* URL                = %s/api/next-work-item/" % URL)
+  print("* csrftoken          = %s" % TOKEN)
+  print("* ApxToken           = %s" % APXTOKEN)
+  print("* sessionid          = %s" % SESSID) 
+  
+  
   HEADERS = { \
   			'Accept': 'application/json, text/plain, */*', \
   			'Accept-Encoding': 'gzip, deflate, sdch', \
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+'; ApxToken='+APXTOKEN+' ', \
-			#'Cookie': 'JSESSIONID='+TOKEN, \
-			#'Cookie': COOKIES, \
 			'Host': 'hcceng.apixio.com', \
 			'Referer': 'https://hcceng.apixio.com/' \
 			}	
@@ -601,8 +604,8 @@ def startCoding():
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
-    print ("* URL              = %s" % URL)
-    print ("* GET CODNG OPP    = %s" % response.status_code)
+    print ("* URL                = %s/api/next-work-item/" % URL)
+    print ("* GET CODNG OPP      = %s" % response.status_code)
     
     print response.cookies.list_domains()
     print response.cookies.list_paths()
