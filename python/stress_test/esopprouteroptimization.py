@@ -245,10 +245,23 @@ def logInToHCC():
   	logInToHCC()
 #-----------------------------------------------------------------------------------------  	
   
+  url = "https://hcceng.apixio.com/"
+  response = requests.get(url)
+  print "* Login page         = "+str(response.status_code)
   
-  #TOKEN = response.cookies["csrftoken"]
-  #SESSID = response.cookies["sessionid"]
-  #COOKIES = dict(csrftoken=''+TOKEN+'')
+  #print response.cookies.list_domains()
+  #print response.cookies.list_paths()
+  #print response.cookies.get_dict()
+  #print response.cookies
+  #print response.status_code
+  #print response.headers
+  #print response.text
+  #print response.json()
+  #quit()
+  
+#-----------------------------------------------------------------------------------------  	
+  
+  
   
   TOKEN = response.cookies["JSESSIONID"]
   SESSID = response.cookies["JSESSIONID"]
@@ -289,7 +302,7 @@ def logInToHCC():
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
   APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
-  COOKIES = json.dumps(dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN))
+  COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN)
   
   print("* URL                = %s" % url)
   print("* USER               = %s" % USERNAME)
@@ -325,7 +338,8 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
   		'Connection': 'keep-alive', \
     	'Content-Type': 'application/json', \
     	'Referer': URL+'/', \
-    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
     	'X-CSRFToken': TOKEN \
     	}	
@@ -584,7 +598,7 @@ def startCoding():
   print("* URL                = %s/api/next-work-item/" % URL)
   print("* csrftoken          = %s" % TOKEN)
   print("* ApxToken           = %s" % APXTOKEN)
-  print("* sessionid          = %s" % SESSID) 
+  print("* sessionid          = %s" % JSESSIONID) 
   
   
   HEADERS = { \
@@ -592,7 +606,7 @@ def startCoding():
   			'Accept-Encoding': 'gzip, deflate, sdch', \
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
-			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+'; ApxToken='+APXTOKEN+' ', \
+			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
 			'Host': 'hcceng.apixio.com', \
 			'Referer': 'https://hcceng.apixio.com/' \
 			}	
@@ -607,14 +621,15 @@ def startCoding():
     print ("* URL                = %s/api/next-work-item/" % URL)
     print ("* GET CODNG OPP      = %s" % response.status_code)
     
-    print response.cookies.list_domains()
-    print response.cookies.list_paths()
-    print response.cookies.get_dict()
-    print response.status_code
-    print response.headers
-    print response.text
-    print response.json()
-    quit()
+    #print response.cookies.list_domains()
+    #print response.cookies.list_paths()
+    #print response.cookies.get_dict()
+    #print response.cookies
+    #print response.status_code
+    #print response.headers
+    #print response.text
+    #print response.json()
+    #quit()
     
     
     opportunity = response.json()
