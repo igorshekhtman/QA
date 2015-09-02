@@ -343,8 +343,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
     	'X-CSRFToken': TOKEN \
     	}	
-  
-  
+
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
@@ -365,7 +364,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient": \
 			{ \
@@ -447,7 +446,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient": \
 			{ \
@@ -514,7 +513,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient":{ \
 			"first_name": opportunity.get("patient").get("first_name"), \
