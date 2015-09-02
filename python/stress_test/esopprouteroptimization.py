@@ -19,6 +19,10 @@
 #          * Logout
 #
 # SETUP:
+#		   1.) Clean profile
+#		   2.) Install catch-all rule
+#		   3.) Turn ON energy routing (use Python utility: 
+#				python2.7 energyroutingstatus.py engineering none
 #          * Assumes a HCC environment is available
 #          * Assumes a Python 2.7 environment is available
 #          * From QA2 server (54.176.225.214) /mnt/automation/hcc folder enter "python2.7 opprouteroptimization.py"
