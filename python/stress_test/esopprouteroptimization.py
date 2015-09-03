@@ -624,32 +624,28 @@ def startCoding():
     print ("* URL                = %s/api/next-work-item/" % URL)
     print ("* GET CODNG OPP      = %s" % response.status_code)
     
-    #print response.cookies.list_domains()
-    #print response.cookies.list_paths()
-    #print response.cookies.get_dict()
-    #print response.cookies
-    #print response.status_code
-    #print response.headers
-    #print response.text
-    #print response.json()
-    #quit()
+    IncrementTestResultsTotals("coding opportunity check", response.status_code)
     
-    
-    opportunity = response.json()
+    #should never even reach this code if response.status_code is not ok
+    if response.status_code != ok:
+    	print "=================================================="
+    	print "Failure occurred !!!"
+    	
+    	print response.cookies.list_domains()
+    	print response.cookies.list_paths()
+    	print response.cookies.get_dict()
+    	print response.cookies
+    	print response.status_code
+    	print response.headers
+    	print response.text
+    	print json.dumps(response.json())
+    	print "=================================================="
+    else:	
+    	opportunity = response.json()
     ######################################################################################
     
-    #hcc, label, sweep, payment year
-        
-    #print json.dumps(opportunity)         
+   
     
-    #model_year = opportunity.get("code").get("modelPaymentYear")
-    #tallyDetails("model_year", opportunity.get("model_year"))
-    #payment_year = opportunity.get("payment_year")
-    #tallyDetails("payment_year", opportunity.get("payment_year"))
-    #hcc = opportunity.get("hcc")
-    #tallyDetails("hcc", opportunity.get("hcc"))
-    #model_run = opportunity.get("model_run")
-    #tallyDetails("model_run", opportunity.get("model_run"))
     
     hcc = opportunity.get("code").get("hcc")
     tallyDetails("hcc", hcc)
@@ -674,7 +670,6 @@ def startCoding():
     print "\n"
     ######################################################################################
     patient_details = response.text
-    IncrementTestResultsTotals("coding opportunity check", response.status_code)
     if opportunity == None:
       print("ERROR : Login Failed or No More Opportunities For This Coder")
       return 1
@@ -1247,8 +1242,6 @@ def IncrementTestResultsTotals(module, code):
 	if (code == ok) or (code == nocontent):
 		SUCCEEDED = SUCCEEDED+1
 		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
-	#elif code == intserveror:
-	#	RETRIED = RETRIED+1
 	else:
 		FAILED = FAILED+1
 		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
@@ -1260,10 +1253,9 @@ def IncrementTestResultsTotals(module, code):
 		if (code == unauthorized):
 			print "%s response code received from server.  Re-obtaining Autorization." % code
 			logInToHCC()
-			#print "%s response code received from server.  Test is being terminated" % code
-			#quit()
-			#logInToHCC()
-			#startCoding()
+		if (code == servunavail) and (module == "coding opportunity check"):
+			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
+			startCoding()
 
 ###########################################################################################################################################
     
