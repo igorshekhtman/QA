@@ -344,8 +344,19 @@ def hoistingLookup():
 	
 	response = requests.get(URL, data=json.dumps(DATA), headers=HEADERS)
 	print ("* Status Code            = %s" % response.status_code)
-	print ("* Energy Routing Status  = %s" % response.json())
-	
+	print ("\n================================ RESPONSE ==================================")
+	#print ("* Energy Routing Status  = %s" % json.dumps(response.json()))
+	#{"total": 2, "page": 0, "pageSize": 2, "codes": [{"lsv": "V22", "hcc": "108"}, {"lsv": "V12", "hcc": "105"}]}
+	print ("* Total                  = %s" % response.json().get("total"))
+	print ("* Page                   = %s" % response.json().get("page"))
+	print ("* Page Size              = %s" % response.json().get("pageSize"))
+	print ("* Codes:")
+	print ("============================================================================\n")
+	for code in response.json().get("codes"):
+		print ("* HCC                       = %s" % json.loads(json.dumps(code)).get("hcc"))
+		print ("* Label Set Version         = %s\n" % json.loads(json.dumps(code)).get("lsv"))
+	print ("============================================================================")
+
 
 	if response.status_code != ok:
 		print "Failure occured, exiting now ..."
@@ -371,6 +382,6 @@ hoistingLookup()
 	
 
 print ("\n============================================================================")	
-print ("======================== End of Hoisting Lookup ===============================")
+print ("======================== End of Hoisting Lookup ============================")
 print ("============================================================================")
 #=========================================================================================
