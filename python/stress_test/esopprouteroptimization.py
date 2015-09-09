@@ -204,8 +204,8 @@ def readConfigurationFile(filename):
   	sys.exit(1)
   else:
   	print ("==============================================================================")
-  	print ("hccstress.csv VERSION:        %s" % REVISION)
-  	print ("hccstress.py VERSION:         %s" % VERSION)
+  	print ("esopprouteroptimization.csv VERSION:        %s" % REVISION)
+  	print ("esopprouteroptimization.py VERSION:         %s" % VERSION)
   	print ("==============================================================================")
   return result
 ##########################################################################################
@@ -626,7 +626,7 @@ def startCoding():
     
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     
-    #should never even reach this code if response.status_code is not ok
+    
     if response.status_code != ok:
     	print "=================================================="
     	print "Failure occurred !!!"
@@ -867,8 +867,9 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global ENERGY_RTR_URL, DOMAIN, URL, USERNAME, PASSWORD, TOKEN_URL, UA_URL
 	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
-	print ("Setting environment ...\n")
+	print ("\nSetting environment ...")
 	if len(sys.argv) < 2:
 		ENVIRONMENT="staging"
 	else:
@@ -878,10 +879,28 @@ def checkEnvironmentandReceivers():
 		#USERNAME="apxdemot0138"
 		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
+	elif (ENVIRONMENT.upper() == "ENGINEERING"):
+		#USERNAME="grinderUSR1416591626@apixio.net"
+		#PASSWORD="apixio.123"
+		ENVIRONMENT = "engineering"
+		DOMAIN="hcceng.apixio.com"
+		URL="https://hcceng.apixio.com"
+		USERNAME="mmgenergyes@apixio.net"
+		PASSWORD="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
+			
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -892,11 +911,101 @@ def checkEnvironmentandReceivers():
 		RECEIVERS2="abeyk@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 				
-	# overwite any previous ENVIRONMENT settings
-	#ENVIRONMENT = "Production"
-	print ("Version %s\n") % VERSION
-	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
-	print ("Completed setting of enviroment and report receivers ...\n")	
+	
+	print ("==============================================================================")				
+	print ("* VERSION                               = %s" % VERSION)
+	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
+	print ("* HCC HOST                              = %s" % URL)
+	print ("* HCC DOMAIN                            = %s" % DOMAIN)
+	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+	print ("* USER                                  = %s" % USERNAME)
+	print ("* PASSWORD                              = %s" % PASSWORD)
+	print ("* MAXIMUM NUMBER OF RETRIES              = %s" % MAX_NUM_RETRIES)
+	print ("==============================================================================")
+	print ("Completed setting enviroment ...\n")	
+
+###########################################################################################################################################
+
+def obtainExternalToken(un, pw):
+
+	external_token = ""
+	url = UA_URL+'/auths'
+	referer = UA_URL  	
+	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	userjson = response.json()
+	if userjson is not None:
+		external_token = userjson.get("token") 
+	return (external_token)
+
+###########################################################################################################################################
+
+def obtainInternalToken(un, pw):
+	
+	external_token = obtainExternalToken(un, pw)
+	url = TOKEN_URL
+  	referer = TOKEN_URL  				
+  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
+  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	userjson = response.json()
+  	if userjson is not None:
+  		TOKEN = userjson.get("token")
+  		APIXIO_TOKEN = 'Apixio '+str(TOKEN)
+  	else:
+  		TOKEN = "Not Available"	
+	statuscode = response.status_code	
+	return (APIXIO_TOKEN)
+
+###########################################################################################################################################
+
+def setEnergyRoutingOn():
+
+	apixio_token = obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	response = ""
+	url = ENERGY_RTR_URL + "/true"
+	data = {}
+	headers = {"Content-Type": "application/json", "Authorization": apixio_token}
+	response = requests.put(url, data=json.dumps(data), headers=headers)
+	status = response.json().get("energyRouting")
+	if response.status_code != ok:
+		status = "Failed enabling Energy Routing"
+	else:
+		status = response.json().get("energyRouting")	
+	return(status)
+
+###########################################################################################################################################
+
+def confirmSettings():
+	print ("==============================================================================")				
+	print ("* VERSION                               = %s" % VERSION)
+	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
+	print ("* HCC HOST                              = %s" % URL)
+	print ("* HCC DOMAIN                            = %s" % DOMAIN)
+	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+	print ("* USER                                  = %s" % USERNAME)
+	print ("* PASSWORD                              = %s" % PASSWORD)
+	print ("* CSRFTOKEN                             = %s" % TOKEN)
+	print ("* APXTOKEN                              = %s" % APXTOKEN)
+	print ("* SESSID                                = %s" % SESSID)
+	print ("* JSESSIONID                            = %s" % JSESSIONID)
+	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
+	print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn())
+	print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
+	print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
+	print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
+	print ("* TARGETED HCC ACCEPT SETTING           = %s%%" % VAO_W2)
+	print ("* TARGETED HCC REJECT SETTING           = %s%%" % VRO_W2)
+	print ("==============================================================================")
+	user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+	if user_response.upper() == "Q":
+		print "exiting ..."
+		quit()
+	else:
+		print "proceeding ..."	
+	return()
 
 ###########################################################################################################################################
 
@@ -1253,7 +1362,7 @@ def IncrementTestResultsTotals(module, code):
 		if (code == unauthorized):
 			print "%s response code received from server.  Re-obtaining Autorization." % code
 			logInToHCC()
-		if (code == servunavail) and (module == "coding opportunity check"):
+		if ((code == servunavail) or (code == nocontent)) and (module == "coding opportunity check"):
 			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
 			startCoding()
 
@@ -1275,13 +1384,13 @@ readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 
 checkEnvironmentandReceivers()
 
-print "Maximum number of retries is set to = %s" % MAX_NUM_RETRIES
-
 writeReportHeader()	
 
 logInToHCC()
 
 writeReportDetails("login")
+
+confirmSettings()
 
 startCoding()
 

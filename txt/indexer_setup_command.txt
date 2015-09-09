@@ -1,8 +1,32 @@
+================= INSTANT LOOK AT LOGS - ANTHONY =================================
+
+ ./ktail-stg.sh --id staging.cmpmsvc_raw_logs 100
+
+ https://github.com/Apixio/utilities/tree/master/apixio-kafka-tools
+
+
+
+
 =============== RULES INJECTOR ====================================================
 
 cd /Users/ishekhtman/Documents/Apixio/utility
 
 python ./other_scripts/prj_mgmnt.py
+
+
+=============== KAFKA TOOLS =======================================================
+
+https://github.com/Apixio/utilities/tree/master/apixio-kafka-tools
+
+./ktail-stg.sh --id staging.cmpmsvc_raw_logs 100
+
+NEXUS:
+ishekhtman
+apixio.321
+
+echo $PATH --> show path's content
+PATH=$PATH:/Users/ishekhtman/Git/utilities/apixio-kafka-tools/bin --> add to a path
+
 
 
 =============== PORTAL-STG.APIXIO.COM ==============================================
@@ -461,6 +485,8 @@ _type:opportunity AND CP_65885956-dd82-4334-9c0b-6d7e689fd9ef AND "showUpPlease"
 
 _type:opportunity AND CP_fc5161b6-0647-41e4-8f15-ef7218c9c1fa AND "mmgenergyes@apixio.net"      ----> number of annotations for project
 
+_type:user_rule AND "restest05@apixio.net"   ------> rules for specific code
+
 
 ==========================================================================
 -----------------------------------
@@ -509,6 +535,8 @@ old:
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "https://bundler-stg.apixio.com:8444/hcc/bundler/get_historical?lo=0&hi=0&bundle=true"
 
 curl -H "Accept: application/json" -H "Content-type: application/json" -k -sslv3 -X PUT "http://cmp-stg.apixio.com:8087/cmp/v1/project/CP_04694605-98dd-40e6-ad8f-73c1a3cd7504/bundle"
+
+cmp-stg2.apixio.com:8087
 
 new:
 —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
