@@ -996,8 +996,12 @@ def confirmSettings():
 	print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
 	print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
 	print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
-	print ("* TARGETED HCC ACCEPT SETTING           = %s%%" % VAO_W2)
-	print ("* TARGETED HCC REJECT SETTING           = %s%%" % VRO_W2)
+	title = "* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING"
+	title_length = len(title)
+	for title_length in range (title_length, 33, 1):
+		title = title+" "
+	print (title+"       = %s%%" % (VAO_W2))
+	print (title+"       = %s%%" % (VRO_W2))
 	print ("==============================================================================")
 	user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
 	if user_response.upper() == "Q":
