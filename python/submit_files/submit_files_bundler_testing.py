@@ -14,35 +14,17 @@ import re
 import smtplib
 import string
 import uuid
+import cStringIO
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
-#USERNAME="apxdemot0216"
-#USERNAME="cmptest003"
-#USERNAME="testorg10"
-#USERNAME="abcdemo"
-#USERNAME="control1"
-#USERNAME="newtest6"
 USERNAME="prot1440527370697"
 
-
-#PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
 
-#HOST="https://testdr.apixio.com:8443"
-#HOST="https://stagedr.apixio.com:8443"
-#HOST="https://dr.apixio.com"
 HOST="https://dr-stg.apixio.com"
 
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-#/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
-#DIR="/mnt/testdata/HCC-724/data"
-#DIR="/mnt/testdata/20Patients1TxtDocumentEach/docs/201312050842104039"
-
-
-
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
@@ -52,9 +34,6 @@ TOKEN_URL="%s/auth/token/" % (HOST)
 
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
-
-# number of documents to uplod if none provided, # of documents in folder DIR will be uplaoded
-# NUMBEROFDOCUMENTS=int(sys.argv[1])
 
 # =================================================================================================================
 
@@ -116,9 +95,6 @@ def uploadData():
 FILES = os.listdir(DIR)
 TOTAL_DOCS = len(FILES)
 patlist = open('patlist', 'w')
-#print TOTAL_DOCS
-#quit()
-
 
 
 print ("Uploading total of %d documents ...\n" % TOTAL_DOCS)	
@@ -188,8 +164,6 @@ for FILE in FILES:
 		#quit()						
 		
 		# ============================== Uploading Data =================================================================================================================
-		import cStringIO
-		import pycurl
 		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH);
 		bufu = io.BytesIO()
 		response = cStringIO.StringIO()

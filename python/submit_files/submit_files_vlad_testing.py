@@ -22,24 +22,26 @@ import uuid
 #USERNAME="testorg10"
 #USERNAME="abcdemo"
 #USERNAME="control1"
-#USERNAME="newtest6"
-USERNAME="prot1440527370697"
+#USERNAME="newtest1"
+USERNAME="vlad_test_1"
 
 
-#PASSWORD="Hadoop.4522"
-PASSWORD="apixio.123"
+PASSWORD="Hadoop.4522"
+#PASSWORD="apixio.123"
 
 #HOST="https://testdr.apixio.com:8443"
 #HOST="https://stagedr.apixio.com:8443"
 #HOST="https://dr.apixio.com"
-HOST="https://dr-stg.apixio.com"
+#HOST="https://dr-stg.apixio.com"
+HOST="https://dr-stg.apixio.com:9443"
 
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 #/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
 #DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
 #DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
 #DIR="/mnt/testdata/HCC-724/data"
 #DIR="/mnt/testdata/20Patients1TxtDocumentEach/docs/201312050842104039"
+DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
 
 
 

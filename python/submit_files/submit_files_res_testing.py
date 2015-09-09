@@ -15,33 +15,33 @@ import smtplib
 import string
 import uuid
 
+# =================================================================================================================
+#
+# Author: Igor Shekhtman
+# Date: September 04, 2015
+# Purpose: Upload multiple documents to a single org, single patient
+#
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
-#USERNAME="apxdemot0216"
-#USERNAME="cmptest003"
-#USERNAME="testorg10"
-#USERNAME="abcdemo"
-#USERNAME="control1"
-#USERNAME="newtest6"
-USERNAME="prot1440527370697"
+
+#USERNAME="restest01"
+USERNAME="restest06"
 
 
-#PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
 
-#HOST="https://testdr.apixio.com:8443"
-#HOST="https://stagedr.apixio.com:8443"
-#HOST="https://dr.apixio.com"
 HOST="https://dr-stg.apixio.com"
 
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-#/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312040241289660"
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
-#DIR="/mnt/testdata/HCC-724/data"
-#DIR="/mnt/testdata/20Patients1TxtDocumentEach/docs/201312050842104039"
+#DIR="/mnt/testdata/ThreeDocuments/Documents"
+#DIR="/mnt/testdata/TwoDocuments/Documents"
+#DIR="/mnt/testdata/OneDocument/Documents"
+#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+DIR="/mnt/testdata/TenDocuments/Documents"
+#DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
+#DIR="/mnt/testdata/FivePDFDocuments/Documents"
 
-
+PATIENT_ID="e637168c-5328-11e5-a287-0249c618e40b"
+# must be the same for all documents to be uploaded to the same patient
 
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
@@ -52,9 +52,6 @@ TOKEN_URL="%s/auth/token/" % (HOST)
 
 DOCUMENTCOUNTER=0
 NUMBEROFDOCUMENTS=0
-
-# number of documents to uplod if none provided, # of documents in folder DIR will be uplaoded
-# NUMBEROFDOCUMENTS=int(sys.argv[1])
 
 # =================================================================================================================
 
@@ -116,9 +113,8 @@ def uploadData():
 FILES = os.listdir(DIR)
 TOTAL_DOCS = len(FILES)
 patlist = open('patlist', 'w')
-#print TOTAL_DOCS
-#quit()
 
+#PATIENT_ID = uuid.uuid1()
 
 
 print ("Uploading total of %d documents ...\n" % TOTAL_DOCS)	
@@ -132,12 +128,15 @@ for FILE in FILES:
 		ROLES=obj["roles"]
 		TRACE_COLFAM=obj["trace_colFam"]
 		DOCUMENT_ID=uuid.uuid1()
-		PATIENT_ID=uuid.uuid1()
+		#PATIENT_ID=uuid.uuid1()
 		patlist.write(str(PATIENT_ID)+"\n")
 		PATIENT_ID_AA="PATIENT_ID_1"
-		PATIENT_FIRST_NAME=("Firstname_%s" % (DOCUMENTCOUNTER))
-		PATIENT_MIDDLE_NAME=("Middlename_%s" % (DOCUMENTCOUNTER))
-		PATIENT_LAST_NAME=("Lastname_%s" % (DOCUMENTCOUNTER))
+		#PATIENT_FIRST_NAME=("Firstname_%s" % (DOCUMENTCOUNTER))
+		PATIENT_FIRST_NAME=("Resurrection")
+		#PATIENT_MIDDLE_NAME=("Middlename_%s" % (DOCUMENTCOUNTER))
+		PATIENT_MIDDLE_NAME=("M")
+		#PATIENT_LAST_NAME=("Lastname_%s" % (DOCUMENTCOUNTER))
+		PATIENT_LAST_NAME=("Test")
 		PATIENT_DOB="19880706"
 		PATIENT_GENDER="M"
 		ORGANIZATION="ORGANIZATION_VALUE"
