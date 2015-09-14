@@ -1,3 +1,54 @@
+REZA =========
+
+[4/17/15, 2:45:53 PM] Reza Alemy - Apixio: Egghead.io
+[4/17/15, 2:46:14 PM] Reza Alemy - Apixio: Ralemy@apixio.com
+[4/17/15, 2:46:35 PM] Reza Alemy - Apixio: iworkforapixio
+
+
+
+============ calling Sean's API notes Vishnu ===================================
+python
+import apxapi
+session=apxapi.APXSession("ishekhtman@apixio.com",None,None,apxapi.ENG)
+pw
+session.put("https://bundler-stg2.apixio.com:8443/hcc/bundler/demographics/read/372")
+session.put("https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/refresh")
+
+Password: 
+>>> session.put("https://bundler-stg2.apixio.com:8443/hcc/bundler/demographics/read/372")
+<Response [200]>
+>>> session.get
+<bound method APXSession.get of <apxapi.APXSession object at 0x106f154d0>>
+>>> session.get("https://bundler-stg2.apixio.com:8443/ctrl/bundler/jobs")
+<Response [200]>
+>>> _.json()
+[{u'percentDone': 43.17375035978125, u'name': u'Bundle org 407, patients: 10423', u'elapsedSeconds': 383.566, u'module': u'Bundling', u'start': 1442010209087, u'guid': u'bdd49096-5b79-4ea3-b91c-f861e52bbb91'}, {u'percentDone': 100.0, u'name': u'Update Demographics for 407', u'elapsedSeconds': 367.87, u'module': u'Demographics', u'start': 1442010224783, u'guid': u'09cd3486-2317-41bc-a97e-ddf341ac991a'}]
+
+to check bundler completion status:
+session.get("https://bundler-stg2.apixio.com:8443/ctrl/bundler/jobs").json()
+
+
+checking events per document:
+make sure that ishekhtman@apixio.com has view documents enabled
+events = session.dataorchestrator.patient_events("78f6ca81-2bd4-4932-a303-1599a33216ac").json()
+docIdList = ["4c916a47-4374-4dd7-9c30-456882f65e7b"]
+events_for_doc = [e for e in events['eventTypes'] if e['source']['uri'] in docIdList]
+
+checking rules in Kibana
+_type:user_rule AND "mmgenergyes@apixio.net"
+
+
+========= ADDING PROVIDERS INSTRUCTIONS =========================================
+
+so you need a text file that has one NPI per line (like this: https://github.com/Apixio/apx-npi/blob/master/provider-lists/10000263.txt )  
+Then you curl that local file into the service.  The last number is the org id:          
+
+curl -X POST -H "Content-Type: text/html; charset=utf-8" --data-binary "@uam_provider_ids.txt" http://npi-service-stg.apixio.com:8765/trie/install/10000331
+
+========== Ashish's Rules Injection Python Tool =================================
+
+python ./other_scripts/prj_mgmnt.py
+
 ================= INSTANT LOOK AT LOGS - ANTHONY =================================
 
  ./ktail-stg.sh --id staging.cmpmsvc_raw_logs 100
@@ -54,9 +105,26 @@ select get_json_object(line,"$.patient.uuid") as patient_uuids from production_l
 select get_json_object(line,"$.patient.uuid") as patient_uuids from staging_logs_datacheckandrecover_24 where day='22' and month='07' and year = '2015' and get_json_object(line,"$.batchId") like '10000427%' order by patient_uuids asc
 
 
-=============== SSO Testing - Reza - Password Policy Creation =================
+=============== SSO Testing - Reza - Password Policy Creation PROTRACTOR =================
 
-../run_protractor_local.sh sso
+Location on Protractor server: /opt/protractor/prototypes/suites/hcc_logs
+
+----------- to get latest version on Production Protractor server -----------
+cd /opt/protractor/prototypes
+git pull
+-----------------------------------------------------------------------------
+------------ Redis Server ---------------------------------------------------
+cd WebstormProjects
+redis-server    -  to start server
+------------- Protractor Server ---------------------------------------------
+cd /Users/ishekhtman/WebstormProjects/prototypes/qaserver
+bin/www         - to start server
+-----------------------------------------------------------------------------
+to RUN:
+
+
+/Users/ishekhtman/WebstormProjects/prototypes/qaserver
+../run_protractor_local.sh hcc
 
 ================ REDIS =========================================================
 
