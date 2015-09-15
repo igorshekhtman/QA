@@ -2,21 +2,17 @@
 #### Must match same for opprouteroptimization.py script to work
 REVISION=1.0.1
 ######################################
-ENVIRONMENT=Staging
+#ENVIRONMENT=Staging
 ######################################
-DOMAIN=hcceng.apixio.com
-URL=https://hcceng.apixio.com
+#DOMAIN=hcceng.apixio.com
+#URL=https://hcceng.apixio.com
 ######################################
 #USERNAME=htenergyes@apixio.net
-USERNAME=mmgenergyes@apixio.net
-PASSWORD=apixio.123
+#USERNAME=mmgenergyes@apixio.net
+#PASSWORD=apixio.123
 ######################################
-#### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
-CODE_OPPS=1
-#### 0 = VIEW OPPS, 1 = VIEW + ACCEPT OPPS, 2 = VIEW + REJECT OPPS, 3 = VIEW + SKIP OPPS
-CODE_OPPS_ACTION=1
-CODE_OPPS_MAX=2
-#### 0 = DO NOT LOG OUT, 1 = LOG OUT
+CODE_OPPS_MAX=1
+######################################
 LOGOUT=1
 ######################################
 MAX_NUM_RETRIES=2
