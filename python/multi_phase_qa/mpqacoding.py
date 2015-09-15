@@ -1,16 +1,16 @@
 ####################################################################################################
 #
-# PROGRAM: esopprouteroptimization.py
+# PROGRAM: mpqacoding.py
 # AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
-# DATE:    2015.08.05 Initial Version
+# DATE:    09/15/2015 Initial Version
 #
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
-# DATE: 2015.08.05
-# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
+# DATE: 
+# SPECIFICS: 
 #
 # PURPOSE:
-#          This program should be executed via Python 2.7 and is meant for testing HCC functionality:
+#          This program should be executed via Python 2.7 and is meant for testing HCC Multi-Phase QA functionality:
 #          * Login
 #          * View   Docs + Opportunities
 #          * Accept Docs + Opportunities
@@ -19,13 +19,10 @@
 #          * Logout
 #
 # SETUP:
-#		   1.) Clean profile
-#		   2.) Install catch-all rule
-#		   3.) Turn ON energy routing (use Python utility: 
-#				python2.7 energyroutingstatus.py engineering none
+#		   * Clean profile
 #          * Assumes a HCC environment is available
 #          * Assumes a Python 2.7 environment is available
-#          * From QA2 server (54.176.225.214) /mnt/automation/hcc folder enter "python2.7 opprouteroptimization.py"
+#          * From QA2 server (50.204.82.254) /mnt/automation/python/multi_phase_qa folder enter "python2.7 mpqacoding.py"
 #		   * note: opprouteroptimization.csv configuration file must coexist in same folder as opprouteroptimization.py
 #
 # USAGE:
@@ -33,17 +30,11 @@
 #          * Configure global parameters in opprouteroptimization.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
 #		   *
-#		   * python2.7 opprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
+#		   * python2.7 mpqacoding staging ishekhtman@apixio.com ishekhtman@apixio.com
 #		   *
 #
-# SPECIFIC TEST CASE PROVIDED BY RICHARD:
-#		- Choose an HCC, such as 15-2013-Final-2014. The HCC should not be overly rare. 
-#		- Choose an acceptance probability for that HCC, such as 20%. All other HCCs get probability zero. 
-#		- Reset the database to pristine state using reset script. 
-#		- Start routing. 
-#		- Tally number of serves of the targeted HCC in time buckets of perhaps 100 annotations. 
-#		- Throw random number and apply accept or reject according to the probabilities mentioned above for each opportunity. 
-#		- Observe that the curve slowly rises until saturating.
+# SPECIFIC TEST CASE PROVIDED BY HA:
+#		- Contained in annotation-plan.json file 
 #
 ####################################################################################################
 
@@ -72,12 +63,11 @@ from email.mime.image import MIMEImage
 import numpy as np
 import apxapi
 requests.packages.urllib3.disable_warnings()
-#from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
-CSV_CONFIG_FILE_NAME = "esopprouteroptimization.csv"
+CSV_CONFIG_FILE_PATH = "/mnt/automation/python/multi_phase_qa/"
+CSV_CONFIG_FILE_NAME = "mpqacoding.csv"
 VERSION = "1.0.1"
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
@@ -87,7 +77,7 @@ DEBUG_MODE=bool(0)
 REPORT = ""
 # HTML report version to email
 REPORT_EMAIL = ""
-REPORT_TYPE = "ES Energy Routing Test"
+REPORT_TYPE = "ES Multi Phase QA Test"
 SENDER="donotreply@apixio.com"
 CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
 START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
@@ -210,17 +200,17 @@ def readConfigurationFile(filename):
   return result
 ##########################################################################################
 
-ok = 200
-created = 201
-accepted = 202
-nocontent = 204
-movedperm = 301
-redirect = 302
-unauthorized = 401
-forbidden = 403
-notfound = 404
-intserveror = 500
-servunavail = 503
+ok 				= 200
+created 		= 201
+accepted 		= 202
+nocontent 		= 204
+movedperm 		= 301
+redirect 		= 302
+unauthorized 	= 401
+forbidden 		= 403
+notfound 		= 404
+intserveror 	= 500
+servunavail 	= 503
 
 FAILED = SUCCEEDED = RETRIED = 0
 VOO = VAO = VRO = VSO = 0
@@ -253,30 +243,14 @@ def logInToHCC():
   response = requests.get(url)
   print "* Login page         = "+str(response.status_code)
   
-  #print response.cookies.list_domains()
-  #print response.cookies.list_paths()
-  #print response.cookies.get_dict()
-  #print response.cookies
-  #print response.status_code
-  #print response.headers
-  #print response.text
-  #print response.json()
-  #quit()
   
 #-----------------------------------------------------------------------------------------  	
-  
-  
   
   TOKEN = response.cookies["JSESSIONID"]
   SESSID = response.cookies["JSESSIONID"]
   COOKIES = dict(csrftoken=''+TOKEN+'')
   JSESSIONID = response.cookies["JSESSIONID"]
   
-  
-  #url = URL+'/account/login/'
-  #referer = URL+'/account/login/'
-  #host = DOMAIN
-  #origin = URL
 
   origin = "https://accounts-stg.apixio.com"
   referer = "https://accounts-stg.apixio.com/?caller=hcc_eng"
@@ -1016,12 +990,6 @@ def confirmSettings():
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
-	# REPORT = MIMEMultipart()
-	#REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	#REPORT = REPORT + HTML_RECEIVERS
-	#REPORT = REPORT + """MIME-Version: 1.0\n"""
-	#REPORT = REPORT + """Content-type: text/html\n"""
-	#REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 	REPORT = """ """
 	REPORT = REPORT + """<h1>Apixio ES Energy Routing Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
@@ -1087,21 +1055,6 @@ def convertJsonToTable(srcedict, sortby):
 	global REPORT
 	#print srcedict
 	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-	#key = sorted(srcedict.keys())
-	#sorted(mydict, key=lambda key: mydict[key])
-	#key = sorted(srcedict, key=lambda key: srcedict[key])
-	#sortedict = sorted(srcedict.items(), key=lambda t: getKey(t[0]))
-	#sortedict = sorted(srcedict.items(), key=lambda t: int(t[0]))
-	#sortedkeys = sorted(srcedict.keys())
-	#=====sort by values=======================================
-	#import operator
-	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
-	#sorted_x = sorted(x.items(), key=operator.itemgetter(1))
-	#=====sort by keys=========================================
-	#import operator
-	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
-	#sorted_x = sorted(x.items(), key=operator.itemgetter(0))
-	#==========================================================
 	if sortby == "value":
 		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
 		ctr = 0
@@ -1413,6 +1366,6 @@ printResultsSummary()
 
 writeReportFooter()
 
-archiveReport()
+#archiveReport()
 
 emailReport()

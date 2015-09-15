@@ -1,3 +1,20 @@
+--------------------------------------
+to get protractor working again
+forward port 80 to 9000
+
+
+files have to exist in 
+
+ps aux | grep node
+sudo service apx-qa-server start
+cd /opt/protractor/prototypes/qaserver
+curl localhost:9000
+
+---------------------------------------
+
+
+
+
 REZA =========
 
 [4/17/15, 2:45:53 PM] Reza Alemy - Apixio: Egghead.io
@@ -1798,6 +1815,9 @@ then we shud do /opt/redis/redis-cli <<< flushdb
 hadoop jar apixio-cassandra-utils-1.0.7-SNAPSHOT.jar migrate -files migration.properties,apixio-security.properties
 
 184.169.139.118,184.169.171.87,184.169.142.180,184.169.168.150 cf10000652 /user/apxqueue/igor_migration_652
+
+
+
 
 
 igor-migration/migration
