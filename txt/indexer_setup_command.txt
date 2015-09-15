@@ -1,3 +1,8 @@
+============ Ashish's rules editor tool ==========
+on my local machine
+/Users/ishekhtman/Documents/Apixio/utility
+python ./other_scripts/prj_mgmnt.py
+
 --------------------------------------
 to get protractor working again
 forward port 80 to 9000
