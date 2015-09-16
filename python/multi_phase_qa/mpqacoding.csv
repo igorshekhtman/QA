@@ -2,15 +2,6 @@
 #### Must match same for opprouteroptimization.py script to work
 REVISION=1.0.1
 ######################################
-#ENVIRONMENT=Staging
-######################################
-#DOMAIN=hcceng.apixio.com
-#URL=https://hcceng.apixio.com
-######################################
-#USERNAME=htenergyes@apixio.net
-#USERNAME=mmgenergyes@apixio.net
-#PASSWORD=apixio.123
-######################################
 CODE_OPPS_MAX=1
 ######################################
 LOGOUT=1
