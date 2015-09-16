@@ -568,13 +568,60 @@ def getAction(opportunity, finding, coder, state):
   			"accepted_qa3", "rejected_qa3", "rejected_qa3_more", \
   			]
 
-  coders = ["qa-coder@apixio.net", "qa-qa1@apixio.net", "qa-qa2@apixio.net", "qa-qa3@apixio.net"]
-  pw = "apixio.123"
+  #coders = ["qa-coder@apixio.net", "qa-qa1@apixio.net", "qa-qa2@apixio.net", "qa-qa3@apixio.net"]
+  #pw = "apixio.123"
   
   
+  #for aplan in aplans:
+  #	print aplan
+	
+ 
   
-  action = 1
-  print action
+  # Information from pulled opportunity
+  
+  hcc = opportunity.get("code").get("hcc")
+  label_set_version = opportunity.get("code").get("labelSetVersion")
+  sweep = opportunity.get("code").get("sweep")
+  model_payment_year = opportunity.get("code").get("modelPaymentYear")
+  patient_id = opportunity.get("patientId")
+  finding_ids = opportunity.get("finding_ids")
+  organization = opportunity.get("organization")
+  organization = opportunity.get("organization")
+  transaction_id = opportunity.get("transactionId")
+  patient_org_id = finding.get("patient_org_id")  
+  document_uuid = finding.get("sourceId")
+
+  
+  
+  #retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
+  retrieved_id = "SequenceKey(OrgName(415);PatientId(b5ca1144-3bf8-4ecd-9a59-c497702890f6);HccDescriptor(157,V12,finalReconciliation,2015))"
+  print retrieved_id
+  document_uuid = "9478b06e-4de3-49d4-ae00-d56fd2b19c59"
+  
+  
+  for aplan in aplans:
+    if aplan.get("id") == retrieved_id:
+      for step in aplan.get("steps"):
+        print "\n"
+        if step.get("findingId") == document_uuid:
+          print "Action: %s" % (step.get("action"))
+          ret_action = step.get("action")
+  	    
+  if ret_action == "accept":
+    action = 1
+  elif ret_action == "reject":
+    action = 2
+  elif ret_action == "skip":
+    action = 3
+  else:
+    action = 0          	  	
+  	  
+  	
+  
+  #SequenceKey(OrgName(415);PatientId(b5ca1144-3bf8-4ecd-9a59-c497702890f6);HccDescriptor(157,V12,finalReconciliation,2015))
+  
+  
+  print "action: %d" % action
   quit()
 
   return (action)
@@ -638,17 +685,11 @@ def startCoding():
     	print "=================================================="
     else:	
     	opportunity = response.json()
-
-    
+  
     hcc = opportunity.get("code").get("hcc")
-    #tallyDetails("hcc", hcc)
     label_set_version = opportunity.get("code").get("labelSetVersion")
-    #tallyDetails("label_set_version", label_set_version)
     sweep = opportunity.get("code").get("sweep")
-    #tallyDetails("sweep", sweep)
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
-    #tallyDetails("model_payment_year", model_payment_year)
-
     
     print "\n"
     print "********************************************************************************************"
