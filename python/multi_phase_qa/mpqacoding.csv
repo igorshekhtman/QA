@@ -2,7 +2,7 @@
 #### Must match same for opprouteroptimization.py script to work
 REVISION=1.0.1
 ######################################
-CODE_OPPS_MAX=1
+CODE_OPPS_MAX=100
 ######################################
 LOGOUT=1
 ######################################

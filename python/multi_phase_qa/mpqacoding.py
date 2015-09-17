@@ -358,7 +358,7 @@ def logInToHCC(coder, pw):
 #====================================== ACT ON DOC (FINDING) ================================================
 #============================================================================================================	
   
-def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, actions):
+def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, action, coder):
   global CODE_OPPS_ACTION
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
@@ -381,10 +381,11 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     	'X-CSRFToken': TOKEN \
     	}	
 
-  for action in actions:
+  for i in range(0,1,1):
     if (action == 0): # Do NOT Accept or Reject Doc
       print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print("* CODER ACTION     = Do NOT Accept or Reject Doc")
+      print("* CODER ACTION     = No action taken - View Only")
+      print("* CODER / QA       = %s" % (coder))
       IncrementTestResultsTotals("coding view only", 200)
     
     elif (action == 1): #=============================== ACCEPT DOC ==============
@@ -465,9 +466,10 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
+        print("* CODER / QA       = %s" % (coder))
       else:
         print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-        act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, actions)
+
       
     elif (action == 2): #================================== REJECT DOC ===========
       TOTAL_DOCS_REJECTED += 1
@@ -532,9 +534,10 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
+        print("* CODER / QA       = %s" % (coder))
       else:
         print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-        act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, actions)
+
       
     elif (action == 3): #=========================== SKIP OPP ====================
       TOTAL_OPPS_SKIPPED += 1
@@ -596,9 +599,10 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
+        print("* CODER / QA       = %s" % (coder))
       else:
         print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-        act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, actions)
+
     else:
       print("* CODER ACTION     = Unknown\n")
     print("\n")
@@ -626,6 +630,7 @@ def getCoderType(coder):
 #============================================================================================================  
 
 def getActions(opportunity, finding, coder):
+  global OPPS_PLAN_TOT, OPPS_SERVED_TOT, FINDINGS_ANNO_TOT 
       # Available return actions:
       # 0 - nothing or view only
       # 1 - accept
@@ -633,21 +638,9 @@ def getActions(opportunity, finding, coder):
       # 3 - skip
   
   aplans = APLANS
-  coder_states = 	{ \
-  					"mmgenergyes@apixio.net" : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
-  					"qa-mp-coder@apixio.net" : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
-  					"qa-mp-qa1@apixio.net"   : ["accepted_qa1", "rejected_qa1", "rejected_moreFindings_qa1"], \
-  					"qa-mp-qa2@apixio.net"   : ["accepted_qa2", "rejected_qa2", "rejected_moreFindings_qa2"], \
-  					"qa-mp-qa3@apixio.net"   : ["accepted_qa3", "rejected_qa3", "rejected_moreFindings_qa3"], \
-  					"coder"                  : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
-  					"qa1"                    : ["accepted_qa1", "rejected_qa1", "rejected_moreFindings_qa1"], \
-  					"qa2"                    : ["accepted_qa2", "rejected_qa2", "rejected_moreFindings_qa2"], \
-  					"qa3"                    : ["accepted_qa3", "rejected_qa3", "rejected_moreFindings_qa3"] \
-  					}		
-  					
-  					
+    					
   coder_steps = {"coder": 0, "qa1": 1, "qa2": 2, "qa3": 3}  					  									
-  actions_table =   {"view" : 0, "accept" : 1, "reject" : 2, "skip" : 3}					
+  actions_dict =   {"view" : 0, "accept" : 1, "reject" : 2, "skip" : 3}					
   							  
   # Information from pulled opportunity and finding  
   hcc = opportunity.get("code").get("hcc")
@@ -662,38 +655,67 @@ def getActions(opportunity, finding, coder):
   document_uuid = finding.get("sourceId")
   
   #SequenceKey(OrgName(415);PatientId(b5ca1144-3bf8-4ecd-9a59-c497702890f6);HccDescriptor(157,V12,finalReconciliation,2015))
-  #retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
-  retrieved_id = "SequenceKey(OrgName(372);PatientId(bddeab45-3956-44b9-a37e-e6c124ebd9c7);HccDescriptor(48,V22,initial,2015))"
+
+
+
+  retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
+
+
+
+  #retrieved_id = "SequenceKey(OrgName(372);PatientId(bddeab45-3956-44b9-a37e-e6c124ebd9c7);HccDescriptor(48,V22,initial,2015))"
   #print retrieved_id
-  #document_uuid = "9d6d7b32-7e5e-43d1-ac1c-bdbf791b380b"
+  #document_uuid = "81faffef-0200-4e51-bf20-13a2d50440fa"
   
   
   ctype = getCoderType(coder)
   
   
   # Match ID and State then build a set of actions
-  actions = [0]
+  actions = []
   for aplan in aplans:
-    print aplan.get("id")
-    print aplan.get("state")
-    if (aplan.get("id") == retrieved_id) and (aplan.get("state") in coder_states.get(ctype)):
-      print "made it here"
+    #print aplan.get("id")
+    if (aplan.get("id") == retrieved_id):
       for step in aplan.get("steps"):
         if step.get("findingId") == document_uuid:
-          actions.append(actions_table.get(step.get("action")))
+          actions.append(actions_dict.get(step.get("action")))
+  
+  
+  if actions == []:
+    print ("* ACTIONS LIST     = None")
+    print ("* ACTION SELECTED  = None")
+    return 0
   
   print ("* ACTIONS LIST     = %s" % actions)
-  quit()
-  return (actions)
+  action = actions[coder_steps.get(getCoderType(coder))]
+      
+  # 0 - coder
+  # 1 - QA1
+  # 2 - QA2
+  # 3 - QA3
+  
+  OPPS_SERVED_TOT[coder_steps.get(ctype)] += 1
+  
+  #"0" - coder [view, accept, reject, skip]
+  #"1" - QA1 [view, accept, reject, skip]
+  #"2" - QA2 [view, accept, reject, skip]
+  #"3" - QA3 [view, accept, reject, skip]
+  
+  FINDINGS_ANNO_TOT.get(str(coder_steps.get(ctype)))[action] += 1
+  
+  print ("* ACTION SELECTED  = %s" % action) 
+  #quit()
+  return (action)
 
 #============================================================================================================
 #========================================== START CODING ====================================================
 #============================================================================================================  	
   
-def startCoding():
+def startCoding(coder):
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO
-  global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
+  global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED, OPPS_SERVED_TOT
+
+  coder_steps = {"coder": 0, "qa1": 1, "qa2": 2, "qa3": 3} 
 
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s" % URL)
@@ -745,9 +767,11 @@ def startCoding():
     	print response.text
     	print json.dumps(response.json())
     	print "=================================================="
-    	quit()
+    	print("WARNING: No More Opportunities For This Coder")
+    	return 0
     else:	
     	opportunity = response.json()
+    	OPPS_SERVED_TOT[coder_steps.get(getCoderType(coder))] += 1
   
     hcc = opportunity.get("code").get("hcc")
     label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -762,8 +786,8 @@ def startCoding():
 
     patient_details = response.text
     if opportunity == None:
-      print("ERROR : Login Failed or No More Opportunities For This Coder")
-      return 1
+      print("WARNING: No More Opportunities For This Coder")
+      return 0
             
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes") 
@@ -799,6 +823,7 @@ def startCoding():
       
       print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
       print("* STATUS           = %s" % (status))
+      print("* CODER / QA       = %s" % (coder))
       print("* PATIENT ORG      = %s" % (patient_org_id))
       print("* PATIENT ID       = %s" % (patient_id))
       print("* FINDING ID       = %s" % (finding_id))
@@ -826,7 +851,7 @@ def startCoding():
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
     
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder))
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
 
   return 0
 
@@ -850,22 +875,26 @@ def logout():
 
 	
 def printResultsSummary():
-	log("=============================================================================")
-	log("Test execution results summary:")
-	log("=============================================================================")
-	log("* VIEWED ONLY OPPS:       %s" % VOO)
-	log("* VIEWED + ACCEPTED OPPS: %s" % VAO)
-	log("* VIEWED + REJECTED OPPS: %s" % VRO)
-	log("* VIEWED + SKIPPED OPPS:  %s" % VSO)
-	log("* TOTAL OPPS PROCESSED:   %s" % (VOO+VAO+VRO+VSO))
-	log("=============================================================================")
-	log("* RETRIED:   %s" % RETRIED)
-	log("* FAILED:    %s" % FAILED)
-	log("* SUCCEEDED: %s" % SUCCEEDED)
-	log("* TOTAL:     %s" % (RETRIED+FAILED+SUCCEEDED))
-	log("=============================================================================")
-	log("=============================================================================")
-	log("=============================================================================")	
+	print("=============================================================================")
+	print("Test execution results summary:")
+	print("=============================================================================")
+	print("* MAXIMUM NUMBER OF OPPS TO CODE        = %s" % CODE_OPPS_MAX)
+	print("* INPUT JSON FILE NAME                  = %s" % APLANS_FN)
+	print("* CODER OPPS PER PLAN                   = %d" % OPPS_PLAN_TOT[0])
+	print("* QA1 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[1])
+	print("* QA2 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[2])
+	print("* QA3 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[3])
+	print("* CODER OPPS SERVED BY HCC              = %d" % OPPS_SERVED_TOT[0])
+	print("* QA1 OPPS SERVED BY HCC                = %d" % OPPS_SERVED_TOT[1])
+	print("* QA2 OPPS SERVED BY HCC                = %d" % OPPS_SERVED_TOT[2])
+	print("* QA3 OPPS SERVED BY HCC                = %d" % OPPS_SERVED_TOT[3])
+	print("* CODER FINDINGS V/A/R/S TOTALS         = %s" % FINDINGS_ANNO_TOT.get("0"))
+	print("* QA1 FINDINGS V/A/R/S TOTALS           = %s" % FINDINGS_ANNO_TOT.get("1"))
+	print("* QA2 FINDINGS V/A/R/S TOTALS           = %s" % FINDINGS_ANNO_TOT.get("2"))
+	print("* QA3 FINDINGS V/A/R/S TOTALS           = %s" % FINDINGS_ANNO_TOT.get("3")) 
+	print("=============================================================================")
+	print("=============================================================================")
+	print("=============================================================================")	
 
 ###########################################################################################################################################
 	
@@ -1307,9 +1336,8 @@ checkEnvironmentandReceivers()
 
 #writeReportHeader()	
 
-#coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
-coders = ["qa-mp-coder@apixio.net"]
-#coders = ["mmgenergyes@apixio.net"]
+coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
+#coders = ["qa-mp-coder@apixio.net"]
 pw = "apixio.123"
 
 for coder in coders:
@@ -1318,7 +1346,7 @@ for coder in coders:
 	#confirmSettings()
 	
 	
-	startCoding()
+	startCoding(coder)
 	
 	
 	#writeReportDetails("coding opportunity check")
@@ -1331,7 +1359,7 @@ for coder in coders:
 	#writeReportDetails("logout")
 
 
-#printResultsSummary()
+printResultsSummary()
 #writeReportFooter()
 #archiveReport()
 #emailReport()
