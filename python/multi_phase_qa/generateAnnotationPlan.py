@@ -2,8 +2,10 @@ __author__ = 'Ha Pham'
 
 import json
 
-from util import get_apxapi, login
-apxapi = get_apxapi()
+#from util import get_apxapi, login
+#apxapi = get_apxapi()
+import apxapi
+from util import login
 
 from AnnotationPlanTemplate import PLANS_OPPS_WITH_ONE_FINDING, PLANS_OPPS_WITH_TWO_FINDINGS
 
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     deleteOppsWithMoreThanOneFinding("org-372")
 
   # generate annotation plan
-  if False:
+  if True:
     prepareAnnotationPlan("org-372")
 
 

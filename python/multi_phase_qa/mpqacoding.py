@@ -87,11 +87,7 @@ CSV_CONFIG_FILE_NAME = "mpqacoding.csv"
 VERSION = "1.0.1"
 
 
-# --------------- load input data from a json file --------
-APLANS_FN = "org-372-annotation-plan.json"
-f = open(APLANS_FN, 'r')
-APLANS = json.load(f)
-# ---------------------------------------------------------
+
 
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
@@ -230,6 +226,57 @@ VOO = VAO = VRO = VSO = 0
 ###########################################################################################################################################
 # MAIN FUNCTIONS ##########################################################################################################################
 ###########################################################################################################################################
+
+#============================================================================================================
+#=================================== LOAD ANNOTATIONS PLAN ==================================================
+#============================================================================================================
+
+def loadAnnotationPlan():
+  global APLANS_FN, APLANS
+  global OPPS_PLAN_TOT, OPPS_SERVED_TOT, FINDINGS_ANNO_TOT
+ 
+  # 0 - coder
+  # 1 - QA1
+  # 2 - QA2
+  # 3 - QA3
+  
+  
+  print "Loading annotations plan ..."
+  
+  OPPS_PLAN_TOT = [0, 0, 0, 0]
+  OPPS_SERVED_TOT = [0, 0, 0, 0]
+  
+  
+  #"0" - coder [view, accept, reject, skip]
+  #"1" - QA1 [view, accept, reject, skip]
+  #"2" - QA2 [view, accept, reject, skip]
+  #"3" - QA3 [view, accept, reject, skip]
+  
+  FINDINGS_ANNO_TOT = {"0":[0,0,0,0], "1":[0,0,0,0], "2":[0,0,0,0], "3":[0,0,0,0]}
+  
+  
+  # --------------- load input data from a json file --------
+  APLANS_FN = "org-372-annotation-plan.json"
+  f = open(APLANS_FN, 'r')
+  APLANS = json.load(f)
+  # ---------------------------------------------------------
+  for aplan in APLANS:
+    steps = len(APLANS[0].get("steps"))
+    for i in range (0, steps):
+      OPPS_PLAN_TOT[i] += 1        
+
+  print ("==============================================================================")				
+  print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
+  print ("* MAXIMUM NUMBER OF OPPS TO CODE        = %s" % CODE_OPPS_MAX)
+  print ("* INPUT JSON FILE NAME                  = %s" % APLANS_FN)
+  print ("* CODER OPPS PER PLAN                   = %d" % OPPS_PLAN_TOT[0])
+  print ("* QA1 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[1])
+  print ("* QA2 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[2])
+  print ("* QA3 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[3])
+  print ("==============================================================================")
+  print "Annotations plan loaded ..."	
+  #quit()
+  return OPPS_PLAN_TOT
 
 #============================================================================================================
 #=================================== LOG INTO HCC ===========================================================
@@ -559,6 +606,22 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
   return 0
 
 #============================================================================================================
+#========================================== GET CODER TYPE ==================================================
+#============================================================================================================    
+
+def getCoderType(coder):
+  if "coder" in coder:
+    ctype = "coder"
+  elif "qa1" in coder:
+    ctype = "qa1"
+  elif "qa2" in coder:
+    ctype = "qa2"
+  elif "qa3" in coder:
+    ctype = "qa3"
+  else:
+    ctype = coder          
+  return (ctype)
+#============================================================================================================
 #========================================== GET ACTION ======================================================
 #============================================================================================================  
 
@@ -569,16 +632,21 @@ def getActions(opportunity, finding, coder):
       # 2 - reject
       # 3 - skip
   
-  aplans = json.dumps(APLANS)
-  print aplans
-  quit()
+  aplans = APLANS
   coder_states = 	{ \
   					"mmgenergyes@apixio.net" : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
   					"qa-mp-coder@apixio.net" : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
-  					"qa-mp-qa1@apixio.net" : ["accepted_qa1", "rejected_qa1", "rejected_moreFindings_qa1"], \
-  					"qa-mp-qa2@apixio.net" : ["accepted_qa2", "rejected_qa2", "rejected_moreFindings_qa2"], \
-  					"qa-mp-qa3@apixio.net" : ["accepted_qa3", "rejected_qa3", "rejected_moreFindings_qa3"] \
-  					}						
+  					"qa-mp-qa1@apixio.net"   : ["accepted_qa1", "rejected_qa1", "rejected_moreFindings_qa1"], \
+  					"qa-mp-qa2@apixio.net"   : ["accepted_qa2", "rejected_qa2", "rejected_moreFindings_qa2"], \
+  					"qa-mp-qa3@apixio.net"   : ["accepted_qa3", "rejected_qa3", "rejected_moreFindings_qa3"], \
+  					"coder"                  : ["accepted_code", "rejected_code", "rejected_moreFindings_code"], \
+  					"qa1"                    : ["accepted_qa1", "rejected_qa1", "rejected_moreFindings_qa1"], \
+  					"qa2"                    : ["accepted_qa2", "rejected_qa2", "rejected_moreFindings_qa2"], \
+  					"qa3"                    : ["accepted_qa3", "rejected_qa3", "rejected_moreFindings_qa3"] \
+  					}		
+  					
+  					
+  coder_steps = {"coder": 0, "qa1": 1, "qa2": 2, "qa3": 3}  					  									
   actions_table =   {"view" : 0, "accept" : 1, "reject" : 2, "skip" : 3}					
   							  
   # Information from pulled opportunity and finding  
@@ -594,19 +662,22 @@ def getActions(opportunity, finding, coder):
   document_uuid = finding.get("sourceId")
   
   #SequenceKey(OrgName(415);PatientId(b5ca1144-3bf8-4ecd-9a59-c497702890f6);HccDescriptor(157,V12,finalReconciliation,2015))
-  retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
-  #retrieved_id = "SequenceKey(OrgName(415);PatientId(6b3ac1cb-23dd-4206-b250-3de633a4d15c);HccDescriptor(46,V22,finalReconciliation,2015))"
+  #retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
+  retrieved_id = "SequenceKey(OrgName(372);PatientId(bddeab45-3956-44b9-a37e-e6c124ebd9c7);HccDescriptor(48,V22,initial,2015))"
   #print retrieved_id
   #document_uuid = "9d6d7b32-7e5e-43d1-ac1c-bdbf791b380b"
   
+  
+  ctype = getCoderType(coder)
+  
+  
   # Match ID and State then build a set of actions
-  actions = []
+  actions = [0]
   for aplan in aplans:
-    #print aplan.get("state")
-    #print coder_states.get(coder)
-    #print aplan.get("id")
-    #print retrieved_id
-    if (aplan.get("id") == retrieved_id) and (aplan.get("state") in coder_states.get(coder)):
+    print aplan.get("id")
+    print aplan.get("state")
+    if (aplan.get("id") == retrieved_id) and (aplan.get("state") in coder_states.get(ctype)):
+      print "made it here"
       for step in aplan.get("steps"):
         if step.get("findingId") == document_uuid:
           actions.append(actions_table.get(step.get("action")))
@@ -859,9 +930,6 @@ def checkEnvironmentandReceivers():
 	print ("* HCC HOST                              = %s" % URL)
 	print ("* HCC DOMAIN                            = %s" % DOMAIN)
 	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
-	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
-	print ("* MAXIMUM NUMBER OF OPPS TO CODE        = %s" % CODE_OPPS_MAX)
-	print ("* INPUT JSON FILE NAME                  = %s" % APLANS_FN)
 	print ("==============================================================================")
 	print ("Completed setting enviroment ...\n")	
 
@@ -1233,7 +1301,10 @@ def log(text):
 os.system('clear')
 
 readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
+loadAnnotationPlan()
 checkEnvironmentandReceivers()
+
+
 #writeReportHeader()	
 
 #coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
