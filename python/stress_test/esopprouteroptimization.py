@@ -619,6 +619,7 @@ def startCoding():
   
   
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
+    sleep(int(DELAYTIME))
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print ("* URL                = %s/api/next-work-item/" % URL)
