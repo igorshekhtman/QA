@@ -82,10 +82,13 @@ requests.packages.urllib3.disable_warnings()
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/python/multi_phase_qa/"
-CSV_CONFIG_FILE_NAME = "mpqacoding.csv"
-VERSION = "1.0.1"
+#CSV_CONFIG_FILE_PATH = "/mnt/automation/python/multi_phase_qa/"
+#CSV_CONFIG_FILE_NAME = "mpqacoding.csv"
+#VERSION = "1.0.1"
 
+CODE_OPPS_MAX=10
+LOGOUT=1
+MAX_NUM_RETRIES=2
 
 
 
@@ -356,8 +359,50 @@ def logInToHCC(coder, pw):
   	
 #============================================================================================================
 #====================================== ACT ON DOC (FINDING) ================================================
-#============================================================================================================	
+#============================================================================================================
+def debug_act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, action, coder):
   
+  hcc = opportunity.get("code").get("hcc")
+  label_set_version = opportunity.get("code").get("labelSetVersion")
+  sweep = opportunity.get("code").get("sweep")
+  model_payment_year = opportunity.get("code").get("modelPaymentYear")
+  patient_id = opportunity.get("patientId")
+  finding_ids = opportunity.get("finding_ids")
+  organization = opportunity.get("organization")
+  transaction_id = opportunity.get("transactionId")
+  patient_org_id = finding.get("patient_org_id")  
+  document_uuid = finding.get("sourceId")  
+  retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
+  
+  print("****************************************************")
+  if action == 0:
+    print("* Action                    = VIEW ONLY - DO NOTHING")
+  elif action == 1:
+    print("* Action                    = ACCEPT")
+  elif action == 2:
+    print("* Action                    = REJECT")
+  elif action == 3:
+    print("* Action                    = SKIP")
+  print("*")
+  print("* Patient id                = %s" % opportunity.get("patientId"))
+  print("* Org id                    = %s" % opportunity.get("patient").get("org_id"))
+  print("* Document id               = %s" % finding.get("sourceId"))
+  print("* HCC                       = %s" % retrieved_id)
+  print("* Total number of docs      = %s" % doc_no_max)
+  print("****************************************************")
+  #user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+  #if user_response.upper() == "Q":
+  #  print "exiting ..."
+  #  quit()
+
+  if action > 0:
+    print action
+    quit()
+
+
+  return 0
+	
+#============================================================================================================  
 def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, action, coder):
   global CODE_OPPS_ACTION
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
@@ -662,9 +707,9 @@ def getActions(opportunity, finding, coder):
 
 
 
-  #retrieved_id = "SequenceKey(OrgName(372);PatientId(bddeab45-3956-44b9-a37e-e6c124ebd9c7);HccDescriptor(48,V22,initial,2015))"
+  retrieved_id = "SequenceKey(OrgName(372);PatientId(4903b1de-1129-4da9-bba7-d1ad37cc6ced);HccDescriptor(108,V12,finalReconciliation,2014))"
   #print retrieved_id
-  #document_uuid = "81faffef-0200-4e51-bf20-13a2d50440fa"
+  #document_uuid = "e2311453-0417-48be-a4bc-0b6cbbc68fc9"
   
   
   ctype = getCoderType(coder)
@@ -674,6 +719,7 @@ def getActions(opportunity, finding, coder):
   actions = []
   for aplan in aplans:
     #print aplan.get("id")
+    #quit()
     if (aplan.get("id") == retrieved_id):
       for step in aplan.get("steps"):
         if step.get("findingId") == document_uuid:
@@ -781,6 +827,9 @@ def startCoding(coder):
     print "\n"
     print "********************************************************************************************"
     print "* HCC CODE         = %s" % hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
+    print "* patient id       = %s" % opportunity.get("patientId")
+    finding_ids = opportunity.get("finding_ids")
+    print "* document id      = %s" % finding_ids[0]
     print "********************************************************************************************"
     print "\n"
 
@@ -808,11 +857,11 @@ def startCoding(coder):
 
     test_counter = 0
     doc_no_current = 0
-    doc_no_max = 1
+    #doc_no_max = 1
     doc_no_max = len(findings)
     for finding in findings:
       finding_id = finding_ids[doc_no_current]
-      doc_no_current = doc_no_current + 1
+      doc_no_current += 1
       patient_org_id = finding.get("patient_org_id")  
       document_uuid = finding.get("sourceId")
       document_title = finding.get("document_title")
@@ -833,26 +882,17 @@ def startCoding(coder):
       print("* DOC TITLE        = %s" % (document_title))
       print("* DOC DATE         = %s" % (date_of_service))
       print("* DOC TYPE         = %s" % (mime_type))
-      if patient_id    == "":
-        print("WARNING : PATIENT UUID is Empty")
-      if patient_org_id  == "":
-        print("WARNING : ORG ID is Empty")
-      if finding_id      == "":
-        print("WARNING : FINDING ID is Empty")
-      if document_uuid   == "":
-        print("WARNING : DOC UUID is Empty")
-      if document_title  == "":
-        print("WARNING : DOC TITLE is Empty")
-      if date_of_service == "":
-        print("WARNING : DOC DATE is Empty")
+      
+      
       test_counter = test_counter + 1
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
-      print "* GET SCRBLE DOC   = %s" % response.status_code      
+      print "* GET SCRBLE DOC   = %s" % response.status_code
+      print "* DOCUMENT TITLE   = %s" % finding.get("document_title")      
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
     
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
-
+      #act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
+      debug_act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
   return 0
 
 #=============================== LOGOUT FUNCTION =============================================================
@@ -954,7 +994,6 @@ def checkEnvironmentandReceivers():
 				
 	
 	print ("==============================================================================")				
-	print ("* VERSION                               = %s" % VERSION)
 	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
 	print ("* HCC HOST                              = %s" % URL)
 	print ("* HCC DOMAIN                            = %s" % DOMAIN)
@@ -1329,34 +1368,25 @@ def log(text):
 
 os.system('clear')
 
-readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
+#readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
 loadAnnotationPlan()
 checkEnvironmentandReceivers()
 
 
 #writeReportHeader()	
 
-coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
-#coders = ["qa-mp-coder@apixio.net"]
+#coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
+coders = ["qa-mp-coder@apixio.net"]
+#coders = ["qa-mp-qa1@apixio.net"]
+#coders = ["qa-mp-qa2@apixio.net"]
+#coders = ["qa-mp-qa3@apixio.net"]
 pw = "apixio.123"
 
 for coder in coders:
 	logInToHCC(coder, pw)
-	#writeReportDetails("login")
-	#confirmSettings()
-	
-	
 	startCoding(coder)
-	
-	
-	#writeReportDetails("coding opportunity check")
-	#writeReportDetails("coding scorable document check")
-	#writeReportDetails("coding view only")
-	#writeReportDetails("coding view and accept")
-	#writeReportDetails("coding view and reject")
-	#writeReportDetails("coding view and skip")
 	logout()
-	#writeReportDetails("logout")
+
 
 
 printResultsSummary()
