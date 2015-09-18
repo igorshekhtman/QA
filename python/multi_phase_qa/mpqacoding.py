@@ -119,39 +119,6 @@ PASSED_TBL="<table><tr><td bgcolor='#00A303' align='center' width='800'><font si
 FAILED_TBL="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR_TBL="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
 
-MODULES = {	"login":"0", \
-			"coding opportunity check":"1", \
-			"coding scorable document check":"2", \
-			"coding view only":"3", \
-			"coding view and accept":"4", \
-			"coding view and reject":"5", \
-			"coding view and skip":"6", \
-			"history report opportunity check":"7", \
-			"history report pagination":"8", \
-			"history report searching":"9", \
-			"history report filtering":"10", \
-			"qa report coder list check":"11", \
-			"qa report opportunity check":"12", \
-			"qa report pagination":"13", \
-			"qa report searching":"14", \
-			"qa report filtering":"15", \
-			"logout":"16" \
-			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-for i in range (0, 17):
-	FAILED_TOT[i] = 0
-	SUCCEEDED_TOT[i] = 0
-	RETRIED_TOT[i] = 0
-	
-TOTAL_OPPS_ACCEPTED = 0
-TOTAL_OPPS_REJECTED = 0
-TOTAL_OPPS_SKIPPED = 0
-TOTAL_OPPS_SERVED = 0
-TOTAL_DOCS_REJECTED = 0
-TOTAL_DOCS_ACCEPTED = 0
-
 
 HCC = {str(key): 0 for key in range(0, 200)}
 #LABEL_SET_VERSION = {str(key): 0 for key in range(2000, 2040)}
@@ -296,7 +263,6 @@ def logInToHCC(coder, pw):
   referer = URL+'/account/login/'
   
   response = requests.get(url)
-  IncrementTestResultsTotals("login", response.status_code)
   print "* CONNECT TO HOST    = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
@@ -346,7 +312,6 @@ def logInToHCC(coder, pw):
   print("* SESSID             = %s" % SESSID)
   print("* JSESSIONID         = %s" % JSESSIONID)
   
-  IncrementTestResultsTotals("login", response.status_code)
   print "* LOG IN CODER       = "+str(response.status_code)
   #quit()
   if response.status_code == 500:
@@ -431,8 +396,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
       print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print("* CODER ACTION     = No action taken - View Only")
       print("* CODER / QA       = %s" % (coder))
-      IncrementTestResultsTotals("coding view only", 200)
-    
+          
     elif (action == 1): #=============================== ACCEPT DOC ==============
       TOTAL_DOCS_ACCEPTED += 1
       print "* FINDING ID       = %s" % finding_id
@@ -507,7 +471,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			}}}
       response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
       print "* ANNOTATE FINDING = %s" % response.status_code
-      IncrementTestResultsTotals("coding view and accept", response.status_code)
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
@@ -575,7 +538,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"comment": "Grinder Flag for Review Comment" \
 			}}}						
       response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
-      IncrementTestResultsTotals("coding view and reject", response.status_code)
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
@@ -640,7 +602,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"result":"skipped" \
 			}}}			
       response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
-      IncrementTestResultsTotals("coding view and skip", response.status_code)
       if response.status_code == 200:
         print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
         print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
@@ -797,7 +758,6 @@ def startCoding(coder):
     print ("* URL                = %s/api/next-work-item/" % URL)
     print ("* GET CODNG OPP      = %s" % response.status_code)
     
-    IncrementTestResultsTotals("coding opportunity check", response.status_code)
     
     
     if response.status_code != ok:
@@ -888,7 +848,6 @@ def startCoding(coder):
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
       print "* GET SCRBLE DOC   = %s" % response.status_code
       print "* DOCUMENT TITLE   = %s" % finding.get("document_title")      
-      IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
     
       #act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
@@ -902,7 +861,6 @@ def logout():
   testCode = 99
   response = requests.get(URL + "/account/logout")    
   #print "* LOGOUT           = "+str(response.status_code)  
-  IncrementTestResultsTotals("logout", response.status_code)
   if response.status_code == 200:
     print("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
   else:
@@ -1330,29 +1288,6 @@ def get_csrf_token(thread_context):
     if cookie.getName() == "csrftoken":
       csrftoken = cookie.getValue()
   return (csrftoken)
-
-###########################################################################################################################################
-
-def IncrementTestResultsTotals(module, code):
-	global FAILED, SUCCEEDED, RETRIED
-	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	if (code == ok) or (code == nocontent):
-		SUCCEEDED = SUCCEEDED+1
-		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
-	else:
-		FAILED = FAILED+1
-		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
-		RETRIED = RETRIED+1
-		RETRIED_TOT[int(MODULES[module])] = RETRIED_TOT[int(MODULES[module])] + 1
-		if RETRIED > int(MAX_NUM_RETRIES):
-			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
-			quit()
-		if (code == unauthorized):
-			print "%s response code received from server.  Re-obtaining Autorization." % code
-			logInToHCC()
-		if ((code == servunavail) or (code == nocontent)) and (module == "coding opportunity check"):
-			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
-			startCoding()
 
 ###########################################################################################################################################
     
