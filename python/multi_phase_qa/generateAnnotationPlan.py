@@ -36,7 +36,7 @@ def prepareAnnotationPlan(es_index, project):
     "from": 0,
     "size": 700
   }
-
+  
   res = es.search(index=es_index, doc_type="opportunity", body=body)
 
   # nFindings histogram for Opportunity
@@ -56,28 +56,32 @@ def prepareAnnotationPlan(es_index, project):
   for k in hist.keys():
     if k in plans.keys():
       (div,mod) = divmod(hist[k], len(plans[k]))
+      #import pdb
+      #pdb.set_trace()
 
       # prune mod Opps
-      count = 0
-      bulk_delete_body = ""
-      for o in res['hits']['hits']:
-        if 'findings' in o['_source'] and len(o["_source"]["findings"]) == int(k) and count < mod:
-          count += 1
-          bulk_delete_body += """{"delete": {"_index": \"""" + es_index + """\", "_type": "opportunity","_id": \""""+ o["_id"] + """\"}}\n"""
-      if bulk_delete_body != "":
-        es.bulk(bulk_delete_body, index=es_index, doc_type="opportunity", refresh=True)
+      #count = 0
+      #bulk_delete_body = ""
+      #for o in res['hits']['hits']:
+      #  if 'findings' in o['_source'] and len(o["_source"]["findings"]) == int(k) and count <= mod:
+      #    count += 1
+      #    bulk_delete_body += """{"delete": {"_index": \"""" + es_index + """\", "_type": "opportunity","_id": \""""+ o["_id"] + """\"}}\n"""
+      #if bulk_delete_body != "":
+      #  es.bulk(bulk_delete_body, index=es_index, doc_type="opportunity", refresh=True)
 
       print "# of opps: " + str(hist[k])
       print "# of plans: " + str(len(plans[k]))
       print "# of opps per annotation plan: " + str(div)
       oppsDistribution[k] = div
 
+
   # create annotation plan
   annotation_plans = []
   for k in oppsDistribution.keys():
     for (plan, plan_idx) in zip(plans[k], range(len(plans[k]))):
       annotation_plan = {'state': plan['state']}
-      for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]-1]:
+      #for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]-1]:
+      for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]*len(plans[k])-1]:
         annotation_plan['id'] = opp['_id']
         annotation_plan['steps'] = []
         for step in plan['steps']:
@@ -88,7 +92,7 @@ def prepareAnnotationPlan(es_index, project):
 
 
   # write annotation plan to file
-  f = open(es_index + '-annotation-plan.json','w')
+  f = open(es_index + '-annotation-plan.json','w+')
   f.write(json.dumps(annotation_plans))
   f.close()
 
@@ -142,7 +146,7 @@ if __name__ == '__main__':
 
   # prune data
   if False:
-    deleteOppsWithMoreThanOneFinding("org-372")
+    deleteOppsWithMoreThanOneFinding("org-372", "CP_495dd600-c5f2-4d63-90a9-63ec7a0b3ffe")
 
   # generate annotation plan
   if True:
