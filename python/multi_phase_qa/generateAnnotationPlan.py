@@ -24,7 +24,11 @@ def prepareAnnotationPlan(es_index, project):
     "query": {
       "bool": {
         "must": [
-          {"term": {"project": '"' + project + '"'}}
+          {
+            "terms": {
+              "project": [project ]
+            }
+          }
         ]
       }
     },
@@ -89,9 +93,19 @@ def prepareAnnotationPlan(es_index, project):
   f.close()
 
 
-def deleteOppsWithMoreThanOneFinding(es_index):
+def deleteOppsWithMoreThanOneFinding(es_index, project):
   res = es.search(index=es_index, doc_type="opportunity", body={
-    "query":{"match_all":{}},
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "terms": {
+              "project": [project]
+            }
+          }
+        ]
+      }
+    },
     "_source":["_id", "findings.sourceId", "findings.annotations", "findings.elements"],
     "from": 0,
     "size": 170
