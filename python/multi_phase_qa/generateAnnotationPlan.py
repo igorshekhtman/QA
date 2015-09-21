@@ -18,13 +18,22 @@ def bundle(s, proj):
   return resp
 
 
-def prepareAnnotationPlan(es_index):
+def prepareAnnotationPlan(es_index, project):
   plans = {"1": PLANS_OPPS_WITH_ONE_FINDING, "2": PLANS_OPPS_WITH_TWO_FINDINGS}
-  res = es.search(index=es_index, doc_type="opportunity", body={"query":{"match_all":{}},
+  body = {
+    "query": {
+      "bool": {
+        "must": [
+          {"term": {"project": '"' + project + '"'}}
+        ]
+      }
+    },
     "_source":["_id", "findings.sourceId", "findings.annotations", "findings.elements"],
     "from": 0,
     "size": 700
-  })
+  }
+
+  res = es.search(index=es_index, doc_type="opportunity", body=body)
 
   # nFindings histogram for Opportunity
   hist = {}
