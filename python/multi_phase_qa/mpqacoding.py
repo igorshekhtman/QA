@@ -82,14 +82,9 @@ requests.packages.urllib3.disable_warnings()
 
 # GLOBAL VARIABLES #######################################################################
 
-#CSV_CONFIG_FILE_PATH = "/mnt/automation/python/multi_phase_qa/"
-#CSV_CONFIG_FILE_NAME = "mpqacoding.csv"
-#VERSION = "1.0.1"
-
-CODE_OPPS_MAX=10
+CODE_OPPS_MAX=10000
 LOGOUT=1
 MAX_NUM_RETRIES=2
-
 
 
 # Email reports to eng@apixio.com and archive report html file:
@@ -156,15 +151,7 @@ def readConfigurationFile(filename):
   globals().update(result)
   
   MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
-  
-  START = (int(CODE_OPPS_MAX)/10)
-  STOP = int(CODE_OPPS_MAX)
-  STEP = (int(CODE_OPPS_MAX)/10)
-  
-  #COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  #PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  #PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  
+    
   if REVISION <> VERSION:
   	print ("============================================================================================================")
   	print ("Version of the mpqacoding.csv file (%s) does not match version of the mpqacoding.py script (%s)" % (REVISION, VERSION))
@@ -235,7 +222,8 @@ def loadAnnotationPlan():
     for i in range (0, steps):
       OPPS_PLAN_TOT[i] += 1        
 
-  print ("==============================================================================")				
+  print ("==============================================================================")	
+  print ("* CODERS LIST                           = %s" % coders)			
   print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
   print ("* MAXIMUM NUMBER OF OPPS TO CODE        = %s" % CODE_OPPS_MAX)
   print ("* INPUT JSON FILE NAME                  = %s" % APLANS_FN)
@@ -245,7 +233,12 @@ def loadAnnotationPlan():
   print ("* QA3 OPPS PER PLAN                     = %d" % OPPS_PLAN_TOT[3])
   print ("==============================================================================")
   print "Annotations plan loaded ..."	
-  #quit()
+  user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+  if user_response.upper() == "Q":
+    print "exiting ..."
+    quit()
+  else:
+    print "proceeding ..."	
   return OPPS_PLAN_TOT
 
 #============================================================================================================
@@ -398,7 +391,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
       print("* CODER / QA       = %s" % (coder))
           
     elif (action == 1): #=============================== ACCEPT DOC ==============
-      TOTAL_DOCS_ACCEPTED += 1
       print "* FINDING ID       = %s" % finding_id
       DATA = { \
 			"opportunity": \
@@ -480,7 +472,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 
       
     elif (action == 2): #================================== REJECT DOC ===========
-      TOTAL_DOCS_REJECTED += 1
       print "* FINDING ID       = %s" % finding_id
       DATA = { \
 			"opportunity": \
@@ -547,7 +538,6 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 
       
     elif (action == 3): #=========================== SKIP OPP ====================
-      TOTAL_OPPS_SKIPPED += 1
       print "* FINDING ID       = %s" % finding_id
       DATA = { \
 			"opportunity": \
@@ -620,7 +610,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 #============================================================================================================    
 
 def getCoderType(coder):
-  if "coder" in coder:
+  if ("coder" in coder) or ("mmgenergyes@apixio.net" in coder):
     ctype = "coder"
   elif "qa1" in coder:
     ctype = "qa1"
@@ -667,9 +657,10 @@ def getActions(opportunity, finding, coder):
   retrieved_id = "SequenceKey(OrgName(%s);PatientId(%s);HccDescriptor(%s,%s,%s,%s))"%(patient_org_id,patient_id,hcc,label_set_version,sweep,model_payment_year)
 
 
-
-  retrieved_id = "SequenceKey(OrgName(372);PatientId(4903b1de-1129-4da9-bba7-d1ad37cc6ced);HccDescriptor(108,V12,finalReconciliation,2014))"
+  #retrieved_id = "SequenceKey(OrgName(372);PatientId(3c2470f3-daf2-436c-ae29-ae98cb5caf17);HccDescriptor(79,V12,initial,2014))"
+  #retrieved_id = "SequenceKey(OrgName(372);PatientId(3c2470f3-daf2-436c-ae29-ae98cb5caf17);HccDescriptor(79,V12,initial,2014))"
   #print retrieved_id
+  #document_uuid = "899c478f-5cc0-405a-a512-30d0287992d0"
   #document_uuid = "e2311453-0417-48be-a4bc-0b6cbbc68fc9"
   
   
@@ -677,23 +668,34 @@ def getActions(opportunity, finding, coder):
   
   
   # Match ID and State then build a set of actions
-  actions = []
+  action = 0
+  action_index = coder_steps.get(ctype)
+  step_index = coder_steps.get(ctype)
+  
+  i = 0
   for aplan in aplans:
-    #print aplan.get("id")
-    #quit()
     if (aplan.get("id") == retrieved_id):
+      #i += 1
+      #print json.dumps(aplan)
+      #print i
+      j = -1
       for step in aplan.get("steps"):
-        if step.get("findingId") == document_uuid:
-          actions.append(actions_dict.get(step.get("action")))
-  
-  
-  if actions == []:
-    print ("* ACTIONS LIST     = None")
+        j += 1
+        if (step.get("findingId") == document_uuid) and (step_index == j):
+          action = actions_dict.get(step.get("action"))
+          string_action = step.get("action")
+          #print json.dumps(step)
+          #print step.get("action")
+          #print j
+          #print action
+     
+       
+  if action == 0:
     print ("* ACTION SELECTED  = None")
     return 0
   
-  print ("* ACTIONS LIST     = %s" % actions)
-  action = actions[coder_steps.get(getCoderType(coder))]
+  #print ("* ACTIONS LIST     = %s" % actions)
+  #action = actions[coder_steps.get(getCoderType(coder))]
       
   # 0 - coder
   # 1 - QA1
@@ -709,7 +711,7 @@ def getActions(opportunity, finding, coder):
   
   FINDINGS_ANNO_TOT.get(str(coder_steps.get(ctype)))[action] += 1
   
-  print ("* ACTION SELECTED  = %s" % action) 
+  print ("* ACTION SELECTED  = %s" % string_action) 
   #quit()
   return (action)
 
@@ -854,7 +856,9 @@ def startCoding(coder):
       debug_act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, getActions(opportunity, finding, coder), coder)
   return 0
 
-#=============================== LOGOUT FUNCTION =============================================================
+#============================================================================================================
+#========================================== LOGOUT FUNCTION =================================================
+#============================================================================================================  	
 
 def logout():
   print("-------------------------------------------------------------------------------")
@@ -867,9 +871,9 @@ def logout():
     print("* CODER ACTION     = Logout\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
   return 0
 
-###########################################################################################################################################
-# HELPER FUNCTIONS ########################################################################################################################
-###########################################################################################################################################
+##################################################################################################################
+# HELPER FUNCTIONS ###############################################################################################
+##################################################################################################################
 
 	
 def printResultsSummary():
@@ -1303,25 +1307,22 @@ def log(text):
 
 os.system('clear')
 
-#readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
-loadAnnotationPlan()
-checkEnvironmentandReceivers()
-
-
-#writeReportHeader()	
-
 #coders = ["qa-mp-coder@apixio.net", "qa-mp-qa1@apixio.net", "qa-mp-qa2@apixio.net", "qa-mp-qa3@apixio.net"]
+#coders = ["mmgenergyes@apixio.net"]
 coders = ["qa-mp-coder@apixio.net"]
 #coders = ["qa-mp-qa1@apixio.net"]
 #coders = ["qa-mp-qa2@apixio.net"]
 #coders = ["qa-mp-qa3@apixio.net"]
 pw = "apixio.123"
 
+loadAnnotationPlan()
+checkEnvironmentandReceivers()
+
+#writeReportHeader()	
 for coder in coders:
 	logInToHCC(coder, pw)
 	startCoding(coder)
 	logout()
-
 
 
 printResultsSummary()
