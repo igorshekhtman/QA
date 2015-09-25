@@ -56,8 +56,6 @@ def prepareAnnotationPlan(es_index, project):
   for k in hist.keys():
     if k in plans.keys():
       (div,mod) = divmod(hist[k], len(plans[k]))
-      #import pdb
-      #pdb.set_trace()
 
       # prune mod Opps
       #count = 0
@@ -80,8 +78,7 @@ def prepareAnnotationPlan(es_index, project):
   for k in oppsDistribution.keys():
     for (plan, plan_idx) in zip(plans[k], range(len(plans[k]))):
       annotation_plan = {'state': plan['state']}
-      #for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]-1]:
-      for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]*len(plans[k])-1]:
+      for opp in opps[k][plan_idx * oppsDistribution[k] : (plan_idx+1)*oppsDistribution[k]]:
         annotation_plan['id'] = opp['_id']
         annotation_plan['steps'] = []
         for step in plan['steps']:
