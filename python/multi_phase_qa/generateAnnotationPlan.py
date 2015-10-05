@@ -138,16 +138,17 @@ if __name__ == '__main__':
     #proj = 'CP_84cffb11-bbda-41ae-a0ec-0e9693f9459c'  # this is in ENG - "Healthnow Staging Verification"
     #proj = 'CP_a3efeecd-8483-4436-b90f-0a83590580af'  # this is in PRD - "Wellpoint UAT"
     #proj = 'projectID: CP_fc5161b6-0647-41e4-8f15-ef7218c9c1fa'  # this is in STG/ENG - org-372
-    proj =  'CP_495dd600-c5f2-4d63-90a9-63ec7a0b3ffe' # this is 2nd 50 patients MMG org-372 name: mpqa 2
+    #proj =  'CP_495dd600-c5f2-4d63-90a9-63ec7a0b3ffe' # this is 2nd 50 patients MMG org-372 name: mpqa 2
+    proj = 'CP_11a6c0bd-4ef7-47fd-b15f-fb8827019347' # this is 3rd 50 patients MMG org-372 name: mpqa3
     bundle(session, proj)
 
   # prune data
   if False:
-    deleteOppsWithMoreThanOneFinding("org-372", "CP_495dd600-c5f2-4d63-90a9-63ec7a0b3ffe")
+    deleteOppsWithMoreThanOneFinding("org-372", "CP_11a6c0bd-4ef7-47fd-b15f-fb8827019347")
 
   # generate annotation plan
-  if True:
-    prepareAnnotationPlan("org-372", "CP_495dd600-c5f2-4d63-90a9-63ec7a0b3ffe")
+  if False:
+    prepareAnnotationPlan("org-372", "CP_11a6c0bd-4ef7-47fd-b15f-fb8827019347")
 
 
 

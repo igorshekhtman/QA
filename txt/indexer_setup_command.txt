@@ -1,3 +1,15 @@
+=========== APIXIO WIFI ==============
+
+1825FlySausage!
+
+=========== ONE LINE QUERY TO CHECK ERRORS IN PIPELINE UPLOAD -------
+
+select get_json_object(line, '$.batchId'),
+get_json_object(line, '$.error.message'), 
+line
+from staging_logs_persistjob_24 where get_json_object(line, '$.orgId')='474';
+
+
 ============ Ashish's rules editor tool ==========
 on my local machine
 /Users/ishekhtman/Documents/Apixio/utility
@@ -19,8 +31,95 @@ curl localhost:9000
 
 
 
+=============== ELASTIC SEARCH ==================================================
+local location: /Users/ishekhtman/elasticsearch-1.7.2
+to start: ./bin/elasticsearch (Add -d if you want to run it in the background as a daemon.)
+for staging apixio ES server:
+http://elasticsearch-stg.apixio.com:9200
 
-REZA =========
+http://localhost:9200/_plugin/marvel/sense/index.html
+
+
+
+to check if running: curl 'http://localhost:9200/?pretty'
+to stop: ctrl-c or curl -XPOST 'http://localhost:9200/_shutdown'
+Relational DB  ⇒ Databases ⇒ Tables ⇒ Rows      ⇒ Columns
+Elasticsearch  ⇒ Indices   ⇒ Types  ⇒ Documents ⇒ Fields
+
+
+GET org-476/opportunity/_search 
+{
+"query": {
+      "bool": {
+        "must": [
+          {
+            "terms": {
+              "project": ["CP_b67cdebe-2c1c-4619-8d1b-8b7dd8738a8a"]
+            }
+          }
+        ]
+      }
+    },
+    "_source":["_id"],
+    "from": 0,
+    "size": 20
+}
+
+
+AVERAGES:
+GET /megacorp/employee/_search
+{
+    "aggs" : {
+        "all_interests" : {
+            "terms" : { "field" : "interests" },
+            "aggs" : {
+                "avg_age" : {
+                    "avg" : { "field" : "age" }
+                }
+            }
+        }
+    }
+}
+
+retrieving document source only:
+GET /website/blog/123/_source
+
+version specific document update, update only if version is 1, fail for any other version:
+PUT /website/blog/1?version=1 
+{
+  "title": "My first blog entry",
+  "text":  "Starting to get the hang of this..."
+}
+
+delete document based on a specific value:
+POST /website/blog/1/_update
+{
+   "script" : "ctx.op = ctx._source.views == count ? 'delete' : 'none'",
+    "params" : {
+        "count": 1
+    }
+}
+
+bulk processing:
+POST /_bulk
+{ "delete": { "_index": "website", "_type": "blog", "_id": "123" }} 
+{ "create": { "_index": "website", "_type": "blog", "_id": "123" }}
+{ "title":    "My first blog post" }
+{ "index":  { "_index": "website", "_type": "blog" }}
+{ "title":    "My second blog post" }
+{ "update": { "_index": "website", "_type": "blog", "_id": "123", "_retry_on_conflict" : 3} }
+{ "doc" : {"title" : "My updated blog post"} } 
+
+
+
+==================REPLACING RULES TEMPLATES:=====================================
+
+templates location:
+/Users/ishekhtman/Git/rules_templates (git pull, change, git push)
+run production Jenkins (http://jenkins.apixio.com/job/Deploy%20rules/) job: Deploy rules (build with parameters)
+-- Done.
+
+REZA ============================================================================
 
 [4/17/15, 2:45:53 PM] Reza Alemy - Apixio: Egghead.io
 [4/17/15, 2:46:14 PM] Reza Alemy - Apixio: Ralemy@apixio.com
