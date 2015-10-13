@@ -147,7 +147,7 @@ if __name__ == '__main__':
     deleteOppsWithMoreThanOneFinding("org-372", "CP_11a6c0bd-4ef7-47fd-b15f-fb8827019347")
 
   # generate annotation plan
-  if False:
+  if True:
     prepareAnnotationPlan("org-372", "CP_11a6c0bd-4ef7-47fd-b15f-fb8827019347")
 
 
