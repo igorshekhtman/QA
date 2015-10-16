@@ -1,3 +1,8 @@
+============= QA REPORTS on QA SERVER LINK =======
+
+https://qa-reports.apixio.com/html/index.htm
+
+
 =========== APIXIO WIFI ==============
 
 1825FlySausage!
@@ -958,7 +963,9 @@ buildDate=Thu Oct 23 21:27:15 UTC 2014
 ===================== NEW UTILITY TO ACCESS HIVE LOGS =============================================
 HUE
 
-http://54.69.201.228:8888/
+http://54.69.201.228:8888/ - old
+hue.apixio.com:8888 - new
+
 username: igor/apixio123
 ===================================================================================================
 /mnt/gatling_2_0_0_RC5/bin

@@ -55,6 +55,14 @@
 #				all references to Pipeline were removed from report headers, sub-headers and names.
 #
 ####################################################################################################
+#
+# EDITED:		October 16th, 2015
+# EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
+# PURPOSE:		Refactored queries for specific errors and SE events tables. This will allow for
+# 				exceptions that take up too much room of the report space to be grouped or combined
+#				therefore ultimately minimise size of the report.
+#
+####################################################################################################
 import requests
 import pyhs2
 import os
@@ -624,15 +632,31 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))			
 	else:	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
-			if (error_message like '/mnt%%','No space left on device', error_message) as message \
+			CASE 
+				WHEN (error_message like '/mnt%%') THEN 'No space left on device' 
+				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match error'
+				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception error'
+				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally error'
+				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user error'
+				ELSE error_message
+			END	as message \
 			FROM %s \
 			WHERE \
 			%s is not null and \
 			status != 'success' and \
 			day=%s and month=%s and year=%s \
 			GROUP BY org_id, \
-			if(error_message like '/mnt%%','No space left on device', error_message) \
+			CASE 
+				WHEN (error_message like '/mnt%%') THEN 'No space left on device'
+				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match error'
+				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception error'
+				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally error'
+				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user error'
+				ELSE error_message
+			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
+	
+	
 			
 	ROW = 0
 	for i in cur.fetch():
@@ -947,13 +971,23 @@ def eventAMR(table):
 
 	
 	cur.execute("""SELECT count(*) as count, \
-		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message) as message, \
+		CASE
+			WHEN (error_message like 'ERROR:/Patient/%%') THEN 'ClinicalCode both codingSystemOID and codingSystem are null'
+			WHEN (error_message like '%%scala.MatchError%%') THEN 'Scala Match error'
+			WHEN (error_message like '%%java.lang.NullPointerException%%') THEN 'Java Null Pointer Exception error'
+			ELSE error_message
+		END as message, \
 		org_id, status \
 		FROM %s \
 		WHERE day=%s and month=%s and year=%s \
-		GROUP BY org_id, \
-		if (error_message like 'ERROR:/Patient/%%','ClinicalCode both codingSystemOID and codingSystem are null', error_message), \
-		status \
+		GROUP BY \
+		CASE
+			WHEN (error_message like 'ERROR:/Patient/%%') THEN 'ClinicalCode both codingSystemOID and codingSystem are null'
+			WHEN (error_message like '%%scala.MatchError%%') THEN 'Scala Match error'
+			WHEN (error_message like '%%java.lang.NullPointerException%%') THEN 'Java Null Pointer Exception error'
+			ELSE error_message
+		END,
+		org_id, status \
 		ORDER BY org_id, count DESC""" %(table, DAY, MONTH, YEAR))
 		
 	REPORT = REPORT+"<table border='0' cellpadding='1' cellspacing='0'><tr><td><b>"+QUERY_DESC+"</b></td></tr></table>"
