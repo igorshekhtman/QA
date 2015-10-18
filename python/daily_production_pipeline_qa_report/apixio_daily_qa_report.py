@@ -638,7 +638,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated error'
 				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero error'
 				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching error'
-			END	as message, \
+			END, \
 			source \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))			
 	else:	
