@@ -1674,8 +1674,9 @@ closeHiveConnection()
 writeReportFooter()
 ##SendFluentLog()
 
-emailReport()
-#sendJSONtoQAServer
+if (ENVIRONMENT.upper() == "PRODUCTION"):
+	emailReport()
+	#sendJSONtoQAServer
 
 archiveReport()
 ##sendFlunetLog()

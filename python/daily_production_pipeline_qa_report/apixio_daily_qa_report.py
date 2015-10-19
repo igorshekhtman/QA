@@ -623,12 +623,23 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			if(error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) \
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 	elif (summary_table_name == "summary_coordinator_errors") or (summary_table_name == "summary_coordinator_errors_staging"):
-		cur.execute("""SELECT count(*) as count, source as source, message as message \
+		cur.execute("""SELECT count(*) as count, source as source, 
+			CASE
+				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated error'
+				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero error'
+				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching error'
+			END	as message \
 			FROM %s \
 			WHERE \
 			level='ERROR' and \
 			day=%s and month=%s and year=%s \
-			GROUP BY message, source \
+			GROUP BY \
+			CASE
+				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated error'
+				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero error'
+				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching error'
+			END, \
+			source \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))			
 	else:	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
@@ -1649,7 +1660,8 @@ closeHiveConnection()
 
 writeReportFooter()
 
-emailReport()
+if (ENVIRONMENT.upper() == "PRODUCTION"):
+	emailReport()
 
 archiveReport()
 
