@@ -122,6 +122,9 @@ POST /_bulk
 templates location:
 /Users/ishekhtman/Git/rules_templates (git pull, change, git push)
 run production Jenkins (http://jenkins.apixio.com/job/Deploy%20rules/) job: Deploy rules (build with parameters)
+
+
+plug in commit hash: git log.  place it into the job as a parameter.
 -- Done.
 
 REZA ============================================================================
