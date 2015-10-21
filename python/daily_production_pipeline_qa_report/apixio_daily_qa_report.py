@@ -613,21 +613,29 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))				
 	elif (summary_table_name == "summary_page_persist") or (summary_table_name == "summary_pager") or (summary_table_name == "summary_page_persist_staging") or (summary_table_name == "summary_pager_staging"):	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
-			if (error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) as message \
+			CASE
+				WHEN (message like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (message like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (message like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
+			END	as message \
 			FROM %s \
 			WHERE \
 			%s is not null and \
 			status != 'success' and \
 			day=%s and month=%s and year=%s \
 			GROUP BY org_id, \
-			if(error like 'com.apixio.datasource.s3%%' or error like 'java.lang.ArrayIndexOutOfBoundsException%%','Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException', error) \
+			CASE
+				WHEN (message like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (message like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (message like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
+			END \
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 	elif (summary_table_name == "summary_coordinator_errors") or (summary_table_name == "summary_coordinator_errors_staging"):
 		cur.execute("""SELECT count(*) as count, source as source, 
 			CASE
-				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated error'
-				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero error'
-				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching error'
+				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated'
+				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero'
+				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching'
 			END	as message \
 			FROM %s \
 			WHERE \
@@ -635,9 +643,9 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			day=%s and month=%s and year=%s \
 			GROUP BY \
 			CASE
-				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated error'
-				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero error'
-				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching error'
+				WHEN (message like '%%overallocated%%') THEN 'Cluster Overallocated'
+				WHEN (message like '%%curBorrowed < 0%%') THEN 'Borrowed is less than Zero'
+				WHEN (message like '%%Failure while launching%%') THEN 'Failure while launching'
 			END, \
 			source \
 			ORDER BY count DESC""" %(summary_table_name, DAY, MONTH, YEAR))			
@@ -645,10 +653,10 @@ def obtainErrors(activity, summary_table_name, unique_id):
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
 			CASE 
 				WHEN (error_message like '/mnt%%') THEN 'No space left on device' 
-				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match error'
-				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception error'
-				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally error'
-				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user error'
+				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match'
+				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception'
+				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally'
+				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
 				ELSE error_message
 			END	as message \
 			FROM %s \
@@ -659,10 +667,10 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			GROUP BY org_id, \
 			CASE 
 				WHEN (error_message like '/mnt%%') THEN 'No space left on device'
-				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match error'
-				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception error'
-				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally error'
-				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user error'
+				WHEN (error_message like '%%scala.MatchError:%%') THEN 'Scala match'
+				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception'
+				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally'
+				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
 				ELSE error_message
 			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
