@@ -614,9 +614,9 @@ def obtainErrors(activity, summary_table_name, unique_id):
 	elif (summary_table_name == "summary_page_persist") or (summary_table_name == "summary_pager") or (summary_table_name == "summary_page_persist_staging") or (summary_table_name == "summary_pager_staging"):	
 		cur.execute("""SELECT count(DISTINCT %s) as count, org_id, \
 			CASE
-				WHEN (message like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
-				WHEN (message like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
-				WHEN (message like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
+				WHEN (error like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
 			END	as message \
 			FROM %s \
 			WHERE \
@@ -625,9 +625,9 @@ def obtainErrors(activity, summary_table_name, unique_id):
 			day=%s and month=%s and year=%s \
 			GROUP BY org_id, \
 			CASE
-				WHEN (message like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
-				WHEN (message like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
-				WHEN (message like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
+				WHEN (error like '%%com.apixio.datasource.s3%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error like '%%java.lang.ArrayIndexOutOfBoundsException%%') THEN 'Status Code: 404, AWS Service: Amazon S3, AWS Error Message: The specified key does not exist. / java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error like '%%Cannot initialize Ghostscript interpreter%%') THEN 'Cannot initialize Ghostscript interpreter'
 			END \
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
 	elif (summary_table_name == "summary_coordinator_errors") or (summary_table_name == "summary_coordinator_errors_staging"):
