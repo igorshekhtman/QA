@@ -1,0 +1,21 @@
+java -jar fixopps-1.jar -verbose -org 483 -attribute "event.sourceType" -value NARRATIVE
+
+
+======================= RICHARD's TOOL for ELRT TESTING ============================
+
+java -jar fixopps.jar [-args]
+
+fixopps version 1.0.0
+-verbose       : (optional) turn on extra messaging.
+-help          : (optional) print this help message.
+
+-nomodify      : (optional) do not modify database yet. - first time debug more
+
+-dump [f]      : (optional) dump modified opportunities to the file [f].
+-server [n]    : set the server name to [n].
+-cluster [n]   : set the cluster name to [n]
+-org [n]       : set the organization name to [n]
+-index [n]     : (optional) set the organization index ordinal to [n] (default: 1)
+
+-attribute [n] : the name ([n]) of the attribute to look for in elements.
+-value [n]     : the value ([n]) of the attribute to look for in elements.
