@@ -1,0 +1,29 @@
+{
+  "org": "476",
+  "orgName": "Nsrf1",
+  "codeFilter": "",
+  "projectId": "CP_b67cdebe-2c1c-4619-8d1b-8b7dd8738a8a",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+        "Type": "RichClassifier",
+        "classifier": {
+          "Type": "ruleSet",
+          "rules": [
+            {
+              "Type": "all", "tests": ["NARRATIVE", "bucketType"],"result": "ADD",
+              "rules": [{"Type": "serviceDateRange", "start": "01/01/2013", "end": "12/31/2015", "result": "ADD"}]
+            },
+            {
+              "Type": "all", "tests": ["CMS_KNOWN"], "result": "CLAIM",
+              "rules": [{"Type": "serviceDateRange", "start": "01/01/2013", "end": "12/31/2015", "result": "CLAIM"}]
+            },
+            {
+              "Type": "single", "test": "MA_Eligible", "result": "ELIGIBILITY"
+            }
+          ]
+        }
+      },
+        "patients": [
+        "a761fac8-35ad-4cbe-94d3-a25764c1a3b6"
+        ]
+}

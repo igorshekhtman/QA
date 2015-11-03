@@ -208,7 +208,7 @@ def checkEnvironmentandReceivers():
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
+		ACLPASSWORD="apixio.321"
 		BUNDL_URL="http://52.11.138.4:8087"
 		BNDL_URL="https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
@@ -225,7 +225,7 @@ def checkEnvironmentandReceivers():
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
+		ACLPASSWORD="apixio.321"
 		BUNDL_URL="http://52.11.138.4:8087"
 		BNDL_URL="https://bundler-stg2.apixio.com:8443/hcc/bundler/bundle"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
@@ -340,8 +340,11 @@ def hoistingLookup():
 	#DATA = json.load(open(PARMFILE))
 	DATA = {}
 	#FILES = {'file': (PARMFILE, open(PARMFILE, 'rb'), 'application/json', {'Expires': '0'})}
+
+
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
-	
+        print URL
+        print DATA	
 	response = requests.get(URL, data=json.dumps(DATA), headers=HEADERS)
 	print ("* Status Code            = %s" % response.status_code)
 	print ("\n================================ RESPONSE ==================================")

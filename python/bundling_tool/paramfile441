@@ -1,0 +1,89 @@
+{
+  "org": "441",
+  "orgName": "BundlerTest2",
+  "codeFilter": "",
+  "annotationFiltering": "false",
+  "projectId": "CP_5cfe9f83-a03f-4034-ae9b-d503a4fb0e81",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+    "Type": "RichClassifier",
+    "classifier": {
+      "Type": "ruleSet",
+      "rules": [
+        {
+          "Type": "all",
+          "tests": [
+            "NARRATIVE",
+            "bucketType"
+          ],
+          "result": "ADD",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "ADD"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "CMS_KNOWN"
+          ],
+          "result": "CLAIM",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "CLAIM"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "reject"
+          ],
+          "result": "REJECT_DOC_ANNOTATION"
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "accept"
+          ],
+          "result": "ACCEPT_CODE_ANNOTATION"
+        },
+        {
+          "Type": "single",
+          "test": "MA_Eligible",
+          "result": "ELIGIBILITY"
+        }
+      ]
+    }
+  },
+  "patients": [
+"e8e97eed-34c2-49ee-8d9b-307fee5b39ce",
+"e6b32c49-3527-4f81-a966-45cf41a2684d",
+"35f9da97-4279-42da-a924-8b842a0cac22",
+"f3ebff21-3722-4a56-8626-b5629e0aa2b8",
+"1582df55-1dff-4e69-b2a9-3cebea6ae4b8",
+"5c02a0bf-9a13-4ed4-a660-4f48473c2fc0",
+"137bfd70-a65a-4118-8118-07441392ac66",
+"6fc609ed-89d1-4cdb-a8da-5ac3817cd595",
+"53ffd284-043c-4ab0-8d69-fc16bedc4c36",
+"78b1b301-3020-4cac-a0cd-42145b7fb75a",
+"d8726d6a-38a6-4f44-bd60-8bceca3a6533",
+"2f048cbf-619e-4eb7-8e00-0c745af87440",
+"181470dc-72ad-476a-b422-8eca080db28a",
+"e2bc5f86-cff0-40c6-9a9b-d03b2fc90dbc",
+"70974592-6300-4c8f-8dd8-a2892b88dc66",
+"0744fba5-8806-4fa2-8013-4c981264e7ed",
+"3d65372f-aa4a-499b-ba26-4d14c1de7bc9",
+"9d94beae-228f-4ad6-8b18-e42a6daba5f3"
+
+  ]
+}

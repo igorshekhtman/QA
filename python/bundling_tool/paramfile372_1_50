@@ -1,0 +1,120 @@
+{
+  "org": "372",
+  "orgName": "MMG",
+  "codeFilter": "",
+  "annotationFiltering": "false",
+  "projectId": "CP_e2435ecb-3fb3-4e37-bdb5-7fdd2c6b3789",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+    "Type": "RichClassifier",
+    "classifier": {
+      "Type": "ruleSet",
+      "rules": [
+        {
+          "Type": "all",
+          "tests": [
+            "NARRATIVE",
+            "bucketType"
+          ],
+          "result": "ADD",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "ADD"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "CMS_KNOWN"
+          ],
+          "result": "CLAIM",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "CLAIM"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "reject"
+          ],
+          "result": "REJECT_DOC_ANNOTATION"
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "accept"
+          ],
+          "result": "ACCEPT_CODE_ANNOTATION"
+        },
+        {
+          "Type": "single",
+          "test": "MA_Eligible",
+          "result": "ELIGIBILITY"
+        }
+      ]
+    }
+  },
+  "patients": [
+		"a7daef72-bae8-4fb5-8a45-27d92c24f59f",
+		"dcfb9913-4c37-43f7-a74e-caa353293dcb",
+		"8abd1125-730b-4081-a67a-7aa19073d3f6",
+		"d97f7a68-37eb-4235-b654-30c6ed0e5646",
+		"a30ad7cc-ced1-43ac-8dd8-145c2713a93f",
+		"2a90ab1e-2786-4017-8e2b-f9daf7dc5834",
+		"54364a52-49c9-4c2f-a3db-b2a5fbc693c9",
+		"6046ff25-5d25-4b8f-a921-4853d158ad0f",
+		"6e2ce1e2-f86d-48c0-8547-ec730701c2a9",
+		"bddeab45-3956-44b9-a37e-e6c124ebd9c7",
+		"4903b1de-1129-4da9-bba7-d1ad37cc6ced",
+		"2ca4ec93-4911-424c-9afe-b142f38ce0a6",
+		"239deb52-f99e-4a72-b8f2-7493fa5b9a94",
+		"47c2ff59-f0dd-4611-b5e0-506c7a1fdba4",
+		"acec8cf9-3418-406e-a926-c413b81831a5",
+		"14c5d21e-b514-40b0-b9e8-142d54b4392b",
+		"1b2c2ed6-2e9d-46a4-8413-bad557772f63",
+		"fb226f3b-699d-4fdc-9653-8d1d52ba189d",
+		"b55ee481-3e6a-4d4e-8a4d-1cfa62054526",
+		"d742c8d2-027c-441d-b388-648c0c7d9a5a",
+		"5ae4b4ff-f01b-459e-93d1-5395ebb54a9c",
+		"2c30908c-ce02-4d5c-b83d-cb86b2e9a7ca",
+		"bb6041ea-9c8d-45ce-9947-eaacd99b2fe2",
+		"20863506-a264-4bd1-9a35-ead6584ce5b3",
+		"0886002f-cd03-44f7-a440-a367b11c4272",
+		"023eb8ba-6570-4354-b16a-ded950f5d61e",
+		"7d754eb1-6f69-4163-9ee9-a242ce6e23e5",
+		"e3322278-a5ca-4dfb-8c68-60467f325eb5",
+		"02e32df1-80b5-4484-b592-f676d3bba11a",
+		"c5880387-2347-4bed-a272-1cbe6ee42b72",
+		"4a8e6c74-10e0-4627-853c-4a92b40b09dd",
+		"843cc317-14cc-403e-812f-ec41a52b2fb8",
+		"87b64b2b-1b61-46bc-b3ae-f27574495733",
+		"72aca04c-ddc6-4119-bb17-9aab92d3423b",
+		"84ff4d66-56a5-44e5-b725-27bce7135a0a",
+		"0434c7eb-9722-4393-9477-5e7d9dd9291e",
+		"efd8d067-d496-40c4-90e1-bb36b54a4bc1",
+		"ed65ab06-4a70-4aa6-9024-d6f8cd9b8ad4",
+		"27a9f13f-a281-4216-a83e-4f614bd0c9e6",
+		"b219782c-048c-4f05-bb09-9c1e2afbace2",
+		"bc333f24-407a-44bf-83c2-907d301e2a5a",
+		"0daa6c9a-4ace-4139-a720-c757421a4a14",
+		"ced4c7a1-3df0-4218-b52e-b716e0ce6b96",
+		"9d157039-f233-483e-b086-08c5234f5014",
+		"64f9e15c-85a3-4500-b032-99c604fe2516",
+		"9e88c30f-3dc1-46b8-acff-b71494ad653d",
+		"6eec94e9-754a-40a4-b9b7-5a65deaea0f4",
+		"2ba6aa54-423d-415c-846b-8a542573ab6c",
+		"69013615-02b3-4ce0-9a65-6936c8701af9",
+		"b70490fa-86d6-40e7-8379-d2be6665ca28"
+  ]
+}

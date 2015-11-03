@@ -101,10 +101,10 @@ def checkEnvironmentandReceivers():
 		UA_URL="https://useraccount-stg.apixio.com:7076"
 		HCC_DOMAIN="hccstage2.apixio.com"
 		HCC_URL="https://hccstage2.apixio.com"
-		HCC_PASSWORD="apixio.123"
+		HCC_PASSWORD="apixio.321"
 		PROTOCOL="https://"
 		USERNAME="ishekhtman@apixio.com"
-		PASSWORD="apixio.123"
+		PASSWORD="apixio.321"
 		BUNDL_URL="http://cmp-stg2.apixio.com:8087"
 		DO_URL="https://dataorchestrator-stg.apixio.com:7085"
 	
@@ -185,7 +185,7 @@ def pushEvent(page):
 	URL = DO_URL+"/event"
 	DATA = { 
   "subject": { 
-      "uri": "a8116dbf-0713-4476-b890-f3f694b5a19e", 
+      "uri": "3361b85a-acc3-4bca-a004-8bd0b423a7cf", 
       "type": "patient" 
   }, 
   "fact": { 
@@ -201,7 +201,7 @@ def pushEvent(page):
       } 
   }, 
   "source": { 
-      "uri": "d8d69b4a-4245-45fe-9d1b-fe2a3c1a3acc", 
+      "uri": "f7e9cd3d-0e6a-4010-91ab-4ddc9a3b3504", 
       "type": "document" 
   }, 
   "evidence": { 
@@ -215,14 +215,15 @@ def pushEvent(page):
           "totalPages": "3" 
       } 
   }, 
-  "attributes": { 
+  "attributes": {
       "sourceType": "NARRATIVE", 
       "SOURCE_TYPE": "NARRATIVE", 
       "totalPages": "3", 
-      "$orgId": "482" 
+      "$orgId": "483" 
   } 
 }
 	
+	##"temp": "temp_value",
 	
 	print ("\n")
 	print ("* URL                    = %s"%URL)
@@ -313,9 +314,12 @@ printGlobalParamaterSettings()
 
 obtainInternalToken(USERNAME, PASSWORD)
 
-#pushEvent(2)
+pushEvent(2)
 
-checkEvent("a8116dbf-0713-4476-b890-f3f694b5a19e")
+time.sleep(10)
+
+# pass patient ID to check event
+checkEvent("3361b85a-acc3-4bca-a004-8bd0b423a7cf")
 	
 
 print ("\n============================================================================")	

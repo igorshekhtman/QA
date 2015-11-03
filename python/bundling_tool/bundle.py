@@ -26,6 +26,9 @@
 #          * Set the global variables, see below (Global Test Environment Selection)
 #          * Run: python2.7 useraccountsregressiontest.py staging eng@apixio.com ops@apixio.com
 #          * Results can be accessed through Apixio Reports portal: https://reports.apixio.com/html/user_accounts_regression_reports_staging.html
+#			s.cmpmsvc.bundle("CP_84cffb11-bbda-41ae-a0ec-0e9693f9459c", user_annotation="Reject")
+#			s.cmpmsvc.bundle("CP_84cffb11-bbda-41ae-a0ec-0e9693f9459c", user_annotation="Accept")
+#			s.cmpmsvc.bundle("CP_84cffb11-bbda-41ae-a0ec-0e9693f9459c", user_annotation="None")
 #
 # MISC: 
 #
@@ -63,6 +66,7 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+import token
 #=========================================================================================
 #============= Initialization of the UserAccountsConfig file =============================
 #=========================================================================================
@@ -191,8 +195,9 @@ def printGlobalParamaterSettings():
 	print ("\n")
 	print ("* Version                = %s"%VERSION)
 	print ("* Environment            = %s"%ENVIRONMENT)
-	print ("* ACL URL                = %s"%UA_URL)
+	print ("* UA URL                 = %s"%UA_URL)
 	print ("* HCC URL                = %s"%HCC_URL)
+	print ("* BUNDLER URL            = %s"%BUNDL_URL)
 	print ("* ACL Admin User Name    = %s"%ACLUSERNAME)
 	print ("* Project ID             = %s"%PROJECTID)
 	print ("* Batch ID               = %s"%BATCHID)
@@ -238,6 +243,7 @@ def checkEnvironmentandReceivers():
 	
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS, PROJECTID, BATCHID, BUNDL_URL
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global ACLUSERNAME, ACLPASSWORD, BUNDL_URL, UA_URL, HCC_URL, TOKEN_URL
 	
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	
@@ -248,31 +254,30 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT=str(sys.argv[1])
 
 	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
 		ACL_DOMAIN="acladmin.apixio.com"
-		UA_URL="https://acladmin.apixio.com"
+		UA_URL="https://useraccount.apixio.com:7076"
 		HCC_DOMAIN="hcc.apixio.com"
 		HCC_URL="https://hcc.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="root@api.apixio.com"
-		ACLPASSWORD="thePassword"
-		BUNDL_URL="http://cmp.apixio.com:8087"
+		ACLUSERNAME="system_qa@apixio.com"
+		ACLPASSWORD="9p2qa20.."
+		BUNDL_URL="http://cmp-2.apixio.com:8087"
+		TOKEN_URL = "https://tokenizer.apixio.com:7075/tokens"
 	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
 		ACL_DOMAIN="acladmin-stg.apixio.com"
-		UA_URL="https://acladmin-stg.apixio.com"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
 		HCC_DOMAIN="hccstage2.apixio.com"
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
-		BUNDL_URL="http://cmp-stg.apixio.com:8087"
+		ACLPASSWORD="apixio.321"
+		#BUNDL_URL="http://cmp-stg.apixio.com:8087"
+		BUNDL_URL="http://cmp-stg2.apixio.com:8087"
+		TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	
 	if (len(sys.argv) > 2):
 		PROJECTID=str(sys.argv[2])
@@ -499,7 +504,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 	
 	
-	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
@@ -1066,9 +1071,9 @@ def bundleDataSet():
 	print (">>> BUNDLE DATA SET FOR %s PROJECT <<<" % PROJECTID)
 	print ("----------------------------------------------------------------------------")
 	response = ""
-	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle"
+	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
 	if BATCHID > "":
-		URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?batch_id="+BATCHID
+		URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None&batch_id="+BATCHID
 	
 	print ("\n")
 	print ("* URL                    = %s"%URL)
@@ -1089,11 +1094,11 @@ def bundleDataSet():
 	print ("* Status Code            = %s"%statuscode)
 
 
-	if statuscode != ok:
-		print "Failure occured, exiting now ..."
-		quit()
+	if (statuscode == ok) or (statuscode == nocontent):
+		print "Successfully bundling ..."
 	else:
-		print "Successfully bundling ..."		
+		print "Failure occured, exiting now ..."
+		quit()		
 
 	return()	
 
@@ -1103,13 +1108,15 @@ def bundleDataSet():
 
 os.system('clear')
 
-ReadConfigurationFile(str(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME))
+#print token
+
+#quit()
 
 checkEnvironmentandReceivers()
 
 printGlobalParamaterSettings()
 
-obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
+obtainInternalToken(ACLUSERNAME, ACLPASSWORD, {ok, created}, 0, 0)
 
 bundleDataSet()
 	

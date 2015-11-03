@@ -1,0 +1,81 @@
+{
+  "org": "407",
+  "orgName": "Hometown Health",
+  "codeFilter": "",
+  "annotationFiltering": "false",
+  "projectId": "CP_d2b51dc5-e72a-4130-89f7-afcad6d3e0ac",
+  "firstPassSemantics": "false",
+  "eventClassifier": {
+    "Type": "RichClassifier",
+    "classifier": {
+      "Type": "ruleSet",
+      "rules": [
+        {
+          "Type": "all",
+          "tests": [
+            "NARRATIVE",
+            "bucketType"
+          ],
+          "result": "ADD",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "ADD"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "CMS_KNOWN"
+          ],
+          "result": "CLAIM",
+          "rules": [
+            {
+              "Type": "serviceDateRange",
+              "start": "01/01/2013",
+              "end": "12/31/2015",
+              "result": "CLAIM"
+            }
+          ]
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "reject"
+          ],
+          "result": "REJECT_DOC_ANNOTATION"
+        },
+        {
+          "Type": "all",
+          "tests": [
+            "USER_ANNOTATION",
+            "accept"
+          ],
+          "result": "ACCEPT_CODE_ANNOTATION"
+        },
+        {
+          "Type": "single",
+          "test": "MA_Eligible",
+          "result": "ELIGIBILITY"
+        }
+      ]
+    }
+  },
+  "patients": [
+		"00059002-9aa6-468b-b3d4-9ca335629a7f",
+		"00176c1e-ee78-4fa6-8c4a-03a87bbd2f8c",
+		"001da80c-fcba-4f59-91a8-54f474ccceb2",
+		"00383014-3b2e-49de-8005-8fab5eb5093b",
+		"003ba8a9-6d64-488d-a294-ab2232ae586d",
+		"003cc9d8-11eb-4a56-8e30-669b0050447a",
+		"0046ae16-707a-4219-9c54-d5c2e9608cfc",
+		"004f5f87-6f29-45d1-8e54-6a2f10725a9a",
+		"0053e65e-0126-4d1c-a4b5-b6a0b80378e1",
+		"fff685b8-94df-4787-9616-62c2ce85ff00"
+
+  ]
+}
