@@ -177,7 +177,7 @@ def obtainInternalToken(un, pw):
 
 #=========================================================================================
 
-def pushEvent(page):
+def pushEvent(page, patientID, documentID):
 	print ("\n----------------------------------------------------------------------------")
 	print (">>> PUSHING EVENT PAGE %d <<<" % page)
 	print ("----------------------------------------------------------------------------")
@@ -185,7 +185,7 @@ def pushEvent(page):
 	URL = DO_URL+"/event"
 	DATA = { 
   "subject": { 
-      "uri": "3361b85a-acc3-4bca-a004-8bd0b423a7cf", 
+      "uri": str(patientID), 
       "type": "patient" 
   }, 
   "fact": { 
@@ -201,7 +201,7 @@ def pushEvent(page):
       } 
   }, 
   "source": { 
-      "uri": "f7e9cd3d-0e6a-4010-91ab-4ddc9a3b3504", 
+      "uri": str(documentID), 
       "type": "document" 
   }, 
   "evidence": { 
@@ -212,14 +212,14 @@ def pushEvent(page):
       }, 
       "attributes": { 
           "pageNumber": str(page), 
-          "totalPages": "3" 
+          "totalPages": "4" 
       } 
   }, 
   "attributes": {
       "sourceType": "NARRATIVE", 
       "SOURCE_TYPE": "NARRATIVE", 
-      "totalPages": "3", 
-      "$orgId": "483" 
+      "totalPages": "4", 
+      "$orgId": "488" 
   } 
 }
 	
@@ -314,12 +314,15 @@ printGlobalParamaterSettings()
 
 obtainInternalToken(USERNAME, PASSWORD)
 
-pushEvent(2)
+#1-page number as a paramater to function
+#2-patientID
+#3-documentID
+pushEvent(1, "c32b7be8-d8ae-4626-af48-685683250d10", "ff076987-fc81-407e-9e77-84dc0f358a63")
 
 time.sleep(10)
 
-# pass patient ID to check event
-checkEvent("3361b85a-acc3-4bca-a004-8bd0b423a7cf")
+# pass patientID to check event
+checkEvent("c32b7be8-d8ae-4626-af48-685683250d10")
 	
 
 print ("\n============================================================================")	
