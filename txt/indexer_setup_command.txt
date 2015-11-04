@@ -1,3 +1,15 @@
+
+
+=============== Pipeline JOB check: LILITH: =======================================
+
+yeah
+
+Lilith Schneider [2:45 PM]
+if a job is not starting you can always check the queue
+
+Lilith Schneider [2:45 PM]
+apxs.pipelineadmin.queued_jobs()
+
 ======================= RICHARD's TOOL for ELRT TESTING ============================
 
 java -jar fixopps.jar [-args]
