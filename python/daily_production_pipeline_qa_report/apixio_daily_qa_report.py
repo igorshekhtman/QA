@@ -657,6 +657,8 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception'
 				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally'
 				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
+				WHEN (error_message like '%%TimeoutException%%') THEN 'Timeout Exception'
+				WHEN (error_message like '%%NumberFormatException%%') THEN 'Number Format Exception'
 				ELSE error_message
 			END	as message \
 			FROM %s \
@@ -671,6 +673,8 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%NullPointerException%%') THEN 'Null Pointer Exception'
 				WHEN (error_message like '%%OCR Process Failed to exit normally%%') THEN 'OCR Failed to exit normally'
 				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
+				WHEN (error_message like '%%TimeoutException%%') THEN 'Timeout Exception'
+				WHEN (error_message like '%%NumberFormatException%%') THEN 'Number Format Exception'
 				ELSE error_message
 			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
