@@ -1,0 +1,18 @@
+{
+    "Type": "RequireUser",
+    "organizationOperator": "EQ",
+    "projectOperator": "EQ",
+    "active": true,
+    "statement": [
+        {
+            "Type": "RequireState",
+            "state": "routable",
+            "stateOperator": "EQ"
+        }
+    ],
+    "ruleName": "Catch-all for 488",
+    "requiredUser": "elrt04@apixio.net",
+    "requiredOrganization": "488",
+    "requiredProject": "CP_8024ec02-abdd-41db-979b-29c24ea0a895",
+    "rulePriority": 1
+}
