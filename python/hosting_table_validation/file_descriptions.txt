@@ -1,0 +1,73 @@
+Validate:
+V12 -> V22
+ICD9 -> HCC (both V12 and V22)
+ICD10 -> HCC (only V22)
+
+GitHub https://github.com/Apixio/hcc-v4/blob/master/hcc-elastic-dao/src/main/resources/
+--------------------------------------------------------------
+
+hcc-code-mappings.js:
+array of 15,761 elements, each containing json object:
+
+description:
+fromCode:
+hcc:
+labelSet:
+fromCodingSystemVersion:
+fromCodingSystem:
+
+--------------------------------------------------------------
+
+hcc-label-sets.js
+array of 149 elements, each containing json object:
+
+hcc:
+hccDescription:
+labelSetName:
+rafScore:
+rafScoreInst:
+
+
+--------------------------------------------------------------
+
+2014_payment_year_midyear_final_icd_mapping.xls
+MS Excel spreadsheet containing following columns:
+
+DIAGNOSIS CODE	
+SHORT DESCRIPTION	
+2013 CMS-HCC Model 
+Category	
+CMS-HCC 
+PACE/ESRD Model Category	
+2014 CMS-HCC Model Category	
+RxHCC Model Category	
+2013 CMS-HCC Model for 2014 Payment Year	
+CMS-HCC PACE/ESRD Model for 2014 Payment Year	
+2014 CMS-HCC Model for 2014 Payment Year	
+RxHCC Model for 2014 Payment Year
+
+
+--------------------------------------------------------------
+
+Final ICD-10 HCC and RxHCC Mappings.csv
+Comma Separated Values file containing following columns:
+
+Diagnosis Code 	
+Description	
+CMS-HCC PACE/ESRD Model Category V21	
+CMS-HCC Model Category V22	
+RxHCC Model Category V05 (clinically revised model implemented in 2016)	
+CMS-HCC PACE/ESRD Model for 2016 Payment Year	
+CMS-HCC Model for 2016 Payment Year	
+RxHCC Model for 2016 Payment Year
+
+
+--------------------------------------------------------------
+
+folder /code_mappings containing four files:
+2016_I9gem.txt
+2016_I10gem.txt
+icd9_mappings.csv
+icd10_mappings.csv
+
+--------------------------------------------------------------
