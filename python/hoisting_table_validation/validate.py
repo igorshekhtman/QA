@@ -145,6 +145,15 @@ def obtainDifference(apixio, cms):
 		#pprint(hcc_diff)
 
 	return (hcc_diff)	
+#=========================================================================================	
+def printListOfCodes(codes):	
+	
+	formtd_code_list = ""
+	
+	for code in codes:
+		print code
+
+	return (formtd_code_list)
 #=========================================================================================
 def resolveDifferences(apixio, cms, differences):
 	# add or delete ICD codes from hcc-code-mappings.js depending on the difference file
@@ -153,9 +162,23 @@ def resolveDifferences(apixio, cms, differences):
 	#code_mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
 
 	print ("Total number of differences: %d" % len(differences))
-	#jdifferences = json.dumps(differences)
+	
 	for diff in differences:
-		print diff
+		micd9codes = differences[diff]['icd9s_not_in_apixio']
+		micd10codes = differences[diff]['icd10s_not_in_apixio']
+		eicd9codes = differences[diff]['icd9s_not_in_cms']
+		eicd10codes = differences[diff]['icd10s_not_in_cms']
+		print "---------------------------------------------------------------------------------------------------------------"
+		print "* Label Set Version - HCC:                                   %s" % diff
+		print "* Missing ICD-9 codes from Apixio code mapping table:        %s" % (json.dumps(micd9codes) if len(micd9codes) > 0 else "None")
+		print "* Missing ICD-10 codes from Apixio code mapping table:       %s" % (micd10codes if len(micd10codes) > 0 else "None")
+		print "* Extra ICD-9 codes in Apixio code mapping table:            %s" % (eicd9codes if len(eicd9codes) > 0 else "None")
+		print "* Extra ICD-10 codes in Apixio code mapping table:           %s" % (json.dumps(eicd10codes) if len(eicd10codes) > 0 else "None")
+		print "---------------------------------------------------------------------------------------------------------------"
+		print "\n"
+
+
+		
 		
 		
 	print ("Total number of differences: %d" % len(differences))
@@ -168,8 +191,10 @@ def resolveDifferences(apixio, cms, differences):
 os.system('clear')
 
 apixio_hcc_to_icd = loadApixioHccToIcd();
+print ("Length of apixio :%d"%len(apixio_hcc_to_icd));
 
 cms_hcc_to_icd = loadCmsHccToIcd();
+print ("Length of cms :%d"%len(cms_hcc_to_icd));
 
 missing_Hccs = findMissingHccs(apixio_hcc_to_icd, cms_hcc_to_icd);
 
