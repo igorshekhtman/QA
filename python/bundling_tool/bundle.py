@@ -1,5 +1,5 @@
 #=========================================================================================
-#====================================== bundle.py ========================================
+#====================================== bundle_non_es.py =================================
 #=========================================================================================
 #
 # PROGRAM:         bundle.py
@@ -1071,9 +1071,11 @@ def bundleDataSet():
 	print (">>> BUNDLE DATA SET FOR %s PROJECT <<<" % PROJECTID)
 	print ("----------------------------------------------------------------------------")
 	response = ""
-	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
+	#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
+	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle"
 	if BATCHID > "":
-		URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None&batch_id="+BATCHID
+		URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?batch_id="+BATCHID
+		#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None&batch_id="+BATCHID
 	
 	print ("\n")
 	print ("* URL                    = %s"%URL)
