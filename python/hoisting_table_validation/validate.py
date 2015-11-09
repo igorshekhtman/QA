@@ -39,6 +39,8 @@ from time import gmtime, strftime, localtime
 #=========================================================================================
 APIXIO_SOURCE_FOLDER = "apixio_source_files/"
 CMS_SOURCE_FOLDER = "cms_source_files/"
+BKP_APIXIO_SOURCE_FOLDER = "bkp_apixio_source_files/"
+BKP_CMS_SOURCE_FOLDER = "bkp_cms_source_files/"
 OUTPUT_DIFF_FOLDER = "output_json/"
 OUTPUT_REPORT_FOLDER = "output_html_report/"
 OUTPUT_APIXIO_MAPINGS_FOLDER = "output_mapings/"
@@ -176,13 +178,21 @@ def resolveDifferences(apixio, cms, differences):
 		print "* Extra ICD-10 codes in Apixio code mapping table:           %s" % (json.dumps(eicd10codes) if len(eicd10codes) > 0 else "None")
 		print "---------------------------------------------------------------------------------------------------------------"
 		print "\n"
-
-
-		
-		
 		
 	print ("Total number of differences: %d" % len(differences))
-	return()	
+	return()
+#=========================================================================================	
+def backupOriginalMappingsFile():
+	#APIXIO_SOURCE_FOLDER = "apixio_source_files/"
+	#CMS_SOURCE_FOLDER = "cms_source_files/"
+	#BKP_APIXIO_SOURCE_FOLDER = "bkp_apixio_source_files/"
+	#BKP_CMS_SOURCE_FOLDER = "bkp_cms_source_files/"
+	
+	os.system("cp "+ APIXIO_SOURCE_FOLDER + "* " + BKP_APIXIO_SOURCE_FOLDER)
+	os.system("cp "+ CMS_SOURCE_FOLDER + "* " + BKP_CMS_SOURCE_FOLDER)
+
+
+	return ()		
 		
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
@@ -200,7 +210,11 @@ missing_Hccs = findMissingHccs(apixio_hcc_to_icd, cms_hcc_to_icd);
 
 hcc_diff = obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd);
 
-resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
+backupOriginalMappingsFile();
+
+
+
+#resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
 
 
 print ("\n=================================================================================")	
