@@ -44,6 +44,8 @@ BKP_CMS_SOURCE_FOLDER = "bkp_cms_source_files/"
 OUTPUT_DIFF_FOLDER = "output_json/"
 OUTPUT_REPORT_FOLDER = "output_html_report/"
 OUTPUT_APIXIO_MAPINGS_FOLDER = "output_mapings/"
+ICD9_CODING_SYSTEM = "2.16.840.1.113883.6.103"
+ICD10_CODING_SYSTEM = "2.16.840.1.113883.6.90"
 #=========================================================================================
 #====================== FUNCTIONS ========================================================
 #=========================================================================================
@@ -64,7 +66,7 @@ def loadApixioHccToIcd():
 			codes = apixio_hcc_to_icd[hcc_key] if hcc_key in apixio_hcc_to_icd else {"icd9s":[],"icd10s":[]}
 			codes["icd9s"].append(code_mapping["fromCode"])
 			apixio_hcc_to_icd[hcc_key] = codes
-
+	
 	return (apixio_hcc_to_icd)
 #=========================================================================================	
 def loadCmsHccToIcd():
@@ -148,14 +150,50 @@ def obtainDifference(apixio, cms):
 
 	return (hcc_diff)	
 #=========================================================================================	
-def printListOfCodes(codes):	
+def backupOriginalMappingsFile():
+	os.system("cp "+ APIXIO_SOURCE_FOLDER + "* " + BKP_APIXIO_SOURCE_FOLDER)
+	os.system("cp "+ CMS_SOURCE_FOLDER + "* " + BKP_CMS_SOURCE_FOLDER)
+	return ()
+#=========================================================================================	
+def addMissingCodesToApixioMappings(mappings, coding_system, hcc, codes):
 	
-	formtd_code_list = ""
-	
-	for code in codes:
-		print code
+	for mapping in mappings:
+		if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
+			hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
+			if hcc_key == hcc:
+				print mapping["fromCode"]
 
-	return (formtd_code_list)
+
+	updated_mappings = mappings
+
+
+	return (updated_mappings)
+#=========================================================================================	
+def removeExtraCodesFromApixioMappings(mappings, coding_system, hcc, codes):
+
+
+	for mapping in mappings:
+		if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
+			hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
+			if hcc_key == hcc:
+				for code in codes:
+					if code == mapping["fromCode"]:
+						mapping["fromCode"] = ""
+						#print code
+	
+
+	updated_mappings = mappings
+
+	return (updated_mappings)
+#=========================================================================================	
+def saveNewlyEditedApixioMappingsFile(mappings):
+	#save apixio into a json file: hcc-code-mappings.js in OUTPUT_APIXIO_MAPINGS_FOLDER
+	
+	with open(OUTPUT_APIXIO_MAPINGS_FOLDER+"hcc-code-mappings.js", "w") as outfile:
+		json.dump(mappings, outfile)
+	
+	
+	return()				
 #=========================================================================================
 def resolveDifferences(apixio, cms, differences):
 	# add or delete ICD codes from hcc-code-mappings.js depending on the difference file
@@ -163,37 +201,36 @@ def resolveDifferences(apixio, cms, differences):
 	#OUTPUT_APIXIO_MAPINGS_FOLDER
 	#code_mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
 
-	print ("Total number of differences: %d" % len(differences))
+	print "* Total number of differences:                               %d" % len(differences)
+	updated_mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
 	
-	for diff in differences:
-		micd9codes = differences[diff]['icd9s_not_in_apixio']
-		micd10codes = differences[diff]['icd10s_not_in_apixio']
-		eicd9codes = differences[diff]['icd9s_not_in_cms']
-		eicd10codes = differences[diff]['icd10s_not_in_cms']
+	for hcc in differences:
+		micd9codes = differences[hcc]['icd9s_not_in_apixio']
+		if len(micd9codes) > 0:
+			updated_mappings = addMissingCodesToApixioMappings(updated_mappings, ICD9_CODING_SYSTEM, hcc, micd9codes)
+		micd10codes = differences[hcc]['icd10s_not_in_apixio']
+		if len(micd10codes) > 0:
+			updated_mappings = addMissingCodesToApixioMappings(updated_mappings, ICD10_CODING_SYSTEM, hcc, micd10codes)
+		eicd9codes = differences[hcc]['icd9s_not_in_cms']
+		if len(eicd9codes) > 0:
+			updated_mappings = removeExtraCodesFromApixioMappings(updated_mappings, ICD9_CODING_SYSTEM, hcc, eicd9codes)
+		eicd10codes = differences[hcc]['icd10s_not_in_cms']
+		if len(eicd10codes) > 0:
+			updated_mappings = removeExtraCodesFromApixioMappings(updated_mappings, ICD10_CODING_SYSTEM, hcc, eicd10codes)
+				
 		print "---------------------------------------------------------------------------------------------------------------"
-		print "* Label Set Version - HCC:                                   %s" % diff
+		print "* Label Set Version - HCC:                                   %s" % hcc
 		print "* Missing ICD-9 codes from Apixio code mapping table:        %s" % (json.dumps(micd9codes) if len(micd9codes) > 0 else "None")
-		print "* Missing ICD-10 codes from Apixio code mapping table:       %s" % (micd10codes if len(micd10codes) > 0 else "None")
-		print "* Extra ICD-9 codes in Apixio code mapping table:            %s" % (eicd9codes if len(eicd9codes) > 0 else "None")
+		print "* Missing ICD-10 codes from Apixio code mapping table:       %s" % (json.dumps(micd10codes) if len(micd10codes) > 0 else "None")
+		print "* Extra ICD-9 codes in Apixio code mapping table:            %s" % (json.dumps(eicd9codes) if len(eicd9codes) > 0 else "None")
 		print "* Extra ICD-10 codes in Apixio code mapping table:           %s" % (json.dumps(eicd10codes) if len(eicd10codes) > 0 else "None")
 		print "---------------------------------------------------------------------------------------------------------------"
-		print "\n"
+		#print "\n"
 		
-	print ("Total number of differences: %d" % len(differences))
+	print "* Total number of differences:                               %d" % len(differences)
+	saveNewlyEditedApixioMappingsFile(updated_mappings)
 	return()
-#=========================================================================================	
-def backupOriginalMappingsFile():
-	#APIXIO_SOURCE_FOLDER = "apixio_source_files/"
-	#CMS_SOURCE_FOLDER = "cms_source_files/"
-	#BKP_APIXIO_SOURCE_FOLDER = "bkp_apixio_source_files/"
-	#BKP_CMS_SOURCE_FOLDER = "bkp_cms_source_files/"
 	
-	os.system("cp "+ APIXIO_SOURCE_FOLDER + "* " + BKP_APIXIO_SOURCE_FOLDER)
-	os.system("cp "+ CMS_SOURCE_FOLDER + "* " + BKP_CMS_SOURCE_FOLDER)
-
-
-	return ()		
-		
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -202,6 +239,8 @@ os.system('clear')
 
 apixio_hcc_to_icd = loadApixioHccToIcd();
 print ("Length of apixio :%d"%len(apixio_hcc_to_icd));
+#print json.dumps(apixio_hcc_to_icd);
+#quit()
 
 cms_hcc_to_icd = loadCmsHccToIcd();
 print ("Length of cms :%d"%len(cms_hcc_to_icd));
@@ -212,9 +251,7 @@ hcc_diff = obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd);
 
 backupOriginalMappingsFile();
 
-
-
-#resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
+resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
 
 
 print ("\n=================================================================================")	
