@@ -123,11 +123,11 @@ def findMissingHccs(apixio, cms):
 
 	# list the HCCs that are present in the CMS model but not in Apixio Code Mappings
 	print "* List of missing HCCs from Apixio Code Mappings:"
-	print [hcc for hcc in cms_hcc_to_icd if hcc not in apixio_hcc_to_icd]
+	print [hcc for hcc in cms if hcc not in apixio]
 	
 	# list the HCCs that are present in the Apixio model but not in HCC model
 	print "* List of extra HCCs in Apixio Code Mappings:"
-	print [hcc for hcc in apixio_hcc_to_icd if hcc not in cms_hcc_to_icd]
+	print [hcc for hcc in apixio if hcc not in cms]
 
 	return ()
 #=========================================================================================	
@@ -157,18 +157,51 @@ def backupOriginalMappingsFile():
 	os.system("cp "+ CMS_SOURCE_FOLDER + "* " + BKP_CMS_SOURCE_FOLDER)
 	return ()
 #=========================================================================================	
-def addMissingCodesToApixioMappings(mappings, coding_system, hcc, codes):
+def addMissingCodesToApixioMappings(mappings, coding_system, hcc, code):
+
+# description - "Human immunodeficiency virus [HIV] disease"
+# fromCode - 042
+# hcc - 1
+# labelSet - V12
+# fromCodingSystemVersion - ""
+# fromCodingSystem - "2.16.840.1.113883.6.103"
 	
-	for mapping in mappings:
-		if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
-			hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
-			if hcc_key == hcc:
-				print mapping["fromCode"]
+	#for mapping in mappings:
+	#	if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
+	#		hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
+	#		if hcc_key == hcc:	
+	#			if code == mapping["fromCode"]:
+	#				print "Adding following: " + hcc_key + " " + coding_system + " " + code
+					#print mappings.index(mapping)
+					#mappings.insert(mappings.index(mapping), mapping)
 
+	description = "Human immunodeficiency virus [HIV] disease"
+	label_set = "V12"
+	from_cofing_system_version = ""
+	
 
-	#updated_mappings = mappings
-
-
+	print "***************************************************************************************************************"
+	print "* APPENDING ... "
+	print "* description:                                               %s" % description
+	print "* fromCode:                                                  %s" % code
+	print "* hcc:                                                       %s" % hcc
+	print "* labelSet:                                                  %s" % label_set
+	print "* fromCodingSystemVersion:                                   %s" % from_cofing_system_version
+	print "* fromCodingSystem:                                          %s" % coding_system
+	print "***************************************************************************************************************"
+	
+	quit()
+	
+	mapping = { "description" : "Human immunodeficiency virus [HIV] disease", \
+				"fromCode" : code, \
+				"hcc" : hcc, \
+				"labelSet" : "V12", \
+				"fromCodingSystemVersion" : "", \
+				"fromCodingSystem" : coding_system }
+	
+	
+	mappings.append(mapping)			
+			
 	return (mappings)
 #=========================================================================================	
 def removeExtraCodesFromApixioMappings(mappings, coding_system, hcc, code):
@@ -180,17 +213,6 @@ def removeExtraCodesFromApixioMappings(mappings, coding_system, hcc, code):
 # fromCodingSystemVersion - ""
 # fromCodingSystem - "2.16.840.1.113883.6.103"
 
-
-#	for mapping in mappings:
-#		for code in codes:
-#			hcc_key = mapping["labelSet"] + "-" + mapping["hcc"]
-#			if (mapping["fromCodingSystem"] == coding_system) and (hcc_key == hcc) and (mapping["fromCode"] == code):
-#				 mappings.pop()
-
-
-
-
-
 	for mapping in mappings:
 		if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
 			hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
@@ -200,25 +222,19 @@ def removeExtraCodesFromApixioMappings(mappings, coding_system, hcc, code):
 					#print mappings.index(mapping)
 					mappings.pop(mappings.index(mapping))
 	
-
-	#updated_mappings = mappings
-
 	return (mappings)
 #=========================================================================================	
-def saveNewlyEditedApixioMappingsFile(mappings):
+def saveMappingsFile(mappings):
 	#save apixio into a json file: hcc-code-mappings.js in OUTPUT_APIXIO_MAPINGS_FOLDER
 	
 	with open(OUTPUT_APIXIO_MAPINGS_FOLDER+"hcc-code-mappings.js", "w") as outfile:
 		json.dump(mappings, outfile)
-	
-	
+		
 	return()				
 #=========================================================================================
 def resolveDifferences(apixio, cms, differences):
 	# add or delete ICD codes from hcc-code-mappings.js depending on the difference file
 	# write new, revised file to an output folder
-	#OUTPUT_APIXIO_MAPINGS_FOLDER
-	#code_mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
 
 	print "* Total number of differences:                               %s" % (len(differences) if len(differences) > 0 else "None")
 	mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
@@ -226,10 +242,12 @@ def resolveDifferences(apixio, cms, differences):
 	for hcc in differences:
 		micd9codes = differences[hcc]['icd9s_not_in_apixio']
 		if len(micd9codes) > 0:
-			mappings = addMissingCodesToApixioMappings(mappings, ICD9_CODING_SYSTEM, hcc, micd9codes)
+			for code in micd9codes:
+				mappings = addMissingCodesToApixioMappings(mappings, ICD9_CODING_SYSTEM, hcc, code)
 		micd10codes = differences[hcc]['icd10s_not_in_apixio']
 		if len(micd10codes) > 0:
-			mappings = addMissingCodesToApixioMappings(mappings, ICD10_CODING_SYSTEM, hcc, micd10codes)
+			for code in micd10codes:
+				mappings = addMissingCodesToApixioMappings(mappings, ICD10_CODING_SYSTEM, hcc, code)
 		eicd9codes = differences[hcc]['icd9s_not_in_cms']
 		if len(eicd9codes) > 0:
 			for code in eicd9codes:
@@ -249,7 +267,7 @@ def resolveDifferences(apixio, cms, differences):
 		#print "\n"
 		
 	print "* Total number of differences:                               %s" % (len(differences) if len(differences) > 0 else "None")
-	saveNewlyEditedApixioMappingsFile(mappings)
+	saveMappingsFile(mappings)
 	return()
 	
 #=========================================================================================
