@@ -121,14 +121,13 @@ def loadCmsHccToIcd():
 #=========================================================================================
 def findMissingHccs(apixio, cms):
 
-	# list the HCCs that are present in the CMS model but not in Apixio Code Mappings
-	print "* List of missing HCCs from Apixio Code Mappings:"
-	print [hcc for hcc in cms if hcc not in apixio]
-	
-	# list the HCCs that are present in the Apixio model but not in HCC model
-	print "* List of extra HCCs in Apixio Code Mappings:"
-	print [hcc for hcc in apixio if hcc not in cms]
+	missing = [hcc for hcc in cms if hcc not in apixio]
+	extra = [hcc for hcc in apixio if hcc not in cms]
 
+	# list the HCCs that are present in the CMS model but not in Apixio Code Mappings
+	print "* List of missing HCCs from Apixio Code Mappings:            %s" % (missing if len(missing) > 0 else "None")
+	# list the HCCs that are present in the Apixio model but not in HCC model
+	print "* List of extra HCCs in Apixio Code Mappings:                %s" % (extra if len(extra) > 0 else "None")
 	return ()
 #=========================================================================================	
 def obtainDifference(apixio, cms):
@@ -157,7 +156,7 @@ def backupOriginalMappingsFile():
 	os.system("cp "+ CMS_SOURCE_FOLDER + "* " + BKP_CMS_SOURCE_FOLDER)
 	return ()
 #=========================================================================================	
-def addMissingCodesToApixioMappings(mappings, coding_system, hcc, code):
+def addMissingCodesToApixioMappings(mappings, coding_system, hcc, code, cms):
 
 # description - "Human immunodeficiency virus [HIV] disease"
 # fromCode - 042
@@ -166,22 +165,28 @@ def addMissingCodesToApixioMappings(mappings, coding_system, hcc, code):
 # fromCodingSystemVersion - ""
 # fromCodingSystem - "2.16.840.1.113883.6.103"
 	
-	#for mapping in mappings:
-	#	if (mapping["fromCodingSystem"] == coding_system): # ICD10 or ICD9
-	#		hcc_key = mapping["labelSet"] + "-" + mapping["hcc"] # key value by labelSet and HCC
-	#		if hcc_key == hcc:	
-	#			if code == mapping["fromCode"]:
-	#				print "Adding following: " + hcc_key + " " + coding_system + " " + code
-					#print mappings.index(mapping)
-					#mappings.insert(mappings.index(mapping), mapping)
 
-	description = "Human immunodeficiency virus [HIV] disease"
-	label_set = "V12"
 	from_cofing_system_version = ""
-	
+	label_set, hcc = hcc.split("-")
+
+	if coding_system == ICD9_CODING_SYSTEM:
+		with open(CMS_SOURCE_FOLDER+"icd9_mappings.csv", "rb") as csvfile:
+			hccreader = csv.reader(csvfile, delimiter=",", quotechar='"')
+			for icd9_mapping in hccreader:
+				icd9_code = icd9_mapping[0].strip()         # Diagnosis Code
+				desc = icd9_mapping[1].strip()              # Description
+				if icd9_code == code:
+					description = desc
+	elif coding_system == ICD10_CODING_SYSTEM:		
+		with open(CMS_SOURCE_FOLDER+"icd10_mappings.csv", "rb") as csvfile:
+			hccreader = csv.reader(csvfile, delimiter=",", quotechar='"')
+			for icd10_mapping in hccreader:
+				icd10_code = icd10_mapping[0].strip()         # Diagnosis Code
+				desc = icd10_mapping[1].strip()               # Description
+				if icd10_code == code:
+					description = desc
 
 	print "***************************************************************************************************************"
-	print "* APPENDING ... "
 	print "* description:                                               %s" % description
 	print "* fromCode:                                                  %s" % code
 	print "* hcc:                                                       %s" % hcc
@@ -189,14 +194,14 @@ def addMissingCodesToApixioMappings(mappings, coding_system, hcc, code):
 	print "* fromCodingSystemVersion:                                   %s" % from_cofing_system_version
 	print "* fromCodingSystem:                                          %s" % coding_system
 	print "***************************************************************************************************************"
+	print "* Appending ... "
 	
-	quit()
 	
-	mapping = { "description" : "Human immunodeficiency virus [HIV] disease", \
+	mapping = { "description" : description, \
 				"fromCode" : code, \
 				"hcc" : hcc, \
-				"labelSet" : "V12", \
-				"fromCodingSystemVersion" : "", \
+				"labelSet" : label_set, \
+				"fromCodingSystemVersion" : from_cofing_system_version, \
 				"fromCodingSystem" : coding_system }
 	
 	
@@ -236,18 +241,18 @@ def resolveDifferences(apixio, cms, differences):
 	# add or delete ICD codes from hcc-code-mappings.js depending on the difference file
 	# write new, revised file to an output folder
 
-	print "* Total number of differences:                               %s" % (len(differences) if len(differences) > 0 else "None")
+	#print "* Total number of differences:                               %s" % (len(differences) if len(differences) > 0 else "None")
 	mappings = json.load(open(APIXIO_SOURCE_FOLDER+"hcc-code-mappings.js"))
 	
 	for hcc in differences:
 		micd9codes = differences[hcc]['icd9s_not_in_apixio']
 		if len(micd9codes) > 0:
 			for code in micd9codes:
-				mappings = addMissingCodesToApixioMappings(mappings, ICD9_CODING_SYSTEM, hcc, code)
+				mappings = addMissingCodesToApixioMappings(mappings, ICD9_CODING_SYSTEM, hcc, code, cms)
 		micd10codes = differences[hcc]['icd10s_not_in_apixio']
 		if len(micd10codes) > 0:
 			for code in micd10codes:
-				mappings = addMissingCodesToApixioMappings(mappings, ICD10_CODING_SYSTEM, hcc, code)
+				mappings = addMissingCodesToApixioMappings(mappings, ICD10_CODING_SYSTEM, hcc, code, cms)
 		eicd9codes = differences[hcc]['icd9s_not_in_cms']
 		if len(eicd9codes) > 0:
 			for code in eicd9codes:
@@ -269,29 +274,116 @@ def resolveDifferences(apixio, cms, differences):
 	print "* Total number of differences:                               %s" % (len(differences) if len(differences) > 0 else "None")
 	saveMappingsFile(mappings)
 	return()
-	
+#=========================================================================================	
+def endValidationMessage():
+	print ("\n===============================================================================================================")	
+	print ("==================================== End of Hosting Table Validation ==========================================")
+	print ("===============================================================================================================")
+	return()	
+
+#=========================================================================================
+
+def mainMenu():
+	global ENVIRONMENT
+	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
+	os.system('clear')
+	print "---------------------------------------------------------------------------------------------------------------"
+	apixio_hcc_to_icd = loadApixioHccToIcd();
+	print "* Length of apixio_hcc_to_icd list:                          %d"%len(apixio_hcc_to_icd);
+	cms_hcc_to_icd = loadCmsHccToIcd();
+	print "* Length of cms_hcc_to_icd list:                             %d"%len(cms_hcc_to_icd);
+	missing_Hccs = findMissingHccs(apixio_hcc_to_icd, cms_hcc_to_icd);
+	hcc_diff = obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd);
+	print "---------------------------------------------------------------------------------------------------------------"
+	print "R. Resolve differences "
+	print "B. Backup original files"
+	print "2. No option"
+	print "3. No option"
+	print "4. No option"
+	print "5. No option"
+	print "6. No option"
+	print "7. No option"
+	print "8. No option"
+	print "9. No option"
+	print "---------------------------------------------------------------------------------------------------------------"
+	return()
+#=========================================================================================
+class _Getch:
+# Gets a single character from standard input.  Does not echo to the screen.
+    def __init__(self):
+        try:
+            self.impl = _GetchWindows()
+        except ImportError:
+            self.impl = _GetchUnix()
+
+    def __call__(self): return self.impl()
+#=========================================================================================
+
+class _GetchUnix:
+    def __init__(self):
+        import tty, sys
+
+    def __call__(self):
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+#=========================================================================================
+
+class _GetchWindows:
+    def __init__(self):
+        import msvcrt
+
+    def __call__(self):
+        import msvcrt
+        return msvcrt.getch()
+
+
+getch = _Getch()	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
 
 os.system('clear')
 
-apixio_hcc_to_icd = loadApixioHccToIcd();
-print "* Length of apixio_hcc_to_icd list:                          %d"%len(apixio_hcc_to_icd);
+while True:
+	mainMenu()
+	print("Select specific option or 'Q' to Quit: ")
+	n = getch()
+	if n.upper() == 'Q':
+		endValidationMessage()
+		break
+	if n == 'R':
+		resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff)
+	if n == 'B':
+		backupOriginalMappingsFile()	
+	else:
+		mainMenu()
+	mainMenu()	
 
-cms_hcc_to_icd = loadCmsHccToIcd();
-print "* Length of cms_hcc_to_icd list:                             %d"%len(cms_hcc_to_icd);
-
-missing_Hccs = findMissingHccs(apixio_hcc_to_icd, cms_hcc_to_icd);
-
-hcc_diff = obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd);
-
-backupOriginalMappingsFile();
-
-resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
 
 
-print ("\n=================================================================================")	
-print ("=========================== End of Hosting Table Validation =====================")
-print ("=================================================================================")
+#print "---------------------------------------------------------------------------------------------------------------"
+#apixio_hcc_to_icd = loadApixioHccToIcd();
+#print "* Length of apixio_hcc_to_icd list:                          %d"%len(apixio_hcc_to_icd);
+
+#cms_hcc_to_icd = loadCmsHccToIcd();
+#print "* Length of cms_hcc_to_icd list:                             %d"%len(cms_hcc_to_icd);
+
+#missing_Hccs = findMissingHccs(apixio_hcc_to_icd, cms_hcc_to_icd);
+
+#hcc_diff = obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd);
+
+#backupOriginalMappingsFile();
+
+#resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff);
+#print "---------------------------------------------------------------------------------------------------------------"
+
+#endValidationMessage();
+
 #=========================================================================================
