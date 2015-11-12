@@ -284,8 +284,6 @@ def endValidationMessage():
 #=========================================================================================
 
 def mainMenu():
-	global ENVIRONMENT
-	global GRS, FLS, S3S, HDS, APS, RES, CAS, KES, MYS, DRS
 	os.system('clear')
 	print "---------------------------------------------------------------------------------------------------------------"
 	apixio_hcc_to_icd = loadApixioHccToIcd();
@@ -297,7 +295,7 @@ def mainMenu():
 	print "---------------------------------------------------------------------------------------------------------------"
 	print "R. Resolve differences "
 	print "B. Backup original files"
-	print "2. No option"
+	print "V. Validate"
 	print "3. No option"
 	print "4. No option"
 	print "5. No option"
@@ -306,45 +304,17 @@ def mainMenu():
 	print "8. No option"
 	print "9. No option"
 	print "---------------------------------------------------------------------------------------------------------------"
-	return()
-#=========================================================================================
-class _Getch:
-# Gets a single character from standard input.  Does not echo to the screen.
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
+	input_string = raw_input("Update string: 370,false,5 or just enter Q to Quit: ")
+	if input_string.upper() != "Q":
+		validation = validateUpdateString(input_string)
+		if validation.upper() == "SUCCESS":
+			updateOrgConfig(input_string)
+		else:
+			print (validation)
+			#quit()
+			raw_input("Press Enter to continue...")
+	return(input_string)
 
-    def __call__(self): return self.impl()
-#=========================================================================================
-
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys
-
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-#=========================================================================================
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
-getch = _Getch()	
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -354,14 +324,16 @@ os.system('clear')
 while True:
 	mainMenu()
 	print("Select specific option or 'Q' to Quit: ")
-	n = getch()
+	n = mainMenu()
 	if n.upper() == 'Q':
 		endValidationMessage()
 		break
 	if n == 'R':
 		resolveDifferences(apixio_hcc_to_icd, cms_hcc_to_icd, hcc_diff)
 	if n == 'B':
-		backupOriginalMappingsFile()	
+		backupOriginalMappingsFile()
+	if n == 'V':
+		obtainDifference(apixio_hcc_to_icd, cms_hcc_to_icd)				
 	else:
 		mainMenu()
 	mainMenu()	
