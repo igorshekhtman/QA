@@ -1,3 +1,47 @@
+####################################################################################################
+#
+# PROGRAM: 	submit_files.py
+# AUTHOR:  	Igor Shekhtman ishekhtman@apixio.com
+# DATE:    	2011.01.01 Initial Version
+#
+#
+# PURPOSE:
+#          	Purpose of this program is to push set of documents together with Catalog files to the 
+#			Doc-Receiver. Catalog files are generated based on specific document types being uploaded. 
+#		   
+# INITIAL SET OF FEATURES:
+#			* Support to upload PDF as well as TXT document types
+#			* Patient First, Last name auto generation
+#			* Upload of multiple documents to a single or multiple patients
+#
+#
+# SAMPLE CALL:
+#		   python2.7 submit_files.py
+#
+# REQUIRED and OPTIONAL PARAMETERS:
+#			None
+#
+#
+# SETUP:
+#          	* Assumes Staging and/or Production Doc-Receiver is available
+#          	* Assumes a Python 2.7 environment is available
+#          	* Production QA server (qa.apixio.com) is available
+#			* /mnt/automation/python/submit_files folder edit "submit_files.py" to change
+#			paramaters are required for your specific upload job
+#
+# USAGE:	
+#
+####################################################################################################
+#
+# EDITED:		November 13th, 2015
+# EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
+# PURPOSE:		Added formatted version of uploaded documents and patients as upload, while displaying
+#				overall progress of the upload.
+#				Resolved issue with multiple dots in source document names, which were used to identify
+#				mime-type as well as document-type.
+#
+####################################################################################################
+
 import os
 import time
 import datetime
