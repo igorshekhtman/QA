@@ -13,28 +13,36 @@ import json
 import re
 import smtplib
 import string
+import uuid
+import cStringIO
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
-USERNAME="apxdemot0216";
+#USERNAME="apxdemot0216"
+USERNAME="protest01"
 
-PASSWORD="Hadoop.4522";
+#PASSWORD="Hadoop.4522"
+PASSWORD="apixio.123"
 
-HOST="https://testdr.apixio.com:8443";
+#HOST="https://testdr.apixio.com:8443"
+HOST="https://dr-stg.apixio.com"
 
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents";
+#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+#DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
+#DIR="/mnt/testdata/FiveSmallPDFDocuments/Documents"
+DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 
-BATCH=strftime("%d%m%Y%H%M%S", gmtime());
+BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
-UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH);
+UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
 
-TOKEN_URL="%s/auth/token/" % (HOST);
+TOKEN_URL="%s/auth/token/" % (HOST)
 
-DOCUMENTCOUNTER=0
-NUMBEROFDOCUMENTS=0
+PATIENT_ID=uuid.uuid1()
 
-# number of documents to uplod if none provided, # of documents in folder DIR will be uplaoded
-NUMBEROFDOCUMENTS=int(sys.argv[1])
+DOCUMENTCOUNTER = 0
+NUMBEROFDOCUMENTS = 0
+PATIENTCOUNTER = 0
 
 # =================================================================================================================
 
@@ -44,18 +52,18 @@ def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
 
 
-os.system('clear');
+os.system('clear')
 
-print ("USERNAME: ",USERNAME);
-print ("PASSWORD: ",PASSWORD);
-print ("HOST: ",HOST);
-print ("DIR: ",DIR);
-print ("BATCH: ",BATCH);
+print ("USERNAME: ",USERNAME)
+print ("PASSWORD: ",PASSWORD)
+print ("HOST: ",HOST)
+print ("DIR: ",DIR)
+print ("BATCH: ",BATCH)
 
 
 
 def getUserData():
-	TOKEN_URL="%s/auth/token/" % (HOST);
+	TOKEN_URL="%s/auth/token/" % (HOST)
 	c = pycurl.Curl()
 	c.setopt(pycurl.URL, TOKEN_URL)
 	c.setopt(pycurl.HTTPHEADER, [
@@ -94,22 +102,27 @@ def uploadData():
 
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
-FILE = FILES[0]
+PREV_PAT_UUID = PATIENT_ID
+
+#FILE = FILES[4]
 
 # print (FILES)
 # print ('Processing files in: ', DIR);
 
-print ("Uploading ...")
-print (" ")
+print ("\nUploading documents ...")
 
 # if (NUMBEROFDOCUMENTS > 0):
 # elif:
 # for FILE in FILES:
+#for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 
+print "===================================================================================================================="
+print "Document #\tOrgID:\t\tDocument UUID:\t\t\t\t\tPatient UUID:"
+print "===================================================================================================================="
 
-for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):		
-		import uuid
-		DOCUMENTCOUNTER=DOCUMENTCOUNTER+1
+for FILE in FILES:		
+		DOCUMENTCOUNTER += 1
+
 		ORGANIZATION=obj["organization"]
 		ORG_ID=obj["org_id"]
 		CODE=obj["code"]
@@ -118,31 +131,79 @@ for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 		ROLES=obj["roles"]
 		TRACE_COLFAM=obj["trace_colFam"]
 		DOCUMENT_ID=uuid.uuid1()
+		# Comment our next line to upload all documents to single patient
 		PATIENT_ID=uuid.uuid1()
-		PATIENT_ID_AA="RANDOM_UUID"
-		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()));
-		PATIENT_MIDDLE_NAME="MiddleName";
-		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()));
-		PATIENT_DOB="19670809";
-		PATIENT_GENDER="M";
-		ORGANIZATION="ORGANIZATION_VALUE";
-		PRACTICE_NAME="PRACTICE_NAME_VALUE";
-		FILE_LOCATION=("%s" % (FILE));
+				
+		if PATIENT_ID != PREV_PAT_UUID:
+			PATIENTCOUNTER += 1
+			PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+			PATIENT_MIDDLE_NAME="MiddleName"
+			PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		else:
+			PATIENT_FIRST_NAME="FirstName"
+			PATIENT_MIDDLE_NAME="MiddleName"
+			PATIENT_LAST_NAME="LastName"	
+	
+		PREV_PAT_UUID=PATIENT_ID
+		
+		PATIENT_ID_AA="PATIENT_ID_1"
+		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+		PATIENT_MIDDLE_NAME="MiddleName"
+		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		PATIENT_DOB="19670809"
+		PATIENT_GENDER="M"
+		ORGANIZATION="ORGANIZATION_VALUE"
+		PRACTICE_NAME="PRACTICE_NAME_VALUE"
+		FILE_LOCATION=("%s" % (FILE))
+		
 		FILE_FORMAT_TEMP=FILE.split(".")
-		FILE_FORMAT=FILE_FORMAT_TEMP[1].upper()
-		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE";
-		CREATION_DATE="1967-05-11T10:00:47-07:00";
-		MODIFIED_DATE="1967-05-11T10:00:47-07:00";
-		DESCRIPTION=("%s" % (FILE));
-		METATAGS="METATAGS_VALUE";
-		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE";
-		TOKEN_URL="%s/auth/token/" % (HOST);
-		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH);
-		CATALOG_FILE=("<ApxCatalog><CatalogEntry><Version>V0.9</Version><DocumentId>%s</DocumentId><Patient><PatientId><Id>%s</Id><AssignAuthority>%s</AssignAuthority></PatientId><PatientFirstName>%s</PatientFirstName><PatientMiddleName>%s</PatientMiddleName><PatientLastName>%s</PatientLastName><PatientDOB>%s</PatientDOB><PatientGender>%s</PatientGender></Patient><Organization>%s</Organization><PracticeName>%s</PracticeName><FileLocation>%s</FileLocation><FileFormat>%s</FileFormat><DocumentType>%s</DocumentType><CreationDate>%s</CreationDate><ModifiedDate>%s</ModifiedDate><Description>%s</Description><MetaTags>%s</MetaTags><SourceSystem>%s</SourceSystem><MimeType /></CatalogEntry></ApxCatalog>" % (DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, DESCRIPTION, METATAGS, SOURCE_SYSTEM));
+		FILE_FORMAT=FILE_FORMAT_TEMP[len(FILE_FORMAT_TEMP)-1].upper()
+		if FILE_FORMAT == "PDF":
+			MIME_TYPE="""application/pdf"""
+		else:
+			MIME_TYPE="""text/plain"""
+		
+		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
+		CREATION_DATE="2014-04-04T10:00:47-07:00"
+		MODIFIED_DATE="2014-04-04T10:00:47-07:00"
+		DESCRIPTION=("%s" % (FILE))
+		METATAGS="METATAGS_VALUE"
+		SOURCE_SYSTEM="SOURCE_SYSTEM_VALUE"
+		TOKEN_URL="%s/auth/token/" % (HOST)
+		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
+		
+		CATALOG_FILE=("	<ApxCatalog> \
+						<CatalogEntry> \
+						<Version>V0.9</Version> \
+						<DocumentId>%s</DocumentId> \
+						<Patient><PatientId><Id>%s</Id> \
+						<AssignAuthority>%s</AssignAuthority></PatientId> \
+						<PatientFirstName>%s</PatientFirstName> \
+						<PatientMiddleName>%s</PatientMiddleName> \
+						<PatientLastName>%s</PatientLastName> \
+						<PatientDOB>%s</PatientDOB> \
+						<PatientGender>%s</PatientGender></Patient> \
+						<Organization>%s</Organization> \
+						<PracticeName>%s</PracticeName> \
+						<FileLocation>%s</FileLocation> \
+						<FileFormat>%s</FileFormat> \
+						<DocumentType>%s</DocumentType> \
+						<CreationDate>%s</CreationDate> \
+						<ModifiedDate>%s</ModifiedDate> \
+						<Description>%s</Description> \
+						<MetaTags>%s</MetaTags> \
+						<SourceSystem>%s</SourceSystem> \
+						<MimeType>%s</MimeType> \
+						</CatalogEntry> \
+						</ApxCatalog>" % ( \
+						DOCUMENT_ID, PATIENT_ID, PATIENT_ID_AA, PATIENT_FIRST_NAME, PATIENT_MIDDLE_NAME, \
+						PATIENT_LAST_NAME, PATIENT_DOB, PATIENT_GENDER, ORGANIZATION, PRACTICE_NAME, \
+						FILE_LOCATION, FILE_FORMAT, DOCUMENT_TYPE, CREATION_DATE, MODIFIED_DATE, \
+						DESCRIPTION, METATAGS, SOURCE_SYSTEM, MIME_TYPE \
+						))
+		
 		# ============================== Uploading Data =================================================================================================================
-		import cStringIO
-		import pycurl
-		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH);
+		UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
 		bufu = io.BytesIO()
 		response = cStringIO.StringIO()
 		c = pycurl.Curl()
@@ -153,25 +214,28 @@ for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 		# ================================================================================================================================================================
 		obju=json.loads(bufu.getvalue())	
 		UUID=obju["uuid"]
-		# print (obju)
-		print ("Document UUID: %s" % (UUID));
+		ORGGID=obju["orgid"]
 
-		#print (TOKEN), (ORGANIZATION), (ORG_ID), (CODE), (USER_ID), (S3_BUCKET), (ROLES), (TRACE_COLFAM), (DOCUMENT_ID)
-		#print (PATIENT_ID), (PATIENT_ID_AA), (PATIENT_FIRST_NAME), (PATIENT_LAST_NAME), (PATIENT_MIDDLE_NAME), (PATIENT_DOB), (PATIENT_GENDER), (ORGANIZATION)
-		#print (PRACTICE_NAME), (FILE_LOCATION), (FILE_FORMAT), (DOCUMENT_TYPE), (CREATION_DATE), (MODIFIED_DATE), (DESCRIPTION), (METATAGS), (SOURCE_SYSTEM)
-		#print (TOKEN_URL), (UPLOAD_URL)
-		#print (" ")
+		# print (obju)
+		#print ("Document UUID: %s" % (UUID));
+		print ("%s\t\t%s\t\t%s\t\t%s"%(DOCUMENTCOUNTER, ORGGID, UUID, PATIENT_ID))
+
 		#print (CATALOG_FILE)
-		#print (" ")
+		#print (FILE_FORMAT_TEMP)
+		#print (FILE_FORMAT)
+		#print (MIME_TYPE)
+		#quit()
+
 
 # ========================================================== Finish by closing batch ======================================================================================
-print (" ")	
-print ("TOTAL NUMBER OF DOCUMENTS UPLOADED: %s" % (DOCUMENTCOUNTER));
-print (" ")
-print ("Closing Batch ...")
+print "===================================================================================================================="	
+print ("Total number of documents uploaded: %s" % (DOCUMENTCOUNTER))
+print ("Total number of patients uploaded: %s" % (PATIENTCOUNTER if PATIENTCOUNTER>0 else 1))
+print "===================================================================================================================="
+print ("Closing Batch ...\n")
 import cStringIO
 import pycurl
-CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, BATCH);
+CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, BATCH)
 bufc = io.BytesIO()
 response = cStringIO.StringIO()
 c = pycurl.Curl()
@@ -181,8 +245,7 @@ c.setopt(c.WRITEFUNCTION, bufc.write)
 c.perform()
 objc=json.loads(bufc.getvalue())
 # print (objc)
-print (" ")
-print ("Batch Closed, Upload Completed ...")
+print ("Batch Closed, Upload Completed ...\n\n")
 # =========================================================================================================================================================================
 
 
