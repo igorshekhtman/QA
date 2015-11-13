@@ -88,6 +88,8 @@ DOCUMENTCOUNTER = 0
 NUMBEROFDOCUMENTS = 0
 PATIENTCOUNTER = 0
 
+DIVLINE = "===================================================================================================================================="
+
 # =================================================================================================================
 
 
@@ -160,9 +162,9 @@ print ("\nUploading documents ...")
 # for FILE in FILES:
 #for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 
-print "===================================================================================================================="
-print "Document #\tOrgID:\t\tDocument UUID:\t\t\t\t\tPatient UUID:"
-print "===================================================================================================================="
+print DIVLINE
+print "Document #\tOrgID:\t\tFormat:\t\tDocument UUID:\t\t\t\t\tPatient UUID:"
+print DIVLINE
 
 for FILE in FILES:		
 		DOCUMENTCOUNTER += 1
@@ -260,7 +262,7 @@ for FILE in FILES:
 
 		# print (obju)
 		#print ("Document UUID: %s" % (UUID));
-		print ("%s\t\t%s\t\t%s\t\t%s"%(DOCUMENTCOUNTER, ORGGID, UUID, PATIENT_ID))
+		print ("%s\t\t%s\t\t%s\t\t%s\t\t%s"%(DOCUMENTCOUNTER, ORGGID, FILE_FORMAT, UUID, PATIENT_ID))
 
 		#print (CATALOG_FILE)
 		#print (FILE_FORMAT_TEMP)
@@ -270,10 +272,10 @@ for FILE in FILES:
 
 
 # ========================================================== Finish by closing batch ======================================================================================
-print "===================================================================================================================="	
+print DIVLINE	
 print ("Total number of documents uploaded: %s" % (DOCUMENTCOUNTER))
 print ("Total number of patients uploaded: %s" % (PATIENTCOUNTER if PATIENTCOUNTER>0 else 1))
-print "===================================================================================================================="
+print DIVLINE
 print ("Closing Batch ...\n")
 import cStringIO
 import pycurl
