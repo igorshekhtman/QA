@@ -176,24 +176,22 @@ for FILE in FILES:
 		TRACE_COLFAM=obj["trace_colFam"]
 		DOCUMENT_ID=uuid.uuid1()
 		# Comment our next line to upload all documents to single patient
-		PATIENT_ID=uuid.uuid1()
+		#PATIENT_ID=uuid.uuid1()
 				
 		if PATIENT_ID != PREV_PAT_UUID:
 			PATIENTCOUNTER += 1
 			PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
-			PATIENT_MIDDLE_NAME="MiddleName"
 			PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
 		else:
 			PATIENT_FIRST_NAME="FirstName"
-			PATIENT_MIDDLE_NAME="MiddleName"
 			PATIENT_LAST_NAME="LastName"	
 	
 		PREV_PAT_UUID=PATIENT_ID
 		
 		PATIENT_ID_AA="PATIENT_ID_1"
-		PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+		#PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
 		PATIENT_MIDDLE_NAME="MiddleName"
-		PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
+		#PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
 		PATIENT_DOB="19670809"
 		PATIENT_GENDER="M"
 		ORGANIZATION="ORGANIZATION_VALUE"
