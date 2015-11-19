@@ -267,7 +267,7 @@ def obtainExternalToken(un, pw):
 	response = requests.post(url, data=DATA, headers=HEADERS) 
 	statuscode = response.status_code
 	print ("* EXT. TOKEN STATUS CODE = %s" % statuscode)
-	if statuscode != ok:
+	if (statuscode != ok) and (statuscode != created):
 		print ("Failure occured obtaining ext. token: %s, exiting now ..." % STATUS_CODES[statuscode])
 		quit()
 
@@ -301,7 +301,7 @@ def obtainInternalToken(un, pw):
   	response = requests.post(url, data=DATA, headers=HEADERS) 
   	statuscode = response.status_code
   	print ("* INT. TOKEN STATUS CODE = %s" % statuscode)
-  	if statuscode != ok:
+  	if (statuscode != ok) and (statuscode != created):
 		print ("Failure occured obtaining int. token: %s, exiting now ..." % STATUS_CODES[statuscode])
 		quit()
   	
