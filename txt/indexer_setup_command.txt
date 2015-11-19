@@ -1,4 +1,24 @@
+============================ DEV ENV ACCOUNTS =====================================
 
+/Users/ishekhtman/Git/utilities/python-apxapi
+python other_scripts/user_mgmnt.py
+connect dev ishekhtman@apixio.com
+https://accounts-dev.apixio.com/?caller=cmp_dev
+
+Customer Org / Data Set: BTMG 
+System Org: Apixio
+Vendor: HCC Coding Org
+
+
+=============== NEW USER ACCOUNTS TESTING RESOURCES (Anthony) =====================
+TEST PLAN:
+https://docs.google.com/document/d/1DGBhqf3Q3l7YCq8mrXtP-VKibzPnmDZlLXmF6u5Cs20/edit#heading=h.jwbadrql5mpu
+
+RBAC roles and privileges:
+https://docs.google.com/spreadsheets/d/1PUgPEhXZb1ergSpBPYLv-q3W5PRAHQig8_Q1yJzqlPo/edit#gid=0
+
+DATA ORCHESTRATOR - GITHUB:
+https://github.com/Apixio/data-orchestrator/blob/newroles/conf/apiacls.json
 
 =============== Pipeline JOB check: LILITH: =======================================
 
