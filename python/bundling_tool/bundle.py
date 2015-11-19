@@ -135,6 +135,11 @@ notfound 		= 404
 intserveror 	= 500
 servunavail 	= 503
 
+STATUS_CODES = {	200: "OK", 201: "CREATED", 202: "ACCEPTED", 204: "NO CONTENT", 301: "MOVED PERM", \
+				302: "REDIRECT", 400: "REQUEST DENIED", 401: "UNAUTHORIZED", 403: "FORBIDDEN", \
+				404: "NOT FOUND", 500: "INT SERVER ERROR", 503: "SERVER UNAVAILABLE" } 
+
+
 #=========================================================================================
 #===================== Helper Functions ==================================================
 #=========================================================================================
@@ -259,10 +264,12 @@ def obtainExternalToken(un, pw):
 	print ("* PASSWORD               = %s" % pw)
 	print ("* URL                    = %s" % url)
 	
-	
 	response = requests.post(url, data=DATA, headers=HEADERS) 
-
 	statuscode = response.status_code
+	print ("* EXT. TOKEN STATUS CODE = %s" % statuscode)
+	if statuscode != ok:
+		print ("Failure occured obtaining ext. token: %s, exiting now ..." % STATUS_CODES[statuscode])
+		quit()
 
 	userjson = response.json()
 	if userjson is not None:
@@ -271,7 +278,6 @@ def obtainExternalToken(un, pw):
 		print ("* PASSWORD               = %s" % pw)
 		print ("* URL                    = %s" % url)
 		print ("* EXTERNAL TOKEN         = %s" % external_token)
-		print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
 		print ("* RECEIVED STATUS CODE   = %s" % statuscode)
 		print ("****************************************************************************")
 			
@@ -293,6 +299,12 @@ def obtainInternalToken(un, pw):
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	statuscode = response.status_code
+  	print ("* INT. TOKEN STATUS CODE = %s" % statuscode)
+  	if statuscode != ok:
+		print ("Failure occured obtaining int. token: %s, exiting now ..." % STATUS_CODES[statuscode])
+		quit()
+  	
   	userjson = response.json()
   	if userjson is not None:
   		TOKEN = userjson.get("token")
@@ -305,8 +317,7 @@ def obtainInternalToken(un, pw):
 	print ("* TOKENIZER URL          = %s" % url)
 	print ("* EXTERNAL TOKEN         = %s" % external_token)
 	print ("* INTERNAL TOKEN         = %s" % TOKEN)
-	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
-	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+	print ("* STATUS CODE            = %s" % statuscode)
 
 
 #=========================================================================================
@@ -344,7 +355,7 @@ def bundleDataSet():
 	if (statuscode == ok) or (statuscode == nocontent):
 		print "Successfully bundling ..."
 	else:
-		print "Failure occured, exiting now ..."
+		print ("Failure occured bundling: %s, exiting now ..." % STATUS_CODES[statuscode])
 		quit()		
 
 	return()	
