@@ -288,7 +288,7 @@ def obtainInternalToken(un, pw):
 	global TOKEN, APIXIO_TOKEN
 	
 	print ("----------------------------------------------------------------------------")
-	print (">>> ACL - OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
+	print (">>> UA / TOKENIZER - OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
 	print ("----------------------------------------------------------------------------")
 	
 	
@@ -324,7 +324,7 @@ def obtainInternalToken(un, pw):
 
 def bundleDataSet():
 	print ("\n----------------------------------------------------------------------------")
-	print (">>> BUNDLE DATA SET FOR %s PROJECT <<<" % PROJECTID)
+	print (">>> CMP - BUNDLE DATA SET FOR %s PROJECT <<<" % PROJECTID)
 	print ("----------------------------------------------------------------------------")
 	response = ""
 	#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
