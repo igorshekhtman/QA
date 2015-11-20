@@ -16,6 +16,7 @@ https://docs.google.com/document/d/1DGBhqf3Q3l7YCq8mrXtP-VKibzPnmDZlLXmF6u5Cs20/
 
 RBAC roles and privileges:
 https://docs.google.com/spreadsheets/d/1PUgPEhXZb1ergSpBPYLv-q3W5PRAHQig8_Q1yJzqlPo/edit#gid=0
+https://docs.google.com/spreadsheets/d/1PUgPEhXZb1ergSpBPYLv-q3W5PRAHQig8_Q1yJzqlPo/edit?ts=564ca9bb#gid=0
 
 DATA ORCHESTRATOR - GITHUB:
 https://github.com/Apixio/data-orchestrator/blob/newroles/conf/apiacls.json
