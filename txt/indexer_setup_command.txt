@@ -74,6 +74,10 @@ on my local machine
 /Users/ishekhtman/Documents/Apixio/utility
 python ./other_scripts/prj_mgmnt.py
 
+
+/Users/ishekhtman/Git/utilities/python-apxapi
+python other_scripts/prj_mgmnt.py
+
 ============ PROTRACTOR SERVER ==========
 to get protractor working again
 forward port 80 to 9000

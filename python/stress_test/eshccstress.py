@@ -103,18 +103,29 @@
 # LIBRARIES ########################################################################################
 
 import requests
+from collections import OrderedDict
 import time
 import datetime
 import csv
 import operator
-import random
 import re
 import sys, os
+import shutil
 import json
-import smtplib
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+from sortedcontainers import SortedDict
+from pylab import *
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+import numpy as np
+import apxapi
+requests.packages.urllib3.disable_warnings()
+#from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -242,74 +253,100 @@ def readConfigurationFile(filename):
    
   
 def logInToHCC(): 
-  global TOKEN, SESSID, COOKIES
-  
+  global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN, JSESSIONID
   response = requests.get(URL+'/')
-  print("-------------------------------------------------------------------------------")
-  print "* Connect to host  = "+str(response.status_code)
+  print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	quit()
-  #url = referer = URL+'/account/login/?next=/'
-  url = referer = URL+'/account/login/'
+#-----------------------------------------------------------------------------------------  	
+  # Original - url = referer = URL+'/account/login/?next=/'
+  url = URL+'/account/login/'
+  referer = URL+'/account/login/'
+  
   response = requests.get(url)
   IncrementTestResultsTotals("login", response.status_code)
-  print "* Login page       = "+str(response.status_code)
+  print "* Login page         = "+str(response.status_code)
   if response.status_code == 500:
   	print "* Connection to host = FAILED QA"
   	logInToHCC()
-  TOKEN = response.cookies["csrftoken"]
-  SESSID = response.cookies["sessionid"]
-  COOKIES = dict(csrftoken=''+TOKEN+'')
+#-----------------------------------------------------------------------------------------  	
   
-  #print "* Token              = %s" % TOKEN
-  #print "* Session id         = %s" % SESSID
-  #print "* Cookies            = %s" % COOKIES
-  #print "* Staus code         = %s" % response.status_code
+  url = "https://hcceng.apixio.com/"
+  response = requests.get(url)
+  print "* Login page         = "+str(response.status_code)
   
-  url = URL+"/account/login/"
-  origin = URL
-  referer = URL+"/account/login/"
-  host = URL[8:]
- 
-  DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD, 'login': 'Log+In' } 
-	
-  HEADERS = { \
-  		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', \
-		'Accept-Encoding': 'gzip, deflate', \
-		'Accept-Language': 'en-US,en;q=0.8', \
-		'Cache-Control': 'max-age=0', \
-		'Connection': 'keep-alive', \
-		'Content-Length': '121', \
-		'Content-Type': 'application/x-www-form-urlencoded', \
-		'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-		'Host': host, \
-		'Origin': origin, \
-		'Referer': referer \
-		}	
-						
-  response = requests.post(url, cookies=COOKIES, data=DATA, headers=HEADERS) 
-  
-  #TOKEN = response.cookies["csrftoken"]
-  #SESSID = response.cookies["sessionid"]
-  #COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'')
-  
-  print "* Log in user      = "+str(response.status_code)
-  print "* Token            = %s" % TOKEN
-  print "* Session id       = %s" % SESSID
-  print "* Cookies          = %s" % COOKIES
-  #print "* Staus code       = %s" % response.status_code
+  #print response.cookies.list_domains()
+  #print response.cookies.list_paths()
+  #print response.cookies.get_dict()
+  #print response.cookies
+  #print response.status_code
+  #print response.headers
+  #print response.text
+  #print response.json()
   #quit()
   
+#-----------------------------------------------------------------------------------------  	
   
+  
+  
+  TOKEN = response.cookies["JSESSIONID"]
+  SESSID = response.cookies["JSESSIONID"]
+  COOKIES = dict(csrftoken=''+TOKEN+'')
+  JSESSIONID = response.cookies["JSESSIONID"]
+  
+  
+  #url = URL+'/account/login/'
+  #referer = URL+'/account/login/'
+  #host = DOMAIN
+  #origin = URL
 
+  origin = "https://accounts-stg.apixio.com"
+  referer = "https://accounts-stg.apixio.com/?caller=hcc_eng"
+  host = "accounts-stg.apixio.com"
+  url = "https://accounts-stg.apixio.com/"
+  
+  #DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
+  
+  DATA = {'username': USERNAME, 'password': PASSWORD, 'hash':'', 'caller':'hcc_eng', 'log_ref':'1441056621484', 'origin':'loging' }
+  
+  
+  HEADERS = { \
+  			'Accept': '*/*', \
+  			'Accept-Encoding': 'gzip, deflate', \
+  			'Accept-Language': 'en-US,en;q=0.8', \
+  			'Connection': 'keep-alive', \
+  			'Content-Length': '1105', \
+			#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+			'Cookie': 'JSESSIONID='+TOKEN, \
+			'Host': host, \
+			'Origin': origin, \
+			'Referer': referer \
+			}	
+  					
+  response = requests.post(url, data=DATA, headers=HEADERS) 
+  
+  #print response.cookies
+  #quit()
+  TOKEN = response.cookies["csrftoken"]
+  SESSID = response.cookies["sessionid"]
+  APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
+  COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN)
+  
+  print("* URL                = %s" % url)
+  print("* USER               = %s" % USERNAME)
+  print("* PASSWORD           = %s" % PASSWORD)
+  print("* CSRFTOKEN          = %s" % TOKEN)
+  print("* APXTOKEN           = %s" % APXTOKEN)
+  print("* SESSID             = %s" % SESSID)
+  print("* JSESSIONID         = %s" % JSESSIONID)
+  
   IncrementTestResultsTotals("login", response.status_code)
-  #print "* Log in user      = "+str(response.status_code)
+  print "* Log in user        = "+str(response.status_code)
+  #quit()
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
-  print("-------------------------------------------------------------------------------")	
-  #quit()  
   
 #=========================================================================================  
   
@@ -337,132 +374,187 @@ def chooseCodingAction():
 #=========================================================================================
 
 def startCoding():
-  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, CODING_OPP_CURRENT
-  global VOO, VAO, VRO, VSO, PATIENT_ORG_NAME
-  global FAILED, SUCCEEDED, RETRIED, MODULES, MAX_NUM_RETRIES
-  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-
-
-  url = URL+"/api/next-work-item/"
-  referer = URL+"/"
-  host = URL[8:]
-   
-  DATA = {}
-	
-  HEADERS = { \
-  		'Accept': 'application/json, text/plain, */*', \
-		'Accept-Encoding': 'gzip, deflate, sdch', \
-		'Accept-Language': 'en-US,en;q=0.8', \
-		'Connection': 'keep-alive', \
-		'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-		'Host': host, \
-		'Referer': referer \
-		}	
-
-  testCode = 10 + (1 * CODING_OPP_CURRENT)
-
-  response = requests.get(url, cookies=COOKIES, data=DATA, headers=HEADERS)
-  if response.status_code == unauthorized:
-    if RETRIED < MAX_NUM_RETRIES:
-      FAILED += 1
-      RETRIED += 1
-      logInToHCC()
-      chooseCodingAction()
-      startCoding()
-    else:
-      print ("Number of retries %s exceeded limit of %s, exiting now ..." % (RETRIED, MAX_NUM_RETRIES)) 
-      quit()
-
-  IncrementTestResultsTotals("coding opportunity check", response.status_code)
-  print "* GET CODNG OPP    = %s" % response.status_code
-  opportunity = response.json()
-  patient_details = response.text
-    
-  if opportunity == None:
-    print("ERROR : Login Failed or No More Opportunities For This Coder")
-    return 1
-  status = opportunity.get("status")
-  possiblecodes = opportunity.get("possibleCodes") 
-  numpossiblecodes = len(possiblecodes) 
-  code = opportunity.get("code") 
-  patient = opportunity.get("patient") 
-  findings = opportunity.get("findings")
-  patient_id = opportunity.get("patientId")
-  project = opportunity.get("project")
-  finding_ids = opportunity.get("finding_ids")
-  user = opportunity.get("user")
-  organization = opportunity.get("organization")
-  transaction_id = opportunity.get("transactionId")
+  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
+  global VOO, VAO, VRO, VSO
+  global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
+  #global model_year, payment_year, hcc, model_run
+  #print("-------------------------------------------------------------------------------")
   print("-------------------------------------------------------------------------------")
-  print("PATIENT OPP %d OF %d" % (CODING_OPP_CURRENT, int(CODE_OPPS_MAX)))
-  test_counter = 0
-  doc_no_current = 0
-  doc_no_max = len(findings)
+  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
+  print("-------------------------------------------------------------------------------")
+  #print("-------------------------------------------------------------------------------")
+  #coding_opp_current = 1
+  #====================================================
+  # main loop controlling number of OPPS to process
+  #====================================================
+  buckets = -1
   
-  for finding in findings:
-    finding_id = finding_ids[doc_no_current]
-    doc_no_current = doc_no_current + 1
-    patient_org_id = finding.get("patient_org_id")  
-    document_uuid = finding.get("sourceId")
-    document_title = finding.get("document_title")
-    date_of_service = finding.get("doc_date")
-    mime_type = finding.get("mimeType")
-    if mime_type == None:
-    	mime_type = "text/plain"
-    if CODING_OPP_CURRENT == 1:
-    	PATIENT_ORG_NAME = getOrgName(patient_org_id)
-      
-    print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
-    print("* STATUS           = %s" % (status))
-    print("* PATIENT ORG      = %s - %s" % (patient_org_id, PATIENT_ORG_NAME))
-    print("* PATIENT ID       = %s" % (patient_id))
-    print("* FINDING ID       = %s" % (finding_id))
-    print("* AVAILABLE CODES  = %s" % (numpossiblecodes))
-    print("* PROJECT ID       = %s" % (project))
-    print("* DOC UUID         = %s" % (document_uuid))
-    print("* DOC TITLE        = %s" % (document_title))
-    print("* DOC DATE         = %s" % (date_of_service))
-    print("* DOC TYPE         = %s" % (mime_type))
-    if patient_id    == "":
-      print("WARNING : PATIENT UUID is Empty")
-    if patient_org_id  == "":
-      print("WARNING : ORG ID is Empty")
-    if finding_id      == "":
-      print("WARNING : FINDING ID is Empty")
-    if document_uuid   == "":
-      print("WARNING : DOC UUID is Empty")
-    if document_title  == "":
-      print("WARNING : DOC TITLE is Empty")
-    if date_of_service == "":
-      print("WARNING : DOC DATE is Empty")
-    test_counter = test_counter + 1
-      
-    response = requests.get(URL + "/api/document-text/" + document_uuid, cookies=COOKIES, data=DATA, headers=HEADERS)
-    IncrementTestResultsTotals("coding scorable document check", response.status_code)
-    print "* GET SCORABLE DOC = %s" % response.status_code     
+  #Host: hcceng.apixio.com
+  #Connection: keep-alive
+  #Accept: application/json, text/plain, */*
+  #X-REQUESTED-WITH: XMLHttpRequest
+  #User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36
+  #Referer: https://hcceng.apixio.com/
+  #Accept-Encoding: gzip, deflate, sdch
+  #Accept-Language: en-US,en;q=0.8
+  #Cookie: SS_MID=93555fab-4853-4a24-ab6f-eedb8cac1c0diar9bgxa; ss_cid=396c3902-defc-4e80-aba1-dd22809d28cf; ApxToken=TA_3d87c4ea-7299-492f-b175-019a61f51ee4; csrftoken=iPt7GVUjjLjTRxe4V6Yg7qQrdoc9B6ml; sessionid=nel0hbg9qx663qbdfk04o2x2lrxqugdm
+  
+  
+  print("* URL                = %s/api/next-work-item/" % URL)
+  print("* csrftoken          = %s" % TOKEN)
+  print("* ApxToken           = %s" % APXTOKEN)
+  print("* sessionid          = %s" % JSESSIONID) 
+  
+  
+  HEADERS = { \
+  			'Accept': 'application/json, text/plain, */*', \
+  			'Accept-Encoding': 'gzip, deflate, sdch', \
+  			'Accept-Language': 'en-US,en;q=0.8', \
+  			'Connection': 'keep-alive', \
+			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
+			'Host': 'hcceng.apixio.com', \
+			'Referer': 'https://hcceng.apixio.com/' \
+			}	
+			
+  DATA = {}
+  
+  
+  
+  for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
+    time.sleep(int(DELAYTIME))
+    testCode = 10 + (1 * coding_opp_current)
+    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
+    print ("* URL                = %s/api/next-work-item/" % URL)
+    print ("* GET CODNG OPP      = %s" % response.status_code)
     
-    totalPages = getDocPageTotal(finding)
-    print "* TOTAL # OF PAGES = %s" % totalPages
- 
-    # looping through each and every available page in a document
-    if mime_type == "application/pdf":
-      for i in range (0,int(totalPages)):
-        response = requests.get(URL + "/document_page/" + document_uuid + "/" + str(i), cookies=COOKIES, data=DATA, headers=HEADERS)
-        if response.status_code != ok:
-    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  print ("!!!! Failure occured trying to retrieve document page with status code = %s !!!!!" % response.status_code)
-    	  print ("!!!! Test is being terminated !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    	  #quit()
-        #IncrementTestResultsTotals("document page retrieval", response.status_code)
-        print "* DOCUMENT PAGE %d  = %s" % (i+1, response.status_code)
+    IncrementTestResultsTotals("coding opportunity check", response.status_code)
+    
+    
+    if response.status_code != ok:
+    	print "=================================================="
+    	print "Failure occurred !!!"
+    	
+    	print response.cookies.list_domains()
+    	print response.cookies.list_paths()
+    	print response.cookies.get_dict()
+    	print response.cookies
+    	print response.status_code
+    	print response.headers
+    	print response.text
+    	print json.dumps(response.json())
+    	print "=================================================="
+    else:	
+    	opportunity = response.json()
+    ######################################################################################
+    
+   
+    
+    
+    hcc = opportunity.get("code").get("hcc")
+    #tallyDetails("hcc", hcc)
+    label_set_version = opportunity.get("code").get("labelSetVersion")
+    #tallyDetails("label_set_version", label_set_version)
+    sweep = opportunity.get("code").get("sweep")
+    #tallyDetails("sweep", sweep)
+    model_payment_year = opportunity.get("code").get("modelPaymentYear")
+    #tallyDetails("model_payment_year", model_payment_year)
 
-    test_counter += 1
+    
+    print "\n"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "\n"
+    print "* HCC CODE         = %s" % hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
+    print "\n"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "********************************************************************************************"
+    print "\n"
+    ######################################################################################
+    patient_details = response.text
+    if opportunity == None:
+      print("ERROR : Login Failed or No More Opportunities For This Coder")
+      return 1
+      
+      
+      
+    status = opportunity.get("status")
+    possiblecodes = opportunity.get("possibleCodes") 
+    numpossiblecodes = len(possiblecodes) 
+    code = opportunity.get("code") 
+    patient = opportunity.get("patient") 
+    findings = opportunity.get("findings")
+    patient_id = opportunity.get("patientId")
+    project = opportunity.get("project")
+    finding_ids = opportunity.get("finding_ids")
+    user = opportunity.get("user")
+    organization = opportunity.get("organization")
+    transaction_id = opportunity.get("transactionId")
+    print("-------------------------------------------------------------------------------")
+    print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
+    TOTAL_OPPS_SERVED = coding_opp_current   
+    
+    #if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
+    #	buckets += 1
+   # 	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
+   # 	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
+   # 	for hcc in TEMP_HCC:
+    #		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
+    #	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
+    	
 
-    if RANDOM_OPPS_ACTION == "1":
-   	  CODE_OPPS_ACTION = WeightedRandomCodingAction()
-    act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+    test_counter = 0
+    doc_no_current = 0
+    doc_no_max = 1
+    for i in range (0,1):
+      finding = findings[i]
+      finding_id = finding_ids[doc_no_current]
+      doc_no_current = doc_no_current + 1
+      patient_org_id = finding.get("patient_org_id")  
+      document_uuid = finding.get("sourceId")
+      document_title = finding.get("document_title")
+      date_of_service = finding.get("doc_date")
+      mime_type = finding.get("mimeType")
+      if mime_type == None:
+    	  mime_type = "text/plain"
+      #if CODING_OPP_CURRENT == 1:
+    	#  PATIENT_ORG_NAME = getOrgName(patient_org_id)
+      
+      print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
+      print("* STATUS           = %s" % (status))
+      print("* PATIENT ORG      = %s" % (patient_org_id))
+      print("* PATIENT ID       = %s" % (patient_id))
+      print("* FINDING ID       = %s" % (finding_id))
+      print("* AVAILABLE CODES  = %s" % (numpossiblecodes))
+      print("* PROJECT ID       = %s" % (project))
+      print("* DOC UUID         = %s" % (document_uuid))
+      print("* DOC TITLE        = %s" % (document_title))
+      print("* DOC DATE         = %s" % (date_of_service))
+      print("* DOC TYPE         = %s" % (mime_type))
+      if patient_id    == "":
+        print("WARNING : PATIENT UUID is Empty")
+      if patient_org_id  == "":
+        print("WARNING : ORG ID is Empty")
+      if finding_id      == "":
+        print("WARNING : FINDING ID is Empty")
+      if document_uuid   == "":
+        print("WARNING : DOC UUID is Empty")
+      if document_title  == "":
+        print("WARNING : DOC TITLE is Empty")
+      if date_of_service == "":
+        print("WARNING : DOC DATE is Empty")
+      test_counter = test_counter + 1
+      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      print "* GET SCRBLE DOC   = %s" % response.status_code      
+      IncrementTestResultsTotals("coding scorable document check", response.status_code)
+      test_counter += 1
+      if RANDOM_OPPS_ACTION == "1":
+      	CODE_OPPS_ACTION = WeightedRandomCodingAction()
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+
   return 0
+
   
 #=========================================================================================  
 
@@ -787,14 +879,14 @@ def printResultsSummary():
 #=========================================================================================
 	
 def checkEnvironmentandReceivers():
-	# Environment for stressTest is passed as a paramater. Staging is a default value
+	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global AUTHHOST, TOKEHOST, AUTH_EMAIL, AUTH_PASSW, USERNAME
-	# Environment for stressTest is passed as a paramater. Staging is a default value
-	print ("Setting environment ...\n")
+	global ENERGY_RTR_URL, DOMAIN, URL, USERNAME, PASSWORD, TOKEN_URL, UA_URL
+	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
+	print ("\nSetting environment ...")
 	if len(sys.argv) < 2:
 		ENVIRONMENT="staging"
 	else:
@@ -804,35 +896,51 @@ def checkEnvironmentandReceivers():
 		#USERNAME="apxdemot0138"
 		#PASSWORD="Hadoop.4522"
 		ENVIRONMENT = "production"
-		AUTHHOST="https://useraccount-prd.apixio.com:7076"
-		TOKEHOST="https://tokenizer-prd.apixio.com:7075"
-		AUTH_EMAIL="system_qa@apixio.com"
-		AUTH_PASSW="8p1qa19.."
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
+	elif (ENVIRONMENT.upper() == "ENGINEERING"):
+		#USERNAME="grinderUSR1416591626@apixio.net"
+		#PASSWORD="apixio.123"
+		ENVIRONMENT = "engineering"
+		DOMAIN="hcceng.apixio.com"
+		URL="https://hcceng.apixio.com"
+		#USERNAME="protestqa1@apixio.net"
+		USERNAME=sys.argv[2]
+		PASSWORD="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
 		ENVIRONMENT = "staging"
-		AUTHHOST="https://useraccount-stg.apixio.com:7076"
-		TOKEHOST="https://tokenizer-stg.apixio.com:7075"
-		AUTH_EMAIL="ishekhtman@apixio.com"
-		AUTH_PASSW="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"
+			
 	
 	if (len(sys.argv) > 2):
-		RECEIVERS=str(sys.argv[2])
-		RECEIVERS2=str(sys.argv[3])
+		RECEIVERS=str(sys.argv[3])
+		RECEIVERS2=str(sys.argv[4])
 		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
-		if (len(sys.argv) > 4):
-			USERNAME = str(sys.argv[4])
 	elif ((len(sys.argv) < 3) or DEBUG_MODE):
 		RECEIVERS="ishekhtman@apixio.com"
 		RECEIVERS2="abeyk@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 				
-	# overwite any previous ENVIRONMENT settings
-	#ENVIRONMENT = "Production"
-	print ("Version %s\n") % VERSION
-	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
-	print ("Completed setting of enviroment and report receivers ...\n")
+	
+	print ("==============================================================================")				
+	print ("* VERSION                               = %s" % VERSION)
+	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
+	print ("* HCC HOST                              = %s" % URL)
+	print ("* HCC DOMAIN                            = %s" % DOMAIN)
+	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+	print ("* USER                                  = %s" % USERNAME)
+	print ("* PASSWORD                              = %s" % PASSWORD)
+	print ("* MAXIMUM NUMBER OF RETRIES              = %s" % MAX_NUM_RETRIES)
+	print ("==============================================================================")
+	print ("Completed setting enviroment ...\n")	
 
 #=========================================================================================
 
