@@ -659,6 +659,15 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
 				WHEN (error_message like '%%TimeoutException%%') THEN 'Timeout Exception'
 				WHEN (error_message like '%%NumberFormatException%%') THEN 'Number Format Exception'
+				WHEN (error_message like '%%UnsupportedFileFormatException%%') THEN 'UnsupportedFileFormatException: Unknown file format'
+				WHEN (error_message like '%%org.apache.hadoop.ipc.RemoteException%%') THEN 'org.apache.hadoop.ipc.RemoteException(java.io.IOException)'
+				WHEN (error_message like '%%IllegalStateException%%') THEN 'Persist Job error: java.lang.IllegalStateException'
+				WHEN (error_message like '%%RemoteException%%') THEN 'Persist Job error: org.apache.hadoop.ipc.RemoteException(java.io.IOException)'
+				WHEN (error_message like '%%PersistenceException%%') THEN 'javax.persistence.PersistenceException'
+				WHEN (error_message like '%%InvalidPatientObjectException%%') THEN 'com.apixio.extractor.event.exceptions.InvalidPatientObjectException'
+				WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
+				WHEN (error_message like '%%ClosedChannelException%%') THEN 'Persist Job error: java.nio.channels.ClosedChannelException'
+				WHEN (error_message like '%%ArrayIndexOutOfBoundsException%%') THEN 'Persist Job error: java.lang.ArrayIndexOutOfBoundsException'
 				ELSE error_message
 			END	as message \
 			FROM %s \
@@ -675,6 +684,15 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%No properties found for this user%%') THEN 'No properties found for this user'
 				WHEN (error_message like '%%TimeoutException%%') THEN 'Timeout Exception'
 				WHEN (error_message like '%%NumberFormatException%%') THEN 'Number Format Exception'
+				WHEN (error_message like '%%UnsupportedFileFormatException%%') THEN 'UnsupportedFileFormatException: Unknown file format'
+				WHEN (error_message like '%%org.apache.hadoop.ipc.RemoteException%%') THEN 'org.apache.hadoop.ipc.RemoteException(java.io.IOException)'
+				WHEN (error_message like '%%IllegalStateException%%') THEN 'Persist Job error: java.lang.IllegalStateException'
+				WHEN (error_message like '%%RemoteException%%') THEN 'Persist Job error: org.apache.hadoop.ipc.RemoteException(java.io.IOException)'
+				WHEN (error_message like '%%PersistenceException%%') THEN 'javax.persistence.PersistenceException'
+				WHEN (error_message like '%%InvalidPatientObjectException%%') THEN 'com.apixio.extractor.event.exceptions.InvalidPatientObjectException'
+				WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
+				WHEN (error_message like '%%ClosedChannelException%%') THEN 'Persist Job error: java.nio.channels.ClosedChannelException'
+				WHEN (error_message like '%%ArrayIndexOutOfBoundsException%%') THEN 'Persist Job error: java.lang.ArrayIndexOutOfBoundsException'
 				ELSE error_message
 			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
@@ -998,6 +1016,8 @@ def eventAMR(table):
 			WHEN (error_message like 'ERROR:/Patient/%%') THEN 'ClinicalCode both codingSystemOID and codingSystem are null'
 			WHEN (error_message like '%%scala.MatchError%%') THEN 'Scala Match error'
 			WHEN (error_message like '%%java.lang.NullPointerException%%') THEN 'Java Null Pointer Exception error'
+			WHEN (error_message like '%%TimeoutException%%') THEN 'Extractor Timeout: java.util.concurrent.TimeoutException'
+			WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
 			ELSE error_message
 		END as message, \
 		org_id, status \
@@ -1008,6 +1028,8 @@ def eventAMR(table):
 			WHEN (error_message like 'ERROR:/Patient/%%') THEN 'ClinicalCode both codingSystemOID and codingSystem are null'
 			WHEN (error_message like '%%scala.MatchError%%') THEN 'Scala Match error'
 			WHEN (error_message like '%%java.lang.NullPointerException%%') THEN 'Java Null Pointer Exception error'
+			WHEN (error_message like '%%TimeoutException%%') THEN 'Extractor Timeout: java.util.concurrent.TimeoutException'
+			WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
 			ELSE error_message
 		END,
 		org_id, status \

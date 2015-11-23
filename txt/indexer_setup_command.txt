@@ -1,8 +1,9 @@
 ============================ DEV ENV ACCOUNTS =====================================
 
-/Users/ishekhtman/Git/utilities/python-apxapi
-python other_scripts/user_mgmnt.py
+/Users/ishekhtman/Git/utilities/python-apxapi/other_scripts/user_mgmnt.py
+
 connect dev ishekhtman@apixio.com
+
 https://accounts-dev.apixio.com/?caller=cmp_dev
 
 Customer Org / Data Set: BTMG 
