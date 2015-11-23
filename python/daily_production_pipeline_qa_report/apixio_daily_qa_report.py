@@ -668,6 +668,8 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
 				WHEN (error_message like '%%ClosedChannelException%%') THEN 'Persist Job error: java.nio.channels.ClosedChannelException'
 				WHEN (error_message like '%%ArrayIndexOutOfBoundsException%%') THEN 'Persist Job error: java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error_message like '%%Filesystem closed%%') THEN 'Persist Job error: java.io.IOException: Filesystem closed'
+				WHEN (error_message like '%%Failed on local exception%%') THEN 'Persist Job error: java.io.IOException: Failed on local exception'
 				ELSE error_message
 			END	as message \
 			FROM %s \
@@ -693,6 +695,8 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%Error while writing to QA directory%%') THEN 'java.io.IOException: Error while writing to QA directory'
 				WHEN (error_message like '%%ClosedChannelException%%') THEN 'Persist Job error: java.nio.channels.ClosedChannelException'
 				WHEN (error_message like '%%ArrayIndexOutOfBoundsException%%') THEN 'Persist Job error: java.lang.ArrayIndexOutOfBoundsException'
+				WHEN (error_message like '%%Filesystem closed%%') THEN 'Persist Job error: java.io.IOException: Filesystem closed'
+				WHEN (error_message like '%%Failed on local exception%%') THEN 'Persist Job error: java.io.IOException: Failed on local exception'
 				ELSE error_message
 			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))
