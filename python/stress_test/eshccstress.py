@@ -920,16 +920,16 @@ def checkEnvironmentandReceivers():
 		UA_URL="https://useraccount-stg.apixio.com:7076"
 			
 	
-	if (len(sys.argv) > 2):
+	
+	RECEIVERS="ishekhtman@apixio.com"
+	RECEIVERS2="ishekhtman@apixio.com"
+	HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+	if (len(sys.argv) > 4):
 		RECEIVERS=str(sys.argv[3])
 		RECEIVERS2=str(sys.argv[4])
-		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
-	elif ((len(sys.argv) < 3) or DEBUG_MODE):
-		RECEIVERS="ishekhtman@apixio.com"
-		RECEIVERS2="abeyk@apixio.com"
-		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
+	elif  (len(sys.argv) == 4):
+		RECEIVERS=str(sys.argv[3])
 				
-	
 	print ("==============================================================================")				
 	print ("* VERSION                               = %s" % VERSION)
 	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
@@ -1063,6 +1063,36 @@ def getOrgName(id):
     else:
     	customerOrgName = id   
     return (customerOrgName)	
+
+#=========================================================================================    
+    
+def confirmSettings():
+	print ("==============================================================================")				
+	print ("* VERSION                               = %s" % VERSION)
+	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
+	print ("* HCC HOST                              = %s" % URL)
+	print ("* HCC DOMAIN                            = %s" % DOMAIN)
+	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+	print ("* USER                                  = %s" % USERNAME)
+	print ("* PASSWORD                              = %s" % PASSWORD)
+	print ("* CSRFTOKEN                             = %s" % TOKEN)
+	print ("* APXTOKEN                              = %s" % APXTOKEN)
+	print ("* SESSID                                = %s" % SESSID)
+	print ("* JSESSIONID                            = %s" % JSESSIONID)
+	print ("* DELAY TIME IS SET TO                  = %s sec" % DELAYTIME)
+	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
+	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % CODE_OPPS_MAX)
+	print ("* OVERALL ACCEPT OPP SETTING            = %s%%" % VAO_W)
+	print ("* OVERALL REJECT OPP SETTING            = %s%%" % VRO_W)
+	print ("* OVERALL SKIP OPP SETTING              = %s%%" % VSO_W)    
+	print ("==============================================================================")
+	user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+	if user_response.upper() == "Q":
+		print "exiting ..."
+		quit()
+	else:
+		print "proceeding ..."	
+	return()    
 
 #=========================================================================================	
 
@@ -1475,6 +1505,9 @@ writeReportHeader()
 
 logInToHCC()
 writeReportDetails("login")
+
+confirmSettings()
+
 
 chooseCodingAction()
 
