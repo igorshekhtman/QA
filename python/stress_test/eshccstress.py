@@ -1329,7 +1329,8 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"codeSystem":opportunity.get("possibleCodes")[0].get("codeSystem") \
 			}, \
 			"provider": "Dr. Grinder", \
-			"dateOfService": finding.get("doc_date"), \
+			#"dateOfService": finding.get("doc_date"), \
+			"dateOfService": str(HARD_CODED_DOS), \
 			"comment": "Grinder Flag for Review" \
 			}}}
 			
@@ -1534,8 +1535,8 @@ confirmSettings()
 chooseCodingAction()
 
 
-for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX)+1)):
-	startCoding()
+#for CODING_OPP_CURRENT in range(1, (int(CODE_OPPS_MAX)+1)):
+startCoding()
 
 writeReportDetails("coding opportunity check")
 writeReportDetails("coding scorable document check")
