@@ -56,7 +56,7 @@ VAO_W=34
 VRO_W=33
 #View and Skip
 VSO_W=33
-CODE_OPPS_MAX=10000
+CODE_OPPS_MAX=10
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0
@@ -79,6 +79,6 @@ QA_REPORT_PAGES_MAX=0
 #### 0 = DO NOT LOG OUT, 1 = LOG OUT
 LOGOUT=1
 ######################################
-DELAYTIME=0
-MAX_NUM_RETRIES=100
+DELAYTIME=2
+MAX_NUM_RETRIES=5
 ######################################

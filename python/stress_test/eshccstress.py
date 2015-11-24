@@ -197,6 +197,10 @@ notfound     = 404
 intserveror  = 500
 servunavail  = 503
 
+STATUS_CODES = {	200: "OK", 201: "CREATED", 202: "ACCEPTED", 204: "NO CONTENT", 301: "MOVED PERM", \
+				302: "REDIRECT", 400: "REQUEST DENIED", 401: "UNAUTHORIZED", 403: "FORBIDDEN", \
+				404: "NOT FOUND", 500: "INT SERVER ERROR", 503: "SERVER UNAVAILABLE" } 
+
 FAILED = 0
 SUCCEEDED = 0
 RETRIED = 0
@@ -249,11 +253,82 @@ def readConfigurationFile(filename):
   	print ("==============================================================================")
   return result
 
-# MAIN FUNCTIONS ####################################################################################################
-   
-  
+################################################################# MAIN FUNCTIONS ############################################
+def obtainExternalToken(un, pw):
+
+	external_token = ""
+	url = UA_URL+'/auths'
+	referer = UA_URL  	
+	#token=$(curl -v --data email=$email --data password="$passw" "http://localhost:8076/auths?int=true" | cut -c11-49)
+	
+	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
+	
+	print ("* USERNAME               = %s" % un)
+	print ("* PASSWORD               = %s" % pw)
+	print ("* URL                    = %s" % url)
+	
+	response = requests.post(url, data=DATA, headers=HEADERS) 
+	statuscode = response.status_code
+	print ("* EXT. TOKEN STATUS CODE = %s" % statuscode)
+	if (statuscode != ok) and (statuscode != created):
+		print ("Failure occured obtaining ext. token: %s, exiting now ..." % STATUS_CODES[statuscode])
+		quit()
+
+	userjson = response.json()
+	if userjson is not None:
+		external_token = userjson.get("token") 
+		print ("* USERNAME               = %s" % un)
+		print ("* PASSWORD               = %s" % pw)
+		print ("* URL                    = %s" % url)
+		print ("* EXTERNAL TOKEN         = %s" % external_token)
+		print ("* RECEIVED STATUS CODE   = %s" % statuscode)
+		print ("****************************************************************************")
+			
+	return (external_token)
+
+#============================================================================================================================  
+def obtainInternalToken(un, pw):
+	global TOKEN, APIXIO_TOKEN
+	
+	print ("----------------------------------------------------------------------------")
+	print (">>> UA / TOKENIZER - OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
+	print ("----------------------------------------------------------------------------")
+	
+	
+	external_token = obtainExternalToken(un, pw)
+	
+	url = TOKEN_URL
+  	referer = TOKEN_URL  				
+  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
+  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	statuscode = response.status_code
+  	print ("* INT. TOKEN STATUS CODE = %s" % statuscode)
+  	if (statuscode != ok) and (statuscode != created):
+		print ("Failure occured obtaining int. token: %s, exiting now ..." % STATUS_CODES[statuscode])
+		quit()
+  	
+  	userjson = response.json()
+  	if userjson is not None:
+  		TOKEN = userjson.get("token")
+  		APIXIO_TOKEN = 'Apixio '+str(TOKEN)
+  	else:
+  		TOKEN = "Not Available"	
+	statuscode = response.status_code	
+	print ("* USERNAME               = %s" % un)
+	print ("* PASSWORD               = %s" % pw)
+	print ("* TOKENIZER URL          = %s" % url)
+	print ("* EXTERNAL TOKEN         = %s" % external_token)
+	print ("* INTERNAL TOKEN         = %s" % TOKEN)
+	print ("* STATUS CODE            = %s" % statuscode)
+
+	return ()
+#============================================================================================================================  
 def logInToHCC(): 
   global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN, JSESSIONID
+  
+  print ("URL1 :" + URL)
   response = requests.get(URL+'/')
   print "* Connect to host    = "+str(response.status_code)
   if response.status_code == 500:
@@ -263,7 +338,7 @@ def logInToHCC():
   # Original - url = referer = URL+'/account/login/?next=/'
   url = URL+'/account/login/'
   referer = URL+'/account/login/'
-  
+  print ("URL2 :" + url)
   response = requests.get(url)
   IncrementTestResultsTotals("login", response.status_code)
   print "* Login page         = "+str(response.status_code)
@@ -271,66 +346,54 @@ def logInToHCC():
   	print "* Connection to host = FAILED QA"
   	logInToHCC()
 #-----------------------------------------------------------------------------------------  	
-  
-  url = "https://hcceng.apixio.com/"
+
+  url = URL+"/"
+  print ("URL3 :" + url)
   response = requests.get(url)
   print "* Login page         = "+str(response.status_code)
   
-  #print response.cookies.list_domains()
-  #print response.cookies.list_paths()
-  #print response.cookies.get_dict()
-  #print response.cookies
-  #print response.status_code
-  #print response.headers
-  #print response.text
-  #print response.json()
-  #quit()
-  
 #-----------------------------------------------------------------------------------------  	
-  
-  
   
   TOKEN = response.cookies["JSESSIONID"]
   SESSID = response.cookies["JSESSIONID"]
   COOKIES = dict(csrftoken=''+TOKEN+'')
   JSESSIONID = response.cookies["JSESSIONID"]
   
+  origin = SSO_URL
+  referer = SSO_URL+"/?caller="+CALLER
+  host = SSO_URL[8:]
+  url = SSO_URL+"/"	
   
-  #url = URL+'/account/login/'
-  #referer = URL+'/account/login/'
-  #host = DOMAIN
-  #origin = URL
-
-  origin = "https://accounts-stg.apixio.com"
-  referer = "https://accounts-stg.apixio.com/?caller=hcc_eng"
-  host = "accounts-stg.apixio.com"
-  url = "https://accounts-stg.apixio.com/"
-  
-  #DATA =    {'csrfmiddlewaretoken': TOKEN, 'username': USERNAME, 'password': PASSWORD } 
-  
-  DATA = {'username': USERNAME, 'password': PASSWORD, 'hash':'', 'caller':'hcc_eng', 'log_ref':'1441056621484', 'origin':'loging' }
-  
-  
+  DATA = {'username': USERNAME, 'password': PASSWORD, 'hash':'', 'caller':CALLER, 'log_ref':'1441056621484', 'origin':'loging' }
+    
   HEADERS = { \
   			'Accept': '*/*', \
   			'Accept-Encoding': 'gzip, deflate', \
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
   			'Content-Length': '1105', \
-			#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
 			'Cookie': 'JSESSIONID='+TOKEN, \
 			'Host': host, \
 			'Origin': origin, \
 			'Referer': referer \
 			}	
-  					
-  response = requests.post(url, data=DATA, headers=HEADERS) 
   
-  #print response.cookies
-  #quit()
+  print ("URL4 :" + url)
+				
+  response = requests.post(url, data=DATA, headers=HEADERS) 
+  print ("* Status Code        = %s" % response.status_code)
+  if response.status_code != ok:
+  	quit()
+  
+
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
-  APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
+  #APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
+  #print APXTOKEN
+  APXTOKEN = obtainExternalToken(USERNAME, PASSWORD)
+  print APXTOKEN
+
+  #quit()
   COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN)
   
   print("* URL                = %s" % url)
@@ -347,6 +410,8 @@ def logInToHCC():
   if response.status_code == 500:
   	print "* Log in user = FAILED QA"
   	logInToHCC()
+
+  return()	
   
 #=========================================================================================  
   
@@ -377,29 +442,13 @@ def startCoding():
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
-  #global model_year, payment_year, hcc, model_run
-  #print("-------------------------------------------------------------------------------")
+
+
   print("-------------------------------------------------------------------------------")
   print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
   print("-------------------------------------------------------------------------------")
-  #print("-------------------------------------------------------------------------------")
-  #coding_opp_current = 1
-  #====================================================
-  # main loop controlling number of OPPS to process
-  #====================================================
   buckets = -1
-  
-  #Host: hcceng.apixio.com
-  #Connection: keep-alive
-  #Accept: application/json, text/plain, */*
-  #X-REQUESTED-WITH: XMLHttpRequest
-  #User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36
-  #Referer: https://hcceng.apixio.com/
-  #Accept-Encoding: gzip, deflate, sdch
-  #Accept-Language: en-US,en;q=0.8
-  #Cookie: SS_MID=93555fab-4853-4a24-ab6f-eedb8cac1c0diar9bgxa; ss_cid=396c3902-defc-4e80-aba1-dd22809d28cf; ApxToken=TA_3d87c4ea-7299-492f-b175-019a61f51ee4; csrftoken=iPt7GVUjjLjTRxe4V6Yg7qQrdoc9B6ml; sessionid=nel0hbg9qx663qbdfk04o2x2lrxqugdm
-  
-  
+    
   print("* URL                = %s/api/next-work-item/" % URL)
   print("* csrftoken          = %s" % TOKEN)
   print("* ApxToken           = %s" % APXTOKEN)
@@ -495,14 +544,7 @@ def startCoding():
     print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
     TOTAL_OPPS_SERVED = coding_opp_current   
     
-    #if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
-    #	buckets += 1
-   # 	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
-   # 	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
-   # 	for hcc in TEMP_HCC:
-    #		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
-    #	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
-    	
+   	
 
     test_counter = 0
     doc_no_current = 0
@@ -884,7 +926,8 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global ENERGY_RTR_URL, DOMAIN, URL, USERNAME, PASSWORD, TOKEN_URL, UA_URL
+	global ENERGY_RTR_URL, DOMAIN, URL, USERNAME, PASSWORD, TOKEN_URL, UA_URL, SSO_URL
+	global CALLER
 	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
 	print ("\nSetting environment ...")
 	if len(sys.argv) < 2:
@@ -892,28 +935,43 @@ def checkEnvironmentandReceivers():
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 
-	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
+	if (ENVIRONMENT[:1].upper() == "P"): ###### PRODUCTION #########
 		ENVIRONMENT = "production"
 		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
 		UA_URL="https://useraccount-stg.apixio.com:7076"
-	elif (ENVIRONMENT.upper() == "ENGINEERING"):
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
+	elif (ENVIRONMENT[:1].upper() == "E"): ######### ENGINEERING ##############
 		ENVIRONMENT = "engineering"
 		DOMAIN="hcceng.apixio.com"
 		URL="https://hcceng.apixio.com"
-		#USERNAME="protestqa1@apixio.net"
 		USERNAME=sys.argv[2]
 		PASSWORD="apixio.123"
 		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
 		UA_URL="https://useraccount-stg.apixio.com:7076"
-	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
+		SSO_URL="https://accounts-stg.apixio.com"
+		CALLER="hcc_eng"
+	elif (ENVIRONMENT[:1].upper() == "D"):   ######## DEVELOPMENT ###########
+		ENVIRONMENT = "development"
+		DOMAIN="hccdev.apixio.com"
+		URL="https://hccdev.apixio.com"
+		USERNAME=sys.argv[2]
+		PASSWORD="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-dev.apixio.com:7076"
+		SSO_URL="https://accounts-dev.apixio.com"
+		CALLER="hcc_dev"	
+	elif (ENVIRONMENT[:1].upper() == "S"):   ######### STAGING ##############
+		ENVIRONMENT = "staging"
+		DOMAIN="hcceng.apixio.com"
+		URL="https://hcceng.apixio.com"
+		USERNAME=sys.argv[2]
+		PASSWORD="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"		
+	else:                               ######### STAGING ##############
 		ENVIRONMENT = "staging"
 		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
@@ -938,7 +996,7 @@ def checkEnvironmentandReceivers():
 	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
 	print ("* USER                                  = %s" % USERNAME)
 	print ("* PASSWORD                              = %s" % PASSWORD)
-	print ("* MAXIMUM NUMBER OF RETRIES              = %s" % MAX_NUM_RETRIES)
+	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
 	print ("==============================================================================")
 	print ("Completed setting enviroment ...\n")	
 
@@ -1000,51 +1058,14 @@ def writeReportFooter():
 	REPORT = REPORT+"</table>"
 	REPORT = REPORT+"</td></tr></table>"
 	print ("Finished writing report ...\n")
-
-#=========================================================================================
-
-def obtainExternalToken(un, pw, exp_statuscode, tc, step):
-
-	external_token = ""
-	url = AUTHHOST+"/auths"
-	referer = AUTHHOST  	
-
-	DATA =    {'Referer': referer, 'email': AUTH_EMAIL, 'password': AUTH_PASSW} 
-	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
-	response = requests.post(url, data=DATA, headers=HEADERS) 
-	statuscode = response.status_code
-
-	userjson = response.json()
-	if userjson is not None:
-		external_token = userjson.get("token") 
-			
-	return (external_token)
 	
-#=========================================================================================
-
-def obtainInternalToken(un, pw, exp_statuscode, tc, step):
-	global ORG_TOKEN
-
-	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
-	url = TOKEHOST+"/tokens"
-  	referer = TOKEHOST 				
-  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
-  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-  	userjson = response.json()
-  	if userjson is not None:
-  		ORG_TOKEN = userjson.get("token")
-  	else:
-  		ORG_TOKEN = "Not Available"	
-	statuscode = response.status_code	
-
 #=========================================================================================
 
 def getOrgName(id):
     # TODO: hit a customer endpoint on the user account service for the customer org name
     # If orgName is not retrievable for any reason, return orgID
     
-    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW, {ok, created}, 0, 0)
+    obtainInternalToken(AUTH_EMAIL, AUTH_PASSW)
     
     idString = str(id)
     blankUUID = 'O_00000000-0000-0000-0000-000000000000'
@@ -1072,7 +1093,8 @@ def confirmSettings():
 	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
 	print ("* HCC HOST                              = %s" % URL)
 	print ("* HCC DOMAIN                            = %s" % DOMAIN)
-	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+	print ("* REPORT RECEIVER - 1                   = %s" % RECEIVERS)
+	print ("* REPORT RECEIVER - 2                   = %s" % RECEIVERS2)
 	print ("* USER                                  = %s" % USERNAME)
 	print ("* PASSWORD                              = %s" % PASSWORD)
 	print ("* CSRFTOKEN                             = %s" % TOKEN)
@@ -1080,8 +1102,8 @@ def confirmSettings():
 	print ("* SESSID                                = %s" % SESSID)
 	print ("* JSESSIONID                            = %s" % JSESSIONID)
 	print ("* DELAY TIME IS SET TO                  = %s sec" % DELAYTIME)
-	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
-	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % CODE_OPPS_MAX)
+	print ("* MAX NUMBER OF RETRIES                 = %s" % MAX_NUM_RETRIES)
+	print ("* MAX NUMBER OF OPPS TO PROCESS         = %s" % CODE_OPPS_MAX)
 	print ("* OVERALL ACCEPT OPP SETTING            = %s%%" % VAO_W)
 	print ("* OVERALL REJECT OPP SETTING            = %s%%" % VRO_W)
 	print ("* OVERALL SKIP OPP SETTING              = %s%%" % VSO_W)    
