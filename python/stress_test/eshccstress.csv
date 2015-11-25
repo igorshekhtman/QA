@@ -51,11 +51,11 @@ RANDOM_OPPS_ACTION=1
 #View Only
 VOO_W=0
 #View and Accept
-VAO_W=100
+VAO_W=34
 #View and Reject
-VRO_W=0
+VRO_W=33
 #View and Skip
-VSO_W=0
+VSO_W=33
 ######################################
 #### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
 VIEW_HISTORY=0
@@ -80,6 +80,6 @@ LOGOUT=1
 ######################################
 DELAYTIME=2
 MAX_NUM_RETRIES=5
-CODE_OPPS_MAX=49
+CODE_OPPS_MAX=10
 HARD_CODED_DOS=04/04/2014
 ######################################

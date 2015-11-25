@@ -1239,8 +1239,14 @@ def log(text):
 
 def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max):
   global CODE_OPPS_ACTION
-  global TOKEN, SESSID, COOKIES
-
+  global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
+  global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
+  
+  hcc = opportunity.get("code").get("hcc")
+  label_set_version = opportunity.get("code").get("labelSetVersion")
+  sweep = opportunity.get("code").get("sweep")
+  model_payment_year = opportunity.get("code").get("modelPaymentYear")
+  
   HEADERS = { \
   		'Accept': 'application/json, text/plain, */*', \
   		'Accept-Encoding': 'gzip, deflate', \
@@ -1248,21 +1254,19 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
   		'Connection': 'keep-alive', \
     	'Content-Type': 'application/json', \
     	'Referer': URL+'/', \
-    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
+    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
     	'X-CSRFToken': TOKEN \
     	}	
-    	
- 	 	   	    	  
-  if CODE_OPPS_ACTION == "0": #=== DO NOT ACCEPT OR REJECT, JUST VIEW ====================
+
+  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
+    print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
     print("* CODER ACTION     = Do NOT Accept or Reject Doc")
     IncrementTestResultsTotals("coding view only", 200)
   elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
-    #finding_id = finding.get("id")
-    print("* CODER ACTION     = Accept Doc")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
-
-			
     DATA = { \
 			"opportunity": \
 			{ \
@@ -1275,7 +1279,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient": \
 			{ \
@@ -1330,35 +1334,22 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			}, \
 			"provider": "Dr. Grinder", \
 			#"dateOfService": finding.get("doc_date"), \
-			"dateOfService": str(HARD_CODED_DOS), \
+			"dateOfService": HARD_CODED_DOS, \
 			"comment": "Grinder Flag for Review" \
 			}}}
-			
-			
+    print "* ANNO URL         = %s"%(URL+ "/api/annotate/")       			
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
-    if response.status_code == ok:
-    	print "* ANNOTATE FINDING = %s" % response.status_code
-    else:
-    	print("\n")
-    	print("-------------------------------------------------------------------------------")
-    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
-    	print("-------------------------------------------------------------------------------")
-    	print("\n")
-    	#quit()
-    	
+    print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
-    if response.status_code == ok:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = %s" % response.status_code)
+    if response.status_code == 200:
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
-      
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "2": #================================== REJECT DOC ===========
-    #finding_id = finding.get("id")
-    print("* CODER ACTION     = Reject Doc")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
-
-			
     DATA = { \
 			"opportunity": \
 			{ \
@@ -1371,7 +1362,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient": \
 			{ \
@@ -1413,33 +1404,19 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"result": "reject", \
 			"rejectReason": "This document does not mention this HCC for the patient", \
 			"comment": "Grinder Flag for Review Comment" \
-			}}}						
-			
-
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
-    
-    if response.status_code == ok:
-    	print "* ANNOTATE FINDING = %s" % response.status_code
-    else:
-    	print("\n")
-    	print("-------------------------------------------------------------------------------")
-    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
-    	print("-------------------------------------------------------------------------------")
-    	print("\n")
-    	#quit()
-    
-    
+			}}}	
+    print "* ANNO URL         = %s"%(URL+ "/api/annotate/") 								
+    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
-    if response.status_code == ok:
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = %s" % response.status_code)
+    if response.status_code == 200:
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
   elif CODE_OPPS_ACTION == "3": #=========================== SKIP OPP ====================
-    #finding_id = finding.get("id")
-    print("* CODER ACTION     = Skip Doc")
+    #finding_id = scorable.get("id")
     print "* FINDING ID       = %s" % finding_id
-    
     DATA = { \
 			"opportunity": \
 			{ \
@@ -1452,7 +1429,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"description": opportunity.get("code").get("description"), \
 			"modelPaymentYear": opportunity.get("code").get("modelPaymentYear"), \
 			"sweep": opportunity.get("code").get("sweep"), \
-			"hcc": opportunity.get("code").get("labelSetVersion") \
+			"hcc": opportunity.get("code").get("hcc") \
 			}, \
 			"patient":{ \
 			"first_name": opportunity.get("patient").get("first_name"), \
@@ -1491,25 +1468,16 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"changed":True, \
 			"flaggedForReview":False, \
 			"result":"skipped" \
-			}}}			
-   
-
+			}}}	
+    print "* ANNO URL         = %s"%(URL+ "/api/annotate/") 					
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
-    if response.status_code == ok:
-    	print "* ANNOTATE FINDING = %s" % response.status_code
-    else:
-    	print("\n")
-    	print("-------------------------------------------------------------------------------")
-    	print("* ANNOTATE FINDING = %s >>>>>>>>> !!! FAILURE OCCURED !!! <<<<<<<<<<" % response.status_code)
-    	print("-------------------------------------------------------------------------------")
-    	print("\n")
-    	#quit()
     IncrementTestResultsTotals("coding view and skip", response.status_code)
-    if response.status_code == ok:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = %s" % response.status_code)
+    if response.status_code == 200:
+      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
     else:
       print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, scorable, testname, doc_no_current, doc_no_max)
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
   else:
     print("* CODER ACTION     = Unknown\n")
   return 0
