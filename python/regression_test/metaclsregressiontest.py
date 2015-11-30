@@ -159,6 +159,7 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #=== CODING ORG MAP: ORG_NAME - ORG_UUID =================================================
 #=========================================================================================
@@ -297,7 +298,7 @@ def printGlobalParamaterSettings():
 	print ("\n")
 	print ("* Version                = %s"%VERSION)
 	print ("* Environment            = %s"%ENVIRONMENT)
-	print ("* ACL URL                = %s"%ACL_URL)
+	print ("* ACL URL                = %s"%UA_URL)
 	print ("* HCC URL                = %s"%HCC_URL)
 	print ("* ACL Admin User Name    = %s"%ACLUSERNAME)
 	print ("* Coding Organization    = %s"%CODING_ORGANIZATION)
@@ -369,6 +370,9 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global HCC_DOMAIN, HCC_URL, HCC_PASSWORD, PROTOCOL, ACLUSERNAME, ACLPASSWORD
+	global ACL_DOMAIN, UA_URL, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
+	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -376,30 +380,63 @@ def checkEnvironmentandReceivers():
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 
-	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
+	if (ENVIRONMENT[:1].upper() == "P"): ###### PRODUCTION #########
 		ENVIRONMENT = "production"
 		ACL_DOMAIN="acladmin.apixio.com"
-		ACL_URL="https://acladmin.apixio.com"
+		UA_URL="https://acladmin.apixio.com"
 		HCC_DOMAIN="hcc.apixio.com"
 		HCC_URL="https://hcc.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="root@api.apixio.com"
 		ACLPASSWORD="thePassword"
-	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
+	elif (ENVIRONMENT[:1].upper() == "E"): ######### ENGINEERING ##############
+		ENVIRONMENT = "engineering"
+		HCC_DOMAIN="hcceng.apixio.com"
+		HCC_URL="https://hcceng.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD=ADMIN_PW
+		ACL_DOMAIN="acladmin-eng.apixio.com"
+		UA_URL="https://accounts-eng.apixio.com:7076"
+		HCC_USERNAME_PREFIX="sanityUSR"
+		HCC_USERNAME_POSTFIX="@apixio.net"
+	elif (ENVIRONMENT[:1].upper() == "D"):   ######## DEVELOPMENT ###########
+		ENVIRONMENT = "development"
+		HCC_DOMAIN="hccdev.apixio.com"
+		HCC_URL="https://hccdev.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD="apixio.321"
+		HCC_USERNAME_PREFIX="sanityUSR"
+		HCC_USERNAME_POSTFIX="@apixio.net"
+		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-dev.apixio.com:7076"
+		SSO_URL="https://accounts-dev.apixio.com"
+		CALLER="hcc_dev"
+		ADMIN_PW="apixio.321"
+	elif (ENVIRONMENT[:1].upper() == "S"):   ######### STAGING ##############	
 		ENVIRONMENT = "staging"
 		ACL_DOMAIN="acladmin-stg.apixio.com"
-		ACL_URL="https://acladmin-stg.apixio.com"
+		UA_URL="https://acladmin-stg.apixio.com"
 		HCC_DOMAIN="hccstage2.apixio.com"
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
+		ACLPASSWORD=ADMIN_PW
+	else: ######### STAGING ##############
+		ENVIRONMENT = "staging"
+		ACL_DOMAIN="acladmin-stg.apixio.com"
+		UA_URL="https://acladmin-stg.apixio.com"
+		HCC_DOMAIN="hccstage2.apixio.com"
+		HCC_URL="https://hccstage2.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD=ADMIN_PW
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -428,7 +465,7 @@ def writeReportHeader ():
 	REPORT = REPORT + "Run date & time: <b>%s</b><br>\n" % (CUR_TIME)
 	REPORT = REPORT + "Report type: <b>%s</b><br>\n" % (REPORT_TYPE)
 	REPORT = REPORT + "ACL Root user name: <b>%s</b><br>\n" % (ACLUSERNAME)
-	REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (ACL_URL)	
+	REPORT = REPORT + "ACL app url: <b>%s</b><br>\n" % (UA_URL)	
 	REPORT = REPORT + "Enviromnent: <b><font color='red'>%s%s</font></b><br>" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
 	REPORT = REPORT + "<table align='left' width='800' cellpadding='1' cellspacing='0'>"
 	#REPORT = REPORT + "<tr><td>"	
@@ -580,24 +617,18 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 #=========================================================================================	
 def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 
-	#print ("\n----------------------------------------------------------------------------")
-	#print (">>> ACL - OBTAIN EXTERNAL TOKEN <<<")
-	#print ("----------------------------------------------------------------------------")
-
-	#8076
-	#7076
-	external_token = ""
-	#ACLUSERNAME="lschneider@apixio.com"
-	#ACLPASSWORD="ritiyi6!"
-	url = ACL_URL+'/auths'
-	#url = 'https://useraccount-stg.apixio.com:7076/auths'
-	referer = ACL_URL  	
-	#token=$(curl -v --data email=$email --data password="$passw" "http://localhost:8076/auths?int=true" | cut -c11-49)
-	
+	external_token = "" 	
+	url = UA_URL+'/auths'
+	referer = UA_URL 
+		
 	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
 	
 	response = requests.post(url, data=DATA, headers=HEADERS) 
+	if (response.status_code != ok) and (response.status_code != created):
+		print response.status_code
+		print "failed to obtain external token, exiting ..."
+		#quit()
 
 	statuscode = response.status_code
 
@@ -623,13 +654,18 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 	
 	
-	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
   	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	if (response.status_code != ok) and (response.status_code != created):
+  		print response.status_code
+		print "failed to obtain internal token, exiting ..."
+		#quit()
+  	
+  	
   	userjson = response.json()
   	if userjson is not None:
   		TOKEN = userjson.get("token")
@@ -654,8 +690,8 @@ def addACLOperation(name, description, exp_statuscode, tc, step):
 	print (">>> ACL - ADD ACL OPERATION <<<")
 	print ("----------------------------------------------------------------------------")
 	
-	url = ACL_URL+'/aclop'
-  	referer = ACL_URL 	
+	url = UA_URL+'/aclop'
+  	referer = UA_URL 	
   	#print "Internal Token     = %s" % TOKEN
   	apixio_token='Apixio '+str(TOKEN)
   	#print "Apixio token       = %s" % apixio_token		
@@ -688,10 +724,10 @@ def getListOfUserGroups(param, grp_name, exp_statuscode, tc, step):
 
 	group_list = ""
 	if param == "type=System:Role":
-		url = ACL_URL+'/groups?'+param
+		url = UA_URL+'/groups?'+param
 	else:	
-		url = ACL_URL+'/groups'+param
-  	referer = ACL_URL 
+		url = UA_URL+'/groups'+param
+  	referer = UA_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
   	#DATA =    {'Referer': referer, 'Authorization': apixio_token} 
   	DATA = {'Authorization': apixio_token}
@@ -738,9 +774,9 @@ def getUserRole(userID, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 
 	user_name = ""
-	#url = ACL_URL+'/users/'+userID+'/firstName'
-	url = ACL_URL+'/users/'+userID
-  	referer = ACL_URL 
+	#url = UA_URL+'/users/'+userID+'/firstName'
+	url = UA_URL+'/users/'+userID
+  	referer = UA_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
   	DATA = {'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
@@ -787,8 +823,8 @@ def getListOfGroupMembers(groupID, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 
 	group_member_list = ""
-	url = ACL_URL+'/groups/'+groupID+'/members'
-  	referer = ACL_URL 
+	url = UA_URL+'/groups/'+groupID+'/members'
+  	referer = UA_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
   	DATA = {'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
@@ -825,8 +861,8 @@ def getSetDeletePermissions(subject_uuid, op_name, customer, method, exp_statusc
 
 	perm_status = ""
 	
-	url = ACL_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
-  	referer = ACL_URL 
+	url = UA_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
+  	referer = UA_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
   	DATA = {'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
@@ -865,8 +901,8 @@ def addAndDeleteGrants(subject_uuid, op_name, method, type_sub, type_value_sub, 
 	grant_status = ""
 	SUBJECT = {"type": "All"}
   	OBJECT = {"type": "All"}	
-	url = ACL_URL+'/grants/'+subject_uuid+'/'+op_name
-  	referer = ACL_URL
+	url = UA_URL+'/grants/'+subject_uuid+'/'+op_name
+  	referer = UA_URL
   	apixio_token="Apixio "+str(TOKEN)
   	if type_sub == "All":
   		SUBJECT = {"type": "All"}
@@ -916,8 +952,9 @@ def addAndDeleteGrants(subject_uuid, op_name, method, type_sub, type_value_sub, 
 # This function is used for cleanUp() routine purposes only	
 def removePermission(subject_uuid, op_name, customer):
 
-	url = ACL_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
-  	referer = ACL_URL 
+  	url = UA_URL+'/perms/'+subject_uuid+'/'+op_name+'/'+customer
+  	referer = UA_URL
+  	  	
   	apixio_token='Apixio '+str(TOKEN) 				
   	DATA = {'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
@@ -933,8 +970,8 @@ def removePermission(subject_uuid, op_name, customer):
 def removeGrants(subject_uuid, op_name):
 	SUBJECT = {"type": "All"}
   	OBJECT = {"type": "All"}
-  	url = ACL_URL+'/grants/'+subject_uuid+'/'+op_name
-  	referer = ACL_URL
+  	url = UA_URL+'/grants/'+subject_uuid+'/'+op_name
+  	referer = UA_URL
   	apixio_token="Apixio "+str(TOKEN)	
 	DATA = {"subject": SUBJECT, "object": OBJECT}
   	HEADERS = {"Content-Type": "application/json", "Authorization": apixio_token}
@@ -969,8 +1006,8 @@ def removeGrants(subject_uuid, op_name):
 #=========================================================================================
 
 def userOrg(method, op, name, entityID, orgID, userID, detail):
-	url = ACL_URL+'/uorgs/'+op
-  	referer = ACL_URL 
+	url = UA_URL+'/uorgs/'+op
+  	referer = UA_URL 
   	apixio_token='Apixio '+str(TOKEN) 				
   	DATA = {'Authorization': apixio_token}
   	HEADERS = {'Authorization': apixio_token}
@@ -999,7 +1036,7 @@ def cleanUp():
 
 	acl_operation = ACL_OPERATION
 	# log-in as a Root-User
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 0, 0)
 	
 	removePermission(BROOKE_UUID, acl_operation, "Scripps")
 	removePermission(BROOKE_UUID, acl_operation, CHMC_UUID)
@@ -1108,7 +1145,7 @@ def testCase1():
 	acl_operation = ACL_OPERATION
 	
 	# Login as Eric (NON-ROOT user)
-	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 1, 2)
+	obtainInternalToken(ERIC_EMAIL, ADMIN_PW, {ok, created}, 1, 2)
 	addACLOperation(acl_operation, "Can Test Things",  {forbidden}, 1, 3)
 	getListOfUserGroups("type=System:Role", "ROOT Users", {forbidden}, 1, 4)
 	getUserRole(GARTH_UUID, {notfound}, 1, 5)
@@ -1122,7 +1159,7 @@ def testCase1():
 	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {forbidden}, 1, 11)
 	
 	# Login as Igor (ROOT user)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 1, 12)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 1, 12)
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 1, 13)
 	getListOfUserGroups("type=System:Role", "ROOT Users", {ok}, 1, 14)
 	getUserRole(GARTH_UUID, {ok}, 1, 15)
@@ -1151,7 +1188,7 @@ def testCase2():
 
 
 	# Login as a ROOT user
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 2, 2)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 2, 2)
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 2, 3)
 	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {ok}, 2, 4)
@@ -1195,7 +1232,7 @@ def testCase3():
 		raw_input("Press Enter to continue...")	
 	
 	# Login as a NON-ROOT user
-	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 3, 1)
+	obtainInternalToken(ERIC_EMAIL, ADMIN_PW, {ok, created}, 3, 1)
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {forbidden}, 3, 2)
 	getSetDeletePermissions(GARTH_UUID, acl_operation, "Scripps", "PUT", {forbidden}, 3, 3)
@@ -1240,14 +1277,14 @@ def testCase4():
 		raw_input("Press Enter to continue...")	
 		
 	# Login as ROOT and give permissions to Eric and CodeBusters 
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 4, 1)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 4, 1)	
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 4, 2)
 	addAndDeleteGrants(ERIC_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 4, 3)
 	addAndDeleteGrants(CODEBUSTERS_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID], {ok}, 4, 4)
 
 	# LogIn as Eric	
-	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 4, 5)
+	obtainInternalToken(ERIC_EMAIL, ADMIN_PW, {ok, created}, 4, 5)
 	getSetDeletePermissions(BROOKE_UUID, acl_operation, SCRIPPS_UUID, "PUT", {ok}, 4, 6)
 	getSetDeletePermissions(BROOKE_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, 4, 7)
 	addAndDeleteGrants(GARTH_UUID, acl_operation, "PUT", "Set", [CHMC_UUID], "Set", [CHMC_UUID], {forbidden}, 4, 8)
@@ -1266,13 +1303,13 @@ def testCase5():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	# Login as ROOT and give permissions to Eric and CodeBusters 
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 5, 1)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 5, 1)
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 5, 2)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, "Scripps", "DELETE", {ok}, 5, 3)
 	
 	# Login as Eric - non Root user 
-	obtainInternalToken(ERIC_EMAIL, "apixio.123", {ok, created}, 5, 4)
+	obtainInternalToken(ERIC_EMAIL, ADMIN_PW, {ok, created}, 5, 4)
 	getSetDeletePermissions(KIM_UUID, acl_operation, "CHMC", "PUT", {forbidden}, 5, 5)
 	REPORT = REPORT+"</table>"		
 #========================================================================================================
@@ -1296,24 +1333,26 @@ def testCase6():
 		raw_input("Press Enter to continue...")		
 	
 	# Login as ROOT (Igor)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 6, 1)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 6, 1)
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, 6, 2)
 	addAndDeleteGrants(KIM_UUID, acl_operation, "PUT", "All", "", "Set", [CHMC_UUID], {ok}, 6, 3)
 	
 	# Login as Kim - non Root user 
-	obtainInternalToken(KIM_EMAIL, "apixio.123", {ok, created}, 6, 4)
+	#obtainInternalToken(KIM_EMAIL, ADMIN_PW, {ok, created}, 6, 4)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 6, 4)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, 6, 5)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {ok}, 6, 6)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "GET", {forbidden}, 6, 7)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, 6, 8)
 	
 	# Login as ROOT (Igor)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 6, 9)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 6, 9)	
 	addAndDeleteGrants(KIM_UUID, acl_operation, "DELETE", "All", "", "Set", [CHMC_UUID], {ok}, 6, 10)
 	
 	# Login as Kim - non Root user 
-	obtainInternalToken(KIM_EMAIL, "apixio.123", {ok, created}, 6, 11)
+	#obtainInternalToken(KIM_EMAIL, ADMIN_PW, {ok, created}, 6, 11)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 6, 11)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "GET", {ok}, 6, 12)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, 6, 13)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "DELETE", {forbidden}, 6, 14)
@@ -1332,13 +1371,14 @@ def testCase7():
 		raw_input("Press Enter to continue...")		
 	
 	# Login as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 1)	
 	acl_operation = ACL_OPERATION
 	addACLOperation(acl_operation, "Can Test Things",  {requestdenied}, tc, 2)
 	addAndDeleteGrants(BROOKE_UUID, acl_operation, "PUT", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, tc, 3)
 		
 	# Log in as Brooke (Non-root)
-	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, tc, 4)	
+	#obtainInternalToken(BROOKE_EMAIL, ADMIN_PW, {ok, created}, tc, 4)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 4)	
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {ok}, tc, 5)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {ok}, tc, 6)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {ok}, tc, 7)
@@ -1347,11 +1387,12 @@ def testCase7():
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, tc, 10)
 	
 	# Log in as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 11)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 11)	
 	addAndDeleteGrants(BROOKE_UUID, acl_operation, "DELETE", "All", "", "Set", [SCRIPPS_UUID, CHMC_UUID], {ok}, tc, 12)
 		
 	# Log in as Brooke (Non-root)
-	obtainInternalToken(BROOKE_EMAIL, "apixio.123", {ok, created}, tc, 13)
+	#obtainInternalToken(BROOKE_EMAIL, ADMIN_PW, {ok, created}, tc, 13)
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 13)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "PUT", {forbidden}, tc, 14)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, CHMC_UUID, "PUT", {forbidden}, tc, 15)
 	getSetDeletePermissions(ERIC_UUID, acl_operation, SCRIPPS_UUID, "GET", {forbidden}, tc, 16)
@@ -1374,7 +1415,7 @@ def testCase8():
 		raw_input("Press Enter to continue...")		
 	
 	# Login as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 1)	
 	acl_operation = ACL_OPERATION
 	
 	REPORT = REPORT+"</table>"		
@@ -1410,7 +1451,7 @@ def testCase9():
 		raw_input("Press Enter to continue...")		
 	
 	# Login as Igor (Root)
-	obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, tc, 1)	
+	obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, tc, 1)	
 	acl_operation = ACL_OPERATION
 	
 	#Creates a new UserOrg entity
