@@ -1135,9 +1135,6 @@ def archiveReport():
 		REPORTFILENAME=str(CURDAY)+".html"
 		REPORTXTSTRING="HCC Stress "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+str(YEAR)+"\t"+"reports/"+ENVIRONMENT+"/hccstress/"+str(YEAR)+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="hcc_stress_reports_"+ENVIRONMENT.lower()+".txt"
-		# Old location 
-		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-		# New location 
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
@@ -1536,6 +1533,6 @@ printResultsSummary()
 
 writeReportFooter()
 
-archiveReport()
+#archiveReport()
 
 emailReport()
