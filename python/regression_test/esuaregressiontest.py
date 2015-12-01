@@ -113,7 +113,7 @@ def printGlobalParamaterSettings():
 	print ("\n")
 	print ("* Environment            = %s" % ENVIRONMENT)
 	print ("* UA URL                 = %s" % UA_URL)
-	print ("* UA Admin User Name     = %s" % ACLUSERNAME)
+	print ("* UA Admin User Name     = %s" % ADMIN_USR)
 	return ()
 #=========================================================================================
 def checkEnvironmentandReceivers():
@@ -124,7 +124,7 @@ def checkEnvironmentandReceivers():
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
 	global HCC_DOMAIN, HCC_URL, HCC_PASSWORD, PROTOCOL, ACLUSERNAME, ACLPASSWORD
 	global ACL_DOMAIN, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
-	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW
+	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW, ADMIN_USR
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -142,34 +142,30 @@ def checkEnvironmentandReceivers():
 		PROTOCOL="https://"
 		ACLUSERNAME="root@api.apixio.com"
 		ACLPASSWORD="thePassword"
+		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
 	elif (ENVIRONMENT[:1].upper() == "E"): ######### ENGINEERING ##############
 		ENVIRONMENT = "engineering"
-		HCC_DOMAIN="hcceng.apixio.com"
-		HCC_URL="https://hcceng.apixio.com"
-		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD=ADMIN_PW
-		ACL_DOMAIN="acladmin-eng.apixio.com"
-		UA_URL="https://accounts-eng.apixio.com:7076"
 		HCC_USERNAME_PREFIX="sanityUSR"
 		HCC_USERNAME_POSTFIX="@apixio.net"
 		ADMIN_PW="apixio.321"
+		TOKEN_URL="https://tokenizer-eng.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-eng.apixio.com:7076"
+		SSO_URL="https://accounts-eng.apixio.com"
+		CALLER="hcc_eng"
+		ADMIN_USR="ishekhtman@apixio.com"
+		ADMIN_PW="apixio.321"
 	elif (ENVIRONMENT[:1].upper() == "D"):   ######## DEVELOPMENT ###########
 		ENVIRONMENT = "development"
-		HCC_DOMAIN="hccdev.apixio.com"
-		HCC_URL="https://hccdev.apixio.com"
-		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.321"
 		HCC_USERNAME_PREFIX="sanityUSR"
 		HCC_USERNAME_POSTFIX="@apixio.net"
 		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
 		UA_URL="https://useraccount-dev.apixio.com:7076"
 		SSO_URL="https://accounts-dev.apixio.com"
 		CALLER="hcc_dev"
+		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
 	elif (ENVIRONMENT[:1].upper() == "S"):   ######### STAGING ##############	
 		ENVIRONMENT = "staging"
@@ -179,8 +175,7 @@ def checkEnvironmentandReceivers():
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD=ADMIN_PW
+		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
 	else: ######### STAGING ##############
 		ENVIRONMENT = "staging"
@@ -190,8 +185,7 @@ def checkEnvironmentandReceivers():
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
-		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD=ADMIN_PW
+		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
 	
 	if (len(sys.argv) > 2):
@@ -392,8 +386,8 @@ def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 	userjson = response.json()
 	if userjson is not None:
 		external_token = userjson.get("token") 
-		print ("* ACL USERNAME           = %s" % un)
-		print ("* ACL PASSWORD           = %s" % pw)
+		print ("* USERNAME               = %s" % un)
+		print ("* PASSWORD               = %s" % pw)
 		print ("* URL                    = %s" % url)
 		print ("* EXTERNAL TOKEN         = %s" % external_token)
 		print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
@@ -406,7 +400,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	global TOKEN, APIXIO_TOKEN
 	
 	print ("----------------------------------------------------------------------------")
-	print (">>> ACL - OBTAIN EXTERNAL AND EXCHANGE FOR INTERNAL TOKEN <<<")
+	print ("* OBTAIN EXTERNAL AND INTERNAL TOKENS")
 	print ("----------------------------------------------------------------------------")
 	
 	
@@ -450,25 +444,6 @@ def testCase1():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 	
-	
-	i = 0
-	for ptype in ptypes:
-		createCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", ptype, {ok}, tc, i+1)
-		viewCustomPropertyDefinition("uorgs", {ok}, tc, i+2)
-		
-		deleteCustomPropertyDefinition("uorgs", "testprop_"+str(i)+"", {ok}, tc, i+3)
-		viewCustomPropertyDefinition("uorgs", {ok}, tc, i+4)
-		
-		createCustomPropertyDefinition("users", "testprop_"+str(i)+"", ptype, {ok}, tc, i+5)
-		viewCustomPropertyDefinition("users", {ok}, tc, i+6)
-		
-		deleteCustomPropertyDefinition("users", "testprop_"+str(i)+"", {ok}, tc, i+7)
-		viewCustomPropertyDefinition("users", {ok}, tc, i+8)		
-		
-		createCustomPropertyDefinition("customer", "testprop_"+str(i)+"", ptype, {requestdenied}, tc, i+9)
-		viewCustomPropertyDefinition("customer", {ok}, tc, i+10)
-		
-		i += 10
 	
 	REPORT = REPORT+"</td></tr></table>"
 	return()		
