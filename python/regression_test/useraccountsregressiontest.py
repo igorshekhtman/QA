@@ -79,6 +79,7 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #============= Initialization of the UserAccountsConfig file =============================
 #=========================================================================================
@@ -251,6 +252,9 @@ def checkEnvironmentandReceivers():
 	# Arg2 - report recepient
 	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
+	global HCC_DOMAIN, HCC_URL, HCC_PASSWORD, PROTOCOL, ACLUSERNAME, ACLPASSWORD
+	global ACL_DOMAIN, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
+	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
@@ -258,9 +262,7 @@ def checkEnvironmentandReceivers():
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 
-	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
+	if (ENVIRONMENT[:1].upper() == "P"): ###### PRODUCTION #########
 		ENVIRONMENT = "production"
 		ACL_DOMAIN="acladmin.apixio.com"
 		UA_URL="https://acladmin.apixio.com"
@@ -270,9 +272,36 @@ def checkEnvironmentandReceivers():
 		PROTOCOL="https://"
 		ACLUSERNAME="root@api.apixio.com"
 		ACLPASSWORD="thePassword"
-	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
+		ADMIN_PW="apixio.321"
+	elif (ENVIRONMENT[:1].upper() == "E"): ######### ENGINEERING ##############
+		ENVIRONMENT = "engineering"
+		HCC_DOMAIN="hcceng.apixio.com"
+		HCC_URL="https://hcceng.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD=ADMIN_PW
+		ACL_DOMAIN="acladmin-eng.apixio.com"
+		UA_URL="https://accounts-eng.apixio.com:7076"
+		HCC_USERNAME_PREFIX="sanityUSR"
+		HCC_USERNAME_POSTFIX="@apixio.net"
+		ADMIN_PW="apixio.321"
+	elif (ENVIRONMENT[:1].upper() == "D"):   ######## DEVELOPMENT ###########
+		ENVIRONMENT = "development"
+		HCC_DOMAIN="hccdev.apixio.com"
+		HCC_URL="https://hccdev.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD="apixio.321"
+		HCC_USERNAME_PREFIX="sanityUSR"
+		HCC_USERNAME_POSTFIX="@apixio.net"
+		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-dev.apixio.com:7076"
+		SSO_URL="https://accounts-dev.apixio.com"
+		CALLER="hcc_dev"
+		ADMIN_PW="apixio.321"
+	elif (ENVIRONMENT[:1].upper() == "S"):   ######### STAGING ##############	
 		ENVIRONMENT = "staging"
 		ACL_DOMAIN="acladmin-stg.apixio.com"
 		UA_URL="https://acladmin-stg.apixio.com"
@@ -281,7 +310,19 @@ def checkEnvironmentandReceivers():
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ACLUSERNAME="ishekhtman@apixio.com"
-		ACLPASSWORD="apixio.123"
+		ACLPASSWORD=ADMIN_PW
+		ADMIN_PW="apixio.321"
+	else: ######### STAGING ##############
+		ENVIRONMENT = "staging"
+		ACL_DOMAIN="acladmin-stg.apixio.com"
+		UA_URL="https://acladmin-stg.apixio.com"
+		HCC_DOMAIN="hccstage2.apixio.com"
+		HCC_URL="https://hccstage2.apixio.com"
+		HCC_PASSWORD="apixio.123"
+		PROTOCOL="https://"
+		ACLUSERNAME="ishekhtman@apixio.com"
+		ACLPASSWORD=ADMIN_PW
+		ADMIN_PW="apixio.321"
 	
 	if (len(sys.argv) > 2):
 		RECEIVERS=str(sys.argv[2])
@@ -296,7 +337,7 @@ def checkEnvironmentandReceivers():
 	#ENVIRONMENT = "Production"
 	print ("Version %s\n") % VERSION
 	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
-	print ("Completed setting of enviroment and report receivers ...\n")		
+	print ("Completed setting of enviroment and report receivers ...\n")			
 
 #=========================================================================================	
 	
@@ -467,12 +508,8 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 def obtainExternalToken(un, pw, exp_statuscode, tc, step):
 
 	external_token = ""
-	#ACLUSERNAME="lschneider@apixio.com"
-	#ACLPASSWORD="ritiyi6!"
 	url = UA_URL+'/auths'
-	#url = 'https://useraccount-stg.apixio.com:7076/auths'
 	referer = UA_URL  	
-	#token=$(curl -v --data email=$email --data password="$passw" "http://localhost:8076/auths?int=true" | cut -c11-49)
 	
 	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
@@ -503,7 +540,7 @@ def obtainInternalToken(un, pw, exp_statuscode, tc, step):
 	print ("----------------------------------------------------------------------------")
 	
 	
-	TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
+	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
 	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
@@ -555,15 +592,19 @@ def viewCustomPropertyDefinition(type, exp_statuscode, tc, step):
 		URL = UA_URL+'/'+type+'/cproperties'
 	DATA = {}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
+	
+	
+	print "* URL                    = %s" % URL
+	print "* Request Method         = get"
 	response = requests.get(URL, data=DATA, headers=HEADERS)
 	statuscode = response.status_code
-	print statuscode
+	print "* Status Code            = %s" % statuscode
 	if statuscode == ok:
 		prop_list = json.dumps(response.json())
 		print json.dumps(response.json())
 	else: 
 		print "Failure occured, exiting now ..."
-		#quit()	
+		quit()	
 
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "viewCustomPropertyDefinition", APIXIO_TOKEN, type, prop_list, "", "", "", "", "")
 	return(response)
@@ -576,8 +617,7 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 	print (">>> UA - CREATE NEW CUSTOM PROPERTY DEFINITION %s <<<" % type.upper())
 	print ("----------------------------------------------------------------------------")
 	response = ""
-	#pname = "uatest9"
-	#ptype = "STRING"
+
 	if type == "customer":
 		URL = UA_URL+'/'+type+'/property?name='+pname+'&type='+ptype
 	else:	
@@ -585,9 +625,11 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 	DATA = {"name": pname, "type": ptype}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
 
+	print "* URL                    = %s" % URL
+	print "* Request Method         = post"
 	response = requests.post(URL, data=json.dumps(DATA), headers=HEADERS)
 	statuscode = response.status_code
-	print statuscode
+	print "* Status Code            = %s" % statuscode
 	if (statuscode == 200):
 		print ("New custom propery definition was successfully created ...")
 		print ("Name: %s  Type: %s" % (pname, ptype))
@@ -596,10 +638,7 @@ def createCustomPropertyDefinition(type, pname, ptype, exp_statuscode, tc, step)
 		print "URL = %s" % URL
 		print "DATA = %s" % DATA
 		print "HEADERS = %s" % HEADERS
-		#quit()
-	else:
-		print "Failure occured, exiting now ..."
-		#quit()		
+		#quit()	
 	
 	
 	logTestCaseStatus(exp_statuscode, statuscode, tc, step, "createCustomPropertyDefinition", APIXIO_TOKEN, type, pname, ptype, "", "", "", "")
@@ -619,9 +658,13 @@ def deleteCustomPropertyDefinition(type, pname, exp_statuscode, tc, step):
 	DATA = {}
 	HEADERS = {"Content-Type": "application/json", "Authorization": APIXIO_TOKEN}
 
+
+	print "* URL                    = %s" % URL
+	print "* Request Method         = delete"
 	response = requests.delete(URL, data=DATA, headers=HEADERS)
 	statuscode = response.status_code
-	print statuscode
+	print "* Status Code            = %s" % statuscode
+
 	if statuscode != ok:
 		print "Failure occured, exiting now ..."
 		#quit()		
@@ -1432,7 +1475,7 @@ writeReportHeader()
 
 printGlobalParamaterSettings()
 
-obtainInternalToken(IGOR_EMAIL, "apixio.123", {ok, created}, 0, 0)
+obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 0, 0)
 
 #========================================================================================================
 # TEST CASE 1 (/uorgs):
@@ -1602,13 +1645,13 @@ def testCase6():
 	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
 		raw_input("Press Enter to continue...")		
 
-	token = authenticateUser("", "external", IGOR_EMAIL, "apixio.123", {ok}, tc, 1)
-	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 2)
-	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 3)
+	token = authenticateUser("", "external", IGOR_EMAIL, ADMIN_PW, {ok}, tc, 1)
+	authenticateUser(token, "internal", IGOR_EMAIL, ADMIN_PW, {created}, tc, 2)
+	authenticateUser(token, "internal", IGOR_EMAIL, ADMIN_PW, {created}, tc, 3)
 	#deleteExternalToken(token, IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
 	#deleteExternalToken("U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066", IGOR_EMAIL, "apixio.123", {ok}, tc, 4)
 	#U_6d6a994f-7fe3-45cd-8d0e-76d92ba81066
-	authenticateUser(token, "internal", IGOR_EMAIL, "apixio.123", {created}, tc, 4)
+	authenticateUser(token, "internal", IGOR_EMAIL, ADMIN_PW, {created}, tc, 4)
 
 	#quit()
 	#deleteAuthenticationToken("passpolicies", {ok}, tc, 1)
@@ -1749,7 +1792,7 @@ def testCase12():
 
 #================================= MAIN PROGRAM BODY ====================================================
 
-for i in range (1,13):
+for i in range (1,2):
 	#cleanUp()
 	exec('testCase' + str(i) + '()')
 
