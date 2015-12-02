@@ -63,7 +63,9 @@ import cStringIO
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
 #USERNAME="apxdemot0216"
-USERNAME="protest01"
+USERNAME="btmg02"
+#USERNAME="elrt03"
+
 
 #PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
@@ -71,10 +73,11 @@ PASSWORD="apixio.123"
 #HOST="https://testdr.apixio.com:8443"
 HOST="https://dr-stg.apixio.com"
 
-#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 #DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
 #DIR="/mnt/testdata/FiveSmallPDFDocuments/Documents"
 DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+#DIR="/mnt/testdata/anthony"
+#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
@@ -148,6 +151,7 @@ def uploadData():
 
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
+TOTDOCS = len(FILES)
 PREV_PAT_UUID = PATIENT_ID
 
 #FILE = FILES[4]
@@ -156,6 +160,20 @@ PREV_PAT_UUID = PATIENT_ID
 # print ('Processing files in: ', DIR);
 
 print ("\nUploading documents ...")
+print DIVLINE
+print "* USERNAME                 = %s" % USERNAME
+print "* PASSWORD                 = %s" % PASSWORD
+print "* DOC REVEIVER HOST URL    = %s" % HOST
+print "* SOURCE FILDER            = %s" % DIR
+print "* TOTAL # OF DOCS          = %s" % TOTDOCS
+print DIVLINE
+user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+if user_response.upper() == "Q":
+	print "exiting ..."
+	quit()
+else:
+	print "proceeding ..."
+
 
 # if (NUMBEROFDOCUMENTS > 0):
 # elif:
@@ -178,7 +196,7 @@ for FILE in FILES:
 		TRACE_COLFAM=obj["trace_colFam"]
 		DOCUMENT_ID=uuid.uuid1()
 		# Comment our next line to upload all documents to single patient
-		#PATIENT_ID=uuid.uuid1()
+		PATIENT_ID=uuid.uuid1()
 				
 		if PATIENT_ID != PREV_PAT_UUID:
 			PATIENTCOUNTER += 1
@@ -191,6 +209,7 @@ for FILE in FILES:
 		PREV_PAT_UUID=PATIENT_ID
 		
 		PATIENT_ID_AA="PATIENT_ID_1"
+		#PATIENT_ID_AA="2.16.840.1.113883.19"
 		#PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
 		PATIENT_MIDDLE_NAME="MiddleName"
 		#PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
@@ -204,6 +223,8 @@ for FILE in FILES:
 		FILE_FORMAT=FILE_FORMAT_TEMP[len(FILE_FORMAT_TEMP)-1].upper()
 		if FILE_FORMAT == "PDF":
 			MIME_TYPE="""application/pdf"""
+		elif FILE_FORMAT == "XML":
+			MIME_TYPE="""application/xml"""
 		else:
 			MIME_TYPE="""text/plain"""
 		
@@ -262,7 +283,7 @@ for FILE in FILES:
 
 		# print (obju)
 		#print ("Document UUID: %s" % (UUID));
-		print ("%s\t\t%s\t\t%s\t\t%s\t\t%s"%(DOCUMENTCOUNTER, ORGGID, FILE_FORMAT, UUID, PATIENT_ID))
+		print ("%s of %s\t\t%s\t\t%s\t\t%s\t\t%s"%(DOCUMENTCOUNTER, TOTDOCS, ORGGID, FILE_FORMAT, UUID, PATIENT_ID))
 
 		#print (CATALOG_FILE)
 		#print (FILE_FORMAT_TEMP)
