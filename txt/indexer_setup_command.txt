@@ -1,3 +1,14 @@
+
+============= Ashish - Python Virtual environment =================================
+
+source master /bin/activate
+
+deactivate
+
+DEV - non virtual env
+
+ENG - virtual env
+
 ===================================================================================
 
 JIRA

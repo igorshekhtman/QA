@@ -379,12 +379,17 @@ def logInToHCC():
 			}	
   
   print ("URL4 :" + url)
+  #print DATA
+  #print HEADERS
 				
   response = requests.post(url, data=DATA, headers=HEADERS) 
   print ("* Status Code        = %s" % response.status_code)
   if response.status_code != ok:
   	quit()
   
+  #print requests.cookies.RequestsCookieJar
+  #print response.text
+
 
   TOKEN = response.cookies["csrftoken"]
   SESSID = response.cookies["sessionid"]
@@ -472,8 +477,8 @@ def startCoding():
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
     time.sleep(int(DELAYTIME))
     testCode = 10 + (1 * coding_opp_current)
-    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print ("* URL                = %s/api/next-work-item/" % URL)
+    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print ("* GET CODNG OPP      = %s" % response.status_code)
     
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
@@ -587,7 +592,10 @@ def startCoding():
       if date_of_service == "":
         print("WARNING : DOC DATE is Empty")
       test_counter = test_counter + 1
+      
+      print("* URL              = %s" % (URL+"/api/document-text/"+document_uuid))
       response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      
       print "* GET SCRBLE DOC   = %s" % response.status_code      
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
