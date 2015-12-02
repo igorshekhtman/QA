@@ -67,6 +67,7 @@ from time import gmtime, strftime, localtime
 import calendar
 import mmap
 import token
+requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #============= Initialization of the UserAccountsConfig file =============================
 #=========================================================================================
@@ -327,8 +328,8 @@ def bundleDataSet():
 	print (">>> CMP - BUNDLE DATA SET FOR %s PROJECT <<<" % PROJECTID)
 	print ("----------------------------------------------------------------------------")
 	response = ""
-	#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
-	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle"
+	URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None"
+	#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle"
 	if BATCHID > "":
 		URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?batch_id="+BATCHID
 		#URL = BUNDL_URL+"/cmp/v1/project/"+PROJECTID+"/bundle?user_annotation=None&batch_id="+BATCHID
