@@ -1,3 +1,10 @@
+============ OUTPUT or PROGRESS REPORT ===========================================
+
+/Users/ishekhtman/Documents/Apixio/utility/output_report
+
+python output_report.py dev PRHCC_56127233-ece6-47c0-88c2-8d9cd5aa5a52
+
+
 
 ============= Ashish - Python Virtual environment =================================
 
