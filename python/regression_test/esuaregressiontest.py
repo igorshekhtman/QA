@@ -436,7 +436,7 @@ def accessGrants(fn, subject, operation):
 	return()
 #========================================================================================================
 def accessPassPolicies(fn, policyName):
-	url = UA_URL+':'+UA_PORT+'/passpolicies/'+policyName
+	url = UA_URL+':'+UA_PORT+'/passpolicies'
 	if fn == "get":
 		response = requests.get(url, data=DATA, headers=HEADERS)
 	elif fn == "post":
@@ -445,7 +445,7 @@ def accessPassPolicies(fn, policyName):
 		response = requests.put(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
-	return()
+	return(response.json())
 #========================================================================================================
 def accessPatientDataSets(fn, name, entityID, pdsID):
 	url = UA_URL+':'+UA_PORT+'/patientdatasets'
@@ -474,7 +474,7 @@ def accessPerms(fn, subject, operation, object):
 	return()
 #========================================================================================================
 def accessProjects(fn, bag, name, userid, entityID, projID, role):
-	url = UA_URL+':'+UA_PORT+'/projects/'+bag
+	url = UA_URL+':'+UA_PORT+'/projects'
 	if fn == "get":
 		response = requests.get(url, data=DATA, headers=HEADERS)
 	elif fn == "post":
@@ -485,10 +485,10 @@ def accessProjects(fn, bag, name, userid, entityID, projID, role):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
-	return()
+	return(response.json())
 #========================================================================================================
 def accessRoleSets(fn, nameID, role):
-	url = UA_URL+':'+UA_PORT+'/rolesets/'+nameID+'/'+role
+	url = UA_URL+':'+UA_PORT+'/rolesets'
 	if fn == "get":
 		response = requests.get(url, data=DATA, headers=HEADERS)
 	elif fn == "post":
@@ -497,17 +497,17 @@ def accessRoleSets(fn, nameID, role):
 		response = requests.put(url, data=DATA, headers=HEADERS)		
 	print url	
 	print response.status_code
-	return()
+	return(response.json())
 #========================================================================================================
 def accessTexts(fn, blobID):
-	url = UA_URL+':'+UA_PORT+'/texts/'+blobID
+	url = UA_URL+':'+UA_PORT+'/texts'
 	if fn == "get":
 		response = requests.get(url, data=DATA, headers=HEADERS)
 	elif fn == "put":
 		response = requests.put(url, data=DATA, headers=HEADERS)		
 	print url	
 	print response.status_code
-	return()
+	return(response.json())
 #========================================================================================================
 def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
 	url = UA_URL+':'+UA_PORT+'/uorgs'
@@ -569,6 +569,14 @@ HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 dataSets = accessPatientDataSets("get", None, None, None)
 uOrgs = accessUorgs("get", None, None, None, None, None, None)
 users = accessUsers("get", None, None, None, None)
+patientDataSets = accessPatientDataSets("get", None, None, None)
+projects = accessProjects("get", None, None, None, None, None, None)
+roleSets = accessRoleSets("get", None, None)
+texts = accessTexts("get", None)
+passPolicies = accessPassPolicies("get", None)
+print passPolicies
+#print projects
+#print patientDataSets
 #print users
 #print uOrgs
 
