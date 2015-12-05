@@ -51,19 +51,19 @@ requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 REPORT = ""
 REPORT_TYPE = "User Accounts Regression Test"
-SENDER="donotreply@apixio.com"
-CUR_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-TIME_START=time.time()
-END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-DURATION_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-DAY=strftime("%d", gmtime())
-MONTH=strftime("%m", gmtime())
-MONTH_FMN=strftime("%B", gmtime())
-YEAR=strftime("%Y", gmtime())
-CURDAY=strftime("%d", gmtime())
-CURMONTH=strftime("%m", gmtime())
-CURYEAR=strftime("%Y", gmtime())
+SENDER = "donotreply@apixio.com"
+CUR_TIME = strftime("%m/%d/%Y %H:%M:%S", gmtime())
+START_TIME = strftime("%m/%d/%Y %H:%M:%S", gmtime())
+TIME_START = time.time()
+END_TIME = strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DURATION_TIME = strftime("%m/%d/%Y %H:%M:%S", gmtime())
+DAY = strftime("%d", gmtime())
+MONTH = strftime("%m", gmtime())
+MONTH_FMN = strftime("%B", gmtime())
+YEAR = strftime("%Y", gmtime())
+CURDAY = strftime("%d", gmtime())
+CURMONTH = strftime("%m", gmtime())
+CURYEAR = strftime("%Y", gmtime())
 
 PASSED_STAT="<table width='100%%'><tr><td bgcolor='#00A303' align='center'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED_STAT="<table width='100%%'><tr><td bgcolor='#DF1000' align='center'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
@@ -110,10 +110,10 @@ WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES=0
 PAUSE_FOR_FAILURES	=0
 #=========================================================================================
 def printGlobalParamaterSettings():
-	print ("\n")
+	print ("============================================================================")
 	print ("* Environment            = %s" % ENVIRONMENT)
 	print ("* UA URL                 = %s" % UA_URL)
-	print ("* UA Admin User Name     = %s" % ADMIN_USR)
+	print ("* Receivers              = %s, %s" % (RECEIVERS,RECEIVERS2))
 	return ()
 #=========================================================================================
 def checkEnvironmentandReceivers():
@@ -124,9 +124,8 @@ def checkEnvironmentandReceivers():
 	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
 	global HCC_DOMAIN, HCC_URL, HCC_PASSWORD, PROTOCOL, ACLUSERNAME, ACLPASSWORD
 	global ACL_DOMAIN, HCC_USERNAME_PREFIX, HCC_USERNAME_POSTFIX
-	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW, ADMIN_USR
+	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW, ADMIN_USR, UA_PORT
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
-	print ("Setting environment ...\n")
 	if len(sys.argv) < 2:
 		ENVIRONMENT="staging"
 	else:
@@ -162,7 +161,8 @@ def checkEnvironmentandReceivers():
 		HCC_USERNAME_PREFIX="sanityUSR"
 		HCC_USERNAME_POSTFIX="@apixio.net"
 		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
-		UA_URL="https://useraccount-dev.apixio.com:7076"
+		UA_URL="https://useraccount-dev.apixio.com"
+		UA_PORT="7076"
 		SSO_URL="https://accounts-dev.apixio.com"
 		CALLER="hcc_dev"
 		ADMIN_USR="ishekhtman@apixio.com"
@@ -197,7 +197,6 @@ def checkEnvironmentandReceivers():
 		RECEIVERS2="ishekhtman@apixio.com"
 		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
 				
-	print ("ENVIRONMENT = %s\n") % ENVIRONMENT
 	return ()		
 #=========================================================================================	
 	
@@ -370,82 +369,185 @@ def logTestCaseStatus(exp_statuscode, statuscode, tc, step, function, p1, p2, p3
 #=========================================================================================
 #===================== Main Functions ====================================================
 #=========================================================================================	
-def obtainExternalToken(un, pw, exp_statuscode, tc, step):
+def obtainExternalToken(un, pw):
 
 	external_token = ""
-	url = UA_URL+'/auths'
-	referer = UA_URL  	
+	url = UA_URL+':'+UA_PORT+'/auths'
+	referer = UA_URL+':'+UA_PORT  	
 	
 	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
 	
-	response = requests.post(url, data=DATA, headers=HEADERS) 
-
-	statuscode = response.status_code
-
-	userjson = response.json()
-	if userjson is not None:
-		external_token = userjson.get("token") 
-		print ("* USERNAME               = %s" % un)
-		print ("* PASSWORD               = %s" % pw)
-		print ("* URL                    = %s" % url)
-		print ("* EXTERNAL TOKEN         = %s" % external_token)
-		print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
-		print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-		print ("****************************************************************************")
+	response = requests.post(url, data=DATA, headers=HEADERS)
+	 
+	if (response.status_code != ok):
+		print ("* Failed to obtain external token: %s. Exiting now ..." % response.status_code)
+		quit()
+	else:	
+		userjson = response.json()
+		if userjson is not None:
+			external_token = userjson.get("token") 
+			print ("* USERNAME               = %s" % un)
+			print ("* PASSWORD               = %s" % pw)
+			print ("* URL                    = %s" % url)
+			print ("* EXT TOKEN              = %s" % external_token)
+			print ("* STATUS CODE            = %s" % response.status_code)
 			
 	return (external_token)
 #=========================================================================================
-def obtainInternalToken(un, pw, exp_statuscode, tc, step):
-	global TOKEN, APIXIO_TOKEN
+def obtainInternalToken(un, pw):
 	
-	print ("----------------------------------------------------------------------------")
-	print ("* OBTAIN EXTERNAL AND INTERNAL TOKENS")
-	print ("----------------------------------------------------------------------------")
-	
-	
-	#TOKEN_URL = "https://tokenizer-stg.apixio.com:7075/tokens"
-	external_token = obtainExternalToken(un, pw, exp_statuscode, tc, step)
+	external_token = obtainExternalToken(un, pw)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  	
   	response = requests.post(url, data=DATA, headers=HEADERS) 
-  	userjson = response.json()
-  	if userjson is not None:
-  		TOKEN = userjson.get("token")
-  		APIXIO_TOKEN = 'Apixio '+str(TOKEN)
-  	else:
-  		TOKEN = "Not Available"	
-	statuscode = response.status_code	
-	print ("* USERNAME               = %s" % un)
-	print ("* PASSWORD               = %s" % pw)
-	print ("* TOKENIZER URL          = %s" % url)
-	print ("* EXTERNAL TOKEN         = %s" % external_token)
-	print ("* INTERNAL TOKEN         = %s" % TOKEN)
-	print ("* EXPECTED STATUS CODE   = %s" % exp_statuscode)
-	print ("* RECEIVED STATUS CODE   = %s" % statuscode)
-
-	# skip this step for tc or step of zero, which is indication of a cleanup process	
-	if (step > 0):
-		logTestCaseStatus(exp_statuscode, statuscode, tc, step, "obtainInternalToken", un, pw, external_token, TOKEN, "", "", "", "")
-	return ()	
-
+  	if (response.status_code != created):
+		print ("* Failed to create internal token: %s. Exiting now ..." % response.status_code)
+		quit()
+	else:
+  		userjson = response.json()
+  		if userjson is not None:
+  			token = userjson.get("token")
+  			apixio_token = 'Apixio '+str(token)
+			print ("* USERNAME               = %s" % un)
+			print ("* PASSWORD               = %s" % pw)
+			print ("* TOKENIZER URL          = %s" % url)
+			print ("* EXT TOKEN              = %s" % external_token)
+			print ("* INT TOKEN              = %s" % token)
+			print ("* APIXIO TOKEN           = %s" % apixio_token)
+			print ("* STATUS CODE            = %s" % response.status_code)
+			print ("============================================================================")
+  		else:
+			token = "Not Available"	
+	
+	return(apixio_token)		
 #========================================================================================================
-
+def accessGrants(fn, subject, operation):
+	url = UA_URL+':'+UA_PORT+'/grants/'+subject+"/"+operation
+	if fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessPassPolicies(fn, policyName):
+	url = UA_URL+':'+UA_PORT+'/passpolicies/'+policyName
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessPatientDataSets(fn, name, entityID, pdsID):
+	url = UA_URL+':'+UA_PORT+'/patientdatasets'
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return(response.json())
+#========================================================================================================
+def accessPerms(fn, subject, operation, object):
+	url = UA_URL+':'+UA_PORT+'/perms/'+subject+'/'+operation+'/'+object
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessProjects(fn, bag, name, userid, entityID, projID, role):
+	url = UA_URL+':'+UA_PORT+'/projects/'+bag
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessRoleSets(fn, nameID, role):
+	url = UA_URL+':'+UA_PORT+'/rolesets/'+nameID+'/'+role
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)		
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessTexts(fn, blobID):
+	url = UA_URL+':'+UA_PORT+'/texts/'+blobID
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)		
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
+def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
+	url = UA_URL+':'+UA_PORT+'/uorgs'
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return(response.json())
+#========================================================================================================
+def accessUsers(fn, name, userID, entityID, detail):
+	url = UA_URL+':'+UA_PORT+'/users'
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	elif fn == "put":
+		response = requests.put(url, data=DATA, headers=HEADERS)	
+	elif fn == "delete":
+		response = requests.delete(url, data=DATA, headers=HEADERS)	
+	print url	
+	print response.status_code
+	return(response.json())
+#========================================================================================================
+def accessVerifications(fn, id):
+	url = UA_URL+':'+UA_PORT+'/verifications/'+id
+	if fn == "get":
+		response = requests.get(url, data=DATA, headers=HEADERS)
+	elif fn == "post":
+		response = requests.post(url, data=DATA, headers=HEADERS)
+	print url	
+	print response.status_code
+	return()
+#========================================================================================================
 def testCase1():
-	global REPORT
-	ptypes = {'STRING', 'BOOLEAN', 'DATE', 'INTEGER', 'DOUBLE'}
-	
-	tc=1
-	REPORT = REPORT+"<table border='0' width='100%'><tr><td colspan='4'>"
-	REPORT = REPORT+(SUBHDR % ('Test Case #'+str(tc)+' Creation and Deletion of Custom Property'))
-	print ('Test Case #'+str(tc))
-	if int(WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES) == 1:	
-		raw_input("Press Enter to continue...")		
-	
-	
-	REPORT = REPORT+"</td></tr></table>"
 	return()		
 	
 #=========================================================================================
@@ -460,11 +562,23 @@ checkEnvironmentandReceivers()
 
 printGlobalParamaterSettings()
 
-obtainInternalToken(IGOR_EMAIL, ADMIN_PW, {ok, created}, 0, 0)
+APIXIO_TOKEN = obtainInternalToken(IGOR_EMAIL, ADMIN_PW) 
+DATA = {}
+HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 
-for i in range (1,2):
+dataSets = accessPatientDataSets("get", None, None, None)
+uOrgs = accessUorgs("get", None, None, None, None, None, None)
+users = accessUsers("get", None, None, None, None)
+#print users
+#print uOrgs
+
+
+
+
+
+#for i in range (1,2):
 	#cleanUp()
-	exec('testCase' + str(i) + '()')
+#	exec('testCase' + str(i) + '()')
 
 #writeReportFooter()
 #archiveReport()
