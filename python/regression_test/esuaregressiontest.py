@@ -45,6 +45,7 @@ from email.mime.image import MIMEImage
 from time import gmtime, strftime, localtime
 import calendar
 import mmap
+import pprint
 requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
@@ -433,6 +434,7 @@ def accessGrants(fn, subject, operation):
 		response = requests.delete(url, data=DATA, headers=HEADERS)
 	print url	
 	print response.status_code
+	pauseBreak()
 	return()
 #========================================================================================================
 def accessPassPolicies(fn, policyName):
@@ -445,6 +447,7 @@ def accessPassPolicies(fn, policyName):
 		response = requests.put(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessPatientDataSets(fn, name, entityID, pdsID):
@@ -459,6 +462,7 @@ def accessPatientDataSets(fn, name, entityID, pdsID):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessPerms(fn, subject, operation, object):
@@ -471,6 +475,7 @@ def accessPerms(fn, subject, operation, object):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return()
 #========================================================================================================
 def accessProjects(fn, bag, name, userid, entityID, projID, role):
@@ -485,6 +490,7 @@ def accessProjects(fn, bag, name, userid, entityID, projID, role):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessRoleSets(fn, nameID, role):
@@ -497,6 +503,7 @@ def accessRoleSets(fn, nameID, role):
 		response = requests.put(url, data=DATA, headers=HEADERS)		
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessTexts(fn, blobID):
@@ -507,6 +514,7 @@ def accessTexts(fn, blobID):
 		response = requests.put(url, data=DATA, headers=HEADERS)		
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
@@ -521,6 +529,7 @@ def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessUsers(fn, name, userID, entityID, detail):
@@ -535,6 +544,7 @@ def accessUsers(fn, name, userID, entityID, detail):
 		response = requests.delete(url, data=DATA, headers=HEADERS)	
 	print url	
 	print response.status_code
+	pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessVerifications(fn, id):
@@ -545,8 +555,24 @@ def accessVerifications(fn, id):
 		response = requests.post(url, data=DATA, headers=HEADERS)
 	print url	
 	print response.status_code
+	pauseBreak()
 	return()
 #========================================================================================================
+def printFormattedJson(json_object):
+	pjs = json.loads(json.dumps(json_object))
+	for pj in pjs:
+		print(json.dumps(pj, sort_keys=True, separators=(',', ': ') ))
+	pauseBreak()	
+	return()
+#========================================================================================================
+def pauseBreak():
+	user_response = raw_input(">>> Press [Enter] to Proceed or [Q] to Quit: ")
+	if user_response.upper() == "Q":
+		print "exiting ..."
+		quit()	
+	return ()
+#========================================================================================================	
+
 def testCase1():
 	return()		
 	
@@ -566,19 +592,63 @@ APIXIO_TOKEN = obtainInternalToken(IGOR_EMAIL, ADMIN_PW)
 DATA = {}
 HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 
-dataSets = accessPatientDataSets("get", None, None, None)
+
+
+
+
+
 uOrgs = accessUorgs("get", None, None, None, None, None, None)
+printFormattedJson(uOrgs)
+#{ "name": "organizationname", "description": "thedescription", "type": "one of [System, Vendor, Customer]", "externalID": "client-defined identifier" }
+#{"name":"test","type":"Vendor","description":"test","properties":{"coder_rate":2}}
+# add new user org
+DATA = { "name": "regressiontest1", "description": "regressiontest1", "type": "Vendor", "properties":{"coder_rate":2} }
+uOrgs = accessUorgs("post", None, None, None, None, None, None)
+quit()
+
+
+
+
+
 users = accessUsers("get", None, None, None, None)
+printFormattedJson(users)
+
+
+
+
+
+
+
 patientDataSets = accessPatientDataSets("get", None, None, None)
+printFormattedJson(patientDataSets)
+
 projects = accessProjects("get", None, None, None, None, None, None)
+printFormattedJson(projects)
+
+
+#Roles for Vendor organizations - Vendor Roles - Vendor
+#ADMIN
+#Roles for Customer organizations - Customer Roles - Customer
+#ADMIN, PHIVIEWER
+#Roles for Test Projects - Test-type Project - Project.test
+#PROJECTADMIN, QALEAD, REVIEWER
+#Roles for HCC Projects - HCC Project - Project.hcc
+#REVIEWER, QALEAD, PROJECTADMIN
+#Roles for System-type organizations - System Roles - System
+#PIPELINEMANAGER, CUSTOMEROPS, ROOT, SCIENCEMANAGER, DATAMANAGER
+#Roles for Science Projects - Science-type Project - Project.science
+#QALEAD, PROJECTADMIN, REVIEWER
+
 roleSets = accessRoleSets("get", None, None)
-texts = accessTexts("get", None)
-passPolicies = accessPassPolicies("get", None)
-print passPolicies
-#print projects
-#print patientDataSets
-#print users
-#print uOrgs
+printFormattedJson(roleSets)
+
+#texts = accessTexts("get", None)
+#printFormattedJson(texts)
+
+#passPolicies = accessPassPolicies("get", None)
+#printFormattedJson(passPolicies)
+
+
 
 
 
