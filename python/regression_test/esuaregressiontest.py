@@ -519,6 +519,10 @@ def accessTexts(fn, blobID):
 #========================================================================================================
 def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
 	url = UA_URL+':'+UA_PORT+'/uorgs'
+	if orgID is not None:
+		url = url + "/" + orgID
+	
+	
 	if fn == "get":
 		response = requests.get(url, data=DATA, headers=HEADERS)
 	elif fn == "post":
@@ -601,9 +605,14 @@ uOrgs = accessUorgs("get", None, None, None, None, None, None)
 printFormattedJson(uOrgs)
 #{ "name": "organizationname", "description": "thedescription", "type": "one of [System, Vendor, Customer]", "externalID": "client-defined identifier" }
 #{"name":"test","type":"Vendor","description":"test","properties":{"coder_rate":2}}
+
+
 # add new user org
-DATA = { "name": "regressiontest1", "description": "regressiontest1", "type": "Vendor", "properties":{"coder_rate":2} }
+DATA = { "name": "regressiontest2", "description": "regressiontest2", "type": "Vendor", "properties":{"coder_rate":1} }
 uOrgs = accessUorgs("post", None, None, None, None, None, None)
+
+# get existing org
+uOrgs = accessUorgs("get", None, None, "997", None, None, None)
 quit()
 
 
