@@ -405,7 +405,7 @@ def obtainInternalToken(un, pw):
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
   	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
   	
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
+  	response = requests.post(url, data=json.dumps(DATA), headers=HEADERS) 
   	if (response.status_code != created):
 		print ("* Failed to create internal token: %s. Exiting now ..." % response.status_code)
 		quit()
@@ -430,9 +430,9 @@ def obtainInternalToken(un, pw):
 def accessGrants(fn, subject, operation):
 	url = UA_URL+':'+UA_PORT+'/grants/'+subject+"/"+operation
 	if fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -441,11 +441,11 @@ def accessGrants(fn, subject, operation):
 def accessPassPolicies(fn, policyName):
 	url = UA_URL+':'+UA_PORT+'/passpolicies'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -454,13 +454,13 @@ def accessPassPolicies(fn, policyName):
 def accessPatientDataSets(fn, name, entityID, pdsID):
 	url = UA_URL+':'+UA_PORT+'/patientdatasets'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -469,11 +469,11 @@ def accessPatientDataSets(fn, name, entityID, pdsID):
 def accessPerms(fn, subject, operation, object):
 	url = UA_URL+':'+UA_PORT+'/perms/'+subject+'/'+operation+'/'+object
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -482,13 +482,13 @@ def accessPerms(fn, subject, operation, object):
 def accessProjects(fn, bag, name, userid, entityID, projID, role):
 	url = UA_URL+':'+UA_PORT+'/projects'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -497,11 +497,11 @@ def accessProjects(fn, bag, name, userid, entityID, projID, role):
 def accessRoleSets(fn, nameID, role):
 	url = UA_URL+':'+UA_PORT+'/rolesets'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)		
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)		
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -510,9 +510,9 @@ def accessRoleSets(fn, nameID, role):
 def accessTexts(fn, blobID):
 	url = UA_URL+':'+UA_PORT+'/texts'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)		
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)		
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -540,13 +540,13 @@ def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
 def accessUsers(fn, name, userID, entityID, detail):
 	url = UA_URL+':'+UA_PORT+'/users'
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -555,9 +555,9 @@ def accessUsers(fn, name, userID, entityID, detail):
 def accessVerifications(fn, id):
 	url = UA_URL+':'+UA_PORT+'/verifications/'+id
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -615,7 +615,8 @@ HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 #=========
 uOrgs = accessUorgs("get", None, None, None, None, None, None)
 printFormattedJson(uOrgs)
-exportToCsvFile(uOrgs, "uorgs.csv")
+#exportToCsvFile(uOrgs, "uorgs.csv")
+#quit()
 #==========
 
 #{ "name": "organizationname", "description": "thedescription", "type": "one of [System, Vendor, Customer]", "externalID": "client-defined identifier" }
@@ -623,17 +624,31 @@ exportToCsvFile(uOrgs, "uorgs.csv")
 
 
 # add new user org
-#DATA = { "name": "regressiontest2", "description": "regressiontest2", "type": "Vendor", "properties":{"coder_rate":"1"} }
-#uOrgs = accessUorgs("post", None, None, None, None, None, None)
+DATA = { "name": "regressiontest5", "description": "regressiontest5", "type": "Vendor", "properties":{"coder_rate":"1"} }
+uOrgs = accessUorgs("post", None, None, None, None, None, None)
+printFormattedJson(uOrgs)
+print uOrgs.get("id")
+uOrgsId = uOrgs.get("id")
 
 
 #==========
 # get existing org
-#uOrgs = accessUorgs("get", None, None, "UO_d4d6e9d9-5b0b-4e11-876d-7bcd483df467", None, None, None)
-#printFormattedJson(uOrgs)
-quit()
+uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None)
+printFormattedJson(uOrgs)
 #============
 
+#==========
+# get existing org
+uOrgs = accessUorgs("delete", None, None, uOrgsId, None, None, None)
+printFormattedJson(uOrgs)
+#============
+
+#==========
+# get existing org
+uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None)
+printFormattedJson(uOrgs)
+#============
+quit()
 
 
 #===========
