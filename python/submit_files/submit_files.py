@@ -63,8 +63,9 @@ import cStringIO
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
 #USERNAME="apxdemot0216"
-USERNAME="btmg02"
+#USERNAME="btmg02"
 #USERNAME="elrt03"
+USERNAME="uareg01"
 
 
 #PASSWORD="Hadoop.4522"
@@ -75,15 +76,17 @@ HOST="https://dr-stg.apixio.com"
 
 #DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
 #DIR="/mnt/testdata/FiveSmallPDFDocuments/Documents"
-#DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
+DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
 #DIR="/mnt/testdata/anthony"
-DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
+#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
 
 TOKEN_URL="%s/auth/token/" % (HOST)
+
+PATIENT_ID_AA="PATIENT_ID_1"
 
 PATIENT_ID=uuid.uuid1()
 
@@ -165,6 +168,7 @@ print "* USERNAME                 = %s" % USERNAME
 print "* PASSWORD                 = %s" % PASSWORD
 print "* DOC REVEIVER HOST URL    = %s" % HOST
 print "* SOURCE FILDER            = %s" % DIR
+print "* PRIMARY ASSIGN AUTHORITY = %s" % PATIENT_ID_AA
 print "* TOTAL # OF DOCS          = %s" % TOTDOCS
 print DIVLINE
 user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
@@ -181,7 +185,7 @@ else:
 #for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
 
 print DIVLINE
-print "OrgID:\t\tFormat:\t\tDocument UUID:\t\t\t\t\tPatient UUID:\t\t\t\tDocument #"
+print "OrgID:     Format:    Document UUID:                         Patient UUID:                             Document #:"
 print DIVLINE
 
 for FILE in FILES:		
@@ -208,7 +212,7 @@ for FILE in FILES:
 	
 		PREV_PAT_UUID=PATIENT_ID
 		
-		PATIENT_ID_AA="PATIENT_ID_1"
+		#PATIENT_ID_AA="PATIENT_ID_1"
 		#PATIENT_ID_AA="2.16.840.1.113883.19"
 		#PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
 		PATIENT_MIDDLE_NAME="MiddleName"
@@ -283,7 +287,8 @@ for FILE in FILES:
 
 		# print (obju)
 		#print ("Document UUID: %s" % (UUID));
-		print ("%s\t\t%s\t\t%s\t\t%s\t%s of %s"%(ORGGID, FILE_FORMAT, UUID, PATIENT_ID, DOCUMENTCOUNTER, TOTDOCS))
+		#print ("%s\t\t%s\t\t%s\t\t%s\t%s of %s"%(ORGGID, FILE_FORMAT, UUID, PATIENT_ID, DOCUMENTCOUNTER, TOTDOCS))
+		print ORGGID.ljust(10), FILE_FORMAT.ljust(10), str(UUID).ljust(38), str(PATIENT_ID).ljust(38), str(DOCUMENTCOUNTER).rjust(5), "of "+str(TOTDOCS).ljust(5)
 
 		#print (CATALOG_FILE)
 		#print (FILE_FORMAT_TEMP)

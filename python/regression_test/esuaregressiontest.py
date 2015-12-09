@@ -46,6 +46,7 @@ from time import gmtime, strftime, localtime
 import calendar
 import mmap
 import pprint
+import tablib
 requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
@@ -524,13 +525,13 @@ def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
 	
 	
 	if fn == "get":
-		response = requests.get(url, data=DATA, headers=HEADERS)
+		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=DATA, headers=HEADERS)
+		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=DATA, headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=DATA, headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -563,9 +564,11 @@ def accessVerifications(fn, id):
 	return()
 #========================================================================================================
 def printFormattedJson(json_object):
-	pjs = json.loads(json.dumps(json_object))
-	for pj in pjs:
-		print(json.dumps(pj, sort_keys=True, separators=(',', ': ') ))
+	#pjs = json.loads(json.dumps(json_object))
+	#for pj in pjs:
+	#	print(json.dumps(pj, sort_keys=True, separators=(',', ': ') ))
+	print(json.dumps(json_object, sort_keys=True, indent=4, separators=(',', ': ') ))
+	#json.dumps(json_object))
 	pauseBreak()	
 	return()
 #========================================================================================================
@@ -575,6 +578,15 @@ def pauseBreak():
 		print "exiting ..."
 		quit()	
 	return ()
+#========================================================================================================
+def exportToCsvFile(jobj, fname):
+	tdata = json.loads(json.dumps(jobj))
+
+	with open(fname, "w") as file:
+		csv_file = csv.writer(file)
+		for item in tdata:
+			csv_file.writerow([item.get('coID'), item.get('externalID'), item.get('id'), item.get('isActive'), item.get('name')])
+	return()	
 #========================================================================================================	
 
 def testCase1():
@@ -600,40 +612,43 @@ HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 
 
 
-
+#=========
 uOrgs = accessUorgs("get", None, None, None, None, None, None)
 printFormattedJson(uOrgs)
+exportToCsvFile(uOrgs, "uorgs.csv")
+#==========
+
 #{ "name": "organizationname", "description": "thedescription", "type": "one of [System, Vendor, Customer]", "externalID": "client-defined identifier" }
 #{"name":"test","type":"Vendor","description":"test","properties":{"coder_rate":2}}
 
 
 # add new user org
-DATA = { "name": "regressiontest2", "description": "regressiontest2", "type": "Vendor", "properties":{"coder_rate":1} }
-uOrgs = accessUorgs("post", None, None, None, None, None, None)
+#DATA = { "name": "regressiontest2", "description": "regressiontest2", "type": "Vendor", "properties":{"coder_rate":"1"} }
+#uOrgs = accessUorgs("post", None, None, None, None, None, None)
 
+
+#==========
 # get existing org
-uOrgs = accessUorgs("get", None, None, "997", None, None, None)
+#uOrgs = accessUorgs("get", None, None, "UO_d4d6e9d9-5b0b-4e11-876d-7bcd483df467", None, None, None)
+#printFormattedJson(uOrgs)
 quit()
+#============
 
 
 
-
-
-users = accessUsers("get", None, None, None, None)
-printFormattedJson(users)
-
-
-
-
-
+#===========
+#users = accessUsers("get", None, None, None, None)
+#printFormattedJson(users)
+#============
 
 
 patientDataSets = accessPatientDataSets("get", None, None, None)
 printFormattedJson(patientDataSets)
 
-projects = accessProjects("get", None, None, None, None, None, None)
-printFormattedJson(projects)
-
+#============
+#projects = accessProjects("get", None, None, None, None, None, None)
+#printFormattedJson(projects)
+#============
 
 #Roles for Vendor organizations - Vendor Roles - Vendor
 #ADMIN
@@ -648,8 +663,11 @@ printFormattedJson(projects)
 #Roles for Science Projects - Science-type Project - Project.science
 #QALEAD, PROJECTADMIN, REVIEWER
 
-roleSets = accessRoleSets("get", None, None)
-printFormattedJson(roleSets)
+#============
+#roleSets = accessRoleSets("get", None, None)
+#printFormattedJson(roleSets)
+#============
+
 
 #texts = accessTexts("get", None)
 #printFormattedJson(texts)

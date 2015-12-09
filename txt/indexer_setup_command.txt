@@ -1,3 +1,20 @@
+==================== Updating Staging Pipeline Coordinator properties: =========
+
+coordinator-stg
+
+​[2:42] 
+change /etc/apx-coordinator/pipeline.properties
+
+​[2:42] 
+and restart the service
+
+/usr/lib/apx-coordinator/lib/categories/standard/pipeline.properties
+
+redis.keyPrefix = stagingauth-
+
+redis.keyPrefix = development-
+
+
 ============= HCC-DEMO.APIXIO.COM ===============================================
 
 gcc-demo.apixio.com
@@ -1062,6 +1079,8 @@ http://54.69.201.228:8888/ - old
 hue.apixio.com:8888 - new
 
 username: igor/apixio123
+
+
 ===================================================================================================
 /mnt/gatling_2_0_0_RC5/bin
 
@@ -1098,6 +1117,7 @@ DITING HOSTS FILE on a MACBOOK PRO 05-26-2015
 3.) Copy back to /etc/ folder
 
 sudo vi /etc/hosts
+sudo nano /etc/hosts
 
 
 http://grinder.sourceforge.net/g3/script-javadoc/index-all.html
