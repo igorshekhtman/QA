@@ -59,26 +59,19 @@ import smtplib
 import string
 import uuid
 import cStringIO
+import csv
 
 # ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
-#USERNAME="apxdemot0216"
-#USERNAME="btmg02"
-#USERNAME="elrt03"
-USERNAME="uareg01"
+USERNAME="goldstd01"
 
-
-#PASSWORD="Hadoop.4522"
 PASSWORD="apixio.123"
 
-#HOST="https://testdr.apixio.com:8443"
 HOST="https://dr-stg.apixio.com"
 
-#DIR="/mnt/testdata/10_20_30_49_50_51_100_200_300Mb_PDFs/docs"
-#DIR="/mnt/testdata/FiveSmallPDFDocuments/Documents"
-DIR="/mnt/testdata/SanityTwentyDocuments/Documents"
-#DIR="/mnt/testdata/anthony"
-#DIR="/mnt/testdata/20000Patients1TxtDocumentEach/docs/201312050842104039"
+DIR = "testpdf"
+
+GS_FNAME ="gold_standart_data_2015_Dec.csv"
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
@@ -99,9 +92,15 @@ DIVLINE = "=====================================================================
 # =================================================================================================================
 
 
+with open(GS_FNAME, 'rb') as f:
+    reader = csv.reader(f)
+    GS_LIST = map(tuple, reader)
+
+
 
 def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
+    return()
 
 
 os.system('clear')
@@ -129,6 +128,7 @@ def getUserData():
 	c.setopt(c.SSL_VERIFYPEER, 1)
 	# c.setopt(pycurl.DEBUGFUNCTION, test)
 	c.perform()
+	return()
 	
 buf = io.BytesIO()
 data = {'username':USERNAME, 'password':PASSWORD}
@@ -151,16 +151,12 @@ def uploadData():
 	c.setopt(pycurl.DEBUGFUNCTION, test)
 	c.setopt(c.HTTPPOST, [("document", (c.FORM_FILE, "%s%s" % (DIR, FILE))), ("catalog", (c.FORM_FILE, "%s" % (CATALOG_FILE))) ])
 	c.perform()	
+	return()
 
 # ========================================================================= Assign Values =======================================================
 FILES = os.listdir(DIR)
 TOTDOCS = len(FILES)
-PREV_PAT_UUID = PATIENT_ID
 
-#FILE = FILES[4]
-
-# print (FILES)
-# print ('Processing files in: ', DIR);
 
 print ("\nUploading documents ...")
 print DIVLINE
@@ -168,6 +164,7 @@ print "* USERNAME                 = %s" % USERNAME
 print "* PASSWORD                 = %s" % PASSWORD
 print "* DOC REVEIVER HOST URL    = %s" % HOST
 print "* SOURCE FILDER            = %s" % DIR
+print "* GS MATCHING FILE NAME    = %s" % GS_FNAME
 print "* PRIMARY ASSIGN AUTHORITY = %s" % PATIENT_ID_AA
 print "* TOTAL # OF DOCS          = %s" % TOTDOCS
 print DIVLINE
@@ -179,16 +176,18 @@ else:
 	print "proceeding ..."
 
 
-# if (NUMBEROFDOCUMENTS > 0):
-# elif:
-# for FILE in FILES:
-#for DOCUMENTCOUNTER in range(NUMBEROFDOCUMENTS):
-
 print DIVLINE
 print "OrgID:     Format:    Document UUID:                         Patient UUID:                             Document #:"
 print DIVLINE
 
-for FILE in FILES:		
+for FILE in FILES:
+		DOCUMENT_ID = FILE.split(".")[0]
+		
+		PATIENT_ID = uuid.uuid1()
+		for i in range (0, len(GS_LIST)):
+			if str(DOCUMENT_ID) in GS_LIST[i]:
+				PATIENT_ID = GS_LIST[i][13]	
+
 		DOCUMENTCOUNTER += 1
 
 		ORGANIZATION=obj["organization"]
@@ -198,25 +197,14 @@ for FILE in FILES:
 		S3_BUCKET=obj["s3_bucket"]
 		ROLES=obj["roles"]
 		TRACE_COLFAM=obj["trace_colFam"]
-		DOCUMENT_ID=uuid.uuid1()
-		# Comment our next line to upload all documents to single patient
-		PATIENT_ID=uuid.uuid1()
+
 				
-		if PATIENT_ID != PREV_PAT_UUID:
-			PATIENTCOUNTER += 1
-			PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
-			PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
-		else:
-			PATIENT_FIRST_NAME="FirstName"
-			PATIENT_LAST_NAME="LastName"	
-	
-		PREV_PAT_UUID=PATIENT_ID
+		PATIENTCOUNTER += 1
 		
-		#PATIENT_ID_AA="PATIENT_ID_1"
-		#PATIENT_ID_AA="2.16.840.1.113883.19"
-		#PATIENT_FIRST_NAME=("F_%s" % (uuid.uuid1()))
+		PATIENT_FIRST_NAME=("F_%s" % (PATIENT_ID))
+		PATIENT_LAST_NAME=("L_%s" % (PATIENT_ID))	
+	
 		PATIENT_MIDDLE_NAME="MiddleName"
-		#PATIENT_LAST_NAME=("L_%s" % (uuid.uuid1()))
 		PATIENT_DOB="19670809"
 		PATIENT_GENDER="M"
 		ORGANIZATION="ORGANIZATION_VALUE"
