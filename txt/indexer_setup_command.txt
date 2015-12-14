@@ -1,3 +1,9 @@
+=================Installing IPython Notebook for Mac ===========================
+IPython Notebook
+
+ipython notebook (start server)
+
+
 ==================== Updating Staging Pipeline Coordinator properties: =========
 
 coordinator-stg

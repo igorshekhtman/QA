@@ -85,9 +85,9 @@ unprocessablentity	= 422
 intserveror 		= 500
 servunavail 		= 503
 
-STATUS_CODES = {	200: "OK", 201: "CREATED", 202: "ACCEPTED", 204: "NO CONTENT", 301: "MOVED PERM", \
-				302: "REDIRECT", 400: "REQUEST DENIED", 401: "UNAUTHORIZED", 403: "FORBIDDEN", \
-				404: "NOT FOUND", 500: "INT SERVER ERROR", 503: "SERVER UNAVAILABLE" } 
+STATUS_CODES = {	200: "200 - OK", 201: "201 - CREATED", 202: "202 - ACCEPTED", 204: "204 - NO CONTENT", 301: "301 - MOVED PERM", \
+				302: "302 - REDIRECT", 400: "400 - REQUEST DENIED", 401: "401 - UNAUTHORIZED", 403: "403 - FORBIDDEN", \
+				404: "404 - NOT FOUND", 500: "500 - INT SERVER ERROR", 503: "503 - SERVER UNAVAILABLE" } 
 
 ALEX_EMAIL			=	"ishekhtman@apixio.com"
 IGOR_EMAIL			=	"ishekhtman@apixio.com"
@@ -129,7 +129,7 @@ def checkEnvironmentandReceivers():
 	global TOKEN_URL, UA_URL, SSO_URL, CALLER, ADMIN_PW, ADMIN_USR, UA_PORT
 	# Environment for SanityTest is passed as a paramater. Staging is a default value
 	if len(sys.argv) < 2:
-		ENVIRONMENT="staging"
+		ENVIRONMENT="development"
 	else:
 		ENVIRONMENT=str(sys.argv[1])
 
@@ -173,20 +173,23 @@ def checkEnvironmentandReceivers():
 		ENVIRONMENT = "staging"
 		ACL_DOMAIN="acladmin-stg.apixio.com"
 		UA_URL="https://acladmin-stg.apixio.com"
+		UA_PORT="7076"
 		HCC_DOMAIN="hccstage2.apixio.com"
 		HCC_URL="https://hccstage2.apixio.com"
 		HCC_PASSWORD="apixio.123"
 		PROTOCOL="https://"
 		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
-	else: ######### STAGING ##############
-		ENVIRONMENT = "staging"
-		ACL_DOMAIN="acladmin-stg.apixio.com"
-		UA_URL="https://acladmin-stg.apixio.com"
-		HCC_DOMAIN="hccstage2.apixio.com"
-		HCC_URL="https://hccstage2.apixio.com"
-		HCC_PASSWORD="apixio.123"
+	else: ######### DEVELOPMENT ##############
+		ENVIRONMENT = "development"
 		PROTOCOL="https://"
+		HCC_USERNAME_PREFIX="sanityUSR"
+		HCC_USERNAME_POSTFIX="@apixio.net"
+		TOKEN_URL="https://tokenizer-dev.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-dev.apixio.com"
+		UA_PORT="7076"
+		SSO_URL="https://accounts-dev.apixio.com"
+		CALLER="hcc_dev"
 		ADMIN_USR="ishekhtman@apixio.com"
 		ADMIN_PW="apixio.321"
 	
@@ -451,16 +454,23 @@ def accessPassPolicies(fn, policyName):
 	pauseBreak()
 	return(response.json())
 #========================================================================================================
-def accessPatientDataSets(fn, name, entityID, pdsID):
+def accessPatientDataSets(fn, sfn, name, entityID, pdsID, data):
 	url = UA_URL+':'+UA_PORT+'/patientdatasets'
+	if pdsID is not None:
+		url = url + "/" + pdsID
+		if sfn is not None:
+			url = url + "/" + sfn
+	
+	
+	
 	if fn == "get":
-		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.get(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.post(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(data), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
 	print response.status_code
 	pauseBreak()
@@ -479,19 +489,29 @@ def accessPerms(fn, subject, operation, object):
 	pauseBreak()
 	return()
 #========================================================================================================
-def accessProjects(fn, bag, name, userid, entityID, projID, role):
+def accessProjects(fn, sfn, bag, name, userid, entityID, projID, role, data):
 	url = UA_URL+':'+UA_PORT+'/projects'
+	if projID is not None:
+		url = url + "/" + projID
+	
+	
 	if fn == "get":
-		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.get(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.post(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(data), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
-	print response.status_code
+	print STATUS_CODES[response.status_code]
 	pauseBreak()
+	try:
+		jobj = response.json()
+	except ValueError:
+		jobj = {"exception error": "User not found. No JSON object could be decoded."}
+	else:
+		jobj = response.json()	
 	return(response.json())
 #========================================================================================================
 def accessRoleSets(fn, nameID, role):
@@ -518,39 +538,62 @@ def accessTexts(fn, blobID):
 	pauseBreak()
 	return(response.json())
 #========================================================================================================
-def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName):
+def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName, data):
 	url = UA_URL+':'+UA_PORT+'/uorgs'
 	if orgID is not None:
 		url = url + "/" + orgID
 	
 	
 	if fn == "get":
-		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.get(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.post(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(data), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
-	print response.status_code
+	print STATUS_CODES[response.status_code]
 	pauseBreak()
-	return(response.json())
+	try:
+		jobj = response.json()
+	except ValueError:
+		jobj = {"exception error": "UserOrg not found. No JSON object could be decoded."}
+	else:
+		jobj = response.json()	
+		
+	return(jobj)
 #========================================================================================================
-def accessUsers(fn, name, userID, entityID, detail):
+def accessUsers(fn, sfn, name, userID, entityID, detail, data):
 	url = UA_URL+':'+UA_PORT+'/users'
+	if userID is not None:
+		url = url + "/" + userID
+		if sfn is not None:
+			url = url + "/" + sfn
+			if sfn == "priv":
+				url = UA_URL+':'+UA_PORT+'/users/'+sfn+"/"+userID
+			
+	
+	
 	if fn == "get":
-		response = requests.get(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.get(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "post":
-		response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+		response = requests.post(url, data=json.dumps(data), headers=HEADERS)
 	elif fn == "put":
-		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.put(url, data=json.dumps(data), headers=HEADERS)	
 	elif fn == "delete":
-		response = requests.delete(url, data=json.dumps(DATA), headers=HEADERS)	
+		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
-	print response.status_code
+	print STATUS_CODES[response.status_code]
 	pauseBreak()
-	return(response.json())
+	try:
+		jobj = response.json()
+	except ValueError:
+		jobj = {"exception error": "User not found. No JSON object could be decoded."}
+	else:
+		jobj = response.json()	
+		
+	return(jobj)
 #========================================================================================================
 def accessVerifications(fn, id):
 	url = UA_URL+':'+UA_PORT+'/verifications/'+id
@@ -564,12 +607,8 @@ def accessVerifications(fn, id):
 	return()
 #========================================================================================================
 def printFormattedJson(json_object):
-	#pjs = json.loads(json.dumps(json_object))
-	#for pj in pjs:
-	#	print(json.dumps(pj, sort_keys=True, separators=(',', ': ') ))
 	print(json.dumps(json_object, sort_keys=True, indent=4, separators=(',', ': ') ))
-	#json.dumps(json_object))
-	pauseBreak()	
+	#pauseBreak()	
 	return()
 #========================================================================================================
 def pauseBreak():
@@ -593,6 +632,85 @@ def testCase1():
 	return()		
 	
 #=========================================================================================
+def uOrgsTesting():
+
+# get list of all available orgs
+	uOrgs = accessUorgs("get", None, None, None, None, None, None, {})
+	printFormattedJson(uOrgs)
+
+# add new user org
+	data = { "name": "regressiontest5", "description": "regressiontest5", "type": "Vendor", "properties":{"coder_rate":"1"} }
+	uOrgs = accessUorgs("post", None, None, None, None, None, None, data)
+	printFormattedJson(uOrgs)
+	print uOrgs.get("id")
+	uOrgsId = uOrgs.get("id")
+
+# get specific existing org
+	uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None, {})
+	printFormattedJson(uOrgs)
+
+# delete existing org
+	uOrgs = accessUorgs("delete", None, None, uOrgsId, None, None, None, {})
+	printFormattedJson(uOrgs)
+
+# get deleted org
+	uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None, {})
+	printFormattedJson(uOrgs)
+
+	return()
+
+#=========================================================================================
+def usersTesting():
+
+# get list of all users
+	users = accessUsers("get", None, None, None, None, None, {})
+	printFormattedJson(users)
+
+# add new user
+	data={"email":"protest27@apixio.net","organizationID":"UO_fe700944-dc48-4cdb-a754-5015aca2750e"}
+	users = accessUsers("post", None, None, None, None, None, data)
+	printFormattedJson(users)
+	print users.get("id")
+	usersId = users.get("id")
+	
+# activate new user
+	data={"state":True}
+	users = accessUsers("put", "activation", None, usersId, None, None, data)
+	printFormattedJson(users)
+	
+# set password for specific user
+	data={"password":"apixio.123", "state":"ACTIVE"}
+	users = accessUsers("put", "priv", None, usersId, None, None, data)	
+	printFormattedJson(users)
+	
+
+# get specific existing user
+	users = accessUsers("get", None, None, usersId, None, None, {})
+	printFormattedJson(users)
+
+# delete existing user
+	users = accessUsers("delete", None, None, usersId, None, None, {})
+	printFormattedJson(users)
+
+# get deleted user
+	users = accessUsers("get", None, None, usersId, None, None, {})
+	printFormattedJson(users)
+
+	return()	
+	
+#=========================================================================================
+def dataSetsTesting():	
+	# get all patient data sets
+	patientDataSets = accessPatientDataSets("get", None, None, None, None, None)
+	printFormattedJson(patientDataSets)
+
+	# get specific data set
+	patientDataSets = accessPatientDataSets("get", None, None, None, "O_00000000-0000-0000-0000-000000000197", None)
+	printFormattedJson(patientDataSets)
+	
+	return()
+
+#=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
 
@@ -608,61 +726,46 @@ APIXIO_TOKEN = obtainInternalToken(IGOR_EMAIL, ADMIN_PW)
 DATA = {}
 HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 
+#uOrgsTesting()
 
+#usersTesting()
 
+#dataSetsTesting()
 
-
-#=========
-uOrgs = accessUorgs("get", None, None, None, None, None, None)
-printFormattedJson(uOrgs)
-#exportToCsvFile(uOrgs, "uorgs.csv")
-#quit()
-#==========
-
-#{ "name": "organizationname", "description": "thedescription", "type": "one of [System, Vendor, Customer]", "externalID": "client-defined identifier" }
-#{"name":"test","type":"Vendor","description":"test","properties":{"coder_rate":2}}
-
-
-# add new user org
-DATA = { "name": "regressiontest5", "description": "regressiontest5", "type": "Vendor", "properties":{"coder_rate":"1"} }
-uOrgs = accessUorgs("post", None, None, None, None, None, None)
-printFormattedJson(uOrgs)
-print uOrgs.get("id")
-uOrgsId = uOrgs.get("id")
-
-
-#==========
-# get existing org
-uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None)
-printFormattedJson(uOrgs)
-#============
-
-#==========
-# get existing org
-uOrgs = accessUorgs("delete", None, None, uOrgsId, None, None, None)
-printFormattedJson(uOrgs)
-#============
-
-#==========
-# get existing org
-uOrgs = accessUorgs("get", None, None, uOrgsId, None, None, None)
-printFormattedJson(uOrgs)
-#============
-quit()
-
-
-#===========
-#users = accessUsers("get", None, None, None, None)
-#printFormattedJson(users)
-#============
-
-
-patientDataSets = accessPatientDataSets("get", None, None, None)
-printFormattedJson(patientDataSets)
 
 #============
-#projects = accessProjects("get", None, None, None, None, None, None)
-#printFormattedJson(projects)
+# Get all projects
+projects = accessProjects("get", None, None, None, None, None, None, None, {})
+printFormattedJson(projects)
+
+# Get one specific project
+projects = accessProjects("get", None, None, None, None, None, "PRHCC_7859b8d6-3e56-4509-881d-7727dda79b10", None, {})
+printFormattedJson(projects)
+
+# Create new project
+data={
+    "name": "BTMG-TEST-PROJECT-20", \
+    "organizationID": "UO_fef239dc-fb5a-4284-9791-2cd0136db961", \
+    "organizationName": "BTMG1-TEST-ORG", \
+    "passType": None, \
+    "patientDataSetID": "O_00000000-0000-0000-0000-000000000495", \
+    "pdsExternalID": "495", \
+    "pdsName": "BTMG2", \
+    "state": "new", \
+    "status": True, \
+    "sweep": None, \
+    "type": "hcc"}
+projects = accessProjects("put", None, None, None, None, None, None, None, data)
+printFormattedJson(projects)
+
+
+
+
+
+
+
+
+
 #============
 
 #Roles for Vendor organizations - Vendor Roles - Vendor

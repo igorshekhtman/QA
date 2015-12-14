@@ -1,22 +1,23 @@
 ####################################################################################################
 #
-# PROGRAM: 	submit_files_gs.py
+# PROGRAM: 	submit_files_gs.py (Submit Files Gold Standard)
 # AUTHOR:  	Igor Shekhtman ishekhtman@apixio.com
-# DATE:    	2011.01.01 Initial Version
+# DATE:    	10/12/2015 Initial Version
 #
 #
 # PURPOSE:
 #          	Purpose of this program is to push set of documents together with Catalog files to the 
 #			Doc-Receiver. Catalog files are generated based on specific document types being uploaded. 
+#			Patient UUIDs and Document UUIDs are retrieved from provided imported GS_FNAME - csv file.
 #		   
 # INITIAL SET OF FEATURES:
 #			* Support to upload PDF as well as TXT document types
-#			* Patient First, Last name auto generation
+#			* Patient First, Last name auto generation via Patient UUID
 #			* Upload of multiple documents to a single or multiple patients
 #
 #
 # SAMPLE CALL:
-#		   python2.7 submit_files.py
+#		   python2.7 submit_files_gs.py
 #
 # REQUIRED and OPTIONAL PARAMETERS:
 #			None
@@ -41,6 +42,14 @@
 #				mime-type as well as document-type.
 #
 ####################################################################################################
+#
+# EDITED:		December 14th, 2015
+# EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
+# PURPOSE:		Added list of files to be uploaded.  This will prevent uploading hidden files and other
+#				file types located in the upload folder at the time. New function filterFilesList(files) 
+#				was introduced to accomplish this.
+#
+####################################################################################################
 
 import os
 import time
@@ -61,7 +70,7 @@ import uuid
 import cStringIO
 import csv
 
-# ============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
+#============================ INITIALIZING GLOBAL VARIABLES VALUES ==============================================
 
 USERNAME="goldstd01"
 
@@ -69,13 +78,16 @@ PASSWORD="apixio.123"
 
 HOST="https://dr-stg.apixio.com"
 
-DIR = "testpdf"
+#DIR = "testpdf"
+DIR = "/Volumes/eng/GoldStandard"
 
 GS_FNAME ="gold_standart_data_2015_Dec.csv"
 
 BATCH=strftime("%d%m%Y%H%M%S", gmtime())
 
 UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH)
+
+ALLOW_EXT=["PDF", "TXT", "JPG", "GIF"]
 
 TOKEN_URL="%s/auth/token/" % (HOST)
 
@@ -87,32 +99,15 @@ DOCUMENTCOUNTER = 0
 NUMBEROFDOCUMENTS = 0
 PATIENTCOUNTER = 0
 
-DIVLINE = "===================================================================================================================================="
+DIVLINE = "="*120
 
-# =================================================================================================================
-
-
-with open(GS_FNAME, 'rb') as f:
-    reader = csv.reader(f)
-    GS_LIST = map(tuple, reader)
-
-
-
+#=================================================================================================================
+#=================================== Helper Functions ============================================================
+#=================================================================================================================
 def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
     return()
-
-
-os.system('clear')
-
-print ("USERNAME: ",USERNAME)
-print ("PASSWORD: ",PASSWORD)
-print ("HOST: ",HOST)
-print ("DIR: ",DIR)
-print ("BATCH: ",BATCH)
-
-
-
+#=================================================================================================================
 def getUserData():
 	TOKEN_URL="%s/auth/token/" % (HOST)
 	c = pycurl.Curl()
@@ -129,15 +124,7 @@ def getUserData():
 	# c.setopt(pycurl.DEBUGFUNCTION, test)
 	c.perform()
 	return()
-	
-buf = io.BytesIO()
-data = {'username':USERNAME, 'password':PASSWORD}
-post = urllib.urlencode(data)
-getUserData()
-obj=json.loads(buf.getvalue())	
-TOKEN=obj["token"]
-# print (obj)
-
+#=================================================================================================================
 def uploadData():
 	UPLOAD_URL="%s/receiver/batch/%s/document/upload" % (HOST, BATCH);
 	c = pycurl.Curl()
@@ -152,20 +139,54 @@ def uploadData():
 	c.setopt(c.HTTPPOST, [("document", (c.FORM_FILE, "%s%s" % (DIR, FILE))), ("catalog", (c.FORM_FILE, "%s" % (CATALOG_FILE))) ])
 	c.perform()	
 	return()
+#=================================================================================================================
+def loadGoldStandardData():
+	global GS_LIST
+	
+	with open(GS_FNAME, 'rb') as f:
+		reader = csv.reader(f)
+		GS_LIST = map(tuple, reader)
+	
+	return GS_LIST	
+#=================================================================================================================    	
+def filterFilesList(files):
+	nFiles = []
+	for file in files:
+		fft=file.split(".")
+		ff=fft[len(fft)-1].upper()
+		if ff in ALLOW_EXT:
+			nFiles.append(file)
+	
+	return(nFiles)
+#================================================================================================================= 
+os.system('clear')
 
-# ========================================================================= Assign Values =======================================================
+print ("USERNAME: ",USERNAME)
+print ("PASSWORD: ",PASSWORD)
+print ("HOST: ",HOST)
+print ("DIR: ",DIR)
+print ("BATCH: ",BATCH)
+	
+buf = io.BytesIO()
+data = {'username':USERNAME, 'password':PASSWORD}
+post = urllib.urlencode(data)
+getUserData()
+obj=json.loads(buf.getvalue())	
+TOKEN=obj["token"]
+
 FILES = os.listdir(DIR)
+FILES = filterFilesList(FILES)
 TOTDOCS = len(FILES)
-
 
 print ("\nUploading documents ...")
 print DIVLINE
 print "* USERNAME                 = %s" % USERNAME
 print "* PASSWORD                 = %s" % PASSWORD
-print "* DOC REVEIVER HOST URL    = %s" % HOST
-print "* SOURCE FILDER            = %s" % DIR
+print "* DOC RECEIVER HOST URL    = %s" % HOST
+print "* DOC SOURCE FOLDER        = %s" % DIR
 print "* GS MATCHING FILE NAME    = %s" % GS_FNAME
 print "* PRIMARY ASSIGN AUTHORITY = %s" % PATIENT_ID_AA
+print "* EXTENSIONS TO UPLOAD     = %s" % ", ".join(ALLOW_EXT)
 print "* TOTAL # OF DOCS          = %s" % TOTDOCS
 print DIVLINE
 user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
@@ -180,7 +201,21 @@ print DIVLINE
 print "OrgID:     Format:    Document UUID:                         Patient UUID:                             Document #:"
 print DIVLINE
 
+#========================= MAIN LOOP =====================================================
+
+
 for FILE in FILES:
+
+		FILE_FORMAT_TEMP=FILE.split(".")
+		FILE_FORMAT=FILE_FORMAT_TEMP[len(FILE_FORMAT_TEMP)-1].upper()
+		if FILE_FORMAT == "PDF":
+			MIME_TYPE="""application/pdf"""
+		elif FILE_FORMAT == "XML":
+			MIME_TYPE="""application/xml"""
+		else:
+			MIME_TYPE="""text/plain"""
+
+
 		DOCUMENT_ID = FILE.split(".")[0]
 		
 		PATIENT_ID = uuid.uuid1()
@@ -211,14 +246,7 @@ for FILE in FILES:
 		PRACTICE_NAME="PRACTICE_NAME_VALUE"
 		FILE_LOCATION=("%s" % (FILE))
 		
-		FILE_FORMAT_TEMP=FILE.split(".")
-		FILE_FORMAT=FILE_FORMAT_TEMP[len(FILE_FORMAT_TEMP)-1].upper()
-		if FILE_FORMAT == "PDF":
-			MIME_TYPE="""application/pdf"""
-		elif FILE_FORMAT == "XML":
-			MIME_TYPE="""application/xml"""
-		else:
-			MIME_TYPE="""text/plain"""
+		
 		
 		DOCUMENT_TYPE="DOCUMENT_TYPE_VALUE"
 		CREATION_DATE="2014-04-04T10:00:47-07:00"
@@ -273,17 +301,7 @@ for FILE in FILES:
 		UUID=obju["uuid"]
 		ORGGID=obju["orgid"]
 
-		# print (obju)
-		#print ("Document UUID: %s" % (UUID));
-		#print ("%s\t\t%s\t\t%s\t\t%s\t%s of %s"%(ORGGID, FILE_FORMAT, UUID, PATIENT_ID, DOCUMENTCOUNTER, TOTDOCS))
 		print ORGGID.ljust(10), FILE_FORMAT.ljust(10), str(UUID).ljust(38), str(PATIENT_ID).ljust(38), str(DOCUMENTCOUNTER).rjust(5), "of "+str(TOTDOCS).ljust(5)
-
-		#print (CATALOG_FILE)
-		#print (FILE_FORMAT_TEMP)
-		#print (FILE_FORMAT)
-		#print (MIME_TYPE)
-		#quit()
-
 
 # ========================================================== Finish by closing batch ======================================================================================
 print DIVLINE	
@@ -291,8 +309,7 @@ print ("Total number of documents uploaded: %s" % (DOCUMENTCOUNTER))
 print ("Total number of patients uploaded: %s" % (PATIENTCOUNTER if PATIENTCOUNTER>0 else 1))
 print DIVLINE
 print ("Closing Batch ...\n")
-import cStringIO
-import pycurl
+
 CLOSE_URL="%s/receiver/batch/%s/status/flush?submit=true" % (HOST, BATCH)
 bufc = io.BytesIO()
 response = cStringIO.StringIO()
@@ -302,7 +319,6 @@ c.setopt(c.HTTPPOST, [("token", str(TOKEN))])
 c.setopt(c.WRITEFUNCTION, bufc.write)
 c.perform()
 objc=json.loads(bufc.getvalue())
-# print (objc)
 print ("Batch Closed, Upload Completed ...\n\n")
 # =========================================================================================================================================================================
 
