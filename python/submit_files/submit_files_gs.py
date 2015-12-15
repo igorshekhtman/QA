@@ -95,6 +95,8 @@ TOKEN_URL="%s/auth/token/" % (HOST)
 
 PATIENT_ID_AA="PATIENT_ID_1"
 
+
+
 PATIENT_ID=uuid.uuid1()
 
 DOCUMENTCOUNTER = 0
@@ -105,6 +107,24 @@ DIVLINE = "="*120
 
 #=================================================================================================================
 #=================================== Helper Functions ============================================================
+#=================================================================================================================
+def obtainArguments():
+	global USERNAME, PASSWORD, HOST, DIR, GS_FNAME, BATCH, UPLOAD_URL, ALLOW_EXT, TOKEN_URL, PATIENT_ID_AA
+	USERNAME = str(raw_input("Username (default: "+USERNAME+"): ")) or USERNAME
+	print USERNAME
+	PASSWORD = str(raw_input("Password (default: "+PASSWORD+"): ")) or PASSWORD
+	print PASSWORD
+	HOST = str(raw_input("Doc Receiver host url (default: "+HOST+"): ")) or HOST
+	print HOST
+	DIR = str(raw_input("Source folder (default: "+DIR+"): ")) or DIR
+	print DIR
+	GS_FNAME = str(raw_input("Gold Standard file name (default: "+GS_FNAME+"): ")) or GS_FNAME
+	print GS_FNAME
+	ALLOW_EXT = list(map(str, raw_input("File extensions list (default: "+str(ALLOW_EXT)+"): ").split())) or list(ALLOW_EXT)
+	print ALLOW_EXT
+	PATIENT_ID_AA = str(raw_input("Primary Assign Authority (default: "+PATIENT_ID_AA+"): ")) or PATIENT_ID_AA
+	print PATIENT_ID_AA
+	return()
 #=================================================================================================================
 def test(debug_type, debug_msg):
     print "debug(%d): %s" % (debug_type, debug_msg)
@@ -163,11 +183,13 @@ def filterFilesList(files):
 #================================================================================================================= 
 os.system('clear')
 
-print ("USERNAME: ",USERNAME)
-print ("PASSWORD: ",PASSWORD)
-print ("HOST: ",HOST)
-print ("DIR: ",DIR)
-print ("BATCH: ",BATCH)
+obtainArguments()
+
+#print ("USERNAME: ",USERNAME)
+#print ("PASSWORD: ",PASSWORD)
+#print ("HOST: ",HOST)
+#print ("DIR: ",DIR)
+#print ("BATCH: ",BATCH)
 	
 buf = io.BytesIO()
 data = {'username':USERNAME, 'password':PASSWORD}
