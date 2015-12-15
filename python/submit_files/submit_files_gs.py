@@ -52,6 +52,15 @@
 #				def filterFilesList(files):
 #
 ####################################################################################################
+#
+# EDITED:		December 15th, 2015
+# EDITED BY:	Igor Shekhtman ishekhtman@apixio.com
+# PURPOSE:		Added ability to modify default argument values.  pressing [Enter] key will accept 
+#				default values.
+#
+# ADDED:		def obtainArguments():
+#
+####################################################################################################
 
 import os
 import time
