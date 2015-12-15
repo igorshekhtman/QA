@@ -48,6 +48,8 @@
 # PURPOSE:		Added list of files to be uploaded.  This will prevent uploading hidden files and other
 #				file types located in the upload folder at the time. New function filterFilesList(files) 
 #				was introduced to accomplish this.
+# ADDED:		ALLOW_EXT=["PDF", "TXT", "JPG", "GIF"]
+#				def filterFilesList(files):
 #
 ####################################################################################################
 
@@ -202,7 +204,7 @@ print "OrgID:     Format:    Document UUID:                         Patient UUID
 print DIVLINE
 
 #========================= MAIN LOOP =====================================================
-
+loadGoldStandardData()
 
 for FILE in FILES:
 

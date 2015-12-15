@@ -624,7 +624,8 @@ def exportToCsvFile(jobj, fname):
 	with open(fname, "w") as file:
 		csv_file = csv.writer(file)
 		for item in tdata:
-			csv_file.writerow([item.get('coID'), item.get('externalID'), item.get('id'), item.get('isActive'), item.get('name')])
+			csv_file.writerow([item.get('emailAddress'), item.get('id'), item.get('state'), item.get('userID')])
+			#csv_file.writerow([item.get('coID'), item.get('externalID'), item.get('id'), item.get('isActive'), item.get('name')])
 	return()	
 #========================================================================================================	
 
@@ -731,6 +732,11 @@ HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 #usersTesting()
 
 #dataSetsTesting()
+users = accessUsers("get", None, None, None, None, None, {})
+printFormattedJson(users)
+exportToCsvFile(users, "allstagingusers.csv")
+quit()
+
 
 
 #============
