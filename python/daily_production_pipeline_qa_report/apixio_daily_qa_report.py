@@ -673,6 +673,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%Failed on local exception%%') THEN 'Persist Job error: java.io.IOException: Failed on local exception'
 				WHEN (error_message like '%%javax.xml.bind.UnmarshalException%%') THEN 'Event Job error: java.util.concurrent.ExecutionException: javax.xml.bind.UnmarshalException'
 				WHEN (error_message like '%%OutOfMemoryError%%') THEN 'java.lang.OutOfMemoryError: Java heap space/	at java.util.Arrays.copyOfRange'
+				WHEN (error_message like '%%work_datastore_folder is not found%%') THEN 'java.lang.Exception: Property: work_datastore_folder is not found for this orgId'
 				ELSE error_message
 			END	as message \
 			FROM %s \
@@ -702,6 +703,7 @@ def obtainErrors(activity, summary_table_name, unique_id):
 				WHEN (error_message like '%%Failed on local exception%%') THEN 'Persist Job error: java.io.IOException: Failed on local exception'
 				WHEN (error_message like '%%javax.xml.bind.UnmarshalException%%') THEN 'Event Job error: java.util.concurrent.ExecutionException: javax.xml.bind.UnmarshalException'
 				WHEN (error_message like '%%OutOfMemoryError%%') THEN 'java.lang.OutOfMemoryError: Java heap space/	at java.util.Arrays.copyOfRange'
+				WHEN (error_message like '%%work_datastore_folder is not found%%') THEN 'java.lang.Exception: Property: work_datastore_folder is not found for this orgId'
 				ELSE error_message
 			END
 			ORDER BY count DESC""" %(unique_id, summary_table_name, unique_id, DAY, MONTH, YEAR))

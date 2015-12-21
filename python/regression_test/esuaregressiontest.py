@@ -710,7 +710,35 @@ def dataSetsTesting():
 	printFormattedJson(patientDataSets)
 	
 	return()
+	
+#=========================================================================================
+def projectsTesting():
+	# Get all projects
+	projects = accessProjects("get", None, None, None, None, None, None, None, {})
+	printFormattedJson(projects)
 
+	# Get one specific project
+	projects = accessProjects("get", None, None, None, None, None, "PRHCC_7859b8d6-3e56-4509-881d-7727dda79b10", None, {})
+	printFormattedJson(projects)
+
+	# Create new project
+	data={
+    	"name":"BTMG-TEST-PROJECT-20", \
+    	"description":"BTMG-TEST-PROJECT-20", \
+    	"type":"SCIENCE", \
+    	"organizationID":"UO_fef239dc-fb5a-4284-9791-2cd0136db961", \
+    	"patientDataSetID":"O_00000000-0000-0000-0000-000000000495", \
+    	"dosStart": "2015-01-01T00:00:00Z", \
+    	"dosEnd": "2015-12-31T00:00:00Z", \
+    	"paymentYear": "2015", \
+    	"sweep": "midYear", \
+    	"passType": "secondPass", \
+    	"state": "bundled", \
+    	"properties": {"hcc": {"foo":"123"} } }
+	
+	projects = accessProjects("post", None, None, None, None, None, None, None, data)
+	printFormattedJson(projects)		
+	return()
 #=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
@@ -732,45 +760,8 @@ HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
 #usersTesting()
 
 #dataSetsTesting()
-users = accessUsers("get", None, None, None, None, None, {})
-printFormattedJson(users)
-exportToCsvFile(users, "allstagingusers.csv")
-quit()
 
-
-
-#============
-# Get all projects
-projects = accessProjects("get", None, None, None, None, None, None, None, {})
-printFormattedJson(projects)
-
-# Get one specific project
-projects = accessProjects("get", None, None, None, None, None, "PRHCC_7859b8d6-3e56-4509-881d-7727dda79b10", None, {})
-printFormattedJson(projects)
-
-# Create new project
-data={
-    "name": "BTMG-TEST-PROJECT-20", \
-    "organizationID": "UO_fef239dc-fb5a-4284-9791-2cd0136db961", \
-    "organizationName": "BTMG1-TEST-ORG", \
-    "passType": None, \
-    "patientDataSetID": "O_00000000-0000-0000-0000-000000000495", \
-    "pdsExternalID": "495", \
-    "pdsName": "BTMG2", \
-    "state": "new", \
-    "status": True, \
-    "sweep": None, \
-    "type": "hcc"}
-projects = accessProjects("put", None, None, None, None, None, None, None, data)
-printFormattedJson(projects)
-
-
-
-
-
-
-
-
+#projectsTesting()
 
 #============
 
