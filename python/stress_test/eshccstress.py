@@ -379,10 +379,11 @@ def logInToHCC():
 			}	
   
   print ("URL4 :" + url)
-  #print DATA
-  #print HEADERS
-				
+  #print ("DATA :" + HEADERS)
+  #print ("HEADERS :" + HEADERS)
+  #print (url)				
   response = requests.post(url, data=DATA, headers=HEADERS) 
+  #print ("dsafasd")
   print ("* Status Code        = %s" % response.status_code)
   if response.status_code != ok:
   	quit()
