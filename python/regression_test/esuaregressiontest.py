@@ -46,7 +46,6 @@ from time import gmtime, strftime, localtime
 import calendar
 import mmap
 import pprint
-import tablib
 requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
@@ -70,6 +69,7 @@ CURYEAR = strftime("%Y", gmtime())
 PASSED_STAT="<table width='100%%'><tr><td bgcolor='#00A303' align='center'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
 FAILED_STAT="<table width='100%%'><tr><td bgcolor='#DF1000' align='center'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
 SUBHDR="<br><table width='100%%'><tr><td bgcolor='#4E4E4E' align='left'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
+SL="="*80
 	
 ok      			= 200
 created 			= 201
@@ -112,7 +112,7 @@ WAIT_FOR_USER_INPUT_BETWEEN_TEST_CASES=0
 PAUSE_FOR_FAILURES	=0
 #=========================================================================================
 def printGlobalParamaterSettings():
-	print ("============================================================================")
+	print SL
 	print ("* Environment            = %s" % ENVIRONMENT)
 	print ("* UA URL                 = %s" % UA_URL)
 	print ("* Receivers              = %s, %s" % (RECEIVERS,RECEIVERS2))
@@ -227,16 +227,7 @@ def writeReportHeader ():
 def writeReportDetails(module):	
 	global REPORT
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	
-	REPORT = REPORT + SUBHDR % module.upper()
-	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
-	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
-	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+FAILED_STAT
-	else:
-		REPORT = REPORT+PASSED_STAT
+
 	print ("Completed writeReportDetails ... \n")
 	return ()
 
@@ -404,19 +395,19 @@ def obtainInternalToken(un, pw):
 	
 	external_token = obtainExternalToken(un, pw)
 	url = TOKEN_URL
-  	referer = TOKEN_URL  				
-  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
-  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
-  	
-  	response = requests.post(url, data=json.dumps(DATA), headers=HEADERS) 
-  	if (response.status_code != created):
+	referer = TOKEN_URL
+	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+
+	response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+	if (response.status_code != created):
 		print ("* Failed to create internal token: %s. Exiting now ..." % response.status_code)
 		quit()
 	else:
-  		userjson = response.json()
-  		if userjson is not None:
-  			token = userjson.get("token")
-  			apixio_token = 'Apixio '+str(token)
+		userjson = response.json()
+		if userjson is not None:
+			token = userjson.get("token")
+			apixio_token = 'Apixio '+str(token)
 			print ("* USERNAME               = %s" % un)
 			print ("* PASSWORD               = %s" % pw)
 			print ("* TOKENIZER URL          = %s" % url)
@@ -424,8 +415,8 @@ def obtainInternalToken(un, pw):
 			print ("* INT TOKEN              = %s" % token)
 			print ("* APIXIO TOKEN           = %s" % apixio_token)
 			print ("* STATUS CODE            = %s" % response.status_code)
-			print ("============================================================================")
-  		else:
+			print SL
+		else:
 			token = "Not Available"	
 	
 	return(apixio_token)		
@@ -524,7 +515,7 @@ def accessRoleSets(fn, nameID, role):
 		response = requests.put(url, data=json.dumps(DATA), headers=HEADERS)		
 	print url	
 	print response.status_code
-	pauseBreak()
+	#pauseBreak()
 	return(response.json())
 #========================================================================================================
 def accessTexts(fn, blobID):
@@ -554,7 +545,7 @@ def accessUorgs(fn, name, entityID, orgID, userID, pdsID, roleName, data):
 		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
 	print STATUS_CODES[response.status_code]
-	pauseBreak()
+	#pauseBreak()
 	try:
 		jobj = response.json()
 	except ValueError:
@@ -585,7 +576,7 @@ def accessUsers(fn, sfn, name, userID, entityID, detail, data):
 		response = requests.delete(url, data=json.dumps(data), headers=HEADERS)	
 	print url	
 	print STATUS_CODES[response.status_code]
-	pauseBreak()
+	#pauseBreak()
 	try:
 		jobj = response.json()
 	except ValueError:
@@ -723,88 +714,96 @@ def projectsTesting():
 
 	# Create new project
 	data={
-    	"name":"BTMG-TEST-PROJECT-20", \
-    	"description":"BTMG-TEST-PROJECT-20", \
-    	"type":"SCIENCE", \
-    	"organizationID":"UO_fef239dc-fb5a-4284-9791-2cd0136db961", \
-    	"patientDataSetID":"O_00000000-0000-0000-0000-000000000495", \
-    	"dosStart": "2015-01-01T00:00:00Z", \
-    	"dosEnd": "2015-12-31T00:00:00Z", \
-    	"paymentYear": "2015", \
-    	"sweep": "midYear", \
-    	"passType": "secondPass", \
-    	"state": "bundled", \
-    	"properties": {"hcc": {"foo":"123"} } }
+		"name":"BTMG-TEST-PROJECT-20", \
+		"description":"BTMG-TEST-PROJECT-20", \
+		"type":"SCIENCE", \
+		"organizationID":"UO_fef239dc-fb5a-4284-9791-2cd0136db961", \
+		"patientDataSetID":"O_00000000-0000-0000-0000-000000000495", \
+		"dosStart": "2015-01-01T00:00:00Z", \
+		"dosEnd": "2015-12-31T00:00:00Z", \
+		"paymentYear": "2015", \
+		"sweep": "midYear", \
+		"passType": "secondPass", \
+		"state": "bundled", \
+		"properties": {"hcc": {"foo":"123"} } }
 	
 	projects = accessProjects("post", None, None, None, None, None, None, None, data)
 	printFormattedJson(projects)		
 	return()
 #=========================================================================================
+def rolesTesting():
+    roleSets = accessRoleSets("get", None, None)
+    printFormattedJson(roleSets)
+    for roleset in roleSets:
+        print roleset.get("description")
+        for i in range (len(roleset.get("roles"))):
+            print "* "+str(roleset.get("roles")[i].get("name"))
+        print
+    return()
+#=========================================================================================
+def printEndOfTest(name):
+    print ("\n")
+    print SL
+    print ("="*21 + " "+name+" " + "="*21)
+    print SL
+    return()
+#=========================================================================================
+def authenticateSetHeaders(usr, pwd):
+    global APIXIO_TOKEN, DATA, HEADERS
+    APIXIO_TOKEN = obtainInternalToken(usr, pwd)
+    DATA = {}
+    HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
+    return()
+#=========================================================================================
+def tc1():
+
+    #uOrgs = accessUorgs("get", None, None, None, None, None, None, {})
+    #printFormattedJson(uOrgs)
+    #uOrgs.sort()
+    #for uOrg in uOrgs:
+    #    print str(uOrg.get("name")).ljust(25,".")+str(uOrg.get("description")).ljust(55,".")+str(uOrg.get("id")).ljust(50,".")+"isActive: "+str(uOrg.get("isActive")).ljust(10)
+        #print uOrg.get("name").ljust(40)+uOrg.get("description").ljust(60)+uOrg.get("id").ljust(60)+"isActive: "+uOrg.get("isActive").ljust(10)
+    #quit()
+
+
+
+
+    data={"email":"protest27@apixio.net","organizationID":"UO_57faf530-e6e3-4677-afc5-bc87ff00ace9"}
+    users = accessUsers("post", None, None, None, None, None, data)
+    printFormattedJson(users)
+    print users.get("id")
+    usersId = users.get("id")
+
+
+
+    users = accessUsers("get", None, None, None, None, None, {})
+    #printFormattedJson(users)
+    users.sort()
+    for user in users:
+        print user.get("emailAddress").ljust(50,".")+user.get("state").ljust(20,".")+user.get("id").ljust(20)
+
+
+
+
+
+    return()
+
+#=========================================================================================
 #====================== MAIN PROGRAM BODY ================================================
 #=========================================================================================
-
 os.system('clear')
-
 checkEnvironmentandReceivers()
-
-#writeReportHeader()
-
 printGlobalParamaterSettings()
+authenticateSetHeaders("ishekhtman@apixio.com", "apixio.321")
 
-APIXIO_TOKEN = obtainInternalToken(IGOR_EMAIL, ADMIN_PW) 
-DATA = {}
-HEADERS = {'Content-Type':'application/json', 'Authorization':APIXIO_TOKEN}
+tc1()
+
 
 #uOrgsTesting()
-
 #usersTesting()
-
 #dataSetsTesting()
-
 #projectsTesting()
 
-#============
-
-#Roles for Vendor organizations - Vendor Roles - Vendor
-#ADMIN
-#Roles for Customer organizations - Customer Roles - Customer
-#ADMIN, PHIVIEWER
-#Roles for Test Projects - Test-type Project - Project.test
-#PROJECTADMIN, QALEAD, REVIEWER
-#Roles for HCC Projects - HCC Project - Project.hcc
-#REVIEWER, QALEAD, PROJECTADMIN
-#Roles for System-type organizations - System Roles - System
-#PIPELINEMANAGER, CUSTOMEROPS, ROOT, SCIENCEMANAGER, DATAMANAGER
-#Roles for Science Projects - Science-type Project - Project.science
-#QALEAD, PROJECTADMIN, REVIEWER
-
-#============
-#roleSets = accessRoleSets("get", None, None)
-#printFormattedJson(roleSets)
-#============
-
-
-#texts = accessTexts("get", None)
-#printFormattedJson(texts)
-
-#passPolicies = accessPassPolicies("get", None)
-#printFormattedJson(passPolicies)
-
-
-
-
-
-
-
-#for i in range (1,2):
-	#cleanUp()
-#	exec('testCase' + str(i) + '()')
-
-#writeReportFooter()
-#archiveReport()
-#emailReport()	
-
-print ("\n============================================================================")	
-print ("================== End of User Accounts Regression Test ====================")
-print ("============================================================================")
+#rolesTesting()
+printEndOfTest("End of User Accounts Regression Test")
 #=========================================================================================
