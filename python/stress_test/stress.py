@@ -176,7 +176,7 @@ def loginHCC(usr, pwd, url, sso_url, caller):
   print "* ApxToken".ljust(25)+" = "+ apxtoken
   print "* Sessid".ljust(25)+" = "+ sessid
   print "* Jsessionid".ljust(25)+" = "+ jsessionid
-  print "* Cookies".ljust(25)+" = "+ str(cookies)
+  #print "* Cookies".ljust(25)+" = "+ str(cookies)
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
   if response.status_code != 200:
   	quit()
@@ -185,7 +185,7 @@ def loginHCC(usr, pwd, url, sso_url, caller):
 
 #================================== ACT ON DOC (VIEW, ACCEPT, REJECT, SKIP) ============================================
 
-def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action):
+def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals):
 
   hcc = opportunity.get("code").get("hcc")
   label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -286,12 +286,13 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
     print "* ANNOTATE FINDING".ljust(25)+" = "+ str(response.status_code)
     if response.status_code == 200:
       print "* HCC CODE".ljust(25)+" = "+str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+" =  Accept Doc"
+      print "* CODER ACTION".ljust(25)+" = Accept Doc"
       print "* HCC RESPONSE".ljust(25)+" = 200 OK"
+      trackCount(ACTIONS[action], totals)
     else:
-      print "* CODER ACTION".ljust(25)+" Reject Doc"
-      print "* HCC RESPONSE".ljust(25)+" WARNING : Bad HCC Server Response: "+ str(response)
-      act_on_doc(url, cookies,opportunity, finding, finding_id, doc_no, max_docs, action)
+      print "* CODER ACTION".ljust(25)+" = Accept Doc"
+      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+ str(response)
+      trackCount("Failed "+ACTIONS[action], totals)
   elif action == 2: #================================== REJECT DOC ===========
     #finding_id = scorable.get("id")
     print "* FINDING ID".ljust(25)+" = "+ finding_id
@@ -356,10 +357,11 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
       print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print "* CODER ACTION".ljust(25)+" = Reject Doc"
       print "* HCC RESPONSE".ljust(25)+" = 200 OK"
+      trackCount(ACTIONS[action], totals)
     else:
-      print "* CODER ACTION".ljust(25)+" Reject Doc"
-      print "* HCC RESPONSE".ljust(25)+" WARNING : Bad HCC Server Response: "+ str(response)
-      act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action)
+      print "* CODER ACTION".ljust(25)+" = Reject Doc"
+      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+ str(response)
+      trackCount("Failed "+ACTIONS[action], totals)
   elif action == 3: #=========================== SKIP OPP ====================
     #finding_id = scorable.get("id")
     print "* FINDING ID".ljust(25)+" = "+ finding_id
@@ -421,11 +423,13 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
       print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
       print "* CODER ACTION".ljust(25)+" = Skip Opp"
       print "* HCC RESPONSE".ljust(25)+" = 200 OK"
+      trackCount(ACTIONS[action], totals)
     else:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action)
+      print "* CODER ACTION".ljust(25)+" = Skip Opp"
+      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+str(response)
+      trackCount("Failed "+ACTIONS[action], totals)
   else:
-    print "* CODER ACTION".ljust(25)+" = ? Unknown ?\n"
+    print "* CODER ACTION".ljust(25)+" = ? Unknown ?"
   return 0
 
 #============================================== RANDOM CODING ACTION ===================================================
@@ -460,21 +464,21 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
 
   HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
   DATA = {}
+  totals={}
 
-  for coding_opp_current in range(max_opps+1):
-    print LS
-    print ">"*31+" NEXT OPPORTUNITY "+"<"*31
-    print LS
+  for coding_opp_current in range(max_opps):
+    printSeparator("NEXT OPPORTUNITY")
     time.sleep(deltime)
     print "* Url".ljust(25)+" = "+ url
     response = requests.get(nwiurl, data=DATA, headers=HEADERS)
     print "* Get coding opp".ljust(25)+" = "+str(response.status_code)
 
     if response.status_code != 200:
-    	print "* Failed retrieve next-work-item".ljust(25)+" = "+str(response.status_code)
-        quit()
+      print "* Failed retrieve next-work-item".ljust(25)+" = "+str(response.status_code)
+      trackCount("Failed Opps", totals)
     else:
-    	opportunity = response.json()
+      opportunity = response.json()
+      trackCount("Opps", totals)
 
     hcc = opportunity.get("code").get("hcc")
     label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -518,8 +522,9 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
       date_of_service = finding.get("doc_date")
       mime_type = finding.get("mimeType")
       if mime_type == None:
-    	  mime_type = "text/plain"
+        mime_type = "text/plain"
       max_docs = len(findings)
+      printSeparator("GET NEXT FINDING")
       print "PATIENT DOC %d OF %d"    % (doc_no, max_docs)
       print "* STATUS".ljust(25)+" = "+status
       print "* PATIENT ORG".ljust(25)+" = "+patient_org_id
@@ -531,31 +536,95 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
       print "* DOC TITLE".ljust(25)+" = "+document_title
       print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
       print "* DOC TYPE".ljust(25)+" = "+mime_type
-
       dturl = url+"api/document-text/"
-
-
       print "* URL".ljust(25)+" = "+ dturl
 
       response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
+      if response.status_code != 200:
+        print "* GET SCRBLE DOC FAILED".ljust(25)+" = "+ str(response.status_code)
+        trackCount("Failed Findings", totals)
+      else:
+        print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
+        trackCount("Findings", totals)
 
-      print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
 
-      action = weightedRandomCodingAction(0, 34, 33, 33)
-      print "* ANNOTATION ACTION".ljust(25)+" = "+ACTIONS[action]
-      print LSS
-      act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action)
+      # looping through each and every available page in a document
+      if mime_type == "application/pdf":
+        printSeparator("GET DOCUMENT PAGES")
+        totalPages = finding.get("total_pages")
+        print "* TOTAL # OF PAGES".ljust(25)+" = "+ str((int(totalPages)-1))
 
-  return 0
+        for i in range (1, int(totalPages)):
+          dpurl = url+"document_page/"
+          response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
+          if response.status_code != 200:
+            print ("* DOC PAGE "+str(i)+" OF "+str((int(totalPages)-1))).ljust(25)+" = "+str(response.status_code)
+            trackCount("Failed Pages", totals)
+          else:
+            print ("* DOC PAGE "+str(i)+" OF "+str((int(totalPages)-1))).ljust(25)+" = 200 OK"
+            trackCount("Pages", totals)
+
+
+      action = weightedRandomCodingAction(0, 50, 40, 10)
+      print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
+      printSeparator("ANNOTATE: " + ACTIONS[action])
+      trackCount(ACTIONS[action], totals)
+      act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals)
+
+  return(totals)
+#=======================================================================================================================
+def printSeparator(msg):
+  ladj=1
+  radj=1
+  print LS
+  if len(msg)%2!=0:
+    radj=2
+  print ">"*((80-len(msg)-ladj)/2)+" "+msg+" "+"<"*((80-len(msg)-radj)/2)
+  print LS
+  return()
+#=======================================================================================================================
+def printResults(start_time, totals):
+  printSeparator("HCC STRESS TEST RESULTS SUMMARY")
+  print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
+  print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
+  hours, minuts, seconds = checkDuration(start_time)
+  print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
+  for total in totals:
+    print ("* "+ total).ljust(25)+" = " + str(totals[total])
+  return()
+#=======================================================================================================================
+def trackCount(item, totals):
+  if item not in totals:
+    totals[item]=1
+  else:
+    totals[item] += 1
+  return(totals)
+#=======================================================================================================================
+def checkDuration(start_time):
+  end_time = time.time()
+  duration = end_time - start_time
+  hours, rest = divmod(duration,3600)
+  minutes, seconds = divmod(rest, 60)
+  return(hours, minutes, seconds)
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
 os.system('clear')
+start_time=time.time()
+
+if len(sys.argv) < 2:
+  usr="mmgenergyes@apixio.net"
+else:
+  usr=str(sys.argv[1])
+pwd="apixio.123"
+hcchost="https://hccdev.apixio.com/"
+uahost="https://accounts-dev.apixio.com"
+caller="hcc_dev"
+
 defineGlobals()
-cookies = loginHCC("protest01@apixio.net", "apixio.123", "http://hccdev.apixio.com/", "https://accounts-dev.apixio.com", "hcc_dev")
+cookies = loginHCC(usr, pwd, hcchost, uahost, caller)
 pauseBreak()
-startCoding("protest01@apixio.net", "apixio.123", "https://hccdev.apixio.com/", cookies, 5, 1)
-print LS
-print ">"*27+" HCC STRESS TEST COMPLETE "+"<"*27
-print LS
+totals = startCoding(usr, pwd, hcchost, cookies, 2, 1)
+printResults(start_time, totals)
+printSeparator("HCC STRESS TEST COMPLETE")
 #=======================================================================================================================
