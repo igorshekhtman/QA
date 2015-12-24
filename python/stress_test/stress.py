@@ -110,7 +110,7 @@ def obtainExternalToken(un, pw, ua_url):
   return (external_token)
 #================================================ LOGIN TO HCC =========================================================
 
-def loginHCC(usr, pwd, url, sso_url, caller):
+def loginHCC(usr, pwd, url, sso_url, caller, maxopps):
   global APXTOKEN
 
   URL = "https://hccdev.apixio.com"
@@ -177,6 +177,7 @@ def loginHCC(usr, pwd, url, sso_url, caller):
   print "* Sessid".ljust(25)+" = "+ sessid
   print "* Jsessionid".ljust(25)+" = "+ jsessionid
   #print "* Cookies".ljust(25)+" = "+ str(cookies)
+  print "* Max # of Opps".ljust(25)+" = "+ str(maxopps)
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
   if response.status_code != 200:
   	quit()
@@ -616,15 +617,21 @@ if len(sys.argv) < 2:
   usr="mmgenergyes@apixio.net"
 else:
   usr=str(sys.argv[1])
+
+if len(sys.argv) < 3:
+  maxopps = 2
+else:
+  maxopps = int(sys.argv[2])
+
 pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
 
 defineGlobals()
-cookies = loginHCC(usr, pwd, hcchost, uahost, caller)
+cookies = loginHCC(usr, pwd, hcchost, uahost, caller, maxopps)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, 2, 1)
+totals = startCoding(usr, pwd, hcchost, cookies, maxopps, 1)
 printResults(start_time, totals)
 printSeparator("HCC STRESS TEST COMPLETE")
 #=======================================================================================================================
