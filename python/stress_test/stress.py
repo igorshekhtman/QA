@@ -206,13 +206,17 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
     	}
 
   aurl = url+ "api/annotate/"
-  if action == 0: # Do NOT Accept or Reject Doc
-    print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-    print "* CODER ACTION".ljust(25)+" = Do NOT Accept or Reject Doc"
-  elif action == 1: #=============================== ACCEPT DOC ==============
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+" = "+ finding_id
-    DATA = { \
+  print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+  print "* FINDING ID".ljust(25)+" = "+ finding_id
+  print "* ANNO URL".ljust(25)+" = "+aurl
+
+
+  if (action == 0) or (action not in [1,2,3]): # Do NOT Accept or Reject Doc
+    print "* CODER ACTION".ljust(25)+" = Do NOT Accept or Reject"
+    trackCount("Do NOT Accept or Reject", totals)
+  else:
+    if action == 1: #=============================== ACCEPT DOC ==============
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -282,22 +286,8 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 			"dateOfService": DOS, \
 			"comment": "Grinder Flag for Review" \
 			}}}
-    print "* ANNO URL".ljust(25)+" = "+aurl
-    response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
-    print "* ANNOTATE FINDING".ljust(25)+" = "+ str(response.status_code)
-    if response.status_code == 200:
-      print "* HCC CODE".ljust(25)+" = "+str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+" = Accept Doc"
-      print "* HCC RESPONSE".ljust(25)+" = 200 OK"
-      trackCount(ACTIONS[action], totals)
-    else:
-      print "* CODER ACTION".ljust(25)+" = Accept Doc"
-      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+ str(response)
-      trackCount("Failed "+ACTIONS[action], totals)
-  elif action == 2: #================================== REJECT DOC ===========
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+" = "+ finding_id
-    DATA = { \
+    elif action == 2: #================================== REJECT DOC ===========
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -352,21 +342,8 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 			"rejectReason": "This document does not mention this HCC for the patient", \
 			"comment": "Grinder Flag for Review Comment" \
 			}}}
-    print "* ANNO URL".ljust(25)+" = "+ aurl
-    response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
-    if response.status_code == 200:
-      print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+" = Reject Doc"
-      print "* HCC RESPONSE".ljust(25)+" = 200 OK"
-      trackCount(ACTIONS[action], totals)
-    else:
-      print "* CODER ACTION".ljust(25)+" = Reject Doc"
-      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+ str(response)
-      trackCount("Failed "+ACTIONS[action], totals)
-  elif action == 3: #=========================== SKIP OPP ====================
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+" = "+ finding_id
-    DATA = { \
+    elif action == 3: #=========================== SKIP OPP ====================
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -418,20 +395,19 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 			"flaggedForReview":False, \
 			"result":"skipped" \
 			}}}
-    print "* ANNO URL".ljust(25)+" = "+aurl
-    response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
-    if response.status_code == 200:
-      print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+" = Skip Opp"
-      print "* HCC RESPONSE".ljust(25)+" = 200 OK"
-      trackCount(ACTIONS[action], totals)
-    else:
-      print "* CODER ACTION".ljust(25)+" = Skip Opp"
-      print "* HCC RESPONSE".ljust(25)+" = WARNING: Bad HCC Server Response: "+str(response)
-      trackCount("Failed "+ACTIONS[action], totals)
-  else:
-    print "* CODER ACTION".ljust(25)+" = ? Unknown ?"
-  return 0
+
+    retries=0
+    while retries < max_ret:
+      response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
+      print ("* "+ACTIONS[action].upper()+" FINDING").ljust(25)+" = "+ str(response.status_code)
+      if response.status_code == 200:
+        retries = max_ret
+      else:
+        retries += 1
+        trackCount(ACTIONS[action]+"(retries)", totals)
+      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals)
+
+  return (totals)
 
 #============================================== RANDOM CODING ACTION ===================================================
 
@@ -461,11 +437,10 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
   print "* Apxtoken".ljust(25)+" = "+cookies["ApxToken"]
   print "* Sessionid".ljust(25)+" = "+cookies["sessionid"]
   print "* Jsessionid".ljust(25)+" = "+cookies["jsessionid"]
-  #pauseBreak()
 
   HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
   DATA = {}
-  totals={"startCoding":1}
+  totals={}
 
   for coding_opp_current in range(max_opps):
     printSeparator("NEXT OPPORTUNITY")
@@ -481,7 +456,8 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
             retries = max_ret
         else:
             retries += 1
-        trackCount(str(nwiurl.split("/")[4])+": "+str(response.status_code), totals)
+            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals)
+        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals)
     if response.status_code != 200:
                 return (totals)
 
@@ -551,9 +527,9 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
         if response.status_code == 200:
             retries = max_ret
         else:
-            print "* GET SCRBLE DOC FAILED".ljust(25)+" = "+ str(response.status_code)
             retries += 1
-        trackCount(str(dturl.split("/")[4])+": "+str(response.status_code), totals)
+            trackCount(str(dturl.split("/")[4])+"(retries)", totals)
+        trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals)
       if response.status_code != 200:
         return (totals)
 
@@ -561,8 +537,8 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
       if mime_type == "application/pdf":
         printSeparator("GET DOCUMENT PAGES")
         totalPages = finding.get("total_pages")
-        print "* TOTAL # OF PAGES: DOC".ljust(25)+" = "+ str((int(totalPages)-1))
-        print "* TOTAL # OF PAGES: LIMIT".ljust(25)+" = "+ str(max_doc_pages)
+        print "* TOTAL # OF PAGES(DOC)".ljust(25)+" = "+ str((int(totalPages)-1))
+        print "* TOTAL # OF PAGES(LIMIT)".ljust(25)+" = "+ str(max_doc_pages)
 
         for i in range (1, int(totalPages)):
           if i <= max_doc_pages:
@@ -575,15 +551,15 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
                     retries = max_ret
                 else:
                     retries += 1
-                trackCount(str(dpurl.split("/")[3])+": "+str(response.status_code), totals)
+                    trackCount(str(dpurl.split("/")[3])+"(retries)", totals)
+                trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals)
             if response.status_code != 200:
                 return (totals)
 
-      action = weightedRandomCodingAction(0, 50, 40, 10)
+      action = weightedRandomCodingAction(5, 45, 25, 25)
       print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
       printSeparator("ANNOTATE: " + ACTIONS[action])
-      trackCount(ACTIONS[action], totals)
-      act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals)
+      totals = act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals)
 
   return(totals)
 #=======================================================================================================================
@@ -597,14 +573,45 @@ def printSeparator(msg):
   print LS
   return()
 #=======================================================================================================================
-def printResults(start_time, totals):
+def printResults(start_time, totals, emailout, eaddr):
+
+  e = """From: Apixio QA <QA@apixio.com>\n"""
+  e=e+ """ishekhtman@apixio.com"""
+  e=e+ """MIME-Version: 1.0\n"""
+  e=e+ """Content-type: text/html\n"""
+  e=e+ """Subject: HCC %s stress Test Report - %s\n\n""" % ("staging", "")
+
+  e=e+ """<h1>Apixio HCC Stress Test Report</h1>\n"""
+  e=e+ """Run date & time (run): <b>%s</b><br>\n""" % ("")
+  #e=e+ """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
+  e=e+ """Report type: <b>%s</b><br>\n""" % ("stress")
+  e=e+ """HCC user name: <b>%s</b><br>\n""" % (usr)
+  e=e+ """HCC app url: <b>%s</b><br>\n""" % ("url")
+  e=e+ """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % ("S", "taging")
+  e=e+ """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
+
+
+
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
+  e=e+"HCC STRESS TEST RESULTS SUMMARY<br>"
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
+  e=e+"* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
+  e=e+"* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())
   hours, minuts, seconds = checkDuration(start_time)
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
+  e=e+"* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
   for total in totals:
     print ("* "+ total).ljust(25)+" = " + str(totals[total])
+    e=e+("* "+ total).ljust(25)+" = " + str(totals[total])+"<br>"
+  printSeparator("HCC STRESS TEST COMPLETE")
+  e=e+"HCC STRESS TEST COMPLETE"
+  if emailout:
+    s=smtplib.SMTP()
+    s.connect("smtp.gmail.com",587)
+    s.starttls()
+    s.login("donotreply@apixio.com", "apx.mail47")
+    s.sendmail(eaddr, eaddr, e)
   return()
 #=======================================================================================================================
 def trackCount(item, totals):
@@ -641,13 +648,12 @@ hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
 max_ret=20
-max_doc_pages=100
+max_doc_pages=5
 
 
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, maxopps)
 pauseBreak()
 totals = startCoding(usr, pwd, hcchost, cookies, maxopps, 1)
-printResults(start_time, totals)
-printSeparator("HCC STRESS TEST COMPLETE")
+printResults(start_time, totals, True, "ishekhtman@apixio.com")
 #=======================================================================================================================

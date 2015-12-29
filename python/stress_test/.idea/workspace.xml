@@ -24,8 +24,8 @@
       <file leaf-file-name="stress.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/stress.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.30680358">
-              <caret line="479" column="41" selection-start-line="479" selection-start-column="41" selection-end-line="479" selection-end-column="41" />
+            <state vertical-scroll-proportion="0.53632146">
+              <caret line="587" column="50" selection-start-line="587" selection-start-column="50" selection-end-line="587" selection-end-column="50" />
               <folding>
                 <element signature="e#1889#1904#0" expanded="true" />
               </folding>
@@ -58,8 +58,8 @@
       <file leaf-file-name="hccstress.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/hccstress.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="811" column="20" selection-start-line="811" selection-start-column="20" selection-end-line="811" selection-end-column="36" />
+            <state vertical-scroll-proportion="-15.962963">
+              <caret line="865" column="100" selection-start-line="852" selection-start-column="4" selection-end-line="865" selection-end-column="100" />
               <folding />
             </state>
           </provider>
@@ -326,7 +326,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="23" width="2560" height="1417" extended-state="6" />
+    <frame x="1440" y="23" width="2560" height="1417" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14415124" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -336,7 +336,7 @@
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3909434" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.49056605" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -459,16 +459,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/hccstress.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="811" column="20" selection-start-line="811" selection-start-column="20" selection-end-line="811" selection-end-column="36" />
+        <state vertical-scroll-proportion="-15.962963">
+          <caret line="865" column="100" selection-start-line="852" selection-start-column="4" selection-end-line="865" selection-end-column="100" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/stress.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30680358">
-          <caret line="479" column="41" selection-start-line="479" selection-start-column="41" selection-end-line="479" selection-end-column="41" />
+        <state vertical-scroll-proportion="0.53632146">
+          <caret line="587" column="50" selection-start-line="587" selection-start-column="50" selection-end-line="587" selection-end-column="50" />
           <folding>
             <element signature="e#1889#1904#0" expanded="true" />
           </folding>
