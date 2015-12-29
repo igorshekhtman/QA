@@ -465,21 +465,25 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
 
   HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
   DATA = {}
-  totals={}
+  totals={"startCoding":1}
 
   for coding_opp_current in range(max_opps):
     printSeparator("NEXT OPPORTUNITY")
     time.sleep(deltime)
     print "* Url".ljust(25)+" = "+ url
-    response = requests.get(nwiurl, data=DATA, headers=HEADERS)
-    print "* Get coding opp".ljust(25)+" = "+str(response.status_code)
 
+    retries=0
+    while retries < max_ret:
+        response = requests.get(nwiurl, data=DATA, headers=HEADERS)
+        print "* Get coding opp".ljust(25)+" = "+str(response.status_code)
+        if response.status_code == 200:
+            opportunity = response.json()
+            retries = max_ret
+        else:
+            retries += 1
+        trackCount(str(nwiurl.split("/")[4])+": "+str(response.status_code), totals)
     if response.status_code != 200:
-      print "* Failed retrieve next-work-item".ljust(25)+" = "+str(response.status_code)
-      trackCount("Failed Opps", totals)
-    else:
-      opportunity = response.json()
-      trackCount("Opps", totals)
+                return (totals)
 
     hcc = opportunity.get("code").get("hcc")
     label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -492,11 +496,11 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
     print SL
 
     patient_details = response.text
-    #print patient_details
 
     if opportunity == None:
       print("* ERROR".ljust(25)+" = Login Failed or No More Opportunities For This Coder")
-      return 1
+      trackCount("No more opps", totals)
+      return (totals)
 
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes")
@@ -540,31 +544,40 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
       dturl = url+"api/document-text/"
       print "* URL".ljust(25)+" = "+ dturl
 
-      response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
-      if response.status_code != 200:
-        print "* GET SCRBLE DOC FAILED".ljust(25)+" = "+ str(response.status_code)
-        trackCount("Failed Findings", totals)
-      else:
+      retries=0
+      while retries < max_ret:
+        response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
         print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
-        trackCount("Findings", totals)
-
+        if response.status_code == 200:
+            retries = max_ret
+        else:
+            print "* GET SCRBLE DOC FAILED".ljust(25)+" = "+ str(response.status_code)
+            retries += 1
+        trackCount(str(dturl.split("/")[4])+": "+str(response.status_code), totals)
+      if response.status_code != 200:
+        return (totals)
 
       # looping through each and every available page in a document
       if mime_type == "application/pdf":
         printSeparator("GET DOCUMENT PAGES")
         totalPages = finding.get("total_pages")
-        print "* TOTAL # OF PAGES".ljust(25)+" = "+ str((int(totalPages)-1))
+        print "* TOTAL # OF PAGES: DOC".ljust(25)+" = "+ str((int(totalPages)-1))
+        print "* TOTAL # OF PAGES: LIMIT".ljust(25)+" = "+ str(max_doc_pages)
 
         for i in range (1, int(totalPages)):
-          dpurl = url+"document_page/"
-          response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
-          if response.status_code != 200:
-            print ("* DOC PAGE "+str(i)+" OF "+str((int(totalPages)-1))).ljust(25)+" = "+str(response.status_code)
-            trackCount("Failed Pages", totals)
-          else:
-            print ("* DOC PAGE "+str(i)+" OF "+str((int(totalPages)-1))).ljust(25)+" = 200 OK"
-            trackCount("Pages", totals)
-
+          if i <= max_doc_pages:
+            dpurl = url+"document_page/"
+            retries=0
+            while retries < max_ret:
+                response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
+                print ("* DOC PAGE "+str(i)+" OF "+str((int(min(int(totalPages)-1,max_doc_pages))))).ljust(25)+" = "+str(response.status_code)
+                if response.status_code == 200:
+                    retries = max_ret
+                else:
+                    retries += 1
+                trackCount(str(dpurl.split("/")[3])+": "+str(response.status_code), totals)
+            if response.status_code != 200:
+                return (totals)
 
       action = weightedRandomCodingAction(0, 50, 40, 10)
       print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
@@ -627,6 +640,9 @@ pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
+max_ret=20
+max_doc_pages=100
+
 
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, maxopps)
