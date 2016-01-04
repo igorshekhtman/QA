@@ -110,7 +110,7 @@ def obtainExternalToken(un, pw, ua_url):
   return (external_token)
 #================================================ LOGIN TO HCC =========================================================
 
-def loginHCC(usr, pwd, url, sso_url, caller, maxopps):
+def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
   global APXTOKEN
 
   URL = "https://hccdev.apixio.com"
@@ -177,7 +177,7 @@ def loginHCC(usr, pwd, url, sso_url, caller, maxopps):
   print "* Sessid".ljust(25)+" = "+ sessid
   print "* Jsessionid".ljust(25)+" = "+ jsessionid
   #print "* Cookies".ljust(25)+" = "+ str(cookies)
-  print "* Max # of Opps".ljust(25)+" = "+ str(maxopps)
+  print "* Max # of Opps".ljust(25)+" = "+ str(max_opps)
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
   if response.status_code != 200:
   	quit()
@@ -573,45 +573,64 @@ def printSeparator(msg):
   print LS
   return()
 #=======================================================================================================================
-def printResults(start_time, totals, emailout, eaddr):
+def getBgColor(total):
+  colors = {"RED":"#FF0000", "YELLOW":"#FFFF00", "GREEN":"#00FF00", "WHITE":"#FFFFFF", "GREY":"#DCDCDC"}
+  if "(" in total and ")" in total:
+    if total.split("(")[1].split(")")[0] == "200":
+      return(colors['GREEN'])
+    elif total.split("(")[1].split(")")[0] == "retries":
+      return(colors['YELLOW'])
+    elif total.split("(")[1].split(")")[0] == "heading":
+      return (colors['GREY'])
+    else:
+      return(colors['RED'])
+  else:
+    return(colors['GREEN'])
+#=======================================================================================================================
+def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, eaddr):
 
-  e = """From: Apixio QA <QA@apixio.com>\n"""
-  e=e+ """ishekhtman@apixio.com"""
-  e=e+ """MIME-Version: 1.0\n"""
-  e=e+ """Content-type: text/html\n"""
-  e=e+ """Subject: HCC %s stress Test Report - %s\n\n""" % ("staging", "")
-
-  e=e+ """<h1>Apixio HCC Stress Test Report</h1>\n"""
-  e=e+ """Run date & time (run): <b>%s</b><br>\n""" % ("")
-  #e=e+ """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
-  e=e+ """Report type: <b>%s</b><br>\n""" % ("stress")
-  e=e+ """HCC user name: <b>%s</b><br>\n""" % (usr)
-  e=e+ """HCC app url: <b>%s</b><br>\n""" % ("url")
-  e=e+ """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % ("S", "taging")
-  e=e+ """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
-
-
+  hours, minuts, seconds = checkDuration(start_time)
+  r = ""
+  r += "<h2>Apixio HCC Stress Test Report</h2>"
+  r += "Run date & time (run): <b>%s</b><br>" % (strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+  r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
+  r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())+"</b>"
+  r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
+  r += "Report type: <b>%s</b><br>" % ("Stress Test")
+  r += "HCC user name: <b>%s</b><br>" % (usr)
+  r += "HCC app url: <b>%s</b><br>" % (hcchost)
+  r += "Enviromnent: <b><font color='red'>%s%s</font></b><br><br>" % ("S", "taging")
+  r += "Max. # of Opps: <b>%s</b><br>"%(max_opps)
+  r += "Max. # of Retries: <b>%s</b><br>"%(max_ret)
+  r += "Max. # of Doc Pages: <b>%s</b><br><br>"%(max_doc_pages)
+  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
-  e=e+"HCC STRESS TEST RESULTS SUMMARY<br>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST RESULTS SUMMARY</td><tr>"
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
-  e=e+"* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
-  e=e+"* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())
-  hours, minuts, seconds = checkDuration(start_time)
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
-  e=e+"* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
-  for total in totals:
+  for total in sorted(totals):
     print ("* "+ total).ljust(25)+" = " + str(totals[total])
-    e=e+("* "+ total).ljust(25)+" = " + str(totals[total])+"<br>"
+    r +=  ("<tr><td width='200' bgcolor='"+getBgColor(total)+"'> "+ total)+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
   printSeparator("HCC STRESS TEST COMPLETE")
-  e=e+"HCC STRESS TEST COMPLETE"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
+
   if emailout:
+    message = MIMEMultipart('related')
+    message.attach(MIMEText((r), 'html'))
+    message['From'] = 'Apixio QA <QA@apixio.com>'
+    #message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+    message['To'] = 'To: Igor <ishekhtman@apixio.com>,Igor <ishekhtman@apixio.com>'
+    message['Subject'] = 'HCC %s Stress Test Report - %s' % ("Staging", strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+    msg_full = message.as_string()
+
     s=smtplib.SMTP()
     s.connect("smtp.gmail.com",587)
     s.starttls()
     s.login("donotreply@apixio.com", "apx.mail47")
-    s.sendmail(eaddr, eaddr, e)
+    s.sendmail("ishekhtman@apixio.com", ["ishekhtman@apixio.com", "ishekhtman@apixio.com"], msg_full)
+    s.quit()
   return()
 #=======================================================================================================================
 def trackCount(item, totals):
@@ -639,21 +658,21 @@ else:
   usr=str(sys.argv[1])
 
 if len(sys.argv) < 3:
-  maxopps = 2
+  max_opps = 3
 else:
-  maxopps = int(sys.argv[2])
+  max_opps = int(sys.argv[2])
 
 pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
-max_ret=20
-max_doc_pages=5
+max_ret=100
+max_doc_pages=15
 
 
 defineGlobals()
-cookies = loginHCC(usr, pwd, hcchost, uahost, caller, maxopps)
+cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, maxopps, 1)
-printResults(start_time, totals, True, "ishekhtman@apixio.com")
+totals = startCoding(usr, pwd, hcchost, cookies, max_opps, 1)
+printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, "ishekhtman@apixio.com")
 #=======================================================================================================================
