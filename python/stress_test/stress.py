@@ -466,7 +466,6 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
     sweep = opportunity.get("code").get("sweep")
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
 
-
     print SL
     print "* HCC CODE".ljust(25)+" = "+str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
     print SL
@@ -587,7 +586,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, eaddr):
+def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -619,9 +618,8 @@ def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, 
   if emailout:
     message = MIMEMultipart('related')
     message.attach(MIMEText((r), 'html'))
-    message['From'] = 'Apixio QA <QA@apixio.com>'
-    #message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
-    message['To'] = 'To: Igor <ishekhtman@apixio.com>,Igor <ishekhtman@apixio.com>'
+    message['From'] = 'Apixio QA <qa@apixio.com>'
+    message['To'] = 'To: Eng <'+recepients[0]+'>,Ops <'+recepients[1]+'>'
     message['Subject'] = 'HCC %s Stress Test Report - %s' % ("Staging", strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
     msg_full = message.as_string()
 
@@ -629,7 +627,7 @@ def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, 
     s.connect("smtp.gmail.com",587)
     s.starttls()
     s.login("donotreply@apixio.com", "apx.mail47")
-    s.sendmail("ishekhtman@apixio.com", ["ishekhtman@apixio.com", "ishekhtman@apixio.com"], msg_full)
+    s.sendmail("qa@apixio.com", recepients, msg_full)
     s.quit()
   return()
 #=======================================================================================================================
@@ -658,7 +656,7 @@ else:
   usr=str(sys.argv[1])
 
 if len(sys.argv) < 3:
-  max_opps = 3
+  max_opps = 2
 else:
   max_opps = int(sys.argv[2])
 
@@ -666,13 +664,15 @@ pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
-max_ret=100
-max_doc_pages=15
+max_ret=200
+max_doc_pages=100
+recepients=["eng@apixio.com", "ops@apixio.com"]
+#recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
 
 
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
 totals = startCoding(usr, pwd, hcchost, cookies, max_opps, 1)
-printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, "ishekhtman@apixio.com")
+printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
 #=======================================================================================================================
