@@ -60,15 +60,15 @@ def pauseBreak():
     quit()
   return ()
 #=======================================================================================================================
-def obtainExternalToken(un, pw, ua_url):
+def obtainExternalToken(options):
 
-  url = ua_url+'/auths'
-  DATA =    { 'email': un, 'password': pw}
+  url = options['uahost']+options['uaport']+'/auths'
+  DATA =    { 'email': options['usr'], 'password': options['pwd']}
   HEADERS = {}
 
   print "* Url 4".ljust(25)+" = "+ url
-  print "* Username".ljust(25)+" = "+ un
-  print "* Password".ljust(25)+" = "+ pw
+  print "* Username".ljust(25)+" = "+ options['usr']
+  print "* Password".ljust(25)+" = "+ options['pwd']
 
   response = requests.post(url, data=DATA, headers=HEADERS)
   statuscode = response.status_code
@@ -82,9 +82,9 @@ def obtainExternalToken(un, pw, ua_url):
   return (external_token)
 #================================================ LOGIN TO HCC =========================================================
 
-def loginHCC(usr, pwd, hcchost, uahost, caller, max_opps):
+def loginHCC(options):
 
-  url = hcchost+'/account/login/'
+  url = options['hcchost']+'/account/login/'
   print LS
   print "* Url 1".ljust(25)+" = " + url
   response = requests.get(url)
@@ -95,7 +95,7 @@ def loginHCC(usr, pwd, hcchost, uahost, caller, max_opps):
     print LS
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
-  url = hcchost+"/"
+  url = options['hcchost']+"/"
   print "* Url 2".ljust(25)+" = " + url
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
@@ -104,9 +104,9 @@ def loginHCC(usr, pwd, hcchost, uahost, caller, max_opps):
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
   jsessionid = response.cookies["JSESSIONID"]
-  url = uahost+"/"
-  DATA = {'username': usr, 'password': pwd, 'hash':'', 'caller':caller, 'log_ref':'1441056621484', 'origin':'loging' }
-  HEADERS = { 'Cookie': 'JSESSIONID='+jsessionid }
+  url = options['ssohost']+"/"
+  DATA = {'username': options['usr'], 'password': options['pwd'], 'hash':'', 'caller':options['caller'], 'log_ref':'1441056621484', 'origin':'loging' }
+  HEADERS = {'Cookie': 'JSESSIONID='+jsessionid}
 
   print "* Url 3".ljust(25)+ " = " + url
   response = requests.post(url, data=DATA, headers=HEADERS)
@@ -117,27 +117,22 @@ def loginHCC(usr, pwd, hcchost, uahost, caller, max_opps):
 
   token = response.cookies["csrftoken"]
   sessid = response.cookies["sessionid"]
-  apxtoken = obtainExternalToken(usr, pwd, "https://useraccount-dev.apixio.com:7076")
+  apxtoken = obtainExternalToken(options)
   cookies = dict(csrftoken=''+token+'', sessionid=''+sessid+'', ApxToken=''+apxtoken+'', jsessionid=''+jsessionid)
 
-
   print "* Url 5".ljust(25)+" = "+ url
-  print "* Username".ljust(25)+" = "+ usr
-  print "* Password".ljust(25)+" = "+ pwd
-  print "* Csrftoken".ljust(25)+" = "+ token
-  print "* ApxToken".ljust(25)+" = "+ apxtoken
-  print "* Sessid".ljust(25)+" = "+ sessid
-  print "* Jsessionid".ljust(25)+" = "+ jsessionid
-  #print "* Cookies".ljust(25)+" = "+ str(cookies)
+  print "* Username".ljust(25)+" = "+ options['usr']
+  print "* Password".ljust(25)+" = "+ options['pwd']
+  print "* Cookies".ljust(25)+" = "+ "\n".ljust(29).join(["%s:%s" % (key, ('%('+key+')s') % cookies) for key in sorted(cookies)])
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
   print LSS
-  print "* Environment".ljust(25)+" = "+(env)
-  print "* Max # of Opps".ljust(25)+" = "+ str(max_opps)
-  print "* Max # of Retries".ljust(25)+" = "+ str(max_ret)
-  print "* Max # of Doc Pages".ljust(25)+" = "+ str(max_doc_pages)
-  print "* Coding Delay Time".ljust(25)+" = "+ str(coding_delay_time)+" second(s)"
-  print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s%%" % (key, ('%('+key+')s') % action_weights) for key in sorted(action_weights)])
-  print "* Accept Date of Service".ljust(25)+" = "+str(dos)
+  print "* Environment".ljust(25)+" = "+(options['env'])
+  print "* Max # of Opps".ljust(25)+" = "+ str(options['max_opps'])
+  print "* Max # of Retries".ljust(25)+" = "+ str(options['max_ret'])
+  print "* Max # of Doc Pages".ljust(25)+" = "+ str(options['max_doc_pages'])
+  print "* Coding Delay Time".ljust(25)+" = "+ str(options['coding_delay_time'])+" second(s)"
+  print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s%%" % (key, ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])])
+  print "* Accept Date of Service".ljust(25)+" = "+str(options['dos'])
   if response.status_code != 200:
     quit()
   print LS
@@ -356,11 +351,11 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 			}}}
 
     retries=0
-    while retries < max_ret:
+    while retries < options['max_ret']:
       response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
       print ("* "+ACTIONS[action].upper()+" FINDING").ljust(25)+" = "+ str(response.status_code)
       if response.status_code == 200:
-        retries = max_ret
+        retries = options['max_ret']
       else:
         retries += 1
         trackCount(ACTIONS[action]+"(retries)", totals)
@@ -382,37 +377,37 @@ def weightedRandomCodingAction(action_weights):
 
 #============================================== START CODING ===========================================================
 
-def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
+def startCoding(options, cookies):
 
-  print "* Url".ljust(25)+" = "+url
-  print "* Username".ljust(25)+" = "+usr
-  print "* Password".ljust(25)+" = "+pw
-  print "* Max. # of opps".ljust(25)+" = "+str(max_opps)
-  print "* Delay time".ljust(25)+" = "+str(deltime)
+  print "* Url".ljust(25)+" = "+options['hcchost']
+  print "* Username".ljust(25)+" = "+options['usr']
+  print "* Password".ljust(25)+" = "+options['pwd']
+  print "* Max. # of opps".ljust(25)+" = "+str(options['max_opps'])
+  print "* Delay time".ljust(25)+" = "+str(options['coding_delay_time'])
   print LSS
-  nwiurl = url+"api/next-work-item/"
+  nwiurl = options['hcchost']+"api/next-work-item/"
   print "* Url".ljust(25)+" = "+nwiurl
-  print "* Csrftoken".ljust(25)+" = "+cookies["csrftoken"]
-  print "* Apxtoken".ljust(25)+" = "+cookies["ApxToken"]
-  print "* Sessionid".ljust(25)+" = "+cookies["sessionid"]
-  print "* Jsessionid".ljust(25)+" = "+cookies["jsessionid"]
+  print "* csrftoken".ljust(25)+" = "+cookies["csrftoken"]
+  print "* apxtoken".ljust(25)+" = "+cookies["ApxToken"]
+  print "* sessionid".ljust(25)+" = "+cookies["sessionid"]
+  print "* jsessionid".ljust(25)+" = "+cookies["jsessionid"]
 
   HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
   DATA = {}
   totals={}
 
-  for coding_opp_current in range(max_opps):
+  for coding_opp_current in range(options['max_opps']):
     printSeparator("NEXT OPPORTUNITY")
-    time.sleep(deltime)
-    print "* Url".ljust(25)+" = "+ url
+    time.sleep(options['coding_delay_time'])
+    print "* Url".ljust(25)+" = "+ options['hcchost']
 
     retries=0
-    while retries < max_ret:
+    while retries < options['max_ret']:
         response = requests.get(nwiurl, data=DATA, headers=HEADERS)
         print "* Get coding opp".ljust(25)+" = "+str(response.status_code)
         if response.status_code == 200:
             opportunity = response.json()
-            retries = max_ret
+            retries = options['max_ret']
         else:
             retries += 1
             trackCount(str(nwiurl.split("/")[4])+"(retries)", totals)
@@ -449,7 +444,7 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
     organization = opportunity.get("organization")
     transaction_id = opportunity.get("transactionId")
 
-    print "PATIENT OPP %d OF %d" % (coding_opp_current, max_opps)
+    print "PATIENT OPP %d OF %d" % (coding_opp_current, options['max_opps'])
 
     doc_no = 0
     for finding in findings:
@@ -475,15 +470,15 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
       print "* DOC TITLE".ljust(25)+" = "+document_title
       print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
       print "* DOC TYPE".ljust(25)+" = "+mime_type
-      dturl = url+"api/document-text/"
+      dturl = options['hcchost']+"api/document-text/"
       print "* URL".ljust(25)+" = "+ dturl
 
       retries=0
-      while retries < max_ret:
+      while retries < options['max_ret']:
         response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
         print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
         if response.status_code == 200:
-            retries = max_ret
+            retries = options['max_ret']
         else:
             retries += 1
             trackCount(str(dturl.split("/")[4])+"(retries)", totals)
@@ -496,17 +491,17 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
         printSeparator("GET DOCUMENT PAGES")
         totalPages = finding.get("total_pages")
         print "* TOTAL # OF PAGES(DOC)".ljust(25)+" = "+ str((int(totalPages)-1))
-        print "* TOTAL # OF PAGES(LIMIT)".ljust(25)+" = "+ str(max_doc_pages)
+        print "* TOTAL # OF PAGES(LIMIT)".ljust(25)+" = "+ str(options['max_doc_pages'])
 
         for i in range (1, int(totalPages)):
-          if i <= max_doc_pages:
-            dpurl = url+"document_page/"
+          if i <= options['max_doc_pages']:
+            dpurl = options['hcchost']+"document_page/"
             retries=0
-            while retries < max_ret:
+            while retries < options['max_ret']:
                 response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
-                print ("* DOC PAGE "+str(i)+" OF "+str((int(min(int(totalPages)-1,max_doc_pages))))).ljust(25)+" = "+str(response.status_code)
+                print ("* DOC PAGE "+str(i)+" OF "+str((int(min(int(totalPages)-1,options['max_doc_pages']))))).ljust(25)+" = "+str(response.status_code)
                 if response.status_code == 200:
-                    retries = max_ret
+                    retries = options['max_ret']
                 else:
                     retries += 1
                     trackCount(str(dpurl.split("/")[3])+"(retries)", totals)
@@ -514,10 +509,10 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
             if response.status_code != 200:
                 return (totals)
 
-      action = weightedRandomCodingAction(action_weights)
+      action = weightedRandomCodingAction(options['action_weights'])
       print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
       printSeparator("ANNOTATE: " + ACTIONS[action])
-      totals = act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, dos)
+      totals = act_on_doc(options['hcchost'], cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, options['dos'])
 
   return(totals)
 #=======================================================================================================================
@@ -545,7 +540,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
+def printResults(options, start_time, totals, emailout, recepients):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -554,16 +549,16 @@ def printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps
   r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
   r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())+"</b>"
   r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
-  r += "Report type: <b>%s</b><br>" % (rep_type)
-  r += "HCC user name: <b>%s</b><br>" % (usr)
-  r += "HCC app url: <b>%s</b><br>" % (hcchost)
-  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (env)
-  r += "Max. # of Opps: <b>%s</b><br>"%(max_opps)
-  r += "Max. # of Retries: <b>%s</b><br>"%(max_ret)
-  r += "Max. # of Doc Pages: <b>%s</b><br>"%(max_doc_pages)
-  r += "Coding Delay Time: <b>%s sec</b><br>"%(coding_delay_time)
-  r += "Accepts Date of Service: <b>%s</b><br>"%(dos)
-  r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % action_weights) for key in sorted(action_weights)]))
+  r += "Report type: <b>%s</b><br>" % (options['rep_type'])
+  r += "HCC user name: <b>%s</b><br>" % (options['usr'])
+  r += "HCC app url: <b>%s</b><br>" % (options['hcchost'])
+  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
+  r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
+  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
+  r += "Max. # of Doc Pages: <b>%s</b><br>"%(options['max_doc_pages'])
+  r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
+  r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
+  r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])]))
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
@@ -582,7 +577,7 @@ def printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps
     message.attach(MIMEText((r), 'html'))
     message['From'] = 'Apixio QA <qa@apixio.com>'
     message['To'] = 'To: Eng <'+recepients[0]+'>,Ops <'+recepients[1]+'>'
-    message['Subject'] = 'HCC %s Stress Test Report - %s' % (env, strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+    message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
     msg_full = message.as_string()
 
     s=smtplib.SMTP()
@@ -612,31 +607,40 @@ def checkDuration(start_time):
 os.system('clear')
 start_time=time.time()
 
-rep_type="Stress Test"
-env="Development"
-pwd="apixio.123"
-hcchost="https://hccdev.apixio.com/"
-uahost="https://accounts-dev.apixio.com"
-caller="hcc_dev"
-max_ret=2
-max_doc_pages=2
-max_opps = 2
-coding_delay_time = 0
 #recepients=["eng@apixio.com", "ops@apixio.com"]
 recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
-usr="mmgenergyes@apixio.net"
-action_weights = {'view':0, 'accept':34, 'reject':33, 'skip':33}
-dos="04/04/2014"
+email_report=True
 
 if len(sys.argv) >= 2:
   usr=str(sys.argv[1])
+else:
+  usr="mmgenergyes@apixio.net"
 if len(sys.argv) == 3:
   max_opps = int(sys.argv[2])
+else:
+  max_opps = 2
 
+options={ \
+    'rep_type':'Stress Test', \
+    'env':'Development', \
+    'usr': usr, \
+    'pwd':'apixio.123', \
+    'hcchost':'https://hccdev.apixio.com/', \
+    'ssohost':'https://accounts-dev.apixio.com', \
+    'uahost':'https://useraccount-dev.apixio.com', \
+    'uaport':':7076', \
+    'caller':'hcc_dev', \
+    'max_opps': max_opps, \
+    'max_ret':2, \
+    'max_doc_pages':2, \
+    'coding_delay_time':0, \
+    'action_weights':{'view':0,'accept':34,'reject':33,'skip':33}, \
+    'dos' : "04/04/2014" \
+    }
 
 defineGlobals()
-cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
+cookies = loginHCC(options)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time, action_weights, dos)
-printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
+totals = startCoding(options, cookies)
+printResults(options, start_time, totals, email_report, recepients)
 #=======================================================================================================================
