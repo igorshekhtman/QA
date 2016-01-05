@@ -609,9 +609,9 @@ def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, 
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
-  for total in sorted(totals):
-    print ("* "+ total).ljust(25)+" = " + str(totals[total])
-    r +=  ("<tr><td width='200' bgcolor='"+getBgColor(total)+"'> "+ total)+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
+  for total in sorted(totals, key=lambda x:x[0].upper()):
+    print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total])
+    r +=  ("<tr><td width='200' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
   printSeparator("HCC STRESS TEST COMPLETE")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
@@ -650,24 +650,21 @@ def checkDuration(start_time):
 os.system('clear')
 start_time=time.time()
 
-if len(sys.argv) < 2:
-  usr="mmgenergyes@apixio.net"
-else:
-  usr=str(sys.argv[1])
-
-if len(sys.argv) < 3:
-  max_opps = 2
-else:
-  max_opps = int(sys.argv[2])
-
 pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
-max_ret=200
-max_doc_pages=100
-recepients=["eng@apixio.com", "ops@apixio.com"]
-#recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
+max_ret=2
+max_doc_pages=10
+max_opps = 2
+#recepients=["eng@apixio.com", "ops@apixio.com"]
+recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
+usr="mmgenergyes@apixio.net"
+
+if len(sys.argv) >= 2:
+  usr=str(sys.argv[1])
+if len(sys.argv) == 3:
+  max_opps = int(sys.argv[2])
 
 
 defineGlobals()
