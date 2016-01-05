@@ -161,7 +161,7 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
   print "* Status Code".ljust(25)+" = "+ str(response.status_code)
   print LSS
   if response.status_code != 200:
-  	quit()
+    quit()
 
   token = response.cookies["csrftoken"]
   sessid = response.cookies["sessionid"]
@@ -178,12 +178,15 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
   print "* Jsessionid".ljust(25)+" = "+ jsessionid
   #print "* Cookies".ljust(25)+" = "+ str(cookies)
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
+  print LSS
+  print "* Environment".ljust(25)+" = "+(env)
   print "* Max # of Opps".ljust(25)+" = "+ str(max_opps)
   print "* Max # of Retries".ljust(25)+" = "+ str(max_ret)
   print "* Max # of Doc Pages".ljust(25)+" = "+ str(max_doc_pages)
-  print "* Coding Delay Time".ljust(25)+" = "+ str(coding_delay_time)+" sec."
+  print "* Coding Delay Time".ljust(25)+" = "+ str(coding_delay_time)+" second(s)"
+  print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s" % (key, ('%('+key+')s') % action_weights) for key in sorted(action_weights)])
   if response.status_code != 200:
-  	quit()
+    quit()
   print LS
   return(cookies)
 
@@ -414,19 +417,19 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 
 #============================================== RANDOM CODING ACTION ===================================================
 
-def weightedRandomCodingAction(view, accept, reject, skip):
+def weightedRandomCodingAction(action_weights):
 
-	weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight['0'] = int(view)
-	weight['1'] = int(accept)
-	weight['2'] = int(reject)
-	weight['3'] = int(skip)
-	action = random.choice([k for k in weight for dummy in range(weight[k])])
-	return (int(action))
+  weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
+  weight['0'] = int(action_weights['view'])
+  weight['1'] = int(action_weights['accept'])
+  weight['2'] = int(action_weights['reject'])
+  weight['3'] = int(action_weights['skip'])
+  action = random.choice([k for k in weight for dummy in range(weight[k])])
+  return (int(action))
 
 #============================================== START CODING ===========================================================
 
-def startCoding(usr, pw, url, cookies, max_opps, deltime):
+def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights):
 
   print "* Url".ljust(25)+" = "+url
   print "* Username".ljust(25)+" = "+usr
@@ -558,7 +561,7 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime):
             if response.status_code != 200:
                 return (totals)
 
-      action = weightedRandomCodingAction(5, 45, 25, 25)
+      action = weightedRandomCodingAction(action_weights)
       print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
       printSeparator("ANNOTATE: " + ACTIONS[action])
       totals = act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals)
@@ -589,7 +592,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
+def printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -598,14 +601,15 @@ def printResults(coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, s
   r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
   r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())+"</b>"
   r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
-  r += "Report type: <b>%s</b><br>" % ("Stress Test")
+  r += "Report type: <b>%s</b><br>" % (rep_type)
   r += "HCC user name: <b>%s</b><br>" % (usr)
   r += "HCC app url: <b>%s</b><br>" % (hcchost)
-  r += "Enviromnent: <b><font color='red'>%s%s</font></b><br><br>" % ("S", "taging")
+  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (env)
   r += "Max. # of Opps: <b>%s</b><br>"%(max_opps)
   r += "Max. # of Retries: <b>%s</b><br>"%(max_ret)
   r += "Max. # of Doc Pages: <b>%s</b><br>"%(max_doc_pages)
-  r += "Coding Delay Time: <b>%s sec</b><br><br>"%(coding_delay_time)
+  r += "Coding Delay Time: <b>%s sec</b><br>"%(coding_delay_time)
+  r += "Action Weights: <b>%s</b><br><br>"%(" ".join(["%s:%s" % (key[0].upper()+key[1:], ('%('+key+')s') % action_weights) for key in sorted(action_weights)]))
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
@@ -654,6 +658,8 @@ def checkDuration(start_time):
 os.system('clear')
 start_time=time.time()
 
+rep_type="Stress Test"
+env="Development"
 pwd="apixio.123"
 hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
@@ -665,6 +671,7 @@ coding_delay_time = 1
 #recepients=["eng@apixio.com", "ops@apixio.com"]
 recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
 usr="mmgenergyes@apixio.net"
+action_weights = {'view':0, 'accept':34, 'reject':33, 'skip':33}
 
 if len(sys.argv) >= 2:
   usr=str(sys.argv[1])
@@ -675,6 +682,6 @@ if len(sys.argv) == 3:
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time)
-printResults(coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
+totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time, action_weights)
+printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
 #=======================================================================================================================
