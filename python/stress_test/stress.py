@@ -9,94 +9,66 @@ __author__ = 'ishekhtman'
 # REVISIONS:
 # AUTHOR: Igor Shekhtman ishekhtman@apixio.com
 # DATE: Dec. 21, 2015
-# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
+# SPECIFICS: Added HTML version of the Test Results Summary Report
 #
 # PURPOSE:
 #          This program should be executed via Python 2.6 and is meant for testing HCC functionality:
 #          * Login
+#          * Retrieve new Opportunity
+#          * Retrieve new Finding for an Opportunity
+#          * Retrieve all available Document pages for a Finding
 #          * View   Docs + Opportunities
 #          * Accept Docs + Opportunities
 #          * Reject Docs + Opportunities
 #          * Skip   Docs + Opportunities
-#          * View History Report
-#          * Paginate History Report
-#          * Search History Report
-#          * Filter History Report
-#          * View QA Report
-#          * Paginate History Report
-#          * Search QA Report
-#          * Dual Filter History Report
 #          * Logout
 #
 # SETUP:
 #          * Assumes a HCC environment is available
-#          * Assumes a Python 2.6 environment is available
-#          * From QA server (ec2-54-219-117-239) /mnt/automation/hcc folder enter "python2.6 hccstress.py"
-#		   * note: hccstress.csv configuration file must coexist in same folder as hccstress.py
+#          * Assumes a Python 2.7 environment is available
+#          * From QA server (qa.apixio.com) /mnt/automation/python/stress_test folder enter "python2.7 stress.py grinder0@apixio.net 3000"
 #
-# USAGE:
-#          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
-#          * Configure global parameters in hccstress.csv located in the same folder
-#          * Results will be printed on Console screen as well as mailed via QA report
+# USAGE:   * Test Results will be printed on Console screen as well as mailed via QA report
 #
 ########################################################################################################################
 #================================================ IMPORTS ==============================================================
 import requests
 import time
-import datetime
-import csv
-import operator
-import re
 import sys, os
-import shutil
 import json
-from time import gmtime, strftime, localtime
-import calendar
-import mmap
-#from pylab import *
+from time import gmtime, strftime
 import random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
-#import numpy as np
 requests.packages.urllib3.disable_warnings()
 
 #=======================================================================================================================
 def defineGlobals():
-    global USR, PWD, LS, LSS, SL, ACTIONS, DOS
-
-    USR = "ishekhtman@apixio.com"
-    PWD = "apixio.321"
+    global LS, LSS, SL, ACTIONS
     LS  = "="*80
     LSS = "-"*80
     SL  = "*"*80
     ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
-    DOS = "04/04/2014"
-
     return()
 #=======================================================================================================================
 
 def pauseBreak():
-	user_response = raw_input(">>> Press [Enter] to Proceed or [Q] to Quit: ")
-	if user_response.upper() == "Q":
-		print "exiting ..."
-		quit()
-	return ()
+  user_response = raw_input(">>> Press [Enter] to Proceed or [Q] to Quit: ")
+  if user_response.upper() == "Q":
+    print "exiting ..."
+    quit()
+  return ()
 #=======================================================================================================================
 def obtainExternalToken(un, pw, ua_url):
 
   url = ua_url+'/auths'
-  referer = ua_url
-
-  DATA =    {'Referer': referer, 'email': un, 'password': pw}
-  HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
-
+  DATA =    { 'email': un, 'password': pw}
+  HEADERS = {}
 
   print "* Url 4".ljust(25)+" = "+ url
   print "* Username".ljust(25)+" = "+ un
   print "* Password".ljust(25)+" = "+ pw
-
 
   response = requests.post(url, data=DATA, headers=HEADERS)
   statuscode = response.status_code
@@ -110,15 +82,9 @@ def obtainExternalToken(un, pw, ua_url):
   return (external_token)
 #================================================ LOGIN TO HCC =========================================================
 
-def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
-  global APXTOKEN
+def loginHCC(usr, pwd, hcchost, uahost, caller, max_opps):
 
-  URL = "https://hccdev.apixio.com"
-  SSO_URL="https://accounts-dev.apixio.com"
-  CALLER="hcc_dev"
-
-  url = URL+'/account/login/'
-  referer = URL+'/account/login/'
+  url = hcchost+'/account/login/'
   print LS
   print "* Url 1".ljust(25)+" = " + url
   response = requests.get(url)
@@ -129,7 +95,7 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
     print LS
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
-  url = URL+"/"
+  url = hcchost+"/"
   print "* Url 2".ljust(25)+" = " + url
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
@@ -138,24 +104,10 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
   jsessionid = response.cookies["JSESSIONID"]
+  url = uahost+"/"
+  DATA = {'username': usr, 'password': pwd, 'hash':'', 'caller':caller, 'log_ref':'1441056621484', 'origin':'loging' }
+  HEADERS = { 'Cookie': 'JSESSIONID='+jsessionid }
 
-  origin = SSO_URL
-  referer = SSO_URL+"/?caller="+CALLER
-  host = SSO_URL[8:]
-  url = SSO_URL+"/"
-
-  DATA = {'username': usr, 'password': pwd, 'hash':'', 'caller':CALLER, 'log_ref':'1441056621484', 'origin':'loging' }
-  HEADERS = { \
-  			'Accept': '*/*', \
-  			'Accept-Encoding': 'gzip, deflate', \
-  			'Accept-Language': 'en-US,en;q=0.8', \
-  			'Connection': 'keep-alive', \
-  			'Content-Length': '1105', \
-			'Cookie': 'JSESSIONID='+jsessionid, \
-			'Host': host, \
-			'Origin': origin, \
-			'Referer': referer \
-			}
   print "* Url 3".ljust(25)+ " = " + url
   response = requests.post(url, data=DATA, headers=HEADERS)
   print "* Status Code".ljust(25)+" = "+ str(response.status_code)
@@ -184,7 +136,8 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
   print "* Max # of Retries".ljust(25)+" = "+ str(max_ret)
   print "* Max # of Doc Pages".ljust(25)+" = "+ str(max_doc_pages)
   print "* Coding Delay Time".ljust(25)+" = "+ str(coding_delay_time)+" second(s)"
-  print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s" % (key, ('%('+key+')s') % action_weights) for key in sorted(action_weights)])
+  print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s%%" % (key, ('%('+key+')s') % action_weights) for key in sorted(action_weights)])
+  print "* Accept Date of Service".ljust(25)+" = "+str(dos)
   if response.status_code != 200:
     quit()
   print LS
@@ -192,7 +145,7 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
 
 #================================== ACT ON DOC (VIEW, ACCEPT, REJECT, SKIP) ============================================
 
-def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals):
+def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, dos):
 
   hcc = opportunity.get("code").get("hcc")
   label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -289,7 +242,7 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 			}, \
 			"provider": "Dr. Grinder", \
 			#"dateOfService": finding.get("doc_date"), \
-			"dateOfService": DOS, \
+			"dateOfService": dos, \
 			"comment": "Grinder Flag for Review" \
 			}}}
     elif action == 2: #================================== REJECT DOC ===========
@@ -429,7 +382,7 @@ def weightedRandomCodingAction(action_weights):
 
 #============================================== START CODING ===========================================================
 
-def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights):
+def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights, dos):
 
   print "* Url".ljust(25)+" = "+url
   print "* Username".ljust(25)+" = "+usr
@@ -564,7 +517,7 @@ def startCoding(usr, pw, url, cookies, max_opps, deltime, action_weights):
       action = weightedRandomCodingAction(action_weights)
       print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
       printSeparator("ANNOTATE: " + ACTIONS[action])
-      totals = act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals)
+      totals = act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, dos)
 
   return(totals)
 #=======================================================================================================================
@@ -592,7 +545,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
+def printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -609,7 +562,8 @@ def printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max
   r += "Max. # of Retries: <b>%s</b><br>"%(max_ret)
   r += "Max. # of Doc Pages: <b>%s</b><br>"%(max_doc_pages)
   r += "Coding Delay Time: <b>%s sec</b><br>"%(coding_delay_time)
-  r += "Action Weights: <b>%s</b><br><br>"%(" ".join(["%s:%s" % (key[0].upper()+key[1:], ('%('+key+')s') % action_weights) for key in sorted(action_weights)]))
+  r += "Accepts Date of Service: <b>%s</b><br>"%(dos)
+  r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % action_weights) for key in sorted(action_weights)]))
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
@@ -628,7 +582,7 @@ def printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max
     message.attach(MIMEText((r), 'html'))
     message['From'] = 'Apixio QA <qa@apixio.com>'
     message['To'] = 'To: Eng <'+recepients[0]+'>,Ops <'+recepients[1]+'>'
-    message['Subject'] = 'HCC %s Stress Test Report - %s' % ("Staging", strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+    message['Subject'] = 'HCC %s Stress Test Report - %s' % (env, strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
     msg_full = message.as_string()
 
     s=smtplib.SMTP()
@@ -665,13 +619,14 @@ hcchost="https://hccdev.apixio.com/"
 uahost="https://accounts-dev.apixio.com"
 caller="hcc_dev"
 max_ret=2
-max_doc_pages=10
+max_doc_pages=2
 max_opps = 2
-coding_delay_time = 1
+coding_delay_time = 0
 #recepients=["eng@apixio.com", "ops@apixio.com"]
 recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
 usr="mmgenergyes@apixio.net"
 action_weights = {'view':0, 'accept':34, 'reject':33, 'skip':33}
+dos="04/04/2014"
 
 if len(sys.argv) >= 2:
   usr=str(sys.argv[1])
@@ -682,6 +637,6 @@ if len(sys.argv) == 3:
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time, action_weights)
-printResults(rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
+totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time, action_weights, dos)
+printResults(dos, rep_type, env, action_weights, coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
 #=======================================================================================================================
