@@ -133,6 +133,7 @@ def loginHCC(options):
   print "* Coding Delay Time".ljust(25)+" = "+ str(options['coding_delay_time'])+" second(s)"
   print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s%%" % (key, ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])])
   print "* Accept Date of Service".ljust(25)+" = "+str(options['dos'])
+  print "* Report Recepients".ljust(25)+" = "+str(options['report_recepients'])
   if response.status_code != 200:
     quit()
   print LS
@@ -364,17 +365,13 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
   return (totals)
 
 #============================================== RANDOM CODING ACTION ===================================================
-
 def weightedRandomCodingAction(action_weights):
-
-  weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
-  weight['0'] = int(action_weights['view'])
-  weight['1'] = int(action_weights['accept'])
-  weight['2'] = int(action_weights['reject'])
-  weight['3'] = int(action_weights['skip'])
-  action = random.choice([k for k in weight for dummy in range(weight[k])])
-  return (int(action))
-
+  weights = {0: action_weights['view'], \
+             1: action_weights['accept'], \
+             2: action_weights['reject'], \
+             3: action_weights['skip']}
+  action = random.choice([w for w in weights for dummy in range(weights[w])])
+  return (action)
 #============================================== START CODING ===========================================================
 
 def startCoding(options, cookies):
@@ -627,10 +624,10 @@ options={ \
     'uaport':':7076', \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
-    'max_ret':2, \
-    'max_doc_pages':2, \
+    'max_ret':200, \
+    'max_doc_pages':200, \
     'coding_delay_time':0, \
-    'action_weights':{'view':0,'accept':34,'reject':33,'skip':33}, \
+    'action_weights':{'view':0,'accept':45,'reject':45,'skip':10}, \
     'dos' : "04/04/2014", \
     'email_report': True, \
     #'report_recepients': ["eng@apixio.com", "ops@apixio.com"] \
