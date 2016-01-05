@@ -657,6 +657,7 @@ caller="hcc_dev"
 max_ret=2
 max_doc_pages=10
 max_opps = 2
+coding_delay_time = 1
 #recepients=["eng@apixio.com", "ops@apixio.com"]
 recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
 usr="mmgenergyes@apixio.net"
@@ -670,6 +671,6 @@ if len(sys.argv) == 3:
 defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
-totals = startCoding(usr, pwd, hcchost, cookies, max_opps, 1)
+totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time)
 printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
 #=======================================================================================================================
