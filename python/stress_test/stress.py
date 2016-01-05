@@ -177,8 +177,11 @@ def loginHCC(usr, pwd, url, sso_url, caller, max_opps):
   print "* Sessid".ljust(25)+" = "+ sessid
   print "* Jsessionid".ljust(25)+" = "+ jsessionid
   #print "* Cookies".ljust(25)+" = "+ str(cookies)
-  print "* Max # of Opps".ljust(25)+" = "+ str(max_opps)
   print "* Log in user".ljust(25)+" = "+str(response.status_code)
+  print "* Max # of Opps".ljust(25)+" = "+ str(max_opps)
+  print "* Max # of Retries".ljust(25)+" = "+ str(max_ret)
+  print "* Max # of Doc Pages".ljust(25)+" = "+ str(max_doc_pages)
+  print "* Coding Delay Time".ljust(25)+" = "+ str(coding_delay_time)+" sec."
   if response.status_code != 200:
   	quit()
   print LS
@@ -586,7 +589,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
+def printResults(coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, emailout, recepients):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -601,7 +604,8 @@ def printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, 
   r += "Enviromnent: <b><font color='red'>%s%s</font></b><br><br>" % ("S", "taging")
   r += "Max. # of Opps: <b>%s</b><br>"%(max_opps)
   r += "Max. # of Retries: <b>%s</b><br>"%(max_ret)
-  r += "Max. # of Doc Pages: <b>%s</b><br><br>"%(max_doc_pages)
+  r += "Max. # of Doc Pages: <b>%s</b><br>"%(max_doc_pages)
+  r += "Coding Delay Time: <b>%s sec</b><br><br>"%(coding_delay_time)
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
@@ -672,5 +676,5 @@ defineGlobals()
 cookies = loginHCC(usr, pwd, hcchost, uahost, caller, max_opps)
 pauseBreak()
 totals = startCoding(usr, pwd, hcchost, cookies, max_opps, coding_delay_time)
-printResults(max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
+printResults(coding_delay_time, max_opps, max_ret, max_doc_pages, hcchost, start_time, totals, True, recepients)
 #=======================================================================================================================
