@@ -540,7 +540,7 @@ def getBgColor(total):
   else:
     return(colors['GREEN'])
 #=======================================================================================================================
-def printResults(options, start_time, totals, emailout, recepients):
+def printResults(options, start_time, totals):
 
   hours, minuts, seconds = checkDuration(start_time)
   r = ""
@@ -572,11 +572,11 @@ def printResults(options, start_time, totals, emailout, recepients):
   printSeparator("HCC STRESS TEST COMPLETE")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
-  if emailout:
+  if options['email_report']:
     message = MIMEMultipart('related')
     message.attach(MIMEText((r), 'html'))
     message['From'] = 'Apixio QA <qa@apixio.com>'
-    message['To'] = 'To: Eng <'+recepients[0]+'>,Ops <'+recepients[1]+'>'
+    message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
     message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
     msg_full = message.as_string()
 
@@ -584,7 +584,7 @@ def printResults(options, start_time, totals, emailout, recepients):
     s.connect("smtp.gmail.com",587)
     s.starttls()
     s.login("donotreply@apixio.com", "apx.mail47")
-    s.sendmail("qa@apixio.com", recepients, msg_full)
+    s.sendmail("qa@apixio.com", options['report_recepients'], msg_full)
     s.quit()
   return()
 #=======================================================================================================================
@@ -606,10 +606,6 @@ def checkDuration(start_time):
 #=======================================================================================================================
 os.system('clear')
 start_time=time.time()
-
-#recepients=["eng@apixio.com", "ops@apixio.com"]
-recepients=["ishekhtman@apixio.com", "ishekhtman@apixio.com"]
-email_report=True
 
 if len(sys.argv) >= 2:
   usr=str(sys.argv[1])
@@ -635,12 +631,15 @@ options={ \
     'max_doc_pages':2, \
     'coding_delay_time':0, \
     'action_weights':{'view':0,'accept':34,'reject':33,'skip':33}, \
-    'dos' : "04/04/2014" \
+    'dos' : "04/04/2014", \
+    'email_report': True, \
+    #'report_recepients': ["eng@apixio.com", "ops@apixio.com"] \
+    'report_recepients': ["ishekhtman@apixio.com", "ishekhtman@apixio.com"] \
     }
 
 defineGlobals()
 cookies = loginHCC(options)
 pauseBreak()
 totals = startCoding(options, cookies)
-printResults(options, start_time, totals, email_report, recepients)
+printResults(options, start_time, totals)
 #=======================================================================================================================
