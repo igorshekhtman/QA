@@ -126,8 +126,9 @@ def loginHCC(options):
   print LSS
   print "* Environment".ljust(25)+" = "+(options['env'])
   print "* Max # of Opps".ljust(25)+" = "+ str(options['max_opps'])
-  print "* Max # of Retries".ljust(25)+" = "+ str(options['max_ret'])
+  print "* Max # of Docs".ljust(25)+" = "+ str(options['max_docs'])
   print "* Max # of Doc Pages".ljust(25)+" = "+ str(options['max_doc_pages'])
+  print "* Max # of Retries".ljust(25)+" = "+ str(options['max_ret'])
   print "* Coding Delay Time".ljust(25)+" = "+ str(options['coding_delay_time'])+" second(s)"
   print "* Action Weights".ljust(25)+" = " + " ".join(["%s:%s%%" % (key, ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])])
   print "* Accept Date of Service".ljust(25)+" = "+str(options['dos'])
@@ -164,7 +165,7 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 
   if (action == 0) or (action not in [1,2,3]): # Do NOT Accept or Reject Doc
     print "* CODER ACTION".ljust(25)+" = Do NOT Accept or Reject"
-    trackCount("Do NOT Accept or Reject", totals)
+    trackCount("NOT Accept-Reject-Skip(200)", totals)
   else:
     if action == 1: #=============================== ACCEPT DOC ==============
       DATA = { \
@@ -387,7 +388,7 @@ def startCoding(options, cookies):
   DATA = {}
   totals={}
 
-  for coding_opp_current in range(options['max_opps']):
+  for coding_opp_current in range(1,options['max_opps']+1):
     printSeparator("NEXT OPPORTUNITY")
     time.sleep(options['coding_delay_time'])
     print "* Url".ljust(25)+" = "+ options['hcchost']
@@ -433,56 +434,57 @@ def startCoding(options, cookies):
 
     doc_no = 0
     for finding in findings:
-      finding_id = finding_ids[doc_no]
-      doc_no += 1
-      patient_org_id = finding.get("patient_org_id")
-      document_uuid = finding.get("sourceId")
-      document_title = finding.get("document_title")
-      date_of_service = finding.get("doc_date")
-      mime_type = finding.get("mimeType")
-      if mime_type == None:
-        mime_type = "text/plain"
-      max_docs = len(findings)
-      printSeparator("GET NEXT FINDING")
-      print "PATIENT DOC %d OF %d"    % (doc_no, max_docs)
-      print "* STATUS".ljust(25)+" = "+status
-      print "* PATIENT ORG".ljust(25)+" = "+patient_org_id
-      print "* PATIENT ID".ljust(25)+" = "+patient_id
-      print "* FINDING ID".ljust(25)+" = "+finding_id
-      print "* AVAILABLE CODES".ljust(25)+" = "+str(numpossiblecodes)
-      print "* PROJECT ID".ljust(25)+" = "+project
-      print "* DOC UUID".ljust(25)+" = "+document_uuid
-      print "* DOC TITLE".ljust(25)+" = "+document_title
-      print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
-      print "* DOC TYPE".ljust(25)+" = "+mime_type
-      dturl = options['hcchost']+"api/document-text/"
-      print "* URL".ljust(25)+" = "+ dturl
+      if doc_no < options['max_docs']:
+        finding_id = finding_ids[doc_no]
+        doc_no += 1
+        patient_org_id = finding.get("patient_org_id")
+        document_uuid = finding.get("sourceId")
+        document_title = finding.get("document_title")
+        date_of_service = finding.get("doc_date")
+        mime_type = finding.get("mimeType")
+        if mime_type == None:
+          mime_type = "text/plain"
+        max_docs = min(len(findings),options['max_docs'])
+        printSeparator("GET NEXT FINDING")
+        print "PATIENT DOC %d OF %d"    % (doc_no, max_docs)
+        print "* STATUS".ljust(25)+" = "+status
+        print "* PATIENT ORG".ljust(25)+" = "+patient_org_id
+        print "* PATIENT ID".ljust(25)+" = "+patient_id
+        print "* FINDING ID".ljust(25)+" = "+finding_id
+        print "* AVAILABLE CODES".ljust(25)+" = "+str(numpossiblecodes)
+        print "* PROJECT ID".ljust(25)+" = "+project
+        print "* DOC UUID".ljust(25)+" = "+document_uuid
+        print "* DOC TITLE".ljust(25)+" = "+document_title
+        print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
+        print "* DOC TYPE".ljust(25)+" = "+mime_type
+        dturl = options['hcchost']+"api/document-text/"
+        print "* URL".ljust(25)+" = "+ dturl
 
-      retries=0
-      while retries < options['max_ret']:
-        response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
-        print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
-        if response.status_code == 200:
+        retries=0
+        while retries < options['max_ret']:
+          response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
+          print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
+          if response.status_code == 200:
             retries = options['max_ret']
-        else:
+          else:
             retries += 1
             trackCount(str(dturl.split("/")[4])+"(retries)", totals)
-        trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals)
-      if response.status_code != 200:
-        return (totals)
+          trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals)
+        if response.status_code != 200:
+          return (totals)
 
       # looping through each and every available page in a document
-      if mime_type == "application/pdf":
-        printSeparator("GET DOCUMENT PAGES")
-        totalPages = finding.get("total_pages")
-        print "* TOTAL # OF PAGES(DOC)".ljust(25)+" = "+ str((int(totalPages)-1))
-        print "* TOTAL # OF PAGES(LIMIT)".ljust(25)+" = "+ str(options['max_doc_pages'])
+        if mime_type == "application/pdf":
+          printSeparator("GET DOCUMENT PAGES")
+          totalPages = finding.get("total_pages")
+          print "* TOTAL # OF PAGES(DOC)".ljust(25)+" = "+ str((int(totalPages)-1))
+          print "* TOTAL # OF PAGES(LIMIT)".ljust(25)+" = "+ str(options['max_doc_pages'])
 
-        for i in range (1, int(totalPages)):
-          if i <= options['max_doc_pages']:
-            dpurl = options['hcchost']+"document_page/"
-            retries=0
-            while retries < options['max_ret']:
+          for i in range (1, int(totalPages)):
+            if i <= options['max_doc_pages']:
+              dpurl = options['hcchost']+"document_page/"
+              retries=0
+              while retries < options['max_ret']:
                 response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
                 print ("* DOC PAGE "+str(i)+" OF "+str((int(min(int(totalPages)-1,options['max_doc_pages']))))).ljust(25)+" = "+str(response.status_code)
                 if response.status_code == 200:
@@ -491,13 +493,13 @@ def startCoding(options, cookies):
                     retries += 1
                     trackCount(str(dpurl.split("/")[3])+"(retries)", totals)
                 trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals)
-            if response.status_code != 200:
+              if response.status_code != 200:
                 return (totals)
 
-      action = weightedRandomCodingAction(options['action_weights'])
-      print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
-      printSeparator("ANNOTATE: " + ACTIONS[action])
-      totals = act_on_doc(options['hcchost'], cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, options['dos'])
+        action = weightedRandomCodingAction(options['action_weights'])
+        print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
+        printSeparator("ANNOTATE: " + ACTIONS[action])
+        totals = act_on_doc(options['hcchost'], cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, options['dos'])
 
   return(totals)
 #=======================================================================================================================
@@ -523,7 +525,7 @@ def getBgColor(total):
     else:
       return(colors['RED'])
   else:
-    return(colors['GREEN'])
+    return(colors['WHITE'])
 #=======================================================================================================================
 def printResults(options, start_time, totals):
 
@@ -539,8 +541,9 @@ def printResults(options, start_time, totals):
   r += "HCC app url: <b>%s</b><br>" % (options['hcchost'])
   r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
   r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
-  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
+  r += "Max. # of Docs: <b>%s</b><br>"%(options['max_docs'])
   r += "Max. # of Doc Pages: <b>%s</b><br>"%(options['max_doc_pages'])
+  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
   r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
   r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
   r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])]))
@@ -612,8 +615,9 @@ options={ \
     'uaport':':7076', \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
-    'max_ret':200, \
-    'max_doc_pages':0, \
+    'max_docs': 1, \
+    'max_doc_pages':5, \
+    'max_ret':5, \
     'coding_delay_time':0, \
     'action_weights':{'view':0,'accept':50,'reject':50,'skip':0}, \
     'dos' : "04/04/2014", \
