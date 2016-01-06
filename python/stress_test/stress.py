@@ -388,7 +388,7 @@ def startCoding(options, cookies):
   DATA = {}
   totals={}
 
-  for coding_opp_current in range(1,options['max_opps']+1):
+  for coding_opp_current in range(1,int(options['max_opps'])+1):
     printSeparator("NEXT OPPORTUNITY")
     time.sleep(options['coding_delay_time'])
     print "* Url".ljust(25)+" = "+ options['hcchost']
@@ -413,7 +413,7 @@ def startCoding(options, cookies):
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
 
     print SL
-    print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, options['max_opps'])
+    print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, int(options['max_opps']))
     print "* HCC CODE".ljust(25)+" = "+str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
     print "* PATIENT NAME".ljust(25)+" = "+str(opportunity.get("patient").get("first_name")+" "+opportunity.get("patient").get("middle_name")+opportunity.get("patient").get("last_name"))
     print "* PATIENT DOB".ljust(25)+" = "+str(opportunity.get("patient").get("dob"))
@@ -596,6 +596,7 @@ def checkDuration(start_time):
 #=======================================================================================================================
 def Main(usri, max_oppsi):
   import sys
+  global options
   os.system('clear')
   start_time=time.time()
 
@@ -623,8 +624,8 @@ def Main(usri, max_oppsi):
     'uaport':':7076', \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
-    'max_docs': 10, \
-    'max_doc_pages': 30, \
+    'max_docs': 5, \
+    'max_doc_pages': 5, \
     'max_ret': 50, \
     'coding_delay_time':0, \
     'action_weights':{'view':0,'accept':50,'reject':50,'skip':0}, \
@@ -636,7 +637,7 @@ def Main(usri, max_oppsi):
 
   defineGlobals()
   cookies = loginHCC(options)
-  pauseBreak()
+  #pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 
