@@ -559,7 +559,7 @@ def printResults(options, start_time, totals):
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
   for total in sorted(totals, key=lambda x:x[0].upper()):
     print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total])
-    r +=  ("<tr><td width='700' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
+    r +=  ("<tr><td width='750' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
   printSeparator("HCC STRESS TEST COMPLETE")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
@@ -605,7 +605,7 @@ else:
 if len(sys.argv) == 3:
   max_opps = int(sys.argv[2])
 else:
-  max_opps = 2
+  max_opps = 10
 
 options={ \
     'rep_type':'Stress Test', \
@@ -618,9 +618,9 @@ options={ \
     'uaport':':7076', \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
-    'max_docs': 5, \
-    'max_doc_pages':30, \
-    'max_ret':20, \
+    'max_docs': 10, \
+    'max_doc_pages': 30, \
+    'max_ret': 50, \
     'coding_delay_time':0, \
     'action_weights':{'view':0,'accept':50,'reject':50,'skip':0}, \
     'dos' : "04/04/2014", \
