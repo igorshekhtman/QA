@@ -42,7 +42,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 requests.packages.urllib3.disable_warnings()
-
 #=======================================================================================================================
 def defineGlobals():
     global LS, LSS, SL, ACTIONS
@@ -81,7 +80,6 @@ def obtainExternalToken(options):
   print LSS
   return (external_token)
 #================================================ LOGIN TO HCC =========================================================
-
 def loginHCC(options):
 
   url = options['hcchost']+'/account/login/'
@@ -138,9 +136,7 @@ def loginHCC(options):
     quit()
   print LS
   return(cookies)
-
 #================================== ACT ON DOC (VIEW, ACCEPT, REJECT, SKIP) ============================================
-
 def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, dos):
 
   hcc = opportunity.get("code").get("hcc")
@@ -363,7 +359,6 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
       trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals)
 
   return (totals)
-
 #============================================== RANDOM CODING ACTION ===================================================
 def weightedRandomCodingAction(action_weights):
   weights = {0: action_weights['view'], \
@@ -373,7 +368,6 @@ def weightedRandomCodingAction(action_weights):
   action = random.choice([w for w in weights for dummy in range(weights[w])])
   return (action)
 #============================================== START CODING ===========================================================
-
 def startCoding(options, cookies):
 
   print "* Url".ljust(25)+" = "+options['hcchost']
@@ -418,30 +412,24 @@ def startCoding(options, cookies):
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
 
     print SL
+    print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, options['max_opps'])
     print "* HCC CODE".ljust(25)+" = "+str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
+    print "* PATIENT NAME".ljust(25)+" = "+str(opportunity.get("patient").get("first_name")+" "+opportunity.get("patient").get("middle_name")+opportunity.get("patient").get("last_name"))
+    print "* PATIENT DOB".ljust(25)+" = "+str(opportunity.get("patient").get("dob"))
+    print "* PATIENT GENDER".ljust(25)+" = "+str(opportunity.get("patient").get("gender"))
+    print "* PATIENT ORG ID".ljust(25)+" = "+str(opportunity.get("patient").get("org_id"))
+    print "* PATIENT ID".ljust(25)+" = "+str(opportunity.get("patientId"))
+    print "* USER".ljust(25)+" = "+str(opportunity.get("user"))
+    print "* ORGANIZATION".ljust(25)+" = "+str(opportunity.get("organization"))
+    print "* TRANSACTION ID".ljust(25)+" = "+str(opportunity.get("transactionId"))
     print SL
-
-    patient_details = response.text
-
-    if opportunity == None:
-      print("* ERROR".ljust(25)+" = Login Failed or No More Opportunities For This Coder")
-      trackCount("No more opps", totals)
-      return (totals)
-
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes")
     numpossiblecodes = len(possiblecodes)
-    code = opportunity.get("code")
-    patient = opportunity.get("patient")
     findings = opportunity.get("findings")
     patient_id = opportunity.get("patientId")
     project = opportunity.get("project")
     finding_ids = opportunity.get("finding_ids")
-    user = opportunity.get("user")
-    organization = opportunity.get("organization")
-    transaction_id = opportunity.get("transactionId")
-
-    print "PATIENT OPP %d OF %d" % (coding_opp_current, options['max_opps'])
 
     doc_no = 0
     for finding in findings:
@@ -625,9 +613,9 @@ options={ \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
     'max_ret':200, \
-    'max_doc_pages':200, \
+    'max_doc_pages':0, \
     'coding_delay_time':0, \
-    'action_weights':{'view':0,'accept':45,'reject':45,'skip':10}, \
+    'action_weights':{'view':0,'accept':50,'reject':50,'skip':0}, \
     'dos' : "04/04/2014", \
     'email_report': True, \
     #'report_recepients': ["eng@apixio.com", "ops@apixio.com"] \
