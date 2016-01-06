@@ -1,5 +1,4 @@
 __author__ = 'ishekhtman'
-
 ########################################################################################################################
 #
 # PROGRAM: stress.py
@@ -595,19 +594,25 @@ def checkDuration(start_time):
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
-os.system('clear')
-start_time=time.time()
+def Main(usri, max_oppsi):
+  import sys
+  os.system('clear')
+  start_time=time.time()
 
-if len(sys.argv) >= 2:
-  usr=str(sys.argv[1])
-else:
-  usr="mmgenergyes@apixio.net"
-if len(sys.argv) == 3:
-  max_opps = int(sys.argv[2])
-else:
-  max_opps = 10
+  if len(sys.argv) >= 2:
+    usr=str(sys.argv[1])
+  else:
+    usr="mmgenergyes@apixio.net"
+  if len(sys.argv) == 3:
+    max_opps = int(sys.argv[2])
+  else:
+    max_opps = 2
 
-options={ \
+  usr = usri
+  max_opps = max_oppsi
+
+
+  options={ \
     'rep_type':'Stress Test', \
     'env':'Development', \
     'usr': usr, \
@@ -629,9 +634,18 @@ options={ \
     'report_recepients': ["ishekhtman@apixio.com", "ishekhtman@apixio.com"] \
     }
 
-defineGlobals()
-cookies = loginHCC(options)
-pauseBreak()
-totals = startCoding(options, cookies)
-printResults(options, start_time, totals)
+  defineGlobals()
+  cookies = loginHCC(options)
+  pauseBreak()
+  totals = startCoding(options, cookies)
+  printResults(options, start_time, totals)
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 2:
+      Main(sys.argv[1], 2)
+    elif len(sys.argv) == 3:
+      Main(sys.argv[1], sys.argv[2])
+    else:
+      Main("mmgenergyes@apixio.net", 2)
 #=======================================================================================================================
