@@ -566,7 +566,8 @@ def printResults(options, start_time, totals):
     message = MIMEMultipart('related')
     message.attach(MIMEText((r), 'html'))
     message['From'] = 'Apixio QA <qa@apixio.com>'
-    message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
+    #message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
+    message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>'
     message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
     msg_full = message.as_string()
 
@@ -594,11 +595,26 @@ def checkDuration(start_time):
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
-def Main(usri, max_oppsi):
-  import sys
+def Main():
   global options
   os.system('clear')
   start_time=time.time()
+
+  # ARGV list description:
+  # [0] - stress.py
+  # [1] - usr
+  # [2] - env
+  # [3] - Opps limit
+  # [4] - Docs limit
+  # [5] - Pages limit
+  # [6] - Retries limit
+  # [7] - Coding Delay (sec)
+  # [8] - %accept
+  # [9] - %reject
+  # [10] - %skip
+  # [11] - Accept DOS
+  # [12] - Email Report
+  # [13] - Report Recepients
 
   if len(sys.argv) >= 2:
     usr=str(sys.argv[1])
@@ -608,10 +624,6 @@ def Main(usri, max_oppsi):
     max_opps = int(sys.argv[2])
   else:
     max_opps = 2
-
-  usr = usri
-  max_opps = max_oppsi
-
 
   options={ \
     'rep_type':'Stress Test', \
@@ -624,29 +636,23 @@ def Main(usri, max_oppsi):
     'uaport':':7076', \
     'caller':'hcc_dev', \
     'max_opps': max_opps, \
-    'max_docs': 5, \
-    'max_doc_pages': 5, \
-    'max_ret': 50, \
+    'max_docs': 200, \
+    'max_doc_pages': 300, \
+    'max_ret': 300, \
     'coding_delay_time':0, \
-    'action_weights':{'view':0,'accept':50,'reject':50,'skip':0}, \
+    'action_weights':{'view':0,'accept':45,'reject':45,'skip':10}, \
     'dos' : "04/04/2014", \
     'email_report': True, \
-    #'report_recepients': ["eng@apixio.com", "ops@apixio.com"] \
-    'report_recepients': ["ishekhtman@apixio.com", "ishekhtman@apixio.com"] \
+    #'report_recepients': ["eng@apixio.com"] \
+    'report_recepients': ["ishekhtman@apixio.com"] \
     }
 
   defineGlobals()
   cookies = loginHCC(options)
-  #pauseBreak()
+  pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) == 2:
-      Main(sys.argv[1], 2)
-    elif len(sys.argv) == 3:
-      Main(sys.argv[1], sys.argv[2])
-    else:
-      Main("mmgenergyes@apixio.net", 2)
+  Main()
 #=======================================================================================================================
