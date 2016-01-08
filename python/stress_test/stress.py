@@ -618,6 +618,12 @@ def getEnvHosts(env):
           'uaport':uaport, \
           'caller':caller}
 #=======================================================================================================================
+def commandLineParamatersDescription(options):
+  for option in options:
+      print option,
+  print
+  return 0
+#=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
 def Main():
@@ -673,6 +679,7 @@ def Main():
 
   defineGlobals()
   cookies = loginHCC(options)
+  commandLineParamatersDescription(options)
   pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
