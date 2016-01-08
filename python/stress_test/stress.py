@@ -60,7 +60,7 @@ def pauseBreak():
 #=======================================================================================================================
 def obtainExternalToken(options):
 
-  url = options['uahost']+options['uaport']+'/auths'
+  url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
   DATA =    { 'email': options['usr'], 'password': options['pwd']}
   HEADERS = {}
 
@@ -81,7 +81,7 @@ def obtainExternalToken(options):
 #================================================ LOGIN TO HCC =========================================================
 def loginHCC(options):
 
-  url = options['hcchost']+'/account/login/'
+  url = options['env_hosts']['hcchost']+'/account/login/'
   print LS
   print "* Url 1".ljust(25)+" = " + url
   response = requests.get(url)
@@ -92,7 +92,7 @@ def loginHCC(options):
     print LS
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
-  url = options['hcchost']+"/"
+  url = options['env_hosts']['hcchost']+"/"
   print "* Url 2".ljust(25)+" = " + url
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
@@ -101,8 +101,8 @@ def loginHCC(options):
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
   jsessionid = response.cookies["JSESSIONID"]
-  url = options['ssohost']+"/"
-  DATA = {'username': options['usr'], 'password': options['pwd'], 'hash':'', 'caller':options['caller'], 'log_ref':'1441056621484', 'origin':'loging' }
+  url = options['env_hosts']['ssohost']+"/"
+  DATA = {'username': options['usr'], 'password': options['pwd'], 'hash':'', 'caller':options['env_hosts']['caller'], 'log_ref':'1441056621484', 'origin':'loging' }
   HEADERS = {'Cookie': 'JSESSIONID='+jsessionid}
 
   print "* Url 3".ljust(25)+ " = " + url
@@ -371,13 +371,13 @@ def weightedRandomCodingAction(action_weights):
 #============================================== START CODING ===========================================================
 def startCoding(options, cookies):
 
-  print "* Url".ljust(25)+" = "+options['hcchost']
+  print "* Url".ljust(25)+" = "+options['env_hosts']['hcchost']
   print "* Username".ljust(25)+" = "+options['usr']
   print "* Password".ljust(25)+" = "+options['pwd']
   print "* Max. # of opps".ljust(25)+" = "+str(options['max_opps'])
   print "* Delay time".ljust(25)+" = "+str(options['coding_delay_time'])
   print LSS
-  nwiurl = options['hcchost']+"api/next-work-item/"
+  nwiurl = options['env_hosts']['hcchost']+"api/next-work-item/"
   print "* Url".ljust(25)+" = "+nwiurl
   print "* csrftoken".ljust(25)+" = "+cookies["csrftoken"]
   print "* apxtoken".ljust(25)+" = "+cookies["ApxToken"]
@@ -391,7 +391,7 @@ def startCoding(options, cookies):
   for coding_opp_current in range(1,int(options['max_opps'])+1):
     printSeparator("NEXT OPPORTUNITY")
     time.sleep(options['coding_delay_time'])
-    print "* Url".ljust(25)+" = "+ options['hcchost']
+    print "* Url".ljust(25)+" = "+ options['env_hosts']['hcchost']
 
     retries=0
     while retries < options['max_ret']:
@@ -457,7 +457,7 @@ def startCoding(options, cookies):
         print "* DOC TITLE".ljust(25)+" = "+document_title
         print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
         print "* DOC TYPE".ljust(25)+" = "+mime_type
-        dturl = options['hcchost']+"api/document-text/"
+        dturl = options['env_hosts']['hcchost']+"api/document-text/"
         print "* URL".ljust(25)+" = "+ dturl
 
         retries=0
@@ -483,7 +483,7 @@ def startCoding(options, cookies):
 
           for i in range (1, int(totalPages)):
             if i <= options['max_doc_pages']:
-              dpurl = options['hcchost']+"document_page/"
+              dpurl = options['env_hosts']['hcchost']+"document_page/"
               retries=0
               while retries < options['max_ret']:
                 response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
@@ -501,7 +501,7 @@ def startCoding(options, cookies):
         action = weightedRandomCodingAction(options['action_weights'])
         print "* ANNOTATION ACTION".ljust(25)+" = " + ACTIONS[action]
         printSeparator("ANNOTATE: " + ACTIONS[action])
-        totals = act_on_doc(options['hcchost'], cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, options['dos'])
+        totals = act_on_doc(options['env_hosts']['hcchost'], cookies, opportunity, finding, finding_id, doc_no, max_docs, action, totals, options['dos'])
 
   return(totals)
 #=======================================================================================================================
@@ -540,7 +540,7 @@ def printResults(options, start_time, totals):
   r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
   r += "Report type: <b>%s</b><br>" % (options['rep_type'])
   r += "HCC user name: <b>%s</b><br>" % (options['usr'])
-  r += "HCC app url: <b>%s</b><br>" % (options['hcchost'])
+  r += "HCC app url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
   r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
   r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
   r += "Max. # of Docs: <b>%s</b><br>"%(options['max_docs'])
@@ -562,21 +562,21 @@ def printResults(options, start_time, totals):
   printSeparator("HCC STRESS TEST COMPLETE")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
-  if options['email_report']:
-    message = MIMEMultipart('related')
-    message.attach(MIMEText((r), 'html'))
-    message['From'] = 'Apixio QA <qa@apixio.com>'
-    #message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
-    message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>'
-    message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
-    msg_full = message.as_string()
 
-    s=smtplib.SMTP()
-    s.connect("smtp.gmail.com",587)
-    s.starttls()
-    s.login("donotreply@apixio.com", "apx.mail47")
-    s.sendmail("qa@apixio.com", options['report_recepients'], msg_full)
-    s.quit()
+  message = MIMEMultipart('related')
+  message.attach(MIMEText((r), 'html'))
+  message['From'] = 'Apixio QA <qa@apixio.com>'
+  #message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
+  message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>'
+  message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+  msg_full = message.as_string()
+
+  s=smtplib.SMTP()
+  s.connect("smtp.gmail.com",587)
+  s.starttls()
+  s.login("donotreply@apixio.com", "apx.mail47")
+  s.sendmail("qa@apixio.com", options['report_recepients'], msg_full)
+  s.quit()
   return()
 #=======================================================================================================================
 def trackCount(item, totals):
@@ -592,6 +592,31 @@ def checkDuration(start_time):
   hours, rest = divmod(duration,3600)
   minutes, seconds = divmod(rest, 60)
   return(hours, minutes, seconds)
+#=======================================================================================================================
+def getEnvHosts(env):
+  if env.lower()[0] == 's':
+    hcchost = 'https://hccstg.apixio.com/'
+    ssohost = 'https://accounts-stg.apixio.com'
+    uahost = 'https://useraccount-stg.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_stg'
+  elif env.lower()[0] == 'd':
+    hcchost = 'https://hccdev.apixio.com/'
+    ssohost = 'https://accounts-dev.apixio.com'
+    uahost = 'https://useraccount-dev.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_dev'
+  elif env.lower()[0] == 'e':
+    hcchost = 'https://hcceng.apixio.com/'
+    ssohost = 'https://accounts-eng.apixio.com'
+    uahost = 'https://useraccount-eng.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_eng'
+  return {'hcchost':hcchost, \
+          'ssohost':ssohost, \
+          'uahost':uahost, \
+          'uaport':uaport, \
+          'caller':caller}
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
@@ -613,38 +638,37 @@ def Main():
   # [9] - %reject
   # [10] - %skip
   # [11] - Accept DOS
-  # [12] - Email Report
-  # [13] - Report Recepients
+  # [12] - Report Recepients
 
-  if len(sys.argv) >= 2:
-    usr=str(sys.argv[1])
-  else:
-    usr="mmgenergyes@apixio.net"
-  if len(sys.argv) == 3:
-    max_opps = int(sys.argv[2])
-  else:
-    max_opps = 2
+  # assigning default values if command line paramater(s) were not passed
+  usr = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
+  env = sys.argv[2] if len(sys.argv) > 2 else "Development"
+  max_opps = sys.argv[3] if len(sys.argv) > 3 else 1
+  max_docs = sys.argv[4] if len(sys.argv) > 4 else 1
+  max_doc_pages = sys.argv[5] if len(sys.argv) > 5 else 1
+  max_ret = sys.argv[6] if len(sys.argv) > 6 else 2
+  coding_delay_time = sys.argv[7] if len(sys.argv) > 7 else 0
+  accept = sys.argv[8] if len(sys.argv) > 8 else 45
+  reject = sys.argv[9] if len(sys.argv) > 9 else 45
+  skip = sys.argv[10] if len(sys.argv) > 10 else 10
+  dos = sys.argv[11] if len(sys.argv) > 11 else "04/04/2014"
+  report_recepients = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
+  env_hosts = getEnvHosts(env)
 
   options={ \
     'rep_type':'Stress Test', \
-    'env':'Development', \
+    'env': env, \
     'usr': usr, \
     'pwd':'apixio.123', \
-    'hcchost':'https://hccdev.apixio.com/', \
-    'ssohost':'https://accounts-dev.apixio.com', \
-    'uahost':'https://useraccount-dev.apixio.com', \
-    'uaport':':7076', \
-    'caller':'hcc_dev', \
+    'env_hosts': env_hosts, \
     'max_opps': max_opps, \
-    'max_docs': 200, \
-    'max_doc_pages': 300, \
-    'max_ret': 300, \
-    'coding_delay_time':0, \
-    'action_weights':{'view':0,'accept':45,'reject':45,'skip':10}, \
-    'dos' : "04/04/2014", \
-    'email_report': True, \
-    #'report_recepients': ["eng@apixio.com"] \
-    'report_recepients': ["ishekhtman@apixio.com"] \
+    'max_docs': max_docs, \
+    'max_doc_pages': max_doc_pages, \
+    'max_ret': max_ret, \
+    'coding_delay_time': coding_delay_time, \
+    'action_weights':{'view':0,'accept':accept,'reject':reject,'skip':skip}, \
+    'dos' : dos, \
+    'report_recepients': [report_recepients] \
     }
 
   defineGlobals()
