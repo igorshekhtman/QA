@@ -40,6 +40,7 @@ import random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import collections
 requests.packages.urllib3.disable_warnings()
 #=======================================================================================================================
 def defineGlobals():
@@ -81,7 +82,7 @@ def obtainExternalToken(options):
 #================================================ LOGIN TO HCC =========================================================
 def loginHCC(options):
 
-  url = options['env_hosts']['hcchost']+'/account/login/'
+  url = options['env_hosts']['hcchost']+'account/login/'
   print LS
   print "* Url 1".ljust(25)+" = " + url
   response = requests.get(url)
@@ -92,7 +93,7 @@ def loginHCC(options):
     print LS
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
-  url = options['env_hosts']['hcchost']+"/"
+  url = options['env_hosts']['hcchost']+""
   print "* Url 2".ljust(25)+" = " + url
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
@@ -595,7 +596,7 @@ def checkDuration(start_time):
 #=======================================================================================================================
 def getEnvHosts(env):
   if env.lower()[0] == 's':
-    hcchost = 'https://hccstg.apixio.com/'
+    hcchost = 'https://hcc-stg.apixio.com/'
     ssohost = 'https://accounts-stg.apixio.com'
     uahost = 'https://useraccount-stg.apixio.com'
     uaport = ':7076'
@@ -619,8 +620,12 @@ def getEnvHosts(env):
           'caller':caller}
 #=======================================================================================================================
 def commandLineParamatersDescription(options):
+  print "Please enter command line paramaters.  If none entered, default values will be used."
+  i = 0
   for option in options:
-      print option,
+      if ((option != 'pwd') and (option != 'rep_type')):
+        print '['+str(i)+']'+option,
+        i += 1
   print
   return 0
 #=======================================================================================================================
@@ -647,35 +652,24 @@ def Main():
   # [12] - Report Recepients
 
   # assigning default values if command line paramater(s) were not passed
-  usr = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
-  env = sys.argv[2] if len(sys.argv) > 2 else "Development"
-  max_opps = sys.argv[3] if len(sys.argv) > 3 else 1
-  max_docs = sys.argv[4] if len(sys.argv) > 4 else 1
-  max_doc_pages = sys.argv[5] if len(sys.argv) > 5 else 1
-  max_ret = sys.argv[6] if len(sys.argv) > 6 else 2
-  coding_delay_time = sys.argv[7] if len(sys.argv) > 7 else 0
+  options=collections.OrderedDict()
+  options['rep_type'] = 'Stress Test'
+  options['usr'] = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
+  options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
+  options['pwd'] = 'apixio.123'
+  options['env_hosts'] = getEnvHosts(options['env'])
+  options['max_opps'] = sys.argv[3] if len(sys.argv) > 3 else 1
+  options['max_docs'] = sys.argv[4] if len(sys.argv) > 4 else 1
+  options['max_doc_pages'] = sys.argv[5] if len(sys.argv) > 5 else 5
+  options['max_ret'] = sys.argv[6] if len(sys.argv) > 6 else 2
+  options['coding_delay_time'] = sys.argv[7] if len(sys.argv) > 7 else 0
   accept = sys.argv[8] if len(sys.argv) > 8 else 45
   reject = sys.argv[9] if len(sys.argv) > 9 else 45
   skip = sys.argv[10] if len(sys.argv) > 10 else 10
-  dos = sys.argv[11] if len(sys.argv) > 11 else "04/04/2014"
-  report_recepients = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
-  env_hosts = getEnvHosts(env)
+  options['action_weights'] = {'view':0,'accept':accept,'reject':reject,'skip':skip}
+  options['dos'] = sys.argv[11] if len(sys.argv) > 11 else "04/04/2014"
+  options['report_recepients'] = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
 
-  options={ \
-    'rep_type':'Stress Test', \
-    'env': env, \
-    'usr': usr, \
-    'pwd':'apixio.123', \
-    'env_hosts': env_hosts, \
-    'max_opps': max_opps, \
-    'max_docs': max_docs, \
-    'max_doc_pages': max_doc_pages, \
-    'max_ret': max_ret, \
-    'coding_delay_time': coding_delay_time, \
-    'action_weights':{'view':0,'accept':accept,'reject':reject,'skip':skip}, \
-    'dos' : dos, \
-    'report_recepients': [report_recepients] \
-    }
 
   defineGlobals()
   cookies = loginHCC(options)
