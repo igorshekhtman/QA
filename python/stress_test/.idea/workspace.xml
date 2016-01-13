@@ -5,6 +5,7 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/stress.py" afterPath="$PROJECT_DIR$/stress.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../regression_test/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../regression_test/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="stress_test.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -28,8 +29,8 @@
       <file leaf-file-name="stress.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/stress.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.77264327">
-              <caret line="675" column="8" selection-start-line="675" selection-start-column="8" selection-end-line="675" selection-end-column="8" />
+            <state vertical-scroll-proportion="0.689464">
+              <caret line="672" column="0" selection-start-line="672" selection-start-column="0" selection-end-line="672" selection-end-column="0" />
               <folding>
                 <element signature="e#1485#1500#0" expanded="true" />
               </folding>
@@ -536,8 +537,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/stress.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.77264327">
-          <caret line="675" column="8" selection-start-line="675" selection-start-column="8" selection-end-line="675" selection-end-column="8" />
+        <state vertical-scroll-proportion="0.689464">
+          <caret line="672" column="0" selection-start-line="672" selection-start-column="0" selection-end-line="672" selection-end-column="0" />
           <folding>
             <element signature="e#1485#1500#0" expanded="true" />
           </folding>
