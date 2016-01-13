@@ -32,9 +32,9 @@
 #          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
 #          * Configure global parameters in opprouteroptimization.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
-#		   *
-#		   * python2.7 opprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
-#		   *
+#		   ***************************************************************************************************************
+#		   * python2.7 esopprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
+#		   ***************************************************************************************************************
 #
 # SPECIFIC TEST CASE PROVIDED BY RICHARD:
 #		- Choose an HCC, such as 15-2013-Final-2014. The HCC should not be overly rare. 
@@ -605,8 +605,8 @@ def startCoding():
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
-			'Host': 'hccdev.apixio.com', \
-			'Referer': 'https://hccdev.apixio.com/' \
+			'Host': 'hcceng.apixio.com', \
+			'Referer': 'https://hcceng.apixio.com/' \
 			}	
 			
   DATA = {}

@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d86fd531-ff15-434d-9f8a-a055572d7ad6" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../bundling_tool/claims_data/authentication.py" afterPath="$PROJECT_DIR$/../bundling_tool/claims_data/authentication.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../bundling_tool/claims_data/claims_data_subtraction.py" afterPath="$PROJECT_DIR$/../bundling_tool/claims_data/claims_data_subtraction.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/esopprouteroptimization.csv" afterPath="$PROJECT_DIR$/esopprouteroptimization.csv" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/esopprouteroptimization.py" afterPath="$PROJECT_DIR$/esopprouteroptimization.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../regression_test/esuaregressiontest.py" afterPath="$PROJECT_DIR$/../regression_test/esuaregressiontest.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../txt/indexer_setup_command.txt" afterPath="$PROJECT_DIR$/../../txt/indexer_setup_command.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/stress_test.iml" afterPath="$PROJECT_DIR$/.idea/stress_test.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../sanity_test/.idea/vcs.xml" afterPath="$PROJECT_DIR$/../sanity_test/.idea/vcs.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../regression_test/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../regression_test/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../sanity_test/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../sanity_test/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-    </list>
+    <list default="true" id="d86fd531-ff15-434d-9f8a-a055572d7ad6" name="Default" comment="" />
     <ignored path="stress_test.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -49,11 +36,9 @@
       <file leaf-file-name="get_document_page.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/get_document_page.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.59768635">
-              <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="32" selection-end-column="53" />
-              <folding>
-                <element signature="e#27#40#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="0.038560413">
+              <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -338,7 +323,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2083" y="26" width="1854" height="1372" extended-state="0" />
+    <frame x="2083" y="26" width="1854" height="1372" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16312057" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -393,9 +378,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="32" selection-end-column="53" />
-          <folding>
-            <element signature="e#27#40#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -413,9 +396,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="32" selection-end-column="53" />
-          <folding>
-            <element signature="e#27#40#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -563,11 +544,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/get_document_page.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.59768635">
-          <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="32" selection-end-column="53" />
-          <folding>
-            <element signature="e#27#40#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.038560413">
+          <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
