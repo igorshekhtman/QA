@@ -668,7 +668,7 @@ def Main():
   skip = int(sys.argv[10]) if len(sys.argv) > 10 else 10
   options['action_weights'] = {'view':0,'accept':accept,'reject':reject,'skip':skip}
   options['dos'] = str(sys.argv[11]) if len(sys.argv) > 11 else "04/04/2014"
-  options['report_recepients'] = str(sys.argv[12]) if len(sys.argv) > 12 else "ishekhtman@apixio.com"
+  options['report_recepients'] = [str(sys.argv[12])] if len(sys.argv) > 12 else ["ishekhtman@apixio.com"]
 
 
   defineGlobals()
