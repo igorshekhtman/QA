@@ -151,7 +151,8 @@ SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 #HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
 #HCC_CODES_TO_ACCEPT = {'27'}
 #HCC_CODES_TO_ACCEPT = {'131'}
-HCC_CODES_TO_ACCEPT = {'130'}
+#HCC_CODES_TO_ACCEPT = {'130'}
+HCC_CODES_TO_ACCEPT = {'157'}
 
 #TARGET_HCC = '27'
 #TARGET_HCC = '177'
@@ -159,7 +160,11 @@ HCC_CODES_TO_ACCEPT = {'130'}
 #TARGET_HCC = '131'
 #TARGET_HCC = '29'
 #TARGET_HCC = '150'
-TARGET_HCC = '130'
+#TARGET_HCC = '130'
+TARGET_HCC = '157'
+
+HARD_CODED_DOS = "04/04/2014"
+
 ##########################################################################################
 ################### Global variable declaration, initialization ##########################
 ##########################################################################################
@@ -422,7 +427,8 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"codeSystem":opportunity.get("possibleCodes")[0].get("codeSystem") \
 			}, \
 			"provider": "Dr. Grinder", \
-			"dateOfService": finding.get("doc_date"), \
+			#"dateOfService": finding.get("doc_date"), \
+			"dateOfService": HARD_CODED_DOS, \
 			"comment": "Grinder Flag for Review" \
 			}}}
     response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
@@ -587,17 +593,6 @@ def startCoding():
   #====================================================
   buckets = -1
   
-  #Host: hcceng.apixio.com
-  #Connection: keep-alive
-  #Accept: application/json, text/plain, */*
-  #X-REQUESTED-WITH: XMLHttpRequest
-  #User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36
-  #Referer: https://hcceng.apixio.com/
-  #Accept-Encoding: gzip, deflate, sdch
-  #Accept-Language: en-US,en;q=0.8
-  #Cookie: SS_MID=93555fab-4853-4a24-ab6f-eedb8cac1c0diar9bgxa; ss_cid=396c3902-defc-4e80-aba1-dd22809d28cf; ApxToken=TA_3d87c4ea-7299-492f-b175-019a61f51ee4; csrftoken=iPt7GVUjjLjTRxe4V6Yg7qQrdoc9B6ml; sessionid=nel0hbg9qx663qbdfk04o2x2lrxqugdm
-  
-  
   print("* URL                = %s/api/next-work-item/" % URL)
   print("* csrftoken          = %s" % TOKEN)
   print("* ApxToken           = %s" % APXTOKEN)
@@ -610,8 +605,8 @@ def startCoding():
   			'Accept-Language': 'en-US,en;q=0.8', \
   			'Connection': 'keep-alive', \
 			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
-			'Host': 'hcceng.apixio.com', \
-			'Referer': 'https://hcceng.apixio.com/' \
+			'Host': 'hccdev.apixio.com', \
+			'Referer': 'https://hccdev.apixio.com/' \
 			}	
 			
   DATA = {}
@@ -619,7 +614,7 @@ def startCoding():
   
   
   for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
-    sleep(int(DELAYTIME))
+    time.sleep(int(DELAYTIME))
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
     print ("* URL                = %s/api/next-work-item/" % URL)
@@ -894,6 +889,17 @@ def checkEnvironmentandReceivers():
 		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
 		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
 		UA_URL="https://useraccount-stg.apixio.com:7076"
+	elif (ENVIRONMENT.upper() == "DEVELOPMENT"):
+		#USERNAME="grinderUSR1416591626@apixio.net"
+		#PASSWORD="apixio.123"
+		ENVIRONMENT = "development"
+		DOMAIN="hccdev.apixio.com"
+		URL="https://hccdev.apixio.com"
+		USERNAME="mmgenergyes@apixio.net"
+		PASSWORD="apixio.123"
+		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
+		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
+		UA_URL="https://useraccount-stg.apixio.com:7076"	
 	else:
 		#USERNAME="grinderUSR1416591626@apixio.net"
 		#PASSWORD="apixio.123"
@@ -964,7 +970,7 @@ def obtainInternalToken(un, pw):
 
 def setEnergyRoutingOn():
 
-	apixio_token = obtainInternalToken("ishekhtman@apixio.com", "apixio.123")
+	apixio_token = obtainInternalToken("ishekhtman@apixio.com", "apixio.321")
 	response = ""
 	url = ENERGY_RTR_URL + "/true"
 	data = {}
@@ -992,7 +998,9 @@ def confirmSettings():
 	print ("* APXTOKEN                              = %s" % APXTOKEN)
 	print ("* SESSID                                = %s" % SESSID)
 	print ("* JSESSIONID                            = %s" % JSESSIONID)
+	print ("* DELAY TIME IS SET TO                  = %s sec" % DELAYTIME)
 	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
+	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % CODE_OPPS_MAX)
 	print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn())
 	print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
 	print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)

@@ -1,5 +1,6 @@
 __author__ = 'ishekhtman'
 import requests
+import json
 requests.packages.urllib3.disable_warnings()
 
 #=======================================================================================================================
@@ -10,15 +11,15 @@ def defineGlobals():
     SL  = "*"*80
     return()
 #=======================================================================================================================
-def obtainExternalToken(options):
+def obtainExternalToken(un, pw):
 
-  url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
-  DATA =    { 'email': options['usr'], 'password': options['pwd']}
+  url = "https://useraccount-eng.apixio.com:7076"
+  DATA =    { 'email': un, 'password': pw}
   HEADERS = {}
 
-  print "* Url 4".ljust(25)+" = "+ url
-  print "* Username".ljust(25)+" = "+ options['usr']
-  print "* Password".ljust(25)+" = "+ options['pwd']
+  print "* User Accounts Url".ljust(25)+" = "+ url
+  print "* Username".ljust(25)+" = "+ un
+  print "* Password".ljust(25)+" = "+ pw
 
   response = requests.post(url, data=DATA, headers=HEADERS)
   statuscode = response.status_code
@@ -30,8 +31,44 @@ def obtainExternalToken(options):
   print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
   print LSS
   return (external_token)
+#=========================================================================================
+def obtainInternalToken(un, pw):
+
+  external_token = obtainExternalToken(un, pw)
+  url = "https://tokenizer-eng.apixio.com:7075/tokens"
+  referer = "https://tokenizer-eng.apixio.com:7075/tokens"
+  DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+  HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
+
+  response = requests.post(url, data=json.dumps(DATA), headers=HEADERS)
+  if (response.status_code != 201):
+    print ("* Failed to create internal token: %s. Exiting now ..." % response.status_code)
+    quit()
+  else:
+    userjson = response.json()
+    if userjson is not None:
+	  token = userjson.get("token")
+	  apixio_token = 'Apixio '+str(token)
+	  print ("* USERNAME               = %s" % un)
+	  print ("* PASSWORD               = %s" % pw)
+	  print ("* TOKENIZER URL          = %s" % url)
+	  print ("* EXT TOKEN              = %s" % external_token)
+	  print ("* INT TOKEN              = %s" % token)
+	  print ("* APIXIO TOKEN           = %s" % apixio_token)
+	  print ("* STATUS CODE            = %s" % response.status_code)
+	  print SL
+    else:
+      token = "Not Available"
+
+  return(apixio_token)
+#=======================================================================================================================
+def authenticateSetHeaders(un, pw):
+  apixio_token = obtainInternalToken(un, pw)
+  DATA = {}
+  HEADERS = {'Content-Type':'application/json', 'Authorization':apixio_token}
+  return(apixio_token)
 #================================================ LOGIN TO HCC =========================================================
-def loginHCC(options):
+#def loginHCC(options):
 
   defineGlobals()
   url = options['env_hosts']['hcchost']+'account/login/'

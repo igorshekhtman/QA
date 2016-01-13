@@ -30,6 +30,9 @@ import os,sys,time
 import collections
 import authentication
 import elasticsearch
+import requests
+
+reload(authentication)
 
 #=======================================================================================================================
 def getEnvHosts(env):
@@ -57,6 +60,35 @@ def getEnvHosts(env):
           'uaport':uaport, \
           'caller':caller}
 #=======================================================================================================================
+def createProject(dsID, projName, cookies):
+    host='https://accounts-stg.apixio.com/projects'
+    host="https://useraccount-eng.apixio.com:7076/projects"
+    usr='ishekhtman@apixio.com'
+    pw='apixio.321'
+    HEADERS = { \
+  		'Accept': 'application/json, text/plain, */*', \
+  		'Accept-Encoding': 'gzip, deflate', \
+    	'Accept-Language': 'en-US,en;q=0.8', \
+  		'Connection': 'keep-alive', \
+    	'Content-Type': 'application/json', \
+        'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"], \
+    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
+        'X-CSRFToken': cookies["csrftoken"] \
+    	}
+    DATA = {'username':usr, 'password':pw, 'hash':'', 'caller':'cmp-eng', 'log_ref':'1452633792264', 'origin':'login'}
+    DATA = {}
+    response = requests.get(host, data=DATA, headers=HEADERS)
+    print response.status_code
+    #print response.json()
+    print response.cookies['Set-Cookie']
+
+    projectID = ""
+
+
+
+
+    return(projectID)
+#=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
 def Main():
@@ -64,36 +96,36 @@ def Main():
   os.system('clear')
   start_time=time.time()
 
-  options=collections.OrderedDict()
-  options['rep_type'] = 'Claims Data Bundling Test'
-  options['usr'] = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
-  options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
-  options['pwd'] = 'apixio.123'
-  options['env_hosts'] = getEnvHosts(options['env'])
-  options['report_recepients'] = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
+  #options=collections.OrderedDict()
+  #options['rep_type'] = 'Claims Data Bundling Test'
+  #options['usr'] = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
+  #options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
+  #options['pwd'] = 'apixio.123'
+  #options['env_hosts'] = getEnvHosts(options['env'])
+  #options['report_recepients'] = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
 
 
 
-  cookies = authentication.loginHCC(options)
-  BODY = {
-"query": {
-      "bool": {
-        "must": [
-          {
-            "terms": {
-              "project": ["CP_926086b3-350c-4cbb-911a-898820823b4d"]
-            }
-          }
-        ]
-      }
-    },
-    "from": 0,
-    "size": 1
-}
+  #cookies = authentication.loginHCC(options)
+  dsID = '503'
+  projName = 'HealthNet16'
+  token = authentication.authenticateSetHeaders("ishekhtman@apixio.com", "apixio.321")
+  print token
+  quit()
+
+
+
+  projID = createProject(dsID, projName, token)
+
+
+
+  BODY = {"query": {"bool": {"must": [{"terms": {"project": ["CP_926086b3-350c-4cbb-911a-898820823b4d"]}}]}},"from": 0,"size": 1}
   es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
   es.index(index='org-506', doc_type='opportunity', id='_search', body=BODY)
   resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
-  print resp['total']
+  #print resp['total']
+
+
 
 
 

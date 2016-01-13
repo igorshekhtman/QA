@@ -1,3 +1,16 @@
+=====================CLAIMS DATA================================================
+
+https://sites.google.com/a/apixio.com/technical-documentation/backend-services/data-integration/apixio-loader?pli=1
+
+from the existing data take a few opps and find out the ICD codes for the opps' hcc.
+Also get the external patient id of the patients for those hccs to prepare patients.csv
+prepare problems.csv using patient info and icd codes,start and end dates and other data
+make changes to config.xml
+
+run the jar on config.xml (already one at /Users/rthotakura/Documents/projects/test_data/new/479)
+java -Dconfig=config_new.xml -jar loader-0.1.8-jar-with-dependencies_built.jar
+
+
 =================Installing IPython Notebook for Mac ===========================
 IPython Notebook
 
