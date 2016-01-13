@@ -674,7 +674,7 @@ def Main():
   defineGlobals()
   cookies = loginHCC(options)
   commandLineParamatersDescription(options)
-  pauseBreak()
+  #pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 
