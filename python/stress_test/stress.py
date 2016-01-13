@@ -662,7 +662,7 @@ def Main():
   options['max_docs'] = sys.argv[4] if len(sys.argv) > 4 else 1
   options['max_doc_pages'] = sys.argv[5] if len(sys.argv) > 5 else 5
   options['max_ret'] = sys.argv[6] if len(sys.argv) > 6 else 2
-  options['coding_delay_time'] = sys.argv[7] if len(sys.argv) > 7 else 0
+  options['coding_delay_time'] = int(sys.argv[7]) if len(sys.argv) > 7 else 0
   accept = sys.argv[8] if len(sys.argv) > 8 else 45
   reject = sys.argv[9] if len(sys.argv) > 9 else 45
   skip = sys.argv[10] if len(sys.argv) > 10 else 10
