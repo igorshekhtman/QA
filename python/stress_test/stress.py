@@ -671,6 +671,9 @@ def Main():
   options['report_recepients'] = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
 
 
+  print options['usr']
+  print options['env']
+  quit()
   defineGlobals()
   cookies = loginHCC(options)
   commandLineParamatersDescription(options)
