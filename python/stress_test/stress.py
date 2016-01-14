@@ -350,15 +350,17 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 
     retries=0
     while retries < options['max_ret']:
+      st = time.time()
       response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
+      dt = time.time() - st
       print ("* "+ACTIONS[action].upper()+" FINDING").ljust(25)+" = "+ str(response.status_code)
       if response.status_code == 200:
         retries = options['max_ret']
       else:
         retries += 1
-        trackCount(ACTIONS[action]+"(retries)", totals, 0)
-        trackCount(ACTIONS[action]+" "+json.dumps(DATA), totals, 0)
-      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals, 0)
+        trackCount(ACTIONS[action]+"(retries)", totals, dt)
+        trackCount(ACTIONS[action]+" "+json.dumps(DATA), totals, dt)
+      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals, dt)
 
   return (totals)
 #============================================== RANDOM CODING ACTION ===================================================
@@ -396,15 +398,17 @@ def startCoding(options, cookies):
 
     retries=0
     while retries < options['max_ret']:
+        st = time.time()
         response = requests.get(nwiurl, data=DATA, headers=HEADERS)
+        dt = time.time() - st
         print "* Get coding opp".ljust(25)+" = "+str(response.status_code)
         if response.status_code == 200:
             opportunity = response.json()
             retries = options['max_ret']
         else:
             retries += 1
-            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals, 0)
-        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals, 0)
+            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals, dt)
+        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals, dt)
     if response.status_code != 200:
                 return (totals)
 
@@ -463,15 +467,17 @@ def startCoding(options, cookies):
 
         retries=0
         while retries < options['max_ret']:
+          st = time.time()
           response = requests.get(dturl + document_uuid, data=DATA, headers=HEADERS)
+          dt = time.time() - st
           print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)
           if response.status_code == 200:
             retries = options['max_ret']
           else:
             retries += 1
-            trackCount(str(dturl.split("/")[4])+"(retries)", totals, 0)
-            trackCount(str(dturl.split("/")[4])+" "+str(json.dumps(finding)), totals, 0)
-          trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals, 0)
+            trackCount(str(dturl.split("/")[4])+"(retries)", totals, dt)
+            trackCount(str(dturl.split("/")[4])+" "+str(json.dumps(finding)), totals, dt)
+          trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals, dt)
         if response.status_code != 200:
           return (totals)
 
@@ -487,15 +493,17 @@ def startCoding(options, cookies):
               dpurl = options['env_hosts']['hcchost']+"document_page/"
               retries=0
               while retries < options['max_ret']:
+                st = time.time()
                 response = requests.get(dpurl + document_uuid + "/" + str(i), cookies=cookies, data=DATA, headers=HEADERS)
+                dt = time.time() - st
                 print ("* DOC PAGE "+str(i)+" OF "+str((int(min(int(totalPages)-1,options['max_doc_pages']))))).ljust(25)+" = "+str(response.status_code)
                 if response.status_code == 200:
                     retries = options['max_ret']
                 else:
                     retries += 1
-                    trackCount(str(dpurl.split("/")[3])+"(retries)", totals, 0)
-                    trackCount(str(dpurl.split("/")[3])+" "+str(json.dumps(finding))+" PAGE#: "+str(i), totals, 0)
-                trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals, 0)
+                    trackCount(str(dpurl.split("/")[3])+"(retries)", totals, dt)
+                    trackCount(str(dpurl.split("/")[3])+" "+str(json.dumps(finding))+" PAGE#: "+str(i), totals, dt)
+                trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals, dt)
               if response.status_code != 200:
                 return (totals)
 
@@ -661,8 +669,8 @@ def Main():
   options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 5
-  options['max_docs'] = int(sys.argv[4]) if len(sys.argv) > 4 else 5
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 2
+  options['max_docs'] = int(sys.argv[4]) if len(sys.argv) > 4 else 2
   options['max_doc_pages'] = int(sys.argv[5]) if len(sys.argv) > 5 else 5
   options['max_ret'] = int(sys.argv[6]) if len(sys.argv) > 6 else 2
   options['coding_delay_time'] = int(sys.argv[7]) if len(sys.argv) > 7 else 0
