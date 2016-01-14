@@ -165,7 +165,7 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
 
   if (action == 0) or (action not in [1,2,3]): # Do NOT Accept or Reject Doc
     print "* CODER ACTION".ljust(25)+" = Do NOT Accept or Reject"
-    trackCount("NOT Accept-Reject-Skip(200)", totals)
+    trackCount("NOT Accept-Reject-Skip(200)", totals, 0)
   else:
     if action == 1: #=============================== ACCEPT DOC ==============
       DATA = { \
@@ -356,9 +356,9 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, max_docs,
         retries = options['max_ret']
       else:
         retries += 1
-        trackCount(ACTIONS[action]+"(retries)", totals)
-        trackCount(ACTIONS[action]+" "+json.dumps(DATA), totals)
-      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals)
+        trackCount(ACTIONS[action]+"(retries)", totals, 0)
+        trackCount(ACTIONS[action]+" "+json.dumps(DATA), totals, 0)
+      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals, 0)
 
   return (totals)
 #============================================== RANDOM CODING ACTION ===================================================
@@ -403,8 +403,8 @@ def startCoding(options, cookies):
             retries = options['max_ret']
         else:
             retries += 1
-            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals)
-        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals)
+            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals, 0)
+        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals, 0)
     if response.status_code != 200:
                 return (totals)
 
@@ -469,9 +469,9 @@ def startCoding(options, cookies):
             retries = options['max_ret']
           else:
             retries += 1
-            trackCount(str(dturl.split("/")[4])+"(retries)", totals)
-            trackCount(str(dturl.split("/")[4])+" "+str(json.dumps(finding)), totals)
-          trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals)
+            trackCount(str(dturl.split("/")[4])+"(retries)", totals, 0)
+            trackCount(str(dturl.split("/")[4])+" "+str(json.dumps(finding)), totals, 0)
+          trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals, 0)
         if response.status_code != 200:
           return (totals)
 
@@ -493,9 +493,9 @@ def startCoding(options, cookies):
                     retries = options['max_ret']
                 else:
                     retries += 1
-                    trackCount(str(dpurl.split("/")[3])+"(retries)", totals)
-                    trackCount(str(dpurl.split("/")[3])+" "+str(json.dumps(finding))+" PAGE#: "+str(i), totals)
-                trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals)
+                    trackCount(str(dpurl.split("/")[3])+"(retries)", totals, 0)
+                    trackCount(str(dpurl.split("/")[3])+" "+str(json.dumps(finding))+" PAGE#: "+str(i), totals, 0)
+                trackCount(str(dpurl.split("/")[3])+"("+str(response.status_code)+")", totals, 0)
               if response.status_code != 200:
                 return (totals)
 
@@ -559,7 +559,7 @@ def printResults(options, start_time, totals):
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
   for total in sorted(totals, key=lambda x:x[0].upper()):
     print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total])
-    r +=  ("<tr><td width='750' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
+    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
   printSeparator("HCC STRESS TEST COMPLETE")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
@@ -580,11 +580,18 @@ def printResults(options, start_time, totals):
   s.quit()
   return()
 #=======================================================================================================================
-def trackCount(item, totals):
+def trackCount(item, totals, resp_time):
+    #total_number, tot_time, min_time, max_time
+    #[1, 1, 1, 1]
   if item not in totals:
-    totals[item]=1
+    totals[item]=[1,resp_time,resp_time,resp_time]
   else:
-    totals[item] += 1
+    totals[item][0] += 1
+    totals[item][1] += resp_time
+    if resp_time > totals[item][3]:
+      totals[item][3] = resp_time
+    if resp_time < totals[item][2]:
+      totals[item][2] = resp_time
   return(totals)
 #=======================================================================================================================
 def checkDuration(start_time):
@@ -613,11 +620,7 @@ def getEnvHosts(env):
     uahost = 'https://useraccount-eng.apixio.com'
     uaport = ':7076'
     caller = 'hcc_eng'
-  return {'hcchost':hcchost, \
-          'ssohost':ssohost, \
-          'uahost':uahost, \
-          'uaport':uaport, \
-          'caller':caller}
+  return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller}
 #=======================================================================================================================
 def commandLineParamatersDescription(options):
   print "Please enter command line paramaters.  If none entered, default values will be used."
@@ -658,8 +661,8 @@ def Main():
   options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-  options['max_docs'] = int(sys.argv[4]) if len(sys.argv) > 4 else 1
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 5
+  options['max_docs'] = int(sys.argv[4]) if len(sys.argv) > 4 else 5
   options['max_doc_pages'] = int(sys.argv[5]) if len(sys.argv) > 5 else 5
   options['max_ret'] = int(sys.argv[6]) if len(sys.argv) > 6 else 2
   options['coding_delay_time'] = int(sys.argv[7]) if len(sys.argv) > 7 else 0
@@ -674,7 +677,7 @@ def Main():
   defineGlobals()
   cookies = loginHCC(options)
   commandLineParamatersDescription(options)
-  #pauseBreak()
+  pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 
