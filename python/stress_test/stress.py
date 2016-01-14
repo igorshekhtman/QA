@@ -561,7 +561,7 @@ def printResults(options, start_time, totals):
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>HCC STRESS TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>HCC STRESS TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
