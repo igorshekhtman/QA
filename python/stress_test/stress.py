@@ -561,15 +561,15 @@ def printResults(options, start_time, totals):
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("HCC STRESS TEST RESULTS SUMMARY")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST RESULTS SUMMARY</td><tr>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>HCC STRESS TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
   for total in sorted(totals, key=lambda x:x[0].upper()):
-    print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total])
-    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total])+"</td></tr>"
+    print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total][0]) + ' ' + convTimeString(totals[total][1]/totals[total][0]) + ' ' + convTimeString(totals[total][2]) + ' ' + convTimeString(totals[total][3])
+    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
   printSeparator("HCC STRESS TEST COMPLETE")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='2'>HCC STRESS TEST COMPLETE</td><tr></table>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>HCC STRESS TEST COMPLETE</td><tr></table>"
 
 
   message = MIMEMultipart('related')
@@ -589,8 +589,7 @@ def printResults(options, start_time, totals):
   return()
 #=======================================================================================================================
 def trackCount(item, totals, resp_time):
-    #total_number, tot_time, min_time, max_time
-    #[1, 1, 1, 1]
+  #total_number, tot_time, min_time, max_time
   if item not in totals:
     totals[item]=[1,resp_time,resp_time,resp_time]
   else:
@@ -601,6 +600,12 @@ def trackCount(item, totals, resp_time):
     if resp_time < totals[item][2]:
       totals[item][2] = resp_time
   return(totals)
+#=======================================================================================================================
+def convTimeString(ftime):
+  hours, rest = divmod(ftime,3600)
+  minutes, seconds = divmod(rest, 60)
+  stime = str(round(seconds,2)) +'s'
+  return(stime)
 #=======================================================================================================================
 def checkDuration(start_time):
   end_time = time.time()
@@ -671,7 +676,7 @@ def Main():
   options['env_hosts'] = getEnvHosts(options['env'])
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 2
   options['max_docs'] = int(sys.argv[4]) if len(sys.argv) > 4 else 2
-  options['max_doc_pages'] = int(sys.argv[5]) if len(sys.argv) > 5 else 5
+  options['max_doc_pages'] = int(sys.argv[5]) if len(sys.argv) > 5 else 2
   options['max_ret'] = int(sys.argv[6]) if len(sys.argv) > 6 else 2
   options['coding_delay_time'] = int(sys.argv[7]) if len(sys.argv) > 7 else 0
   accept = int(sys.argv[8]) if len(sys.argv) > 8 else 45
@@ -685,7 +690,7 @@ def Main():
   defineGlobals()
   cookies = loginHCC(options)
   commandLineParamatersDescription(options)
-  pauseBreak()
+  #pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 
