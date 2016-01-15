@@ -31,91 +31,89 @@ import collections
 import authentication
 import elasticsearch
 import requests
+import json
 
 reload(authentication)
 
 #=======================================================================================================================
 def getEnvHosts(env):
   if env.lower()[0] == 's':
-    hcchost = 'https://hcc-stg.apixio.com/'
+    tokenhost = 'https://tokenizer-stg.apixio.com:7075/tokens'
+    hcchost = 'https://hcceng.apixio.com/'
     ssohost = 'https://accounts-stg.apixio.com'
     uahost = 'https://useraccount-stg.apixio.com'
     uaport = ':7076'
     caller = 'hcc_stg'
+    #accounts: https://useraccount-stg.apixio.com:7076
+    #externalToken: https://useraccount-stg.apixio.com:7076/auths
+    #token: https://tokenizer-stg.apixio.com:7075/tokens
+    #dataOrch: https://dataorchestrator-stg.apixio.com:7085
+    #metrics: https://cmp-stg2.apixio.com:7087/cmp/v1/metric/hcc/
+    #sso: https://accounts-stg.apixio.com/?caller=cmp-eng
   elif env.lower()[0] == 'd':
+    tokenhost = 'https://tokenizer-dev.apixio.com:7075/tokens'
     hcchost = 'https://hccdev.apixio.com/'
     ssohost = 'https://accounts-dev.apixio.com'
     uahost = 'https://useraccount-dev.apixio.com'
     uaport = ':7076'
     caller = 'hcc_dev'
   elif env.lower()[0] == 'e':
+    tokenhost = 'https://tokenizer-eng.apixio.com:7075/tokens'
     hcchost = 'https://hcceng.apixio.com/'
     ssohost = 'https://accounts-eng.apixio.com'
     uahost = 'https://useraccount-eng.apixio.com'
     uaport = ':7076'
     caller = 'hcc_eng'
-  return {'hcchost':hcchost, \
-          'ssohost':ssohost, \
-          'uahost':uahost, \
-          'uaport':uaport, \
-          'caller':caller}
+  hlist= {'tokenhost':tokenhost, 'hcchost':hcchost, 'ssohost':ssohost, 'uahost':uahost, 'uaport':uaport, 'caller':caller}
+  return (hlist)
 #=======================================================================================================================
-def createProject(dsID, projName, cookies):
-    host='https://accounts-stg.apixio.com/projects'
-    host="https://useraccount-eng.apixio.com:7076/projects"
-    usr='ishekhtman@apixio.com'
-    pw='apixio.321'
-    HEADERS = { \
-  		'Accept': 'application/json, text/plain, */*', \
-  		'Accept-Encoding': 'gzip, deflate', \
-    	'Accept-Language': 'en-US,en;q=0.8', \
-  		'Connection': 'keep-alive', \
-    	'Content-Type': 'application/json', \
-        'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"], \
-    	'X_REQUESTED_WITH': 'XMLHttpRequest', \
-        'X-CSRFToken': cookies["csrftoken"] \
-    	}
-    DATA = {'username':usr, 'password':pw, 'hash':'', 'caller':'cmp-eng', 'log_ref':'1452633792264', 'origin':'login'}
-    DATA = {}
-    response = requests.get(host, data=DATA, headers=HEADERS)
-    print response.status_code
-    #print response.json()
-    print response.cookies['Set-Cookie']
+def createProject(dsID, projName, headers, hlist):
+  print "* DataSet ID".ljust(25)+" = " + dsID
+  print "* Project Name".ljust(25)+" = " +projName
 
-    projectID = ""
+  data={}
+  url = hlist['uahost']+hlist['uaport']+'/projects'
+
+  print data
+  print headers
+  print url
+
+
+  response = requests.get(url, data=json.dumps(data), headers=headers)
+  print response.status_code
+  projects = response.json()
+  for project in projects:
+    if project['pdsExternalID'] == dsID:
+      print project['name']
 
 
 
 
-    return(projectID)
+
+
+
+
+
+  projectID = ""
+
+
+
+
+  return(projectID)
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
 def Main():
   global options
+  reload(authentication)
   os.system('clear')
-  start_time=time.time()
 
-  #options=collections.OrderedDict()
-  #options['rep_type'] = 'Claims Data Bundling Test'
-  #options['usr'] = sys.argv[1] if len(sys.argv) > 1 else "mmgenergyes@apixio.net"
-  #options['env'] = sys.argv[2] if len(sys.argv) > 2 else "Development"
-  #options['pwd'] = 'apixio.123'
-  #options['env_hosts'] = getEnvHosts(options['env'])
-  #options['report_recepients'] = sys.argv[12] if len(sys.argv) > 12 else "ishekhtman@apixio.com"
-
-
-
-  #cookies = authentication.loginHCC(options)
-  dsID = '503'
+  authentication.defineGlobals()
+  dsID = '506'
   projName = 'HealthNet16'
-  token = authentication.authenticateSetHeaders("ishekhtman@apixio.com", "apixio.321")
-  print token
-  quit()
-
-
-
-  projID = createProject(dsID, projName, token)
+  hlist = getEnvHosts('s')
+  headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
+  projID = createProject(dsID, projName, headers, hlist)
 
 
 
@@ -123,7 +121,7 @@ def Main():
   es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
   es.index(index='org-506', doc_type='opportunity', id='_search', body=BODY)
   resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
-  #print resp['total']
+  print "* Total # of Opps (ES)".ljust(25)+" = "+str(resp['total'])
 
 
 
