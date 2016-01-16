@@ -32,7 +32,7 @@ import authentication
 import elasticsearch
 import requests
 import json
-
+import time
 reload(authentication)
 
 #=======================================================================================================================
@@ -44,12 +44,7 @@ def getEnvHosts(env):
     uahost = 'https://useraccount-stg.apixio.com'
     uaport = ':7076'
     caller = 'hcc_stg'
-    #accounts: https://useraccount-stg.apixio.com:7076
-    #externalToken: https://useraccount-stg.apixio.com:7076/auths
-    #token: https://tokenizer-stg.apixio.com:7075/tokens
-    #dataOrch: https://dataorchestrator-stg.apixio.com:7085
-    #metrics: https://cmp-stg2.apixio.com:7087/cmp/v1/metric/hcc/
-    #sso: https://accounts-stg.apixio.com/?caller=cmp-eng
+    cmphost="http://cmp-stg2.apixio.com:8087"
   elif env.lower()[0] == 'd':
     tokenhost = 'https://tokenizer-dev.apixio.com:7075/tokens'
     hcchost = 'https://hccdev.apixio.com/'
@@ -57,6 +52,7 @@ def getEnvHosts(env):
     uahost = 'https://useraccount-dev.apixio.com'
     uaport = ':7076'
     caller = 'hcc_dev'
+    cmphost="https://cmp-dev.apixio.com:7087"
   elif env.lower()[0] == 'e':
     tokenhost = 'https://tokenizer-eng.apixio.com:7075/tokens'
     hcchost = 'https://hcceng.apixio.com/'
@@ -64,42 +60,89 @@ def getEnvHosts(env):
     uahost = 'https://useraccount-eng.apixio.com'
     uaport = ':7076'
     caller = 'hcc_eng'
-  hlist= {'tokenhost':tokenhost, 'hcchost':hcchost, 'ssohost':ssohost, 'uahost':uahost, 'uaport':uaport, 'caller':caller}
+    cmphost="https://cmp-stg2.apixio.com:7087"
+  hlist= {'cmphost':cmphost, 'tokenhost':tokenhost, 'hcchost':hcchost, 'ssohost':ssohost, 'uahost':uahost, 'uaport':uaport, 'caller':caller}
   return (hlist)
 #=======================================================================================================================
-def createProject(dsID, projName, headers, hlist):
-  print "* DataSet ID".ljust(25)+" = " + dsID
-  print "* Project Name".ljust(25)+" = " +projName
-
+def createProject(dsID, projName, headers, hlist, passType):
+  data={"name":             projName,\
+        "description":      projName+" used in Claims Data subtraction test",\
+        "type":             "HCC",\
+        "organizationID":   "UO_6ececf9e-2b54-4acf-893c-4c947a14d238",\
+        "patientDataSetID": "O_00000000-0000-0000-0000-000000000506",\
+        "dosStart":         "2014-01-01T00:00:00Z",\
+        "dosEnd":           "2014-12-31T00:00:00Z",\
+        "paymentYear":      "2015",\
+        "sweep":            "finalReconciliation",\
+        "passType":         passType,\
+        "status":           True,\
+        "state":            "new",\
+        "rawRaf":           0.33,\
+        "raf":              0,\
+        "budget":           100000000,\
+        "deadline":         "2017-12-31T08:00:00Z",\
+        "datasource":       "Compound Documents",\
+        "patientList":      "3b5ebf03-a32d-4bc4-8462-83c55890aefa",\
+        "docFilterList":    ""}
+  url = hlist['uahost']+hlist['uaport']+'/projects'
+  response = requests.post(url, data=json.dumps(data), headers=headers)
+  if response.status_code == 200:
+    print "* Create new project".ljust(25)+" = "+str(response.status_code)
+    print "* Project name".ljust(25)+" = " +str(projName)
+    print "* Project ID".ljust(25)+" = " + str(response.json()['id'])
+    print "* Pass Type".ljust(25)+" = " + str(passType)
+    print authentication.LSS
+  else:
+    print "* Failed to create new project".ljust(25)+ "=" + str(response.status_code)
+    return ()
+  return (response.json()['id'])
+#=======================================================================================================================
+def filterProjects(dsID, headers, hlist):
   data={}
   url = hlist['uahost']+hlist['uaport']+'/projects'
-
-  print data
-  print headers
-  print url
-
-
   response = requests.get(url, data=json.dumps(data), headers=headers)
-  print response.status_code
+  if response.status_code != 200:
+    print response.status_code
+    return ()
   projects = response.json()
+  filtProjects = []
   for project in projects:
     if project['pdsExternalID'] == dsID:
-      print project['name']
-
-
-
-
-
-
-
-
-
-  projectID = ""
-
-
-
-
-  return(projectID)
+      filtProjects.append(project)
+  return(filtProjects)
+#=======================================================================================================================
+def deleteProject(projID, headers, hlist):
+  data={}
+  url = hlist['uahost']+hlist['uaport']+'/projects/'+projID
+  response = requests.delete(url, data=json.dumps(data), headers=headers)
+  print "* Delete project".ljust(25)+ " = " + str(response.status_code)
+  if response.status_code != 200:
+    print "* Failed to delete project".ljust(25)+ "=" + str(response.status_code)
+    return ()
+  return()
+#=======================================================================================================================
+def bundleProject(projID, headers, hlist):
+  data={}
+  url = hlist['cmphost']+"/cmp/v1/project/"+projID+"/bundle"
+  response = requests.post(url, data=json.dumps(data), headers=headers)
+  print "* Bundle project".ljust(25)+ " = " + str(response.status_code)
+  if response.status_code != 200:
+    print "* Failed to bundle project".ljust(25)+ "=" + str(response.status_code)
+    return ()
+  return()
+#=======================================================================================================================
+def listProjects(projList):
+  print "name:".ljust(30)+"id:".ljust(50)+"state:".ljust(30)
+  for proj in projList:
+    print proj['name'].ljust(30) + proj['id'].ljust(50) + proj['state'].ljust(30)
+  return()
+#=======================================================================================================================
+def queryElasticSearchOpps(projID):
+  body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
+  es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
+  es.index(index='org-506', doc_type='opportunity', id='_search', body=body)
+  resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
+  return (resp['total'])
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
@@ -110,23 +153,27 @@ def Main():
 
   authentication.defineGlobals()
   dsID = '506'
-  projName = 'HealthNet16'
-  hlist = getEnvHosts('s')
+  projName = 'HealthNet00'
+  hlist = getEnvHosts('d')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
-  projID = createProject(dsID, projName, headers, hlist)
+  passTypes = ['firstPass', 'secondPass']
 
+  for passType in passTypes:
+    projID = createProject(dsID, projName, headers, hlist, passType)
+    bundleProject(projID, headers, hlist)
+    time.sleep(2)
+    tot_opps = queryElasticSearchOpps(projID)
+    print "* Opps generated".ljust(25)+" = " + str(tot_opps)
+    if passType == 'firstPass' and tot_opps != 212:
+      print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
+    elif passType == 'secondPass' and tot_opps != 196:
+      print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
+    else:
+      print "* TEST RESULTS SUMMARY".ljust(25)+" = PASSED QA"
+    deleteProject(projID, headers, hlist)
+    print authentication.LSS
 
-
-  BODY = {"query": {"bool": {"must": [{"terms": {"project": ["CP_926086b3-350c-4cbb-911a-898820823b4d"]}}]}},"from": 0,"size": 1}
-  es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
-  es.index(index='org-506', doc_type='opportunity', id='_search', body=BODY)
-  resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
-  print "* Total # of Opps (ES)".ljust(25)+" = "+str(resp['total'])
-
-
-
-
-
+  print authentication.LS
 
 if __name__ == "__main__":
   Main()
