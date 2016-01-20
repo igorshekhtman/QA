@@ -71,13 +71,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import numpy as np
 import apxapi
+import collections
 requests.packages.urllib3.disable_warnings()
 #from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
-CSV_CONFIG_FILE_NAME = "esopprouteroptimization.csv"
+CSV_CONFIG_FILE_NAME = "energyrouting.csv"
 VERSION = "1.0.1"
 # Email reports to eng@apixio.com and archive report html file:
 # 0 - False
@@ -141,26 +142,13 @@ TOTAL_DOCS_ACCEPTED = 0
 
 
 HCC = {str(key): 0 for key in range(0, 200)}
-#LABEL_SET_VERSION = {str(key): 0 for key in range(2000, 2040)}
-#SWEEP = {'Final': 0, 'Initial': 0}
 MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
 LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
 SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 
 # This list of codes will overwrite random choice function to accept an opportunity
-#HCC_CODES_TO_ACCEPT = {'15', '27', '100'}
-#HCC_CODES_TO_ACCEPT = {'27'}
-#HCC_CODES_TO_ACCEPT = {'131'}
-#HCC_CODES_TO_ACCEPT = {'130'}
 HCC_CODES_TO_ACCEPT = {'157'}
 
-#TARGET_HCC = '27'
-#TARGET_HCC = '177'
-#TARGET_HCC = '32'
-#TARGET_HCC = '131'
-#TARGET_HCC = '29'
-#TARGET_HCC = '150'
-#TARGET_HCC = '130'
 TARGET_HCC = '157'
 
 HARD_CODED_DOS = "04/04/2014"
@@ -215,17 +203,17 @@ def readConfigurationFile(filename):
   return result
 ##########################################################################################
 
-ok = 200
-created = 201
-accepted = 202
-nocontent = 204
-movedperm = 301
-redirect = 302
-unauthorized = 401
-forbidden = 403
-notfound = 404
-intserveror = 500
-servunavail = 503
+ok 				= 200
+created 		= 201
+accepted 		= 202
+nocontent 		= 204
+movedperm 		= 301
+redirect 		= 302
+unauthorized 	= 401
+forbidden 		= 403
+notfound 		= 404
+intserveror 	= 500
+servunavail 	= 503
 
 FAILED = SUCCEEDED = RETRIED = 0
 VOO = VAO = VRO = VSO = 0
@@ -234,82 +222,64 @@ VOO = VAO = VRO = VSO = 0
 # MAIN FUNCTIONS ##########################################################################################################################
 ###########################################################################################################################################
  
-def logInToHCC(): 
-  global TOKEN, SESSID, DATA, HEADERS, COOKIES, TOKEN, APXTOKEN, JSESSIONID
-  response = requests.get(URL+'/')
-  print "="*80
-  print "* Url".ljust(25)+" = " + URL + "/"                
-  print "* Status Code".ljust(25) + " = " + str(response.status_code)
-  if response.status_code == 500:
-  	print "* Connection to host = FAILED QA"
-  	quit()
-#-----------------------------------------------------------------------------------------  	
-  # Original - url = referer = URL+'/account/login/?next=/'
-  url = URL+'/account/login/'
-  referer = URL+'/account/login/'
- 
+def loginHCC(options):
+
+  url = options['env_hosts']['hcchost']+'account/login/'
+  print LS
+  print "* Url 1".ljust(25)+" = " + url
   response = requests.get(url)
-  IncrementTestResultsTotals("login", response.status_code)
-  print "* Url".ljust(25)+" = "+URL+'/account/login/'
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
+  print LSS
   if response.status_code == 500:
-  	print "* Connection to host = FAILED QA"
-  	logInToHCC()
-#-----------------------------------------------------------------------------------------  	
-  
-  url = "https://hcceng.apixio.com/"
+    print "* Connection to host".just(25)+" =  FAILED"
+    print LS
+    quit()
+#-----------------------------------------------------------------------------------------------------------------------
+  url = options['env_hosts']['hcchost']+""
+  print "* Url 2".ljust(25)+" = " + url
   response = requests.get(url)
-  print "* Url".ljust(25)+" = "+url
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
-    
-#-----------------------------------------------------------------------------------------  	
-  
-  
-  
-  TOKEN = response.cookies["JSESSIONID"]
-  SESSID = response.cookies["JSESSIONID"]
-  COOKIES = dict(csrftoken=''+TOKEN+'')
-  JSESSIONID = response.cookies["JSESSIONID"]
+  print LSS
+  if response.status_code != 200:
+    quit()
+#-----------------------------------------------------------------------------------------------------------------------
   jsessionid = response.cookies["JSESSIONID"]
-  
+  url = options['env_hosts']['ssohost']+"/"
+  DATA = {'username': options['usr'], 'password': options['pwd'], 'hash':'', 'caller':options['env_hosts']['caller'], 'log_ref':'1441056621484', 'origin':'loging' }
+  HEADERS = {'Cookie': 'JSESSIONID='+jsessionid}
 
-  origin = "https://accounts-stg.apixio.com"
-  referer = "https://accounts-stg.apixio.com/?caller=hcc_eng"
-  host = "accounts-stg.apixio.com"
-  url = "https://accounts-stg.apixio.com/"
-  
-  DATA = {'username': USERNAME, 'password': PASSWORD, 'hash':'', 'caller':'hcc_eng', 'log_ref':'1441056621484', 'origin':'loging' }
-  HEADERS = HEADERS = {'Cookie': 'JSESSIONID='+jsessionid}  
-  print DATA
-  print HEADERS							
+  print "* Url 3".ljust(25)+ " = " + url
+  response = requests.post(url, data=DATA, headers=HEADERS)
+  print "* Status Code".ljust(25)+" = "+ str(response.status_code)
+  print LSS
+  if response.status_code != 200:
+    quit()
 
-  print "* Url".ljust(25)+" = "+url
-  response = requests.post(url, data=DATA, headers=HEADERS) 
-  print "* Status Code".ljust(25)+ " = " + str(response.status_code)
+  token = response.cookies["csrftoken"]
+  sessid = response.cookies["sessionid"]
+  apxtoken = obtainExternalToken(options)
+  cookies = dict(csrftoken=''+token+'', sessionid=''+sessid+'', ApxToken=''+apxtoken+'', jsessionid=''+jsessionid)
 
-  TOKEN = response.cookies["csrftoken"]
-  SESSID = response.cookies["sessionid"]
-  APXTOKEN = str(apxapi.APXSession(USERNAME,PASSWORD).external_token())
-  COOKIES = dict(csrftoken=''+TOKEN+'', sessionid=''+SESSID+'', ApxToken=APXTOKEN)
-  
-  print("* URL                = %s" % url)
-  print("* USER               = %s" % USERNAME)
-  print("* PASSWORD           = %s" % PASSWORD)
-  print("* CSRFTOKEN          = %s" % TOKEN)
-  print("* APXTOKEN           = %s" % APXTOKEN)
-  print("* SESSID             = %s" % SESSID)
-  print("* JSESSIONID         = %s" % JSESSIONID)
-  
-  IncrementTestResultsTotals("login", response.status_code)
-  print "* Log in user        = "+str(response.status_code)
-  #quit()
-  if response.status_code == 500:
-  	print "* Log in user = FAILED QA"
-  	logInToHCC()
+  print "* Url 5".ljust(25)+" = "+ url
+  print "* Username".ljust(25)+" = "+ options['usr']
+  print "* Password".ljust(25)+" = "+ options['pwd']
+  print "* Cookies".ljust(25)+" = "+ "\n".ljust(29).join(["%s:%s" % (key, ('%('+key+')s') % cookies) for key in sorted(cookies)])
+  print "* Log in user".ljust(25)+" = "+str(response.status_code)
+  print LSS
+  print "* Environment".ljust(25)+" = "+(options['env'])
+  print "* Max # of Opps".ljust(25)+" = "+ str(options['max_opps'])
+  print "* Max # of Retries".ljust(25)+" = "+ str(options['max_ret'])
+  print "* Coding Delay Time".ljust(25)+" = "+ str(options['coding_delay_time'])+" second(s)"
+  print "* Accept Date of Service".ljust(25)+" = "+str(options['dos'])
+  print "* Report Recepients".ljust(25)+" = "+str(options['report_recepients'])
+  if response.status_code != 200:
+    quit()
+  print LS
+  return(cookies)
   	
 ###########################################################################################################################################  	
   
-def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max):
+def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, options, cookies):
   global CODE_OPPS_ACTION
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
@@ -325,12 +295,11 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
     	'Accept-Language': 'en-US,en;q=0.8', \
   		'Connection': 'keep-alive', \
     	'Content-Type': 'application/json', \
-    	'Referer': URL+'/', \
-    	#'Cookie': 'csrftoken='+TOKEN+'; sessionid='+SESSID+' ', \
-    	'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
+    	'Referer': options['env_hosts']['hcchost']+'/', \
+        'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"], \
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
-    	'X-CSRFToken': TOKEN \
-    	}	
+        'X-CSRFToken': cookies["csrftoken"] \
+    	}
 
   if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
     print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
@@ -410,7 +379,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"dateOfService": HARD_CODED_DOS, \
 			"comment": "Grinder Flag for Review" \
 			}}}
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)
+    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
     print "* ANNOTATE FINDING = %s" % response.status_code
     IncrementTestResultsTotals("coding view and accept", response.status_code)
     if response.status_code == 200:
@@ -478,7 +447,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"rejectReason": "This document does not mention this HCC for the patient", \
 			"comment": "Grinder Flag for Review Comment" \
 			}}}						
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)	
+    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
@@ -542,7 +511,7 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"flaggedForReview":False, \
 			"result":"skipped" \
 			}}}			
-    response = requests.post(URL+ "/api/annotate/", cookies=COOKIES, data=json.dumps(DATA), headers=HEADERS)		
+    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
     if response.status_code == 200:
       print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
@@ -556,47 +525,39 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 
 ###########################################################################################################################################
   
-def startCoding():
+def startCoding(options, cookies):
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
   #global model_year, payment_year, hcc, model_run
-  #print("-------------------------------------------------------------------------------")
-  print("-------------------------------------------------------------------------------")
-  print("* URL                = %s\n* CODER USERNAME     = %s\n* CODER PASSWORD     = %s\n* MAX PATIENT OPP(S) = %s" % (URL, USERNAME, PASSWORD, CODE_OPPS_MAX))
-  print("-------------------------------------------------------------------------------")
-  #print("-------------------------------------------------------------------------------")
-  #coding_opp_current = 1
+
+  print LSS
+  print "* HCC Url".ljust(25)+" = " + options['env_hosts']['hcchost']
+  print "* Coder name".ljust(25)+ " = " + options['usr']
+  print "* Coder pwd".ljust(25)+ " = " + options['pwd']
+  print "* Max Opp(s)".ljust(25)+ " = " + str(options['max_opps'])
+  print LSS
   #====================================================
   # main loop controlling number of OPPS to process
   #====================================================
   buckets = -1
+  nwiurl = options['env_hosts']['hcchost']+"api/next-work-item/"
+  print("* HCC Url            = %s" % nwiurl)
+  print("* csrftoken          = %s" % cookies['csrftoken'])
+  print("* ApxToken           = %s" % cookies['ApxToken'])
+  print("* sessionid          = %s" % cookies['sessionid']) 
   
-  print("* URL                = %s/api/next-work-item/" % URL)
-  print("* csrftoken          = %s" % TOKEN)
-  print("* ApxToken           = %s" % APXTOKEN)
-  print("* sessionid          = %s" % JSESSIONID) 
   
-  
-  HEADERS = { \
-  			'Accept': 'application/json, text/plain, */*', \
-  			'Accept-Encoding': 'gzip, deflate, sdch', \
-  			'Accept-Language': 'en-US,en;q=0.8', \
-  			'Connection': 'keep-alive', \
-			'Cookie': 'csrftoken='+TOKEN+'; sessionid='+JSESSIONID+'; ApxToken='+APXTOKEN+' ', \
-			'Host': 'hcceng.apixio.com', \
-			'Referer': 'https://hcceng.apixio.com/' \
-			}	
-			
+  HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}			
   DATA = {}
   
   
   
-  for coding_opp_current in range(1, (int(CODE_OPPS_MAX)+1)):
-    time.sleep(int(DELAYTIME))
+  for coding_opp_current in range(1, (int(options['max_opps'])+1)):
+    time.sleep(int(options['coding_delay_time']))
     testCode = 10 + (1 * coding_opp_current)
-    response = requests.get(URL + "/api/next-work-item/", data=DATA, headers=HEADERS)
-    print ("* URL                = %s/api/next-work-item/" % URL)
+    response = requests.get(nwiurl, data=DATA, headers=HEADERS)
+    print ("* URL                = %s" % nwiurl)
     print ("* GET CODNG OPP      = %s" % response.status_code)
     
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
@@ -664,7 +625,7 @@ def startCoding():
     organization = opportunity.get("organization")
     transaction_id = opportunity.get("transactionId")
     print("-------------------------------------------------------------------------------")
-    print("PATIENT OPP %d OF %d" % (coding_opp_current, int(CODE_OPPS_MAX)))
+    print("PATIENT OPP %d OF %d" % (coding_opp_current, int(options['max_opps'])))
     TOTAL_OPPS_SERVED = coding_opp_current   
     
     if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
@@ -723,7 +684,7 @@ def startCoding():
       test_counter += 1
       if RANDOM_OPPS_ACTION == "1":
       	CODE_OPPS_ACTION = WeightedRandomCodingAction(hcc)
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, options, cookies)
 
   return 0
 
@@ -912,27 +873,32 @@ def checkEnvironmentandReceivers():
 
 ###########################################################################################################################################
 
-def obtainExternalToken(un, pw):
+def obtainExternalToken(options):
 
-	external_token = ""
-	url = UA_URL+'/auths'
-	referer = UA_URL  	
-	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
-	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}
-	print "* Url".ljust(25)+ " = "+url
-	response = requests.post(url, data=DATA, headers=HEADERS) 
-	print "* Status Code".ljust(25)+ " = "+str(response.status_code)
-	statuscode = response.status_code
-	userjson = response.json()
-	if userjson is not None:
-		external_token = userjson.get("token") 
-	return (external_token)
+  url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
+  DATA =    { 'email': options['usr'], 'password': options['pwd']}
+  HEADERS = {}
+
+  print "* Url 4".ljust(25)+" = "+ url
+  print "* Username".ljust(25)+" = "+ options['usr']
+  print "* Password".ljust(25)+" = "+ options['pwd']
+
+  response = requests.post(url, data=DATA, headers=HEADERS)
+  statuscode = response.status_code
+  if statuscode != 200:
+    print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
+    quit()
+  external_token = response.json().get("token")
+  print "* External token".ljust(25)+" = "+ response.json().get("token")
+  print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
+  print LSS
+  return (external_token)
 
 ###########################################################################################################################################
 
-def obtainInternalToken(un, pw):
+def obtainInternalToken(options):
 	
-	external_token = obtainExternalToken(un, pw)
+	external_token = obtainExternalToken(options)
 	url = TOKEN_URL
   	referer = TOKEN_URL  				
   	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
@@ -949,13 +915,13 @@ def obtainInternalToken(un, pw):
 
 ###########################################################################################################################################
 
-def setEnergyRoutingOn():
+def setEnergyRoutingOn(options, cookies):
 
-	apixio_token = obtainInternalToken("ishekhtman@apixio.com", "apixio.321")
+	#apixio_token = obtainInternalToken(options)
 	response = ""
-	url = ENERGY_RTR_URL + "/true"
+	url = options['env_hosts']['rtrhost'] + "/true"
 	data = {}
-	headers = {"Content-Type": "application/json", "Authorization": apixio_token}
+	headers = {"Content-Type": "application/json", "Authorization": cookies['ApxToken']}
 	response = requests.put(url, data=json.dumps(data), headers=headers)
 	status = response.json().get("energyRouting")
 	if response.status_code != ok:
@@ -966,33 +932,28 @@ def setEnergyRoutingOn():
 
 ###########################################################################################################################################
 
-def confirmSettings():
-	print ("==============================================================================")				
+def confirmSettings(options, cookies):
+	print LS				
 	print ("* VERSION                               = %s" % VERSION)
-	print ("* ENVIRONMENT                           = %s" % ENVIRONMENT)
-	print ("* HCC HOST                              = %s" % URL)
-	print ("* HCC DOMAIN                            = %s" % DOMAIN)
+	print ("* ENVIRONMENT                           = %s" % options['env'])
+	print ("* HCC HOST                              = %s" % options['env_hosts']['hcchost'])
 	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
 	print ("* USER                                  = %s" % USERNAME)
 	print ("* PASSWORD                              = %s" % PASSWORD)
-	print ("* CSRFTOKEN                             = %s" % TOKEN)
-	print ("* APXTOKEN                              = %s" % APXTOKEN)
-	print ("* SESSID                                = %s" % SESSID)
-	print ("* JSESSIONID                            = %s" % JSESSIONID)
-	print ("* DELAY TIME IS SET TO                  = %s sec" % DELAYTIME)
-	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % MAX_NUM_RETRIES)
-	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % CODE_OPPS_MAX)
-	print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn())
+	print ("* CSRFTOKEN                             = %s" % cookies['csrftoken'])
+	print ("* APXTOKEN                              = %s" % cookies['ApxToken'])
+	print ("* SESSID                                = %s" % cookies['sessionid'])
+	print ("* JSESSIONID                            = %s" % cookies['jsessionid'])
+	print ("* DELAY TIME IS SET TO                  = %s sec" % options['coding_delay_time'])
+	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % options['max_ret'])
+	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % options['max_opps'])
+	print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn(options, cookies))
 	print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
 	print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
 	print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
-	title = "* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING"
-	title_length = len(title)
-	for title_length in range (title_length, 33, 1):
-		title = title+" "
-	print (title+"       = %s%%" % (VAO_W2))
-	print (title+"       = %s%%" % (VRO_W2))
-	print ("==============================================================================")
+	print ("* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING").ljust(39)+" = "+ str(VAO_W2)+"%"
+	print ("* TARGETED HCC-"+TARGET_HCC+" REJECT SETTING").ljust(39)+" = "+ str(VRO_W2)+"%"
+	print LS
 	user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
 	if user_response.upper() == "Q":
 		print "exiting ..."
@@ -1361,48 +1322,85 @@ def IncrementTestResultsTotals(module, code):
 			startCoding()
 
 ###########################################################################################################################################
-    
 def log(text):
 	global REPORT
 	#REPORT = REPORT + text + "<br>"
 	print(text)
 	return 0    
+###########################################################################################################################################	
+def getEnvHosts(env):
+  if env.lower()[0] == 's':
+    hcchost = 'https://hcc-stg.apixio.com/'
+    ssohost = 'https://accounts-stg.apixio.com'
+    uahost = 'https://useraccount-stg.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_stg'
+    rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
+  elif env.lower()[0] == 'd':
+    hcchost = 'https://hccdev.apixio.com/'
+    ssohost = 'https://accounts-dev.apixio.com'
+    uahost = 'https://useraccount-dev.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_dev'
+    rtrhost = 'https://hcc-opprouter-dev.apixio.com:8443/ctrl/router/energy/energyMode'
+  elif env.lower()[0] == 'e':
+    hcchost = 'https://hcceng.apixio.com/'
+    ssohost = 'https://accounts-stg.apixio.com'
+    uahost = 'https://useraccount-eng.apixio.com'
+    uaport = ':7076'
+    caller = 'hcc_eng'
+    rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
+  return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller, 'rtrhost':rtrhost}	
+###########################################################################################################################################	  
+def defineGlobals():
+    global LS, LSS, SL, ACTIONS
+    LS  = "="*80
+    LSS = "-"*80
+    SL  = "*"*80
+    ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
+    return()  
 
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
 ###########################################################################################################################################
 
-os.system('clear')
+def Main():
+  global options
+  os.system('clear')
+  start_time=time.time()
+  
+  options=collections.OrderedDict()
+  options['rep_type'] = 'Energy Routing Test'
+  options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Development"
+  options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "mmgenergyes@apixio.net"
+  options['pwd'] = 'apixio.123'
+  options['env_hosts'] = getEnvHosts(options['env'])
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+  options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 6 else 2
+  options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 7 else 0
+  options['dos'] = str(sys.argv[6]) if len(sys.argv) > 11 else "04/04/2014"
+  options['report_recepients'] = [str(sys.argv[7])] if len(sys.argv) > 12 else ["ishekhtman@apixio.com"]
 
-readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
+  defineGlobals()
+  readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
+  checkEnvironmentandReceivers()
+  writeReportHeader()	
+  cookies = loginHCC(options)
+  writeReportDetails("login")
+  confirmSettings(options, cookies)
+  startCoding(options, cookies)
+  writeReportDetails("coding opportunity check")
+  writeReportDetails("coding scorable document check")
+  writeReportDetails("coding view only")
+  writeReportDetails("coding view and accept")
+  writeReportDetails("coding view and reject")
+  writeReportDetails("coding view and skip")
+  logout()
+  writeReportDetails("logout")
+  printResultsSummary()
+  writeReportFooter()
+  #archiveReport()
+  emailReport()
 
-checkEnvironmentandReceivers()
-
-writeReportHeader()	
-
-logInToHCC()
-
-writeReportDetails("login")
-
-confirmSettings()
-
-startCoding()
-
-writeReportDetails("coding opportunity check")
-writeReportDetails("coding scorable document check")
-writeReportDetails("coding view only")
-writeReportDetails("coding view and accept")
-writeReportDetails("coding view and reject")
-writeReportDetails("coding view and skip")
-
-logout()
-
-writeReportDetails("logout")
-
-printResultsSummary()
-
-writeReportFooter()
-
-archiveReport()
-
-emailReport()
+if __name__ == "__main__":
+  Main()
