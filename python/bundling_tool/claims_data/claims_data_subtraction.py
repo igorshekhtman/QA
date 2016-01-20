@@ -127,7 +127,7 @@ def bundleProject(projID, headers, hlist):
   response = requests.post(url, data=json.dumps(data), headers=headers)
   print "* Bundle project".ljust(25)+ " = " + str(response.status_code)
   if response.status_code != 200:
-    print "* Failed to bundle project".ljust(25)+ "=" + str(response.status_code)
+    print "* Failed to bundle".ljust(25)+ " = " + str(response.status_code)
     return ()
   return()
 #=======================================================================================================================
@@ -154,9 +154,12 @@ def Main():
   authentication.defineGlobals()
   dsID = '506'
   projName = 'HealthNet00'
-  hlist = getEnvHosts('d')
+  hlist = getEnvHosts('e')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
   passTypes = ['firstPass', 'secondPass']
+  #deleteProject("PRHCC_753b2f02-4a9c-4a67-a349-f816ad4d6fe6", headers, hlist)
+  #quit()
+
 
   for passType in passTypes:
     projID = createProject(dsID, projName, headers, hlist, passType)
