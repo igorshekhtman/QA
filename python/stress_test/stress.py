@@ -629,7 +629,7 @@ def getEnvHosts(env):
     caller = 'hcc_dev'
   elif env.lower()[0] == 'e':
     hcchost = 'https://hcceng.apixio.com/'
-    ssohost = 'https://accounts-eng.apixio.com'
+    ssohost = 'https://accounts-stg.apixio.com'
     uahost = 'https://useraccount-eng.apixio.com'
     uaport = ':7076'
     caller = 'hcc_eng'
@@ -690,7 +690,7 @@ def Main():
   defineGlobals()
   cookies = loginHCC(options)
   commandLineParamatersDescription(options)
-  #pauseBreak()
+  pauseBreak()
   totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
 

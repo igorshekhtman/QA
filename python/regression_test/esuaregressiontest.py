@@ -369,7 +369,8 @@ def obtainExternalToken(un, pw):
 
 	external_token = ""
 	url = UA_URL+':'+UA_PORT+'/auths'
-	referer = UA_URL+':'+UA_PORT  	
+	referer = UA_URL+':'+UA_PORT
+
 	
 	DATA =    {'Referer': referer, 'email': un, 'password': pw} 
 	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer}

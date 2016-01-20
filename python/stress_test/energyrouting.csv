@@ -1,0 +1,66 @@
+######################################
+#### Must match same for opprouteroptimization.py script to work
+REVISION=1.0.1
+######################################
+#ENVIRONMENT=Production
+ENVIRONMENT=Staging
+######################################
+DOMAIN=hcceng.apixio.com
+URL=https://hcceng.apixio.com
+#DOMAIN=hccdev.apixio.com
+#URL=https://hccdev.apixio.com
+######################################
+#USERNAME=htenergyes@apixio.net
+USERNAME=mmgenergyes@apixio.net
+#USERNAME=protest01@apixio.net
+PASSWORD=apixio.123
+######################################
+#### 0 = DO NOT CODE OPPS, 1 = CODE OPPS
+CODE_OPPS=1
+#### 0 = VIEW OPPS, 1 = VIEW + ACCEPT OPPS, 2 = VIEW + REJECT OPPS, 3 = VIEW + SKIP OPPS
+CODE_OPPS_ACTION=1
+#### If RANDOM_OPPS_ACTION flag is set to 1, CODE_OPPS_ACTION will be ignored
+RANDOM_OPPS_ACTION=1
+#### Coder actions weighted by specific percentage, must add up to 100%
+#### View Only, View Accept, View Reject, View Skip
+VOO_W=0
+VAO_W=10
+VRO_W=90
+VSO_W=0
+#### 2nd set of weights for targeted HCC Code
+#### View Only, View Accept, View Reject, View Skip
+#### Will be used in the future for Richards provision to 
+#### detect 100% accepts
+#### if a specific HCC is being served
+VOO_W2=0
+VAO_W2=95
+VRO_W2=5
+VSO_W2=0
+#### Must be divisible by 10
+CODE_OPPS_MAX=10
+######################################
+#### 0 = DO NOT VIEW HISTORY REPORT, 1 = VIEW HISTORY REPORT
+VIEW_HISTORY=0
+VIEW_HISTORY_PAGINATION=0
+VIEW_HISTORY_SEARCH=0
+VIEW_HISTORY_FILTER=0
+VIEW_HISTORY_MAX=0
+#### VIEW_HISTORY_PAGES_MAX=0 TOTAL NUMBER OF PAGES RETRIEVED FROM ACTUAL REPORT
+VIEW_HISTORY_PAGES_MAX=1
+######################################
+#### 0 = DO NOT VIEW QA REPORT, 1 = VIEW QA REPORT
+QA_REPORT=0
+QA_REPORT_PAGINATION=0
+QA_REPORT_SEARCH=0
+QA_REPORT_FILTER=0
+QA_REPORT_MAX=0
+#### QA_REPORT_PAGES_MAX=0 TOTAL NUMBER OF PAGES RETRIEVED FROM ACTUAL REPORT
+QA_REPORT_PAGES_MAX=1
+######################################
+#### 0 = DO NOT LOG OUT, 1 = LOG OUT
+LOGOUT=1
+######################################
+DELAYTIME=0
+######################################
+MAX_NUM_RETRIES=500
+######################################
