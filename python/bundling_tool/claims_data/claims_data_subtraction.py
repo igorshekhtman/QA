@@ -117,7 +117,7 @@ def deleteProject(projID, headers, hlist):
   response = requests.delete(url, data=json.dumps(data), headers=headers)
   print "* Delete project".ljust(25)+ " = " + str(response.status_code)
   if response.status_code != 200:
-    print "* Failed to delete project".ljust(25)+ "=" + str(response.status_code)
+    print "* Failed to delete".ljust(25)+ " = " + str(response.status_code)
     return ()
   return()
 #=======================================================================================================================
@@ -128,8 +128,9 @@ def bundleProject(projID, headers, hlist):
   print "* Bundle project".ljust(25)+ " = " + str(response.status_code)
   if response.status_code != 200:
     print "* Failed to bundle".ljust(25)+ " = " + str(response.status_code)
-    return ()
-  return()
+    deleteProject(projID, headers, hlist)
+    return (1)
+  return(0)
 #=======================================================================================================================
 def listProjects(projList):
   print "name:".ljust(30)+"id:".ljust(50)+"state:".ljust(30)
@@ -138,11 +139,17 @@ def listProjects(projList):
   return()
 #=======================================================================================================================
 def queryElasticSearchOpps(projID):
-  body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
   es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
-  es.index(index='org-506', doc_type='opportunity', id='_search', body=body)
-  resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
-  return (resp['total'])
+  body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}}}
+  count = es.count(index='org-506', doc_type='opportunity', body=body)['count']
+  if count > 0:
+    body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
+    es.index(index='org-506', doc_type='opportunity', id='_search', body=body)
+    resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
+    opps = resp['total']
+  else:
+    opps = 0
+  return (opps)
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
@@ -154,10 +161,10 @@ def Main():
   authentication.defineGlobals()
   dsID = '506'
   projName = 'HealthNet00'
-  hlist = getEnvHosts('e')
+  hlist = getEnvHosts('d')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
   passTypes = ['firstPass', 'secondPass']
-  #deleteProject("PRHCC_753b2f02-4a9c-4a67-a349-f816ad4d6fe6", headers, hlist)
+  #deleteProject("PRHCC_0aee216c-ba32-4846-8f6b-1afe75011861", headers, hlist)
   #quit()
 
 
