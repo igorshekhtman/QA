@@ -90,6 +90,7 @@ def createProject(dsID, projName, headers, hlist, passType):
     print "* Create new project".ljust(25)+" = "+str(response.status_code)
     print "* Project name".ljust(25)+" = " +str(projName)
     print "* Project ID".ljust(25)+" = " + str(response.json()['id'])
+    print "* DataSet ID".ljust(25)+" = " +str(dsID)
     print "* Pass Type".ljust(25)+" = " + str(passType)
     print authentication.LSS
   else:
@@ -138,15 +139,15 @@ def listProjects(projList):
     print proj['name'].ljust(30) + proj['id'].ljust(50) + proj['state'].ljust(30)
   return()
 #=======================================================================================================================
-def queryElasticSearchOpps(projID):
+def queryElasticSearchOpps(dsID, projID):
   es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
-  body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}}}
-  count = es.count(index='org-506', doc_type='opportunity', body=body)['count']
+  body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
+  count = es.search(index='org-506', doc_type='opportunity', body=body)['_shards']['successful']
   if count > 0:
-    body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
-    es.index(index='org-506', doc_type='opportunity', id='_search', body=body)
-    resp = es.get(index='org-506', doc_type='opportunity', id='_search')['hits']
-    opps = resp['total']
+    resp = es.search(index='org-506-1', doc_type='opportunity', body=body)['hits']['total']
+    opps = resp
+    print resp
+    quit()
   else:
     opps = 0
   return (opps)
@@ -164,19 +165,18 @@ def Main():
   hlist = getEnvHosts('d')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
   passTypes = ['firstPass', 'secondPass']
-  #deleteProject("PRHCC_0aee216c-ba32-4846-8f6b-1afe75011861", headers, hlist)
+  #deleteProject("PRHCC_6d152b63-1f0a-48fa-b3fe-06ef2c9c6f2a", headers, hlist)
   #quit()
-
 
   for passType in passTypes:
     projID = createProject(dsID, projName, headers, hlist, passType)
     bundleProject(projID, headers, hlist)
-    time.sleep(2)
-    tot_opps = queryElasticSearchOpps(projID)
+    time.sleep(4)
+    tot_opps = queryElasticSearchOpps(dsID, projID)
     print "* Opps generated".ljust(25)+" = " + str(tot_opps)
-    if passType == 'firstPass' and tot_opps != 212:
+    if passType == 'firstPass' and tot_opps != 211:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
-    elif passType == 'secondPass' and tot_opps != 196:
+    elif passType == 'secondPass' and tot_opps != 195:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
     else:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = PASSED QA"
