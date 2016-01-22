@@ -146,8 +146,6 @@ def queryElasticSearchOpps(dsID, projID):
   if count > 0:
     resp = es.search(index='org-506-1', doc_type='opportunity', body=body)['hits']['total']
     opps = resp
-    print resp
-    quit()
   else:
     opps = 0
   return (opps)
