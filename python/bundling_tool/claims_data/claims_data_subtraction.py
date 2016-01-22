@@ -170,15 +170,19 @@ def Main():
     print authentication.SL
     if passType == 'firstPass' and tot_opps != 211:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
+      state = 1
     elif passType == 'secondPass' and tot_opps != 195:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
+      state = 1
     else:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = PASSED QA"
+      state = 0
     print authentication.SL
     deleteProject(projID, headers, hlist)
     print authentication.LSS
 
   print authentication.LS
+  return (state)
 
 if __name__ == "__main__":
   Main()

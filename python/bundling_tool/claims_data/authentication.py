@@ -23,7 +23,7 @@ def obtainExternalToken(un, pw, hlist):
   print LS
   print "* User Accounts Url".ljust(25)+" = "+ url
   print "* Username".ljust(25)+" = "+ un
-  print "* Password".ljust(25)+" = "+ pw
+  print "* Password".ljust(25)+" = "+ "*"*len(pw)
 
 
   response = requests.post(url, data=data, headers=headers)
