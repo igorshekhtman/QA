@@ -159,25 +159,27 @@ def Main():
 
   authentication.defineGlobals()
   dsID = '506'
-  projName = 'HealthNet00'
   hlist = getEnvHosts('d')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
   passTypes = ['firstPass', 'secondPass']
-  #deleteProject("PRHCC_6d152b63-1f0a-48fa-b3fe-06ef2c9c6f2a", headers, hlist)
+  #deleteProject("PRHCC_a0cfd1a7-d703-41c4-90c0-f43b2a9a9e7e", headers, hlist)
   #quit()
 
   for passType in passTypes:
+    projName = 'HealthNet_'+passType
     projID = createProject(dsID, projName, headers, hlist, passType)
     bundleProject(projID, headers, hlist)
     time.sleep(4)
     tot_opps = queryElasticSearchOpps(dsID, projID)
     print "* Opps generated".ljust(25)+" = " + str(tot_opps)
+    print authentication.SL
     if passType == 'firstPass' and tot_opps != 211:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
     elif passType == 'secondPass' and tot_opps != 195:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = FAILED QA"
     else:
       print "* TEST RESULTS SUMMARY".ljust(25)+" = PASSED QA"
+    print authentication.SL
     deleteProject(projID, headers, hlist)
     print authentication.LSS
 
