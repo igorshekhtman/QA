@@ -66,7 +66,7 @@ def getEnvHosts(env):
 #=======================================================================================================================
 def createProject(dsID, projName, headers, hlist, passType):
   data={"name":             projName,\
-        "description":      projName+" used in Claims Data subtraction test",\
+        "description":      projName+" - Claims Data Subtraction Test",\
         "type":             "HCC",\
         "organizationID":   "UO_6ececf9e-2b54-4acf-893c-4c947a14d238",\
         "patientDataSetID": "O_00000000-0000-0000-0000-000000000506",\
@@ -142,13 +142,8 @@ def listProjects(projList):
 def queryElasticSearchOpps(dsID, projID):
   es = elasticsearch.Elasticsearch('http://elasticsearch-stg.apixio.com:9200')
   body = {"query": {"bool": {"must": [{"terms": {"project": [projID]}}]}},"from": 0,"size": 1}
-  count = es.search(index='org-506', doc_type='opportunity', body=body)['_shards']['successful']
-  if count > 0:
-    resp = es.search(index='org-506-1', doc_type='opportunity', body=body)['hits']['total']
-    opps = resp
-  else:
-    opps = 0
-  return (opps)
+  resp = es.search(index='org-'+dsID+'-1', doc_type='opportunity', body=body)['hits']['total']
+  return (resp)
 #=======================================================================================================================
 #==================================================== MAIN PROGRAM =====================================================
 #=======================================================================================================================
@@ -162,14 +157,14 @@ def Main():
   hlist = getEnvHosts('d')
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
   passTypes = ['firstPass', 'secondPass']
-  #deleteProject("PRHCC_a0cfd1a7-d703-41c4-90c0-f43b2a9a9e7e", headers, hlist)
+  #deleteProject("PRHCC_48ac6a38-31a2-4c95-9244-67f3be17c93f", headers, hlist)
   #quit()
 
   for passType in passTypes:
     projName = 'HealthNet_'+passType
     projID = createProject(dsID, projName, headers, hlist, passType)
     bundleProject(projID, headers, hlist)
-    time.sleep(4)
+    time.sleep(10)
     tot_opps = queryElasticSearchOpps(dsID, projID)
     print "* Opps generated".ljust(25)+" = " + str(tot_opps)
     print authentication.SL
