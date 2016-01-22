@@ -64,6 +64,7 @@ import calendar
 import mmap
 from sortedcontainers import SortedDict
 from pylab import *
+from matplotlib.pyplot import *
 import random
 import smtplib
 from email.mime.text import MIMEText
@@ -78,6 +79,7 @@ requests.packages.urllib3.disable_warnings()
 # GLOBAL VARIABLES #######################################################################
 
 CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
+CSV_CONFIG_FILE_PATH = ""
 CSV_CONFIG_FILE_NAME = "energyrouting.csv"
 VERSION = "1.0.1"
 # Email reports to eng@apixio.com and archive report html file:
@@ -147,9 +149,9 @@ LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
 SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 
 # This list of codes will overwrite random choice function to accept an opportunity
-HCC_CODES_TO_ACCEPT = {'157'}
+HCC_CODES_TO_ACCEPT = {'108'}
 
-TARGET_HCC = '157'
+TARGET_HCC = '108'
 
 HARD_CODED_DOS = "04/04/2014"
 
@@ -169,8 +171,7 @@ HARD_CODED_DOS = "04/04/2014"
 #
   
 def readConfigurationFile(filename):
-  global MAX_NUM_RETRIES, START, STOP, STEP
-  global COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
+
 
   result={ }
   csvfile = open(filename, 'rb')
@@ -179,16 +180,6 @@ def readConfigurationFile(filename):
     if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
       result[row[0]] = row[1]
   globals().update(result)
-  
-  MAX_NUM_RETRIES = int(result["MAX_NUM_RETRIES"])
-  
-  START = (int(CODE_OPPS_MAX)/10)
-  STOP = int(CODE_OPPS_MAX)
-  STEP = (int(CODE_OPPS_MAX)/10)
-  
-  COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   
   if REVISION <> VERSION:
   	print "="*80
@@ -542,10 +533,10 @@ def startCoding(options, cookies):
   #====================================================
   buckets = -1
   nwiurl = options['env_hosts']['hcchost']+"api/next-work-item/"
-  print("* HCC Url            = %s" % nwiurl)
-  print("* csrftoken          = %s" % cookies['csrftoken'])
-  print("* ApxToken           = %s" % cookies['ApxToken'])
-  print("* sessionid          = %s" % cookies['sessionid']) 
+  print "* HCC Url".ljust(25)+" = "+ nwiurl
+  print "* csrftoken".ljust(25)+" = "+ cookies['csrftoken']
+  print "* ApxToken".ljust(25)+" = "+ cookies['ApxToken']
+  print "* sessionid".ljust(25)+" = "+ cookies['sessionid']
   
   
   HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}			
@@ -557,27 +548,19 @@ def startCoding(options, cookies):
     time.sleep(int(options['coding_delay_time']))
     testCode = 10 + (1 * coding_opp_current)
     response = requests.get(nwiurl, data=DATA, headers=HEADERS)
-    print ("* URL                = %s" % nwiurl)
-    print ("* GET CODNG OPP      = %s" % response.status_code)
+    print "* Url".ljust(25)+" = "+ nwiurl
+    print "* Get Coding Opp".ljust(25)+" = "+ str(response.status_code)
     
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     
     
     if response.status_code != ok:
-    	print "=================================================="
-    	print "Failure occurred !!!"
-    	
-    	print response.cookies.list_domains()
-    	print response.cookies.list_paths()
-    	print response.cookies.get_dict()
-    	print response.cookies
-    	print response.status_code
-    	print response.headers
-    	print response.text
-    	print json.dumps(response.json())
-    	print "=================================================="
+      print LS
+      print "* Failed Get Coding Opp".ljust(25)+" = "+str(response.status_code)
+      print LS
+      return (1)
     else:	
-    	opportunity = response.json()
+      opportunity = response.json()
     ######################################################################################
     
    
@@ -1004,26 +987,27 @@ def writeReportDetails(module):
 ###########################################################################################################################################
 	
 def drawGraph(srcedict):
-	global CURDAY, START, STOP
+  global CURDAY, START, STOP
 	
-	key = sorted(srcedict.keys())
-	temp = []
-	for i in key:
-		value = srcedict[i]
-		temp.append(value)
+  key = sorted(srcedict.keys())
+  temp = []
+  for i in key:
+    value = srcedict[i]
+    temp.append(value)
 	
-	x = sorted(srcedict.keys())	
-	y = temp
-	z = sorted(srcedict.items())
+  x = sorted(srcedict.keys())
+  y = temp
+  z = sorted(srcedict.items())
 		
-	plot(x, y, color='green', linewidth=3, linestyle='solid', marker='o', markerfacecolor='blue', markersize=6)
-	xlabel('# of serves per time bucket')
-	ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
-	title('HCC Opportunity Router Optimization Test')
-	grid(True)
-	savefig(str(CURDAY))
-	show()
+  plot(x, y, color='green', linewidth=3, linestyle='solid', marker='o', markerfacecolor='blue', markersize=6)
+  xlabel('# of serves per time bucket')
+  ylabel('% of targeted HCC-'+str(TARGET_HCC)+' served')
+  title('HCC Opportunity Router Optimization Test')
+  grid(True)
+  savefig(str(CURDAY))
+  #show()
 
+  return()
 ###########################################################################################################################################
 
 def getKey(key):
@@ -1038,21 +1022,6 @@ def convertJsonToTable(srcedict, sortby):
 	global REPORT
 	#print srcedict
 	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-	#key = sorted(srcedict.keys())
-	#sorted(mydict, key=lambda key: mydict[key])
-	#key = sorted(srcedict, key=lambda key: srcedict[key])
-	#sortedict = sorted(srcedict.items(), key=lambda t: getKey(t[0]))
-	#sortedict = sorted(srcedict.items(), key=lambda t: int(t[0]))
-	#sortedkeys = sorted(srcedict.keys())
-	#=====sort by values=======================================
-	#import operator
-	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
-	#sorted_x = sorted(x.items(), key=operator.itemgetter(1))
-	#=====sort by keys=========================================
-	#import operator
-	#x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
-	#sorted_x = sorted(x.items(), key=operator.itemgetter(0))
-	#==========================================================
 	if sortby == "value":
 		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
 		ctr = 0
@@ -1077,116 +1046,86 @@ def convertJsonToTable(srcedict, sortby):
 	REPORT = REPORT+"</table>"
 
 ###########################################################################################################################################
-
 def extractTargetedHccData(targhcc, srcedict):
-	#print targhcc
-	#print srcedict
-	#key = sorted(srcedict.keys())
-	extrdict = {}
-	for k, v in sorted(srcedict.iteritems()):
-		#print k, v
-		if targhcc in v.keys():
-			extrdict.update({k: v[targhcc]})
-		else:
-			extrdict.update({k: 0})	
-			
-	#print extrdict
-	#quit()
-	return (extrdict)	
-
+  extrdict = {}
+  for k, v in sorted(srcedict.iteritems()):
+    if targhcc in v.keys():
+      extrdict.update({k: v[targhcc]})
+    else:
+      extrdict.update({k: 0})
+  return (extrdict)
 ###########################################################################################################################################
 def writeReportFooter():
-	global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
-	
+  global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
 
-	print ("Write report footer ...\n")
-	REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT = REPORT+"<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % \
-		(TARGET_HCC)
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(TOTAL_OPPS_SERVED)
-	REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % \
-		(TOTAL_OPPS_SKIPPED)
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % \
-		(TOTAL_DOCS_ACCEPTED)
-	REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % \
-		(TOTAL_DOCS_REJECTED)
+  print ("Write report footer ...\n")
+  REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (TARGET_HCC)
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
+  REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
+  REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
 		
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % \
-		(VAO_W)	
-	REPORT = REPORT+"<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % \
-		(VRO_W)	
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"		
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % \
-		(TARGET_HCC, VAO_W2)	
-	REPORT = REPORT+"<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % \
-		(TARGET_HCC, VRO_W2)					
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (VAO_W)
+  REPORT = REPORT+"<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (VRO_W)
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (TARGET_HCC, VAO_W2)
+  REPORT = REPORT+"<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (TARGET_HCC, VRO_W2)
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 		
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
-	REPORT = REPORT+"</td></tr>"
-	REPORT = REPORT+"<tr><td nowrap>Sweep:</td><td>"
-	convertJsonToTable(SWEEP, "key")
-	REPORT = REPORT+"</td></tr>"
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(LABEL_SET_VERSION, "key")
-	REPORT = REPORT+"</td></tr>"
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"	
-	###############################################################################################################
-	# Sort all dictionaries here
-	#SORTED_HCC = OrderedDict(sorted(HCC.items(), key=lambda t: t[0]))
-	#SORTED_COUNT_OF_SERVED = OrderedDict(sorted(COUNT_OF_SERVED.items(), key=lambda t: t[0]))
-	#SORTED_PERCENT_OF_SERVED = OrderedDict(sorted(PERCENT_OF_SERVED.items(), key=lambda t: t[0]))
-	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = OrderedDict(sorted(PERCENT_OF_TARGET_HCC_SERVED.items(), key=lambda t: t[0]))
-	#SORTED_PERCENT_OF_TARGET_HCC_SERVED = SortedDict(PERCENT_OF_TARGET_HCC_SERVED)
-	#print SORTED_PERCENT_OF_TARGET_HCC_SERVED.items()
-	#quit()
-	###############################################################################################################
-	#REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td><b>%s</b></td></tr>" % \
-	REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
-	convertJsonToTable(HCC, "value")
-	REPORT = REPORT+"</td></tr>"				
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-	convertJsonToTable(COUNT_OF_SERVED, "key")
-	REPORT = REPORT+"</td></tr>"	
-	REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
-	convertJsonToTable(PERCENT_OF_SERVED, "key")
-	REPORT = REPORT+"</td></tr>"	
-	REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
-	convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED), "key")
-	REPORT = REPORT+"</td></tr>"
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
+  convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td nowrap>Sweep:</td><td>"
+  convertJsonToTable(SWEEP, "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
+  convertJsonToTable(LABEL_SET_VERSION, "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
+  convertJsonToTable(HCC, "value")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
+  convertJsonToTable(COUNT_OF_SERVED, "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
+  convertJsonToTable(PERCENT_OF_SERVED, "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
+  convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED), "key")
+  REPORT = REPORT+"</td></tr>"
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
 	
-	drawGraph(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
+  drawGraph(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
 		
-	REPORT_EMAIL = REPORT_EMAIL + REPORT	
-	REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"	
-	REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><hr></td></tr>"
-	END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-	REPORT = REPORT+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-	REPORT = REPORT+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
-	TIME_END = time.time()
-	TIME_TAKEN = TIME_END - TIME_START
-	hours, REST = divmod(TIME_TAKEN,3600)
-	minutes, seconds = divmod(REST, 60)
-	REPORT = REPORT+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-	REPORT = REPORT+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
-	REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
-	REPORT = REPORT+"</table>"
-	REPORT_EMAIL = REPORT_EMAIL+"</table>"
-	REPORT = REPORT+"</td></tr></table>"
-	REPORT_EMAIL = REPORT_EMAIL+"</td></tr></table>"
-	print ("Finished writing report ...\n")
-
+  REPORT_EMAIL = REPORT_EMAIL + REPORT
+  REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
+  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><hr></td></tr>"
+  END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+  REPORT = REPORT+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
+  REPORT = REPORT+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+  TIME_END = time.time()
+  TIME_TAKEN = TIME_END - TIME_START
+  hours, REST = divmod(TIME_TAKEN,3600)
+  minutes, seconds = divmod(REST, 60)
+  REPORT = REPORT+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
+  REPORT = REPORT+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+  REPORT = REPORT+"</table>"
+  REPORT_EMAIL = REPORT_EMAIL+"</table>"
+  REPORT = REPORT+"</td></tr></table>"
+  REPORT_EMAIL = REPORT_EMAIL+"</td></tr></table>"
+  print ("Finished writing report ...\n")
+  return()
 ###########################################################################################################################################
 
 def archiveReport():
@@ -1268,17 +1207,15 @@ def emailReport():
 	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
 
 ###########################################################################################################################################
-
 def pages_payload(details):
-	report_json = details.json()
-    	if report_json is not None:
-    		pages = report_json.get("pages")
-    		payload = len(details.text)
-    	else:
-    		pages = 0
-    		payload = 0
-	return (pages, payload)
-
+  report_json = details.json()
+  if report_json is not None:
+    pages = report_json.get("pages")
+    payload = len(details.text)
+  else:
+    pages = 0
+    payload = 0
+  return (pages, payload)
 ###########################################################################################################################################
 
 def create_request(test, headers=None):
@@ -1316,7 +1253,7 @@ def IncrementTestResultsTotals(module, code):
 			quit()
 		if (code == unauthorized):
 			print "%s response code received from server.  Re-obtaining Autorization." % code
-			logInToHCC()
+			loginHCC()
 		if ((code == servunavail) or (code == nocontent)) and (module == "coding opportunity check"):
 			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
 			startCoding()
@@ -1352,13 +1289,23 @@ def getEnvHosts(env):
     rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
   return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller, 'rtrhost':rtrhost}	
 ###########################################################################################################################################	  
-def defineGlobals():
-    global LS, LSS, SL, ACTIONS
-    LS  = "="*80
-    LSS = "-"*80
-    SL  = "*"*80
-    ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
-    return()  
+def defineGlobals(options):
+  global LS, LSS, SL, ACTIONS
+  global MAX_NUM_RETRIES, COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
+  global START, STOP, STEP
+  LS  = "="*80
+  LSS = "-"*80
+  SL  = "*"*80
+  ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
+  MAX_NUM_RETRIES = int(options['max_ret'])
+  START = (int(options['max_opps'])/10)
+  STOP = int(options['max_opps'])
+  STEP = (int(options['max_opps'])/10)
+
+  COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+  return()
 
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
@@ -1381,7 +1328,7 @@ def Main():
   options['dos'] = str(sys.argv[6]) if len(sys.argv) > 11 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[7])] if len(sys.argv) > 12 else ["ishekhtman@apixio.com"]
 
-  defineGlobals()
+  defineGlobals(options)
   readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
   checkEnvironmentandReceivers()
   writeReportHeader()	

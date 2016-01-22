@@ -112,7 +112,6 @@ def loginHCC(options):
   print LSS
   if response.status_code != 200:
     quit()
-
   token = response.cookies["csrftoken"]
   sessid = response.cookies["sessionid"]
   apxtoken = obtainExternalToken(options)
