@@ -48,21 +48,15 @@
 ####################################################################################################
 
 # LIBRARIES ########################################################################################
-
 import requests
-from collections import OrderedDict
 import time
-import datetime
 import csv
 import operator
-import re
-import sys, os
+import os
 import shutil
 import json
-from time import gmtime, strftime, localtime
-import calendar
+from time import gmtime, strftime
 import mmap
-from sortedcontainers import SortedDict
 from pylab import *
 from matplotlib.pyplot import *
 import random
@@ -70,11 +64,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-import numpy as np
-import apxapi
 import collections
 requests.packages.urllib3.disable_warnings()
-#from scipy import spline
 
 # GLOBAL VARIABLES #######################################################################
 
@@ -82,10 +73,7 @@ CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
 CSV_CONFIG_FILE_PATH = ""
 CSV_CONFIG_FILE_NAME = "energyrouting.csv"
 VERSION = "1.0.1"
-# Email reports to eng@apixio.com and archive report html file:
-# 0 - False
-# 1 - True
-DEBUG_MODE=bool(0)
+DEBUG_MODE=False
 # HTML report version to archive
 REPORT = ""
 # HTML report version to email
@@ -127,13 +115,16 @@ MODULES = {	"login":"0", \
 			"qa report filtering":"15", \
 			"logout":"16" \
 			}
-FAILED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-SUCCEEDED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-RETRIED_TOT = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+
+FAILED_TOT = []
+SUCCEEDED_TOT = []
+RETRIED_TOT = []
+
 for i in range (0, 17):
-	FAILED_TOT[i] = 0
-	SUCCEEDED_TOT[i] = 0
-	RETRIED_TOT[i] = 0
+	FAILED_TOT.append(0)
+	SUCCEEDED_TOT.append(0)
+	RETRIED_TOT.append(0)
+
 	
 TOTAL_OPPS_ACCEPTED = 0
 TOTAL_OPPS_REJECTED = 0
@@ -690,24 +681,24 @@ def logout():
 ###########################################################################################################################################
 
 def tallyDetails(item, value):
-	global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
-	global MODEL_PAYMENT_YEAR, SWEEP, LABEL_SET_VERSION
+  global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
+  global MODEL_PAYMENT_YEAR, SWEEP, LABEL_SET_VERSION
 	
-	if item == "model_year":
-		MODEL_YEAR[value] += 1
-	elif item == "payment_year":	
-		PAYMENT_YEAR[value] += 1
-	elif item == "hcc":	
-		HCC[value] += 1
-	elif item == "model_run":	
-		MODEL_RUN[value] += 1
-	elif item == "model_payment_year":
-		MODEL_PAYMENT_YEAR[value] += 1
-	elif item == "sweep":
-		SWEEP[value] += 1
-	elif item == "label_set_version":
-		LABEL_SET_VERSION[value] += 1			
-	return 0
+  if item == "model_year":
+    MODEL_YEAR[value] += 1
+  elif item == "payment_year":
+    PAYMENT_YEAR[value] += 1
+  elif item == "hcc":
+    HCC[value] += 1
+  elif item == "model_run":
+    MODEL_RUN[value] += 1
+  elif item == "model_payment_year":
+    MODEL_PAYMENT_YEAR[value] += 1
+  elif item == "sweep":
+    SWEEP[value] += 1
+  elif item == "label_set_version":
+    LABEL_SET_VERSION[value] += 1
+  return 0
 
 ###########################################################################################################################################
 
@@ -758,28 +749,26 @@ def WeightedRandomCodingAction(hcc_code):
 			VSO += 1
 		return (action)
 
-###########################################################################################################################################		
-	
+########################################################################################################################
 def printResultsSummary():
-	log("=============================================================================")
-	log("Test execution results summary:")
-	log("=============================================================================")
-	log("* VIEWED ONLY OPPS:       %s" % VOO)
-	log("* VIEWED + ACCEPTED OPPS: %s" % VAO)
-	log("* VIEWED + REJECTED OPPS: %s" % VRO)
-	log("* VIEWED + SKIPPED OPPS:  %s" % VSO)
-	log("* TOTAL OPPS PROCESSED:   %s" % (VOO+VAO+VRO+VSO))
-	log("=============================================================================")
-	log("* RETRIED:   %s" % RETRIED)
-	log("* FAILED:    %s" % FAILED)
-	log("* SUCCEEDED: %s" % SUCCEEDED)
-	log("* TOTAL:     %s" % (RETRIED+FAILED+SUCCEEDED))
-	log("=============================================================================")
-	log("=============================================================================")
-	log("=============================================================================")	
-
-###########################################################################################################################################
-	
+  print LS
+  print "Test execution results summary:"
+  print LS
+  print "* VIEWED ONLY OPPS".ljust(25)+" = "+ str(VOO)
+  print "* ACCEPTED OPPS".ljust(25)+" = "+ str(VAO)
+  print "* REJECTED OPPS".ljust(25)+" = "+str(VRO)
+  print "* SKIPPED OPPS".ljust(25)+" = "+str(VSO)
+  print "* TOTAL OPPS PROCESSED".ljust(25)+" = "+str(VOO+VAO+VRO+VSO)
+  print LS
+  print "* RETRIED".ljust(25)+" = "+str(RETRIED)
+  print "* FAILED".ljust(25)+" = "+str(FAILED)
+  print "* SUCCEEDED".ljust(25)+" = "+str(SUCCEEDED)
+  print "* TOTAL".ljust(25)+" = "+str(RETRIED+FAILED+SUCCEEDED)
+  print LS
+  print LS
+  print LS
+  return()
+########################################################################################################################
 def checkEnvironmentandReceivers():
 	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
 	# Arg1 - environment
@@ -916,50 +905,46 @@ def setEnergyRoutingOn(options, cookies):
 ###########################################################################################################################################
 
 def confirmSettings(options, cookies):
-	print LS				
-	print ("* VERSION                               = %s" % VERSION)
-	print ("* ENVIRONMENT                           = %s" % options['env'])
-	print ("* HCC HOST                              = %s" % options['env_hosts']['hcchost'])
-	print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
-	print ("* USER                                  = %s" % USERNAME)
-	print ("* PASSWORD                              = %s" % PASSWORD)
-	print ("* CSRFTOKEN                             = %s" % cookies['csrftoken'])
-	print ("* APXTOKEN                              = %s" % cookies['ApxToken'])
-	print ("* SESSID                                = %s" % cookies['sessionid'])
-	print ("* JSESSIONID                            = %s" % cookies['jsessionid'])
-	print ("* DELAY TIME IS SET TO                  = %s sec" % options['coding_delay_time'])
-	print ("* MAXIMUM NUMBER OF RETRIES             = %s" % options['max_ret'])
-	print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % options['max_opps'])
-	print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn(options, cookies))
-	print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
-	print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
-	print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
-	print ("* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING").ljust(39)+" = "+ str(VAO_W2)+"%"
-	print ("* TARGETED HCC-"+TARGET_HCC+" REJECT SETTING").ljust(39)+" = "+ str(VRO_W2)+"%"
-	print LS
-	user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
-	if user_response.upper() == "Q":
-		print "exiting ..."
-		quit()
-	else:
-		print "proceeding ..."	
-	return()
+  print LS
+  print ("* VERSION                               = %s" % VERSION)
+  print ("* ENVIRONMENT                           = %s" % options['env'])
+  print ("* HCC HOST                              = %s" % options['env_hosts']['hcchost'])
+  print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
+  print ("* USER                                  = %s" % USERNAME)
+  print ("* PASSWORD                              = %s" % PASSWORD)
+  print ("* CSRFTOKEN                             = %s" % cookies['csrftoken'])
+  print ("* APXTOKEN                              = %s" % cookies['ApxToken'])
+  print ("* SESSID                                = %s" % cookies['sessionid'])
+  print ("* JSESSIONID                            = %s" % cookies['jsessionid'])
+  print ("* DELAY TIME IS SET TO                  = %s sec" % options['coding_delay_time'])
+  print ("* MAXIMUM NUMBER OF RETRIES             = %s" % options['max_ret'])
+  print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % options['max_opps'])
+  if options['max_opps']%10 !=0:
+    print "* Error".ljust(25)+" = Maximum number of opps "+str(options['max_opps'])+" must be divisible by 10"
+    quit()
+  print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn(options, cookies))
+  print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
+  print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
+  print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
+  print ("* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING").ljust(39)+" = "+ str(VAO_W2)+"%"
+  print ("* TARGETED HCC-"+TARGET_HCC+" REJECT SETTING").ljust(39)+" = "+ str(VRO_W2)+"%"
+  print LS
+  user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
+  if user_response.upper() == "Q":
+    print "exiting ..."
+    quit()
+  else:
+    print "proceeding ..."
+  return()
 
 ###########################################################################################################################################
 
 def writeReportHeader ():
 	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
 	print ("Begin writing report header ...\n")
-	# REPORT = MIMEMultipart()
-	#REPORT = """From: Apixio QA <QA@apixio.com>\n"""
-	#REPORT = REPORT + HTML_RECEIVERS
-	#REPORT = REPORT + """MIME-Version: 1.0\n"""
-	#REPORT = REPORT + """Content-type: text/html\n"""
-	#REPORT = REPORT + """Subject: OppRouter %s Optimization Test Report - %s\n\n""" % (ENVIRONMENT, START_TIME)
 	REPORT = """ """
 	REPORT = REPORT + """<h1>Apixio ES Energy Routing Test Report</h1>\n"""
 	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
-	#REPORT = REPORT + """Date (logs & queries): <b>%s/%s/%s</b><br>\n""" % (MONTH, DAY, YEAR)
 	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
 	REPORT = REPORT + """HCC user name: <b>%s</b><br>\n""" % (USERNAME)
 	REPORT = REPORT + """HCC app url: <b>%s</b><br>\n""" % (URL)
@@ -974,7 +959,6 @@ def writeReportDetails(module):
 	global REPORT
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
 	REPORT = REPORT + SUBHDR_TBL % module.upper()
-	#obtainFailedJobs("summary_coordinator_jobfinish"+POSTFIX)
 	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
 	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
@@ -1009,16 +993,15 @@ def drawGraph(srcedict):
 
   return()
 ###########################################################################################################################################
-
 def getKey(key):
     try:
         return int(key)
     except ValueError:
         return key
-
 ###########################################################################################################################################
 
 def convertJsonToTable(srcedict, sortby):
+
 	global REPORT
 	#print srcedict
 	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
@@ -1217,26 +1200,6 @@ def pages_payload(details):
     payload = 0
   return (pages, payload)
 ###########################################################################################################################################
-
-def create_request(test, headers=None):
-  request = HTTPRequest()
-  if headers:
-    request.headers = headers
-  test.record(request)
-  return (request)
-
-###########################################################################################################################################
-
-def get_csrf_token(thread_context):
-  cookies = CookieModule.listAllCookies(thread_context)
-  csrftoken = ""
-  for cookie in cookies:
-    if cookie.getName() == "csrftoken":
-      csrftoken = cookie.getValue()
-  return (csrftoken)
-
-###########################################################################################################################################
-
 def IncrementTestResultsTotals(module, code):
 	global FAILED, SUCCEEDED, RETRIED
 	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
@@ -1257,13 +1220,6 @@ def IncrementTestResultsTotals(module, code):
 		if ((code == servunavail) or (code == nocontent)) and (module == "coding opportunity check"):
 			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
 			startCoding()
-
-###########################################################################################################################################
-def log(text):
-	global REPORT
-	#REPORT = REPORT + text + "<br>"
-	print(text)
-	return 0    
 ###########################################################################################################################################	
 def getEnvHosts(env):
   if env.lower()[0] == 's':
@@ -1302,11 +1258,13 @@ def defineGlobals(options):
   STOP = int(options['max_opps'])
   STEP = (int(options['max_opps'])/10)
 
+  if options['max_opps'] % 10 != 0:
+      print "* Error".ljust(25)+" = Maximum number of opps "+str(options['max_opps'])+" must be divisible by 10"
+      quit()
   COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   return()
-
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
 ###########################################################################################################################################
