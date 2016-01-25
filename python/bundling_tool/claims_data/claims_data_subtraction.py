@@ -94,8 +94,8 @@ def createProject(dsID, projName, headers, hlist, passType):
     print "* Pass Type".ljust(25)+" = " + str(passType)
     print authentication.LSS
   else:
-    print "* Failed to create new project".ljust(25)+ "=" + str(response.status_code)
-    return ()
+    print "* Failed create project".ljust(25)+ " = " + str(response.status_code)
+    quit()
   return (response.json()['id'])
 #=======================================================================================================================
 def filterProjects(dsID, headers, hlist):
