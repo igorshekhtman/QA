@@ -844,20 +844,16 @@ def checkEnvironmentandReceivers():
 	print "Completed setting enviroment ...\n"
 
 ###########################################################################################################################################
-
 def obtainExternalToken(options):
-
   url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
-  DATA =    { 'email': options['usr'], 'password': options['pwd']}
-  HEADERS = {}
-
+  data =    { 'email': options['usr'], 'password': options['pwd']}
+  headers = {}
   print "* Url 4".ljust(25)+" = "+ url
   print "* Username".ljust(25)+" = "+ options['usr']
   print "* Password".ljust(25)+" = "+ options['pwd']
-
-  response = requests.post(url, data=DATA, headers=HEADERS)
+  response = requests.post(url, data=data, headers=headers)
   statuscode = response.status_code
-  if statuscode != 200:
+  if statuscode != ok:
     print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
     quit()
   external_token = response.json().get("token")
@@ -865,69 +861,57 @@ def obtainExternalToken(options):
   print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
   print LSS
   return (external_token)
-
 ###########################################################################################################################################
-
-def obtainInternalToken(options):
-	
-	external_token = obtainExternalToken(options)
-	url = TOKEN_URL
-  	referer = TOKEN_URL  				
-  	DATA =    {'Referer': referer, 'Authorization': 'Apixio ' + external_token} 
-  	HEADERS = {'Connection': 'keep-alive', 'Content-Length': '48', 'Referer': referer, 'Authorization': 'Apixio ' + external_token}
-  	response = requests.post(url, data=DATA, headers=HEADERS) 
-  	userjson = response.json()
-  	if userjson is not None:
-  		TOKEN = userjson.get("token")
-  		APIXIO_TOKEN = 'Apixio '+str(TOKEN)
-  	else:
-  		TOKEN = "Not Available"	
-	statuscode = response.status_code	
-	return (APIXIO_TOKEN)
-
+def obtainInternalToken(options, cookies):
+  url = options['env_hosts']['tokenhost']
+  data =    {}
+  headers = {'Authorization': 'Apixio ' + cookies['ApxToken']}
+  response = requests.post(url, data=data, headers=headers)
+  if response.status_code != created:
+      "* Failure".ljust(25)+" = Obtain Internal Token"
+      "* Status Code".ljust(25)+" = "+str(response.status_code)
+      quit()
+  else:
+    return ('Apixio '+str(response.json().get("token")))
 ###########################################################################################################################################
-
 def setEnergyRoutingOn(options, cookies):
-
-	#apixio_token = obtainInternalToken(options)
-	response = ""
-	url = options['env_hosts']['rtrhost'] + "/true"
-	data = {}
-	headers = {"Content-Type": "application/json", "Authorization": cookies['ApxToken']}
-	response = requests.put(url, data=json.dumps(data), headers=headers)
-	status = response.json().get("energyRouting")
-	if response.status_code != ok:
-		status = "Failed enabling Energy Routing"
-	else:
-		status = response.json().get("energyRouting")	
-	return(status)
-
+  apixio_token = obtainInternalToken(options, cookies)
+  url = options['env_hosts']['rtrhost'] + "/true"
+  data = {}
+  headers = {"Content-Type": "application/json", "Authorization": apixio_token}
+  response = requests.put(url, data=json.dumps(data), headers=headers)
+  if response.status_code != ok:
+    print "* Failure".ljust(25)+" = Enable Energy Routing"
+    print "* Status Code".ljust(25)+" = "+str(response.status_code)
+    quit()
+  else:
+    return (response.json().get("energyRouting"))
 ###########################################################################################################################################
 
 def confirmSettings(options, cookies):
   print LS
-  print ("* VERSION                               = %s" % VERSION)
-  print ("* ENVIRONMENT                           = %s" % options['env'])
-  print ("* HCC HOST                              = %s" % options['env_hosts']['hcchost'])
-  print ("* REPORT RECEIVERS                      = %s, %s" % (RECEIVERS, RECEIVERS2))
-  print ("* USER                                  = %s" % USERNAME)
-  print ("* PASSWORD                              = %s" % PASSWORD)
-  print ("* CSRFTOKEN                             = %s" % cookies['csrftoken'])
-  print ("* APXTOKEN                              = %s" % cookies['ApxToken'])
-  print ("* SESSID                                = %s" % cookies['sessionid'])
-  print ("* JSESSIONID                            = %s" % cookies['jsessionid'])
-  print ("* DELAY TIME IS SET TO                  = %s sec" % options['coding_delay_time'])
-  print ("* MAXIMUM NUMBER OF RETRIES             = %s" % options['max_ret'])
-  print ("* TOTAL NUMBER OF OPPS TO SERVE         = %s" % options['max_opps'])
+  print "* Version".ljust(25)+ " = "+ str(VERSION)
+  print "* Environment".ljust(25)+" = "+ str(options['env'])
+  print "* HCC Host".ljust(25)+" = "+ str(options['env_hosts']['hcchost'])
+  print "* Report Receivers".ljust(25)+ " = "+ str(RECEIVERS) + ", "+ str(RECEIVERS2)
+  print "* HCC User".ljust(25)+ " = "+ str(options['usr'])
+  print "* HCC Password".ljust(25)+" = "+ str(options['pwd'])
+  print "* Csrftoken".ljust(25)+" = "+ str(cookies['csrftoken'])
+  print "* Apxtoken".ljust(25)+" = "+ str(cookies['ApxToken'])
+  print "* Sessid".ljust(25)+" = "+str(cookies['sessionid'])
+  print "* Jsessionid".ljust(25)+ " = " +str(cookies['jsessionid'])
+  print "* Coding Delay".ljust(25)+ " = "+ str(options['coding_delay_time'])+" sec"
+  print "* Retries".ljust(25)+" = "+ str(options['max_ret'])
+  print "* Max Opps".ljust(25)+" = "+str(options['max_opps'])
   if options['max_opps']%10 !=0:
     print "* Error".ljust(25)+" = Maximum number of opps "+str(options['max_opps'])+" must be divisible by 10"
     quit()
-  print ("* ENERGY ROUTING STATUS                 = %s" % setEnergyRoutingOn(options, cookies))
-  print ("* TARGET HCC                            = HCC-%s" % TARGET_HCC)
-  print ("* OVERALL ACCEPT SETTING                = %s%%" % VAO_W)
-  print ("* OVERALL REJECT SETTING                = %s%%" % VRO_W)
-  print ("* TARGETED HCC-"+TARGET_HCC+" ACCEPT SETTING").ljust(39)+" = "+ str(VAO_W2)+"%"
-  print ("* TARGETED HCC-"+TARGET_HCC+" REJECT SETTING").ljust(39)+" = "+ str(VRO_W2)+"%"
+  print "* Energy Routing Status".ljust(25)+ " = "+ str(setEnergyRoutingOn(options, cookies))
+  print "* TARGETED HCC".ljust(25)+ " = HCC-"+str(TARGET_HCC)
+  print "* OVERALL ACCEPTS".ljust(25)+ " = "+ str(VAO_W)+"%"
+  print "* OVERALL REJECT".ljust(25)+" = "+ str(VRO_W)+"%"
+  print ("* TARG HCC-"+TARGET_HCC+" ACCEPT").ljust(25)+" = "+ str(VAO_W2)+"%"
+  print ("* TARG HCC-"+TARGET_HCC+" REJECT").ljust(25)+" = "+ str(VRO_W2)+"%"
   print LS
   user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
   if user_response.upper() == "Q":
@@ -1229,6 +1213,7 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_stg'
     rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
+    tokenhost= 'https://tokenizer-stg.apixio.com:7075/tokens'
   elif env.lower()[0] == 'd':
     hcchost = 'https://hccdev.apixio.com/'
     ssohost = 'https://accounts-dev.apixio.com'
@@ -1236,6 +1221,7 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_dev'
     rtrhost = 'https://hcc-opprouter-dev.apixio.com:8443/ctrl/router/energy/energyMode'
+    tokenhost= 'https://tokenizer-dev.apixio.com:7075/tokens'
   elif env.lower()[0] == 'e':
     hcchost = 'https://hcceng.apixio.com/'
     ssohost = 'https://accounts-stg.apixio.com'
@@ -1243,7 +1229,8 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_eng'
     rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
-  return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller, 'rtrhost':rtrhost}	
+    tokenhost= 'https://tokenizer-stg.apixio.com:7075/tokens'
+  return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller, 'rtrhost':rtrhost, 'tokenhost': tokenhost}
 ###########################################################################################################################################	  
 def defineGlobals(options):
   global LS, LSS, SL, ACTIONS
