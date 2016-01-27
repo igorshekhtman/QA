@@ -160,10 +160,8 @@ HARD_CODED_DOS = "04/04/2014"
 # each of the global variables.
 #
 #
-  
+#=======================================================================================================================
 def readConfigurationFile(filename):
-
-
   result={ }
   csvfile = open(filename, 'rb')
   reader = csv.reader(csvfile, delimiter='=', escapechar='\\', quoting=csv.QUOTE_NONE)
@@ -171,39 +169,22 @@ def readConfigurationFile(filename):
     if (str(row[0])[0:1] <> '#') and (str(row[0])[0:1] <> ' '):
       result[row[0]] = row[1]
   globals().update(result)
-  
-  if REVISION <> VERSION:
-  	print "="*80
-  	print ("Version of the hccstress.csv file (%s) does not match version of the hccstress.py script (%s)" % (REVISION, VERSION))
-  	print "="*80
-  	sys.exit(1)
-  else:
-  	print "="*80
-  	print ("esopprouteroptimization.csv VERSION:        %s" % REVISION)
-  	print ("esopprouteroptimization.py VERSION:         %s" % VERSION)
-  	print "="*80
   return result
-##########################################################################################
+#=======================================================================================================================
 
-ok 				= 200
-created 		= 201
-accepted 		= 202
-nocontent 		= 204
-movedperm 		= 301
-redirect 		= 302
-unauthorized 	= 401
-forbidden 		= 403
-notfound 		= 404
-intserveror 	= 500
-servunavail 	= 503
+stat_codes = {200:'ok', 201:'created', 202:'accepted', 204:'nocontent', \
+                301:'movedperm', 302:'redirect', \
+                401:'unauthorized', 404:'notfound', \
+                500:'intservererror', 503:'survunavail'}
+r_stat_codes = {v: k for k, v in stat_codes.items()}
 
 FAILED = SUCCEEDED = RETRIED = 0
 VOO = VAO = VRO = VSO = 0
 
-###########################################################################################################################################
-# MAIN FUNCTIONS ##########################################################################################################################
-###########################################################################################################################################
- 
+########################################################################################################################
+# MAIN FUNCTIONS #######################################################################################################
+########################################################################################################################
+#=======================================================================================================================
 def loginHCC(options):
 
   url = options['env_hosts']['hcchost']+'account/login/'
@@ -212,7 +193,7 @@ def loginHCC(options):
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
   print LSS
-  if response.status_code == 500:
+  if response.status_code != r_stat_codes['ok']:
     print "* Connection to host".just(25)+" =  FAILED"
     print LS
     quit()
@@ -222,7 +203,7 @@ def loginHCC(options):
   response = requests.get(url)
   print "* Status Code".ljust(25)+" = "+str(response.status_code)
   print LSS
-  if response.status_code != 200:
+  if response.status_code != r_stat_codes['ok']:
     quit()
 #-----------------------------------------------------------------------------------------------------------------------
   jsessionid = response.cookies["JSESSIONID"]
@@ -234,7 +215,7 @@ def loginHCC(options):
   response = requests.post(url, data=DATA, headers=HEADERS)
   print "* Status Code".ljust(25)+" = "+ str(response.status_code)
   print LSS
-  if response.status_code != 200:
+  if response.status_code != r_stat_codes['ok']:
     quit()
 
   token = response.cookies["csrftoken"]
@@ -254,15 +235,13 @@ def loginHCC(options):
   print "* Coding Delay Time".ljust(25)+" = "+ str(options['coding_delay_time'])+" second(s)"
   print "* Accept Date of Service".ljust(25)+" = "+str(options['dos'])
   print "* Report Recepients".ljust(25)+" = "+str(options['report_recepients'])
-  if response.status_code != 200:
+  if response.status_code != r_stat_codes['ok']:
     quit()
   print LS
   return(cookies)
   	
-###########################################################################################################################################  	
-  
-def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_no_max, options, cookies):
-  global CODE_OPPS_ACTION
+#=======================================================================================================================
+def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, options, cookies, action):
   global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
   global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
   
@@ -283,14 +262,14 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
         'X-CSRFToken': cookies["csrftoken"] \
     	}
 
-  if CODE_OPPS_ACTION == "0": # Do NOT Accept or Reject Doc
-    print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-    print("* CODER ACTION     = Do NOT Accept or Reject Doc")
+  if action == "0": # Do NOT Accept or Reject Doc
+    print "* HCC CODE".ljust(25)+ " = " + str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+    print "* CODER ACTION".ljust(25)+ " = " + "Do NOT Accept or Reject Doc"
     IncrementTestResultsTotals("coding view only", 200)
-  elif CODE_OPPS_ACTION == "1": #=============================== ACCEPT DOC ==============
+  elif action == "1": #=============================== ACCEPT DOC ==============
     TOTAL_DOCS_ACCEPTED += 1
     #finding_id = scorable.get("id")
-    print "* FINDING ID       = %s" % finding_id
+    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
     DATA = { \
 			"opportunity": \
 			{ \
@@ -362,18 +341,20 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			"comment": "Grinder Flag for Review" \
 			}}}
     response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
-    print "* ANNOTATE FINDING = %s" % response.status_code
+    print "* ANNOTATE FINDING".ljust(25)+ " = " + str(response.status_code)
     IncrementTestResultsTotals("coding view and accept", response.status_code)
-    if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = 200 OK")
+    if response.status_code == r_stat_codes['ok']:
+      print "* HCC CODE".ljust(25)+ " = " + str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print "* CODER ACTION".ljust(25)+ " = " + "Accept Doc"
+      print "* HCC RESPONSE".ljust(25)+ " = " + str(response.status_code) + " " + stat_codes[response.status_code]
     else:
-      print("* CODER ACTION     = Accept Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "2": #================================== REJECT DOC ===========
+      print "* CODER ACTION".ljust(25)+ "Accept Doc"
+      print "* HCC RESPONSE".ljust(25)+ "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
+      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
+  elif action == "2": #================================== REJECT DOC ===========
     TOTAL_DOCS_REJECTED += 1
     #finding_id = scorable.get("id")
-    print "* FINDING ID       = %s" % finding_id
+    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
     DATA = { \
 			"opportunity": \
 			{ \
@@ -431,16 +412,18 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			}}}						
     response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)	
     IncrementTestResultsTotals("coding view and reject", response.status_code)
-    if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = 200 OK")
+    if response.status_code == r_stat_codes['ok']:
+      print "* HCC CODE".ljust(25)+ " = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print "* CODER ACTION".ljust(25)+ " = "+ "Reject Doc"
+      print "* HCC RESPONSE".ljust(25)+ " = "+ str(response.status_code) + " " + stat_codes[response.status_code]
     else:
-      print("* CODER ACTION     = Reject Doc\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
-  elif CODE_OPPS_ACTION == "3": #=========================== SKIP OPP ====================
+      print "* CODER ACTION".ljust(25) + "Reject Doc"
+      print "* HCC RESPONSE".ljust(25) + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
+      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
+  elif action == "3": #=========================== SKIP OPP ====================
     TOTAL_OPPS_SKIPPED += 1
     #finding_id = scorable.get("id")
-    print "* FINDING ID       = %s" % finding_id
+    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
     DATA = { \
 			"opportunity": \
 			{ \
@@ -495,17 +478,19 @@ def act_on_doc(opportunity, finding, finding_id, testname, doc_no_current, doc_n
 			}}}			
     response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)		
     IncrementTestResultsTotals("coding view and skip", response.status_code)
-    if response.status_code == 200:
-      print "* HCC CODE         = %s" % str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = 200 OK")
+    if response.status_code ==  r_stat_codes['ok']:
+      print "* HCC CODE".ljust(25)+ " = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+      print "* CODER ACTION".ljust(25)+ " = " + "Skip Opp"
+      print "* HCC RESPONSE".ljust(25)+ " = " + str(response.status_code) + " " + str(response.status_code) + " " + stat_codes[response.status_code]
     else:
-      print("* CODER ACTION     = Skip Opp\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max)
+      print "* CODER ACTION".ljust(25) + " = " + "Skip Opp"
+      print "* HCC RESPONSE".ljust(25) + " = " + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
+      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
   else:
-    print("* CODER ACTION     = Unknown\n")
+    print "* CODER ACTION".ljust(25) + " = " + "Unknown"
   return 0
 
-###########################################################################################################################################
+#=======================================================================================================================
   
 def startCoding(options, cookies):
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
@@ -545,18 +530,15 @@ def startCoding(options, cookies):
     IncrementTestResultsTotals("coding opportunity check", response.status_code)
     
     
-    if response.status_code != ok:
+    if response.status_code != r_stat_codes['ok']:
       print LS
       print "* Failed Get Coding Opp".ljust(25)+" = "+str(response.status_code)
       print LS
-      return (1)
+      quit()
     else:	
       opportunity = response.json()
     ######################################################################################
-    
-   
-    
-    
+
     hcc = opportunity.get("code").get("hcc")
     tallyDetails("hcc", hcc)
     label_set_version = opportunity.get("code").get("labelSetVersion")
@@ -566,26 +548,10 @@ def startCoding(options, cookies):
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
     tallyDetails("model_payment_year", model_payment_year)
 
-    
-    print "\n"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "\n"
-    print "* HCC CODE         = %s" % hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
-    print "\n"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "********************************************************************************************"
-    print "\n"
-    ######################################################################################
-    patient_details = response.text
-    if opportunity == None:
-      print("ERROR : Login Failed or No More Opportunities For This Coder")
-      return 1
-      
-      
-      
+    print "\n"+SL
+    print "* HCC CODE".ljust(25)+" = "+hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
+    print SL+"\n"
+
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes") 
     numpossiblecodes = len(possiblecodes) 
@@ -603,12 +569,12 @@ def startCoding(options, cookies):
     TOTAL_OPPS_SERVED = coding_opp_current   
     
     if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
-    	buckets += 1
-    	COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))   	
-    	TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
-    	for hcc in TEMP_HCC:
-    		TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
-    	PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
+      buckets += 1
+      COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))
+      TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
+      for hcc in TEMP_HCC:
+        TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
+      PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
     	
 
     test_counter = 0
@@ -624,58 +590,43 @@ def startCoding(options, cookies):
       date_of_service = finding.get("doc_date")
       mime_type = finding.get("mimeType")
       if mime_type == None:
-    	  mime_type = "text/plain"
+        mime_type = "text/plain"
       #if CODING_OPP_CURRENT == 1:
     	#  PATIENT_ORG_NAME = getOrgName(patient_org_id)
       
-      print("PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max))
-      print("* STATUS           = %s" % (status))
-      print("* PATIENT ORG      = %s" % (patient_org_id))
-      print("* PATIENT ID       = %s" % (patient_id))
-      print("* FINDING ID       = %s" % (finding_id))
-      print("* AVAILABLE CODES  = %s" % (numpossiblecodes))
-      print("* PROJECT ID       = %s" % (project))
-      print("* DOC UUID         = %s" % (document_uuid))
-      print("* DOC TITLE        = %s" % (document_title))
-      print("* DOC DATE         = %s" % (date_of_service))
-      print("* DOC TYPE         = %s" % (mime_type))
-      if patient_id    == "":
-        print("WARNING : PATIENT UUID is Empty")
-      if patient_org_id  == "":
-        print("WARNING : ORG ID is Empty")
-      if finding_id      == "":
-        print("WARNING : FINDING ID is Empty")
-      if document_uuid   == "":
-        print("WARNING : DOC UUID is Empty")
-      if document_title  == "":
-        print("WARNING : DOC TITLE is Empty")
-      if date_of_service == "":
-        print("WARNING : DOC DATE is Empty")
-      test_counter = test_counter + 1
-      response = requests.get(URL + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
-      print "* GET SCRBLE DOC   = %s" % response.status_code      
+      print "PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max)
+      print "* STATUS".ljust(25)+ " = " + str(status)
+      print "* PATIENT ORG".ljust(25)+ " = " + str(patient_org_id)
+      print "* PATIENT ID".ljust(25)+ " = " + str(patient_id)
+      print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
+      print "* AVAILABLE CODES".ljust(25)+ " = " + str(numpossiblecodes)
+      print "* PROJECT ID".ljust(25)+ " = " + str(project)
+      print "* DOC UUID".ljust(25)+ " = " + str(document_uuid)
+      print "* DOC TITLE".ljust(25)+ " = " + str(document_title)
+      print "* DOC DATE".ljust(25)+ " = " + str(date_of_service)
+      print "* DOC TYPE".ljust(25)+ " = " + str(mime_type)
+      response = requests.get(options['env_hosts']['hcchost'] + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      print "* GET SCRBLE DOC".ljust(25)+ " = " + str(response.status_code)
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       test_counter += 1
-      if RANDOM_OPPS_ACTION == "1":
-      	CODE_OPPS_ACTION = WeightedRandomCodingAction(hcc)
-      act_on_doc(opportunity, finding, finding_id, testCode + test_counter, doc_no_current, doc_no_max, options, cookies)
+      action = WeightedRandomCodingAction(hcc, options)
+      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, options, cookies, action)
 
   return 0
-
-###########################################################################################################################################
-
-def logout():
+#=======================================================================================================================
+def logout(options):
   print("-------------------------------------------------------------------------------")
   testCode = 99
-  response = requests.get(URL + "/account/logout")    
-  print "* LOGOUT           = "+str(response.status_code)  
+  response = requests.get(options['env_hosts']['hcchost'] + "/account/logout")
+  print "* LOGOUT".ljust(25) + " = " +str(response.status_code)
   IncrementTestResultsTotals("logout", response.status_code)
-  if response.status_code == 200:
-    print("* CODER ACTION     = Logout\n* HCC RESPONSE     = 200 OK")
+  if response.status_code == r_stat_codes['ok']:
+    print "* CODER ACTION".ljust(25)+ " = " + "Logout"
+    print "* HCC RESPONSE".ljust(25)+ " = " + str(response.status_code) + " " + stat_codes[response.status_code]
   else:
-    print("* CODER ACTION     = Logout\n* HCC RESPONSE     = WARNING : Bad HCC Server Response\n[%s]" % response)
+    print "* CODER ACTION".ljust(25)+ " = " + "Logout"
+    print "* HCC RESPONSE".ljust(25)+ " = " + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
   return 0
-
 ###########################################################################################################################################
 # HELPER FUNCTIONS ########################################################################################################################
 ###########################################################################################################################################
@@ -700,35 +651,27 @@ def tallyDetails(item, value):
     LABEL_SET_VERSION[value] += 1
   return 0
 
-###########################################################################################################################################
-
-def WeightedRandomCodingAction(hcc_code):
-	#===============================
-	# Action:
-	# 0 - View Only Opportunity 
-	# 1 - Accept Document
-	# 2 - Reject Document
-	# 3 - Reject Opportunity
-	#===============================
-	global VOO_W, VAO_W, VRO_W, VSO_W
-	global VOO_W2, VAO_W2, VRO_W2, VSO_W2
+#=======================================================================================================================
+def WeightedRandomCodingAction(hcc_code, options):
+	#global VOO_W, VAO_W, VRO_W, VSO_W
+	#global VOO_W2, VAO_W2, VRO_W2, VSO_W2
 	global VOO, VAO, VRO, VSO
 	weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight['0'] = int(VOO_W)
-	weight['1'] = int(VAO_W)
-	weight['2'] = int(VRO_W)
-	weight['3'] = int(VSO_W)
+	weight['0'] = int(options['action_weights']['all']['vo'])
+	weight['1'] = int(options['action_weights']['all']['va'])
+	weight['2'] = int(options['action_weights']['all']['vr'])
+	weight['3'] = int(options['action_weights']['all']['vs'])
 	action = random.choice([k for k in weight for dummy in range(weight[k])])
 	
 	weight2 = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight2['0'] = int(VOO_W2)
-	weight2['1'] = int(VAO_W2)
-	weight2['2'] = int(VRO_W2)
-	weight2['3'] = int(VSO_W2)
+	weight2['0'] = int(options['action_weights']['targeted']['vo'])
+	weight2['1'] = int(options['action_weights']['targeted']['va'])
+	weight2['2'] = int(options['action_weights']['targeted']['vr'])
+	weight2['3'] = int(options['action_weights']['targeted']['vs'])
 	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
 	
 	#if hcc_code in HCC_CODES_TO_ACCEPT:
-	if hcc_code == TARGET_HCC:
+	if hcc_code == options['target_hcc']:
 		if action2 == "0":
 			VOO += 1
 		elif action2 == "1":
@@ -748,8 +691,7 @@ def WeightedRandomCodingAction(hcc_code):
 		elif action == "3":
 			VSO += 1
 		return (action)
-
-########################################################################################################################
+#=======================================================================================================================
 def printResultsSummary():
   print LS
   print "Test execution results summary:"
@@ -768,82 +710,7 @@ def printResultsSummary():
   print LS
   print LS
   return()
-########################################################################################################################
-def checkEnvironmentandReceivers():
-	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
-	# Arg1 - environment
-	# Arg2 - report recepient
-	global RECEIVERS, RECEIVERS2, HTML_RECEIVERS
-	global ENVIRONMENT, USERNAME, ORGID, PASSWORD, HOST, POSTFIX, MYSQLDOM, MYSQPW
-	global ENERGY_RTR_URL, DOMAIN, URL, USERNAME, PASSWORD, TOKEN_URL, UA_URL
-	# Environment for OppRtrOptTest is passed as a paramater. Staging is a default value
-	print ("\nSetting environment ...")
-	if len(sys.argv) < 2:
-		ENVIRONMENT="staging"
-	else:
-		ENVIRONMENT=str(sys.argv[1])
-
-	if (ENVIRONMENT.upper() == "PRODUCTION"):
-		#USERNAME="apxdemot0138"
-		#PASSWORD="Hadoop.4522"
-		ENVIRONMENT = "production"
-		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
-		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
-		UA_URL="https://useraccount-stg.apixio.com:7076"
-	elif (ENVIRONMENT.upper() == "ENGINEERING"):
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
-		ENVIRONMENT = "engineering"
-		DOMAIN="hcceng.apixio.com"
-		URL="https://hcceng.apixio.com"
-		USERNAME="mmgenergyes@apixio.net"
-		PASSWORD="apixio.123"
-		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
-		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
-		UA_URL="https://useraccount-stg.apixio.com:7076"
-	elif (ENVIRONMENT.upper() == "DEVELOPMENT"):
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
-		ENVIRONMENT = "development"
-		DOMAIN="hccdev.apixio.com"
-		URL="https://hccdev.apixio.com"
-		USERNAME="mmgenergyes@apixio.net"
-		PASSWORD="apixio.123"
-		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
-		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
-		UA_URL="https://useraccount-stg.apixio.com:7076"	
-	else:
-		#USERNAME="grinderUSR1416591626@apixio.net"
-		#PASSWORD="apixio.123"
-		ENVIRONMENT = "staging"
-		ENERGY_RTR_URL = "https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode"
-		TOKEN_URL="https://tokenizer-stg.apixio.com:7075/tokens"
-		UA_URL="https://useraccount-stg.apixio.com:7076"
-			
-	
-	if (len(sys.argv) > 2):
-		RECEIVERS=str(sys.argv[2])
-		RECEIVERS2=str(sys.argv[3])
-		HTML_RECEIVERS="""To: Eng <%s>,Ops <%s>\n""" % (str(sys.argv[2]), str(sys.argv[3]))
-	elif ((len(sys.argv) < 3) or DEBUG_MODE):
-		RECEIVERS="ishekhtman@apixio.com"
-		RECEIVERS2="abeyk@apixio.com"
-		HTML_RECEIVERS="""To: Igor <ishekhtman@apixio.com>\n"""
-				
-	
-	print "="*80
-	print "* VERSION".ljust(25)+" = "+VERSION
-	print "* ENVIRONMENT".ljust(25)+" = "+ENVIRONMENT
-	print "* HCC HOST".ljust(25)+" = "+URL
-	print "* HCC DOMAIN".ljust(25)+" = "+ DOMAIN
-	print "* REPORT RECEIVERS".ljust(25)+ " = "+ RECEIVERS + ", "+ RECEIVERS2
-	print "* USER".ljust(25)+" = "+ USERNAME
-	print "* PASSWORD".ljust(25)+" = "+ PASSWORD
-	print "* MAX. # OF RETRIES".ljust(25)+ " = " + str(MAX_NUM_RETRIES)
-	print "="*80
-	print "Completed setting enviroment ...\n"
-
-###########################################################################################################################################
+#=======================================================================================================================
 def obtainExternalToken(options):
   url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
   data =    { 'email': options['usr'], 'password': options['pwd']}
@@ -853,7 +720,7 @@ def obtainExternalToken(options):
   print "* Password".ljust(25)+" = "+ options['pwd']
   response = requests.post(url, data=data, headers=headers)
   statuscode = response.status_code
-  if statuscode != ok:
+  if statuscode != r_stat_codes['ok']:
     print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
     quit()
   external_token = response.json().get("token")
@@ -861,39 +728,38 @@ def obtainExternalToken(options):
   print "* Ext. token status code".ljust(25)+" = "+ str(statuscode)
   print LSS
   return (external_token)
-###########################################################################################################################################
+#=======================================================================================================================
 def obtainInternalToken(options, cookies):
   url = options['env_hosts']['tokenhost']
   data =    {}
   headers = {'Authorization': 'Apixio ' + cookies['ApxToken']}
   response = requests.post(url, data=data, headers=headers)
-  if response.status_code != created:
+  if response.status_code != r_stat_codes['created']:
       "* Failure".ljust(25)+" = Obtain Internal Token"
       "* Status Code".ljust(25)+" = "+str(response.status_code)
       quit()
   else:
     return ('Apixio '+str(response.json().get("token")))
-###########################################################################################################################################
+#=======================================================================================================================
 def setEnergyRoutingOn(options, cookies):
   apixio_token = obtainInternalToken(options, cookies)
   url = options['env_hosts']['rtrhost'] + "/true"
   data = {}
   headers = {"Content-Type": "application/json", "Authorization": apixio_token}
   response = requests.put(url, data=json.dumps(data), headers=headers)
-  if response.status_code != ok:
+  if response.status_code != r_stat_codes['ok']:
     print "* Failure".ljust(25)+" = Enable Energy Routing"
     print "* Status Code".ljust(25)+" = "+str(response.status_code)
     quit()
   else:
     return (response.json().get("energyRouting"))
-###########################################################################################################################################
-
+#=======================================================================================================================
 def confirmSettings(options, cookies):
   print LS
   print "* Version".ljust(25)+ " = "+ str(VERSION)
   print "* Environment".ljust(25)+" = "+ str(options['env'])
   print "* HCC Host".ljust(25)+" = "+ str(options['env_hosts']['hcchost'])
-  print "* Report Receivers".ljust(25)+ " = "+ str(RECEIVERS) + ", "+ str(RECEIVERS2)
+  print "* Report Receivers".ljust(25)+ " = "+ str(options['report_recepients'])
   print "* HCC User".ljust(25)+ " = "+ str(options['usr'])
   print "* HCC Password".ljust(25)+" = "+ str(options['pwd'])
   print "* Csrftoken".ljust(25)+" = "+ str(cookies['csrftoken'])
@@ -920,39 +786,35 @@ def confirmSettings(options, cookies):
   else:
     print "proceeding ..."
   return()
-
-###########################################################################################################################################
-
-def writeReportHeader ():
-	global REPORT, ENVIRONMENT, HTML_RECEIVERS, RECEIVERS
-	print ("Begin writing report header ...\n")
-	REPORT = """ """
-	REPORT = REPORT + """<h1>Apixio ES Energy Routing Test Report</h1>\n"""
-	REPORT = REPORT + """Run date & time (run): <b>%s</b><br>\n""" % (CUR_TIME)
-	REPORT = REPORT + """Report type: <b>%s</b><br>\n""" % (REPORT_TYPE)
-	REPORT = REPORT + """HCC user name: <b>%s</b><br>\n""" % (USERNAME)
-	REPORT = REPORT + """HCC app url: <b>%s</b><br>\n""" % (URL)
-	REPORT = REPORT + """Maximum # of Opps to serve: <b>%s</b><br>\n""" % (CODE_OPPS_MAX)
-	REPORT = REPORT + """Enviromnent: <b><font color='red'>%s%s</font></b><br><br>\n""" % (ENVIRONMENT[:1].upper(), ENVIRONMENT[1:].lower())
-	REPORT = REPORT + """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
-	print ("End writing report header ...\n")
-
-###########################################################################################################################################
-	
+#=======================================================================================================================
+def writeReportHeader (options):
+  global REPORT
+  REPORT = """ """
+  REPORT += """<h1>Apixio %s Report</h1>""" % (options['rep_type'])
+  REPORT += """Run date & time (run): <b>%s</b><br>""" % (CUR_TIME)
+  REPORT += """Report type: <b>%s</b><br>""" % (options['rep_type'])
+  REPORT += """HCC user name: <b>%s</b><br>""" % (options['usr'])
+  REPORT += """HCC app url: <b>%s</b><br>""" % (options['env_hosts']['hcchost'])
+  REPORT += """Maximum # of Opps: <b>%s</b><br>""" % (options['max_opps'])
+  REPORT += """Maximum # of Retries: <b>%s</b><br>""" % (options['max_ret'])
+  REPORT += """Coding delay: <b>%s sec</b><br>""" % (options['coding_delay_time'])
+  REPORT += """Enviromnent: <b><font color='red'>%s</font></b><br><br>""" % (options['env'])
+  REPORT += """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
+  return()
+#=======================================================================================================================
 def writeReportDetails(module):	
-	global REPORT
-	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	REPORT = REPORT + SUBHDR_TBL % module.upper()
-	REPORT = REPORT + "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
-	REPORT = REPORT + "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
-	if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-		REPORT = REPORT+str(FAILED_TBL)
-	else:
-		REPORT = REPORT+str(PASSED_TBL)
-	print ("Completed writeReportDetails ... \n")
-		
-###########################################################################################################################################
+  global REPORT
+  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+  REPORT += SUBHDR_TBL % module.upper()
+  REPORT += "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
+  REPORT += "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
+  REPORT += "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
+  if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
+    REPORT += str(FAILED_TBL)
+  else:
+    REPORT += str(PASSED_TBL)
+  return()
+#=======================================================================================================================
 	
 def drawGraph(srcedict):
   global CURDAY, START, STOP
@@ -983,7 +845,6 @@ def getKey(key):
     except ValueError:
         return key
 ###########################################################################################################################################
-
 def convertJsonToTable(srcedict, sortby):
 
 	global REPORT
@@ -1012,7 +873,7 @@ def convertJsonToTable(srcedict, sortby):
 			
 	REPORT = REPORT+"</table>"
 
-###########################################################################################################################################
+#=======================================================================================================================
 def extractTargetedHccData(targhcc, srcedict):
   extrdict = {}
   for k, v in sorted(srcedict.iteritems()):
@@ -1021,79 +882,79 @@ def extractTargetedHccData(targhcc, srcedict):
     else:
       extrdict.update({k: 0})
   return (extrdict)
-###########################################################################################################################################
-def writeReportFooter():
+#=======================================================================================================================
+def writeReportFooter(options):
   global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
 
   print ("Write report footer ...\n")
-  REPORT = REPORT+"<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-  REPORT = REPORT+"<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (TARGET_HCC)
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-  REPORT = REPORT+"<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
-  REPORT = REPORT+"<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+  REPORT += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (TARGET_HCC)
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
+  REPORT += "<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
+  REPORT += "<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
 		
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (VAO_W)
-  REPORT = REPORT+"<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (VRO_W)
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (TARGET_HCC, VAO_W2)
-  REPORT = REPORT+"<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (TARGET_HCC, VRO_W2)
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (VAO_W)
+  REPORT += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (VRO_W)
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (TARGET_HCC, VAO_W2)
+  REPORT += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (TARGET_HCC, VRO_W2)
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
 		
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
   convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td nowrap>Sweep:</td><td>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td nowrap>Sweep:</td><td>"
   convertJsonToTable(SWEEP, "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
   convertJsonToTable(LABEL_SET_VERSION, "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
-  REPORT = REPORT+"<tr><td nowrap>HCCs total:</td><td>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td nowrap>HCCs total:</td><td>"
   convertJsonToTable(HCC, "value")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
   convertJsonToTable(COUNT_OF_SERVED, "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td nowrap>HCCs % per bucket:</td><td>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td nowrap>HCCs % per bucket:</td><td>"
   convertJsonToTable(PERCENT_OF_SERVED, "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (TARGET_HCC)
   convertJsonToTable(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED), "key")
-  REPORT = REPORT+"</td></tr>"
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "</td></tr>"
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
 	
   drawGraph(extractTargetedHccData(TARGET_HCC, PERCENT_OF_SERVED))
 		
   REPORT_EMAIL = REPORT_EMAIL + REPORT
-  REPORT = REPORT+"<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
+  REPORT += "<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
   REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
-  REPORT = REPORT+"<tr><td colspan='2'><hr></td></tr>"
+  REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><hr></td></tr>"
   END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-  REPORT = REPORT+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, START_TIME)
-  REPORT = REPORT+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (REPORT_TYPE, END_TIME)
+  REPORT += "<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], START_TIME)
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], START_TIME)
+  REPORT += "<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], END_TIME)
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], END_TIME)
   TIME_END = time.time()
   TIME_TAKEN = TIME_END - TIME_START
   hours, REST = divmod(TIME_TAKEN,3600)
   minutes, seconds = divmod(REST, 60)
-  REPORT = REPORT+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hours, %s minutes, %s seconds</b><br></td></tr>" % (hours, minutes, seconds)
-  REPORT = REPORT+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+  REPORT += "<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(hours), int(minutes), int(seconds))
+  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(hours), int(minutes), int(seconds))
+  REPORT += "<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
   REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
-  REPORT = REPORT+"</table>"
+  REPORT += "</table>"
   REPORT_EMAIL = REPORT_EMAIL+"</table>"
-  REPORT = REPORT+"</td></tr></table>"
+  REPORT += "</td></tr></table>"
   REPORT_EMAIL = REPORT_EMAIL+"</td></tr></table>"
   print ("Finished writing report ...\n")
   return()
-###########################################################################################################################################
+#=======================================================================================================================
 
 def archiveReport():
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
@@ -1143,37 +1004,34 @@ def archiveReport():
 		# os.remove(IMAGEFILENAME)
 		print ("Finished archiving report ... \n")
 
-###########################################################################################################################################
+#=======================================================================================================================
+def emailReport(options):
+  print ("Emailing report ...\n")
+  imagefname=str(CURDAY)+".png"
+  message = MIMEMultipart('related')
+  message.attach(MIMEText((REPORT_EMAIL), 'html'))
+  with open(imagefname, 'rb') as image_file:
+    image = MIMEImage(image_file.read())
+  image.add_header('Content-ID', '<picture@example.com>')
+  image.add_header('Content-Disposition', 'inline', filename=imagefname)
+  message.attach(image)
 
-def emailReport():
-	global RECEIVERS, SENDER, REPORT, HTML_RECEIVERS, RECEIVERS2
-	
-	print ("Emailing report ...\n")
-	IMAGEFILENAME=str(CURDAY)+".png" 
-	message = MIMEMultipart('related')
-	message.attach(MIMEText((REPORT_EMAIL), 'html'))
-	with open(IMAGEFILENAME, 'rb') as image_file:
-		image = MIMEImage(image_file.read())
-	image.add_header('Content-ID', '<picture@example.com>')
-	image.add_header('Content-Disposition', 'inline', filename=IMAGEFILENAME)
-	message.attach(image)
-
-	message['From'] = 'Apixio QA <QA@apixio.com>'
-	message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
-	message['Subject'] = 'ES %s Energy Routing Test Report - %s\n\n' % (ENVIRONMENT, START_TIME)
-	msg_full = message.as_string()
+  message['From'] = 'Apixio QA <QA@apixio.com>'
+  message['To'] = 'To: Eng <eng@apixio.com>,Ops <ops@apixio.com>'
+  message['Subject'] = 'ES %s Energy Routing Test Report - %s\n\n' % (options['env'], START_TIME)
+  msg_full = message.as_string()
 		
-	s=smtplib.SMTP()
-	s.connect("smtp.gmail.com",587)
-	s.starttls()
-	s.login("donotreply@apixio.com", "apx.mail47")	        
-	s.sendmail(SENDER, [RECEIVERS, RECEIVERS2], msg_full)	
-	s.quit()
-	# Delete graph image file from stress_test folder
-	os.remove(IMAGEFILENAME)
-	print "Report completed, successfully sent email to %s, %s ..." % (RECEIVERS, RECEIVERS2)
-
-###########################################################################################################################################
+  s=smtplib.SMTP()
+  s.connect("smtp.gmail.com",587)
+  s.starttls()
+  s.login("donotreply@apixio.com", "apx.mail47")
+  s.sendmail("donotreply@apixio.com", [options['report_recepients']], msg_full)
+  s.quit()
+  # Delete graph image file from stress_test folder
+  os.remove(imagefname)
+  print "Report completed, successfully sent email to %s ..." % (options['report_recepients'])
+  return()
+#=======================================================================================================================
 def pages_payload(details):
   report_json = details.json()
   if report_json is not None:
@@ -1183,28 +1041,29 @@ def pages_payload(details):
     pages = 0
     payload = 0
   return (pages, payload)
-###########################################################################################################################################
+#=======================================================================================================================
 def IncrementTestResultsTotals(module, code):
-	global FAILED, SUCCEEDED, RETRIED
-	global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-	if (code == ok) or (code == nocontent):
-		SUCCEEDED = SUCCEEDED+1
-		SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
-	else:
-		FAILED = FAILED+1
-		FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
-		RETRIED = RETRIED+1
-		RETRIED_TOT[int(MODULES[module])] = RETRIED_TOT[int(MODULES[module])] + 1
-		if RETRIED > int(MAX_NUM_RETRIES):
-			print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
-			quit()
-		if (code == unauthorized):
-			print "%s response code received from server.  Re-obtaining Autorization." % code
-			loginHCC()
-		if ((code == servunavail) or (code == nocontent)) and (module == "coding opportunity check"):
-			print "%s response code received from server.  Re-obtaining Next Opportunity." % code
-			startCoding()
-###########################################################################################################################################	
+  global FAILED, SUCCEEDED, RETRIED
+  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
+  if (code == r_stat_codes['ok']) or (code == r_stat_codes['nocontent']):
+    SUCCEEDED = SUCCEEDED+1
+    SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
+  else:
+    FAILED = FAILED+1
+    FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
+    RETRIED = RETRIED+1
+    RETRIED_TOT[int(MODULES[module])] = RETRIED_TOT[int(MODULES[module])] + 1
+    if RETRIED > int(MAX_NUM_RETRIES):
+      print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
+      quit()
+    if (code == r_stat_codes['unauthorized']):
+      print "%s response code received from server.  Re-obtaining Autorization." % code
+      loginHCC()
+    if ((code == r_stat_codes['servunavail']) or (code == r_stat_codes['nocontent'])) and (module == "coding opportunity check"):
+      print "%s response code received from server.  Re-obtaining Next Opportunity." % code
+      startCoding()
+  return()
+#=======================================================================================================================
 def getEnvHosts(env):
   if env.lower()[0] == 's':
     hcchost = 'https://hcc-stg.apixio.com/'
@@ -1231,7 +1090,7 @@ def getEnvHosts(env):
     rtrhost = 'https://hcc-opprouter-stg2.apixio.com:8443/ctrl/router/energy/energyMode'
     tokenhost= 'https://tokenizer-stg.apixio.com:7075/tokens'
   return {'hcchost':hcchost,'ssohost':ssohost,'uahost':uahost,'uaport':uaport,'caller':caller, 'rtrhost':rtrhost, 'tokenhost': tokenhost}
-###########################################################################################################################################	  
+#=======================================================================================================================
 def defineGlobals(options):
   global LS, LSS, SL, ACTIONS
   global MAX_NUM_RETRIES, COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
@@ -1255,7 +1114,6 @@ def defineGlobals(options):
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
 ###########################################################################################################################################
-
 def Main():
   global options
   os.system('clear')
@@ -1264,19 +1122,20 @@ def Main():
   options=collections.OrderedDict()
   options['rep_type'] = 'Energy Routing Test'
   options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Development"
-  options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "mmgenergyes@apixio.net"
+  options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-  options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 6 else 2
-  options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 7 else 0
-  options['dos'] = str(sys.argv[6]) if len(sys.argv) > 11 else "04/04/2014"
-  options['report_recepients'] = [str(sys.argv[7])] if len(sys.argv) > 12 else ["ishekhtman@apixio.com"]
+  options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 2
+  options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else ["108"]
+  options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
+  options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
+  options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
   defineGlobals(options)
   readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
-  checkEnvironmentandReceivers()
-  writeReportHeader()	
+  writeReportHeader(options)
   cookies = loginHCC(options)
   writeReportDetails("login")
   confirmSettings(options, cookies)
@@ -1287,12 +1146,13 @@ def Main():
   writeReportDetails("coding view and accept")
   writeReportDetails("coding view and reject")
   writeReportDetails("coding view and skip")
-  logout()
+  logout(options)
   writeReportDetails("logout")
   printResultsSummary()
-  writeReportFooter()
+  writeReportFooter(options)
   #archiveReport()
-  emailReport()
+  emailReport(options)
 
 if __name__ == "__main__":
   Main()
+#=======================================================================================================================
