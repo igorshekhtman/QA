@@ -69,13 +69,13 @@ requests.packages.urllib3.disable_warnings()
 
 # GLOBAL VARIABLES #######################################################################
 
-CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
-CSV_CONFIG_FILE_PATH = ""
-CSV_CONFIG_FILE_NAME = "energyrouting.csv"
-VERSION = "1.0.1"
-DEBUG_MODE=False
+#CSV_CONFIG_FILE_PATH = "/mnt/automation/python/stress_test/"
+#CSV_CONFIG_FILE_PATH = ""
+#CSV_CONFIG_FILE_NAME = "energyrouting.csv"
+#VERSION = "1.0.1"
+#DEBUG_MODE=False
 # HTML report version to archive
-REPORT = ""
+#REPORT = ""
 # HTML report version to email
 REPORT_EMAIL = ""
 REPORT_TYPE = "ES Energy Routing Test"
@@ -664,10 +664,10 @@ def WeightedRandomCodingAction(hcc_code, options):
 	action = random.choice([k for k in weight for dummy in range(weight[k])])
 	
 	weight2 = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight2['0'] = int(options['action_weights']['targeted']['vo'])
-	weight2['1'] = int(options['action_weights']['targeted']['va'])
-	weight2['2'] = int(options['action_weights']['targeted']['vr'])
-	weight2['3'] = int(options['action_weights']['targeted']['vs'])
+	weight2['0'] = int(options['action_weights']['target']['vo'])
+	weight2['1'] = int(options['action_weights']['target']['va'])
+	weight2['2'] = int(options['action_weights']['target']['vr'])
+	weight2['3'] = int(options['action_weights']['target']['vs'])
 	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
 	
 	#if hcc_code in HCC_CODES_TO_ACCEPT:
@@ -756,7 +756,7 @@ def setEnergyRoutingOn(options, cookies):
 #=======================================================================================================================
 def confirmSettings(options, cookies):
   print LS
-  print "* Version".ljust(25)+ " = "+ str(VERSION)
+  #print "* Version".ljust(25)+ " = "+ str(VERSION)
   print "* Environment".ljust(25)+" = "+ str(options['env'])
   print "* HCC Host".ljust(25)+" = "+ str(options['env_hosts']['hcchost'])
   print "* Report Receivers".ljust(25)+ " = "+ str(options['report_recepients'])
@@ -774,10 +774,10 @@ def confirmSettings(options, cookies):
     quit()
   print "* Energy Routing Status".ljust(25)+ " = "+ str(setEnergyRoutingOn(options, cookies))
   print "* TARGETED HCC".ljust(25)+ " = HCC-"+str(TARGET_HCC)
-  print "* OVERALL ACCEPTS".ljust(25)+ " = "+ str(VAO_W)+"%"
-  print "* OVERALL REJECT".ljust(25)+" = "+ str(VRO_W)+"%"
-  print ("* TARG HCC-"+TARGET_HCC+" ACCEPT").ljust(25)+" = "+ str(VAO_W2)+"%"
-  print ("* TARG HCC-"+TARGET_HCC+" REJECT").ljust(25)+" = "+ str(VRO_W2)+"%"
+  print "* OVERALL ACCEPTS".ljust(25)+ " = "+ str(options['action_weights']['all']['va'])+"%"
+  print "* OVERALL REJECT".ljust(25)+" = "+ str(options['action_weights']['all']['vr'])+"%"
+  print ("* TARG HCC-"+TARGET_HCC+" ACCEPT").ljust(25)+" = "+ str(options['action_weights']['target']['va'])+"%"
+  print ("* TARG HCC-"+TARGET_HCC+" REJECT").ljust(25)+" = "+ str(options['action_weights']['target']['vr'])+"%"
   print LS
   user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
   if user_response.upper() == "Q":
@@ -840,39 +840,36 @@ def drawGraph(srcedict):
   return()
 ###########################################################################################################################################
 def getKey(key):
-    try:
-        return int(key)
-    except ValueError:
-        return key
+  try:
+    return int(key)
+  except ValueError:
+    return key
 ###########################################################################################################################################
 def convertJsonToTable(srcedict, sortby):
-
-	global REPORT
-	#print srcedict
-	REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-	if sortby == "value":
-		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
-		ctr = 0
-		for item in sorteditems:
-			if item[1] > 0:
-				if ctr == 0:
-					b_color = '#FFFF00'
-					most_served = item[1]
-				else:
-					if (item[1] == most_served) or (item[0] == TARGET_HCC):
-						b_color = '#FFFF00'
-					else:
-						b_color = '#FFFFFF'
-				REPORT = REPORT+"<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
-				ctr += 1
-	else:
-		sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)	
-		for item in sorteditems:
-			if item[1] > 0:
-				REPORT = REPORT+"<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
-			
-	REPORT = REPORT+"</table>"
-
+  global REPORT
+  REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  if sortby == "value":
+    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
+    ctr = 0
+    for item in sorteditems:
+      if item[1] > 0:
+        if ctr == 0:
+          b_color = '#FFFF00'
+          most_served = item[1]
+        else:
+          if (item[1] == most_served) or (item[0] == TARGET_HCC):
+            b_color = '#FFFF00'
+          else:
+            b_color = '#FFFFFF'
+        REPORT += "<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
+        ctr += 1
+  else:
+    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)
+    for item in sorteditems:
+      if item[1] > 0:
+        REPORT +="<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
+  REPORT += "</table>"
+  return()
 #=======================================================================================================================
 def extractTargetedHccData(targhcc, srcedict):
   extrdict = {}
@@ -897,11 +894,11 @@ def writeReportFooter(options):
   REPORT += "<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
 		
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (VAO_W)
-  REPORT += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (VRO_W)
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
+  REPORT += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (TARGET_HCC, VAO_W2)
-  REPORT += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (TARGET_HCC, VRO_W2)
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (TARGET_HCC, options['action_weights']['target']['va'])
+  REPORT += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (TARGET_HCC, options['action_weights']['target']['vr'])
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
 		
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
@@ -1134,7 +1131,7 @@ def Main():
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
   defineGlobals(options)
-  readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
+  #readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
   writeReportHeader(options)
   cookies = loginHCC(options)
   writeReportDetails("login")
