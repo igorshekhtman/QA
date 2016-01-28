@@ -208,11 +208,11 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
         'X-CSRFToken': cookies["csrftoken"] \
     	}
 
-  if action == "0": # Do NOT Accept or Reject Doc
+  if action == 0: # Do NOT Accept or Reject Doc
     print "* HCC CODE".ljust(25)+ " = " + str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
     print "* CODER ACTION".ljust(25)+ " = " + "Do NOT Accept or Reject Doc"
     IncrementTestResultsTotals("coding view only", 200)
-  elif action == "1": #=============================== ACCEPT DOC ==============
+  elif action == 1: #=============================== ACCEPT DOC ==============
     TOTAL_DOCS_ACCEPTED += 1
     #finding_id = scorable.get("id")
     print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
@@ -297,7 +297,7 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
       print "* CODER ACTION".ljust(25)+ "Accept Doc"
       print "* HCC RESPONSE".ljust(25)+ "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
       act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
-  elif action == "2": #================================== REJECT DOC ===========
+  elif action == 2: #================================== REJECT DOC ===========
     TOTAL_DOCS_REJECTED += 1
     #finding_id = scorable.get("id")
     print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
@@ -366,7 +366,7 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
       print "* CODER ACTION".ljust(25) + "Reject Doc"
       print "* HCC RESPONSE".ljust(25) + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
       act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
-  elif action == "3": #=========================== SKIP OPP ====================
+  elif action == 3: #=========================== SKIP OPP ====================
     TOTAL_OPPS_SKIPPED += 1
     #finding_id = scorable.get("id")
     print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
@@ -442,7 +442,6 @@ def startCoding(options, cookies):
   global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
   global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
-  #global model_year, payment_year, hcc, model_run
 
   print LSS
   print "* HCC Url".ljust(25)+" = " + options['env_hosts']['hcchost']
@@ -450,40 +449,38 @@ def startCoding(options, cookies):
   print "* Coder pwd".ljust(25)+ " = " + options['pwd']
   print "* Max Opp(s)".ljust(25)+ " = " + str(options['max_opps'])
   print LSS
-  #====================================================
-  # main loop controlling number of OPPS to process
-  #====================================================
   buckets = -1
   nwiurl = options['env_hosts']['hcchost']+"api/next-work-item/"
   print "* HCC Url".ljust(25)+" = "+ nwiurl
   print "* csrftoken".ljust(25)+" = "+ cookies['csrftoken']
   print "* ApxToken".ljust(25)+" = "+ cookies['ApxToken']
   print "* sessionid".ljust(25)+" = "+ cookies['sessionid']
-  
-  
-  HEADERS = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}			
-  DATA = {}
-  
-  
-  
+  headers = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
+  data = {}
+  totals={}
+
   for coding_opp_current in range(1, (int(options['max_opps'])+1)):
-    time.sleep(int(options['coding_delay_time']))
-    testCode = 10 + (1 * coding_opp_current)
-    response = requests.get(nwiurl, data=DATA, headers=HEADERS)
+    printSeparator("NEXT OPPORTUNITY")
+    time.sleep(options['coding_delay_time'])
     print "* Url".ljust(25)+" = "+ nwiurl
-    print "* Get Coding Opp".ljust(25)+" = "+ str(response.status_code) + " " + stat_codes[response.status_code]
-    
-    IncrementTestResultsTotals("coding opportunity check", response.status_code)
-    
-    
-    if response.status_code != r_stat_codes['ok']:
-      print LS
-      print "* Failed Get Coding Opp".ljust(25)+" = "+str(response.status_code)
-      print LS
-      quit()
-    else:	
-      opportunity = response.json()
-    ######################################################################################
+
+    retries=0
+    while retries < options['max_ret']:
+        st = time.time()
+        response = requests.get(nwiurl, data=data, headers=headers)
+        dt = time.time() - st
+        print "* Get coding opp".ljust(25)+" = "+str(response.status_code)+" "+stat_codes[response.status_code]
+
+
+        if response.status_code == 200:
+            opportunity = response.json()
+            retries = options['max_ret']
+        else:
+            retries += 1
+            trackCount(str(nwiurl.split("/")[4])+"(retries)", totals, dt)
+        trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals, dt)
+    if response.status_code != 200:
+                return (totals)
 
     hcc = opportunity.get("code").get("hcc")
     tallyDetails("hcc", hcc)
@@ -494,23 +491,29 @@ def startCoding(options, cookies):
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
     tallyDetails("model_payment_year", model_payment_year)
 
-    print "\n"+SL
-    print "* HCC CODE".ljust(25)+" = "+hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year
-    print SL+"\n"
+
+
+    print SL
+    print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, int(options['max_opps']))
+    print "* HCC CODE".ljust(25)+" = "+str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
+    print "* PATIENT NAME".ljust(25)+" = "+str(opportunity.get("patient").get("first_name")+" "+opportunity.get("patient").get("middle_name")+opportunity.get("patient").get("last_name"))
+    print "* PATIENT DOB".ljust(25)+" = "+str(opportunity.get("patient").get("dob"))
+    print "* PATIENT GENDER".ljust(25)+" = "+str(opportunity.get("patient").get("gender"))
+    print "* PATIENT ORG ID".ljust(25)+" = "+str(opportunity.get("patient").get("org_id"))
+    print "* PATIENT ID".ljust(25)+" = "+str(opportunity.get("patientId"))
+    print "* USER".ljust(25)+" = "+str(opportunity.get("user"))
+    print "* ORGANIZATION".ljust(25)+" = "+str(opportunity.get("organization"))
+    print "* TRANSACTION ID".ljust(25)+" = "+str(opportunity.get("transactionId"))
+    print SL
+
 
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes") 
-    numpossiblecodes = len(possiblecodes) 
-    code = opportunity.get("code") 
-    patient = opportunity.get("patient") 
+    numpossiblecodes = len(possiblecodes)
     findings = opportunity.get("findings")
     patient_id = opportunity.get("patientId")
     project = opportunity.get("project")
     finding_ids = opportunity.get("finding_ids")
-    user = opportunity.get("user")
-    organization = opportunity.get("organization")
-    transaction_id = opportunity.get("transactionId")
-    #print LS
     print "PATIENT OPP %d OF %d" % (coding_opp_current, int(options['max_opps']))
     TOTAL_OPPS_SERVED = coding_opp_current   
     
@@ -521,15 +524,11 @@ def startCoding(options, cookies):
       for hcc in TEMP_HCC:
         TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
       PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
-    	
 
-    test_counter = 0
-    doc_no_current = 0
     doc_no_max = 1
-    for i in range (0,1):
-      finding = findings[i]
-      finding_id = finding_ids[doc_no_current]
-      doc_no_current = doc_no_current + 1
+    for doc_no in range (0,doc_no_max):
+      finding = findings[doc_no]
+      finding_id = finding_ids[doc_no]
       patient_org_id = finding.get("patient_org_id")  
       document_uuid = finding.get("sourceId")
       document_title = finding.get("document_title")
@@ -537,10 +536,8 @@ def startCoding(options, cookies):
       mime_type = finding.get("mimeType")
       if mime_type == None:
         mime_type = "text/plain"
-      #if CODING_OPP_CURRENT == 1:
-    	#  PATIENT_ORG_NAME = getOrgName(patient_org_id)
-      
-      print "PATIENT DOC %d OF %d"    % (doc_no_current, doc_no_max)
+
+      print "PATIENT DOC %d OF %d"    % (doc_no+1, doc_no_max)
       print "* STATUS".ljust(25)+ " = " + str(status)
       print "* PATIENT ORG".ljust(25)+ " = " + str(patient_org_id)
       print "* PATIENT ID".ljust(25)+ " = " + str(patient_id)
@@ -551,14 +548,13 @@ def startCoding(options, cookies):
       print "* DOC TITLE".ljust(25)+ " = " + str(document_title)
       print "* DOC DATE".ljust(25)+ " = " + str(date_of_service)
       print "* DOC TYPE".ljust(25)+ " = " + str(mime_type)
-      response = requests.get(options['env_hosts']['hcchost'] + "/api/document-text/" + document_uuid, data=DATA, headers=HEADERS)
+      response = requests.get(options['env_hosts']['hcchost'] + "/api/document-text/" + document_uuid, data=data, headers=headers)
       print "* GET SCRBLE DOC".ljust(25)+ " = " + str(response.status_code) + " " + stat_codes[response.status_code]
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
-      test_counter += 1
       action = WeightedRandomCodingAction(hcc, options)
-      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, options, cookies, action)
+      act_on_doc(opportunity, finding, finding_id, doc_no, doc_no_max, options, cookies, action)
 
-  return 0
+  return (totals)
 #=======================================================================================================================
 def logout(options):
   print LS
@@ -592,42 +588,16 @@ def tallyDetails(item, value):
   return 0
 #=======================================================================================================================
 def WeightedRandomCodingAction(hcc_code, options):
-	global VOO, VAO, VRO, VSO
-	weight = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight['0'] = int(options['action_weights']['all']['vo'])
-	weight['1'] = int(options['action_weights']['all']['va'])
-	weight['2'] = int(options['action_weights']['all']['vr'])
-	weight['3'] = int(options['action_weights']['all']['vs'])
-	action = random.choice([k for k in weight for dummy in range(weight[k])])
-	
-	weight2 = { "0": 0, "1": 0, "2": 0, "3": 0 }
-	weight2['0'] = int(options['action_weights']['target']['vo'])
-	weight2['1'] = int(options['action_weights']['target']['va'])
-	weight2['2'] = int(options['action_weights']['target']['vr'])
-	weight2['3'] = int(options['action_weights']['target']['vs'])
-	action2 = random.choice([l for l in weight2 for dummy2 in range(weight2[l])])
-	
-	#if hcc_code in HCC_CODES_TO_ACCEPT:
-	if hcc_code == options['target_hcc']:
-		if action2 == "0":
-			VOO += 1
-		elif action2 == "1":
-			VAO += 1
-		elif action2 == "2":
-			VRO += 1
-		elif action2 == "3":
-			VSO += 1
-		return (action2)	
-	else:	
-		if action == "0":
-			VOO += 1
-		elif action == "1":
-			VAO += 1
-		elif action == "2":
-			VRO += 1
-		elif action == "3":
-			VSO += 1
-		return (action)
+  if hcc_code == options['target_hcc']:
+    wkey='target'
+  else:
+    wkey='all'
+  weights = {0: options['action_weights'][wkey]['vo'], \
+             1: options['action_weights'][wkey]['va'], \
+             2: options['action_weights'][wkey]['vr'], \
+             3: options['action_weights'][wkey]['vs']}
+  action = random.choice([w for w in weights for dummy in range(weights[w])])
+  return (action)
 #=======================================================================================================================
 def printResultsSummary():
   print LS
@@ -819,9 +789,9 @@ def writeReportFooter(options):
   REPORT += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-  REPORT += "<tr><td nowrap>Opps skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Docs accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
-  REPORT += "<tr><td nowrap>Docs rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+  REPORT += "<tr><td nowrap>Skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
+  REPORT += "<tr><td nowrap>Rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
 		
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
@@ -957,6 +927,104 @@ def emailReport(options):
   print "Report completed, successfully sent email to %s ..." % (options['report_recepients'])
   return()
 #=======================================================================================================================
+def printSeparator(msg):
+  ladj=1
+  radj=1
+  print LS
+  if len(msg)%2!=0:
+    radj=2
+  print ">"*((80-len(msg)-ladj)/2)+" "+msg+" "+"<"*((80-len(msg)-radj)/2)
+  print LS
+  return()
+#=======================================================================================================================
+def getBgColor(total):
+  colors = {"RED":"#FF0000", "YELLOW":"#FFFF00", "GREEN":"#00FF00", "WHITE":"#FFFFFF", "GREY":"#DCDCDC"}
+  if "(" in total and ")" in total:
+    if total.split("(")[1].split(")")[0] == "200":
+      return(colors['GREEN'])
+    elif total.split("(")[1].split(")")[0] == "retries":
+      return(colors['YELLOW'])
+    elif total.split("(")[1].split(")")[0] == "heading":
+      return (colors['GREY'])
+    else:
+      return(colors['RED'])
+  else:
+    return(colors['YELLOW'])
+#=======================================================================================================================
+def printResults(options, start_time, totals):
+
+  hours, minuts, seconds = checkDuration(start_time)
+  r = ""
+  r += "<h2>Apixio HCC Stress Test Report</h2>"
+  r += "Run date & time (run): <b>%s</b><br>" % (strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+  r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
+  r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())+"</b>"
+  r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
+  r += "Report type: <b>%s</b><br>" % (options['rep_type'])
+  r += "HCC user name: <b>%s</b><br>" % (options['usr'])
+  r += "HCC app url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
+  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
+  r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
+  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
+  r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
+  r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
+  r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])]))
+  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+
+  printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>HCC STRESS TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
+  print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
+  print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
+  print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
+  for total in sorted(totals, key=lambda x:x[0].upper()):
+    print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total][0]) + ' ' + convTimeString(totals[total][1]/totals[total][0]) + ' ' + convTimeString(totals[total][2]) + ' ' + convTimeString(totals[total][3])
+    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
+  printSeparator("ENERGY ROUTING TEST COMPLETE")
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>HCC STRESS TEST COMPLETE</td><tr></table>"
+
+
+  message = MIMEMultipart('related')
+  message.attach(MIMEText((r), 'html'))
+  message['From'] = 'Apixio QA <qa@apixio.com>'
+  #message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
+  message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>'
+  message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+  msg_full = message.as_string()
+
+  #s=smtplib.SMTP()
+  #s.connect("smtp.gmail.com",587)
+  #s.starttls()
+  #s.login("donotreply@apixio.com", "apx.mail47")
+  #s.sendmail("qa@apixio.com", options['report_recepients'], msg_full)
+  #s.quit()
+  return()
+#=======================================================================================================================
+def trackCount(item, totals, resp_time):
+  #total_number, tot_time, min_time, max_time
+  if item not in totals:
+    totals[item]=[1,resp_time,resp_time,resp_time]
+  else:
+    totals[item][0] += 1
+    totals[item][1] += resp_time
+    if resp_time > totals[item][3]:
+      totals[item][3] = resp_time
+    if resp_time < totals[item][2]:
+      totals[item][2] = resp_time
+  return(totals)
+#=======================================================================================================================
+def convTimeString(ftime):
+  hours, rest = divmod(ftime,3600)
+  minutes, seconds = divmod(rest, 60)
+  stime = str(round(seconds,2)) +'s'
+  return(stime)
+#=======================================================================================================================
+def checkDuration(start_time):
+  end_time = time.time()
+  duration = end_time - start_time
+  hours, rest = divmod(duration,3600)
+  minutes, seconds = divmod(rest, 60)
+  return(hours, minutes, seconds)
+#=======================================================================================================================
 def pages_payload(details):
   report_json = details.json()
   if report_json is not None:
@@ -1036,7 +1104,6 @@ def defineGlobals(options):
   LS  = "="*80
   LSS = "-"*80
   SL  = "*"*80
-  ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
   MAX_NUM_RETRIES = int(options['max_ret'])
   START = (int(options['max_opps'])/10)
   STOP = int(options['max_opps'])
@@ -1066,27 +1133,27 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 2
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "108"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "19"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
   defineGlobals(options)
-  #readConfigurationFile(CSV_CONFIG_FILE_PATH+CSV_CONFIG_FILE_NAME)
   writeReportHeader(options)
   cookies = loginHCC(options)
-  writeReportDetails("login")
+  #writeReportDetails("login")
   confirmSettings(options, cookies)
-  startCoding(options, cookies)
-  writeReportDetails("coding opportunity check")
-  writeReportDetails("coding scorable document check")
-  writeReportDetails("coding view only")
-  writeReportDetails("coding view and accept")
-  writeReportDetails("coding view and reject")
-  writeReportDetails("coding view and skip")
+  totals = startCoding(options, cookies)
+  printResults(options, start_time, totals)
+  #writeReportDetails("coding opportunity check")
+  #writeReportDetails("coding scorable document check")
+  #writeReportDetails("coding view only")
+  #writeReportDetails("coding view and accept")
+  #writeReportDetails("coding view and reject")
+  #writeReportDetails("coding view and skip")
   logout(options)
-  writeReportDetails("logout")
-  printResultsSummary()
+  #writeReportDetails("logout")
+  #printResultsSummary()
   writeReportFooter(options)
   #archiveReport()
   emailReport(options)
