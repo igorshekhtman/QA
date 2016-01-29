@@ -185,38 +185,39 @@ def loginHCC(options):
     quit()
   print LS
   return(cookies)
-  	
-#=======================================================================================================================
-def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, options, cookies, action):
-  global TOTAL_OPPS_ACCEPTED, TOTAL_OPPS_REJECTED, TOTAL_OPPS_SKIPPED, TOTAL_OPPS_SERVED
-  global TOTAL_DOCS_ACCEPTED, TOTAL_DOCS_REJECTED
-  
+
+#================================== ACT ON DOC (VIEW, ACCEPT, REJECT, SKIP) ============================================
+def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, totals, dos):
+
   hcc = opportunity.get("code").get("hcc")
   label_set_version = opportunity.get("code").get("labelSetVersion")
   sweep = opportunity.get("code").get("sweep")
   model_payment_year = opportunity.get("code").get("modelPaymentYear")
-  
+
   HEADERS = { \
   		'Accept': 'application/json, text/plain, */*', \
   		'Accept-Encoding': 'gzip, deflate', \
     	'Accept-Language': 'en-US,en;q=0.8', \
   		'Connection': 'keep-alive', \
     	'Content-Type': 'application/json', \
-    	'Referer': options['env_hosts']['hcchost']+'/', \
+    	'Referer': url+'/', \
         'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"], \
     	'X_REQUESTED_WITH': 'XMLHttpRequest', \
         'X-CSRFToken': cookies["csrftoken"] \
     	}
 
-  if action == 0: # Do NOT Accept or Reject Doc
-    print "* HCC CODE".ljust(25)+ " = " + str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-    print "* CODER ACTION".ljust(25)+ " = " + "Do NOT Accept or Reject Doc"
-    IncrementTestResultsTotals("coding view only", 200)
-  elif action == 1: #=============================== ACCEPT DOC ==============
-    TOTAL_DOCS_ACCEPTED += 1
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
-    DATA = { \
+  aurl = url+ "api/annotate/"
+  print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+  print "* FINDING ID".ljust(25)+" = "+ finding_id
+  print "* ANNO URL".ljust(25)+" = "+aurl
+
+
+  if (action == 0) or (action not in [1,2,3]): # Do NOT Accept or Reject Doc
+    print "* CODER ACTION".ljust(25)+" = Do NOT Accept or Reject"
+    trackCount("NOT Accept-Reject-Skip(200)", totals, 0)
+  else:
+    if action == 1: #=============================== ACCEPT DOC ==============
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -283,25 +284,11 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
 			}, \
 			"provider": "Dr. Grinder", \
 			#"dateOfService": finding.get("doc_date"), \
-			"dateOfService": options['dos'], \
+			"dateOfService": dos, \
 			"comment": "Grinder Flag for Review" \
 			}}}
-    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
-    print "* ANNOTATE FINDING".ljust(25)+ " = " + str(response.status_code)
-    IncrementTestResultsTotals("coding view and accept", response.status_code)
-    if response.status_code == r_stat_codes['ok']:
-      print "* HCC CODE".ljust(25)+ " = " + str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+ " = " + "Accept Doc"
-      print "* HCC RESPONSE".ljust(25)+ " = " + str(response.status_code) + " " + stat_codes[response.status_code]
-    else:
-      print "* CODER ACTION".ljust(25)+ "Accept Doc"
-      print "* HCC RESPONSE".ljust(25)+ "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
-      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
-  elif action == 2: #================================== REJECT DOC ===========
-    TOTAL_DOCS_REJECTED += 1
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
-    DATA = { \
+    elif action == 2: #================================== REJECT DOC ===========
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -355,22 +342,9 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
 			"result": "reject", \
 			"rejectReason": "This document does not mention this HCC for the patient", \
 			"comment": "Grinder Flag for Review Comment" \
-			}}}						
-    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)	
-    IncrementTestResultsTotals("coding view and reject", response.status_code)
-    if response.status_code == r_stat_codes['ok']:
-      print "* HCC CODE".ljust(25)+ " = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+ " = "+ "Reject Doc"
-      print "* HCC RESPONSE".ljust(25)+ " = "+ str(response.status_code) + " " + stat_codes[response.status_code]
-    else:
-      print "* CODER ACTION".ljust(25) + "Reject Doc"
-      print "* HCC RESPONSE".ljust(25) + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
-      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
-  elif action == 3: #=========================== SKIP OPP ====================
-    TOTAL_OPPS_SKIPPED += 1
-    #finding_id = scorable.get("id")
-    print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
-    DATA = { \
+			}}}
+    elif action == 3: #=========================== SKIP OPP ====================
+      DATA = { \
 			"opportunity": \
 			{ \
 			"status":opportunity.get("status"), \
@@ -421,21 +395,23 @@ def act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max, opt
 			"changed":True, \
 			"flaggedForReview":False, \
 			"result":"skipped" \
-			}}}			
-    response = requests.post(options['env_hosts']['hcchost']+ "api/annotate/", cookies=cookies, data=json.dumps(DATA), headers=HEADERS)		
-    IncrementTestResultsTotals("coding view and skip", response.status_code)
-    if response.status_code ==  r_stat_codes['ok']:
-      print "* HCC CODE".ljust(25)+ " = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
-      print "* CODER ACTION".ljust(25)+ " = " + "Skip Opp"
-      print "* HCC RESPONSE".ljust(25)+ " = " + str(response.status_code) + " " + str(response.status_code) + " " + stat_codes[response.status_code]
-    else:
-      print "* CODER ACTION".ljust(25) + " = " + "Skip Opp"
-      print "* HCC RESPONSE".ljust(25) + " = " + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
-      act_on_doc(opportunity, finding, finding_id, doc_no_current, doc_no_max)
-  else:
-    print "* CODER ACTION".ljust(25) + " = " + "Unknown"
-  return 0
+			}}}
 
+    retries=0
+    while retries < options['max_ret']:
+      st = time.time()
+      response = requests.post(aurl, cookies=cookies, data=json.dumps(DATA), headers=HEADERS)
+      dt = time.time() - st
+      print ("* "+ACTIONS[action].upper()+" FINDING").ljust(25)+" = "+ str(response.status_code)+" "+stat_codes[response.status_code]
+      if response.status_code == r_stat_codes['ok']:
+        retries = options['max_ret']
+      else:
+        retries += 1
+        trackCount(ACTIONS[action]+"(retries)", totals, dt)
+        trackCount(ACTIONS[action]+" "+json.dumps(DATA), totals, dt)
+      trackCount(ACTIONS[action]+"("+str(response.status_code)+")", totals, dt)
+
+  return (totals)
 #=======================================================================================================================
   
 def startCoding(options, cookies):
@@ -458,6 +434,7 @@ def startCoding(options, cookies):
   headers = {'Cookie': 'csrftoken='+cookies["csrftoken"]+'; sessionid='+cookies["jsessionid"]+'; ApxToken='+cookies["ApxToken"]}
   data = {}
   totals={}
+  opps_totals={}
 
   for coding_opp_current in range(1, (int(options['max_opps'])+1)):
     printSeparator("NEXT OPPORTUNITY")
@@ -472,15 +449,15 @@ def startCoding(options, cookies):
         print "* Get coding opp".ljust(25)+" = "+str(response.status_code)+" "+stat_codes[response.status_code]
 
 
-        if response.status_code == 200:
+        if response.status_code == r_stat_codes['ok']:
             opportunity = response.json()
             retries = options['max_ret']
         else:
             retries += 1
             trackCount(str(nwiurl.split("/")[4])+"(retries)", totals, dt)
         trackCount(str(nwiurl.split("/")[4])+"("+str(response.status_code)+")", totals, dt)
-    if response.status_code != 200:
-                return (totals)
+    if response.status_code != r_stat_codes['ok']:
+                return (totals, opps_totals)
 
     hcc = opportunity.get("code").get("hcc")
     tallyDetails("hcc", hcc)
@@ -490,6 +467,8 @@ def startCoding(options, cookies):
     tallyDetails("sweep", sweep)
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
     tallyDetails("model_payment_year", model_payment_year)
+    opp = str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
+    trackOpps(opp, opps_totals)
 
 
 
@@ -536,25 +515,42 @@ def startCoding(options, cookies):
       mime_type = finding.get("mimeType")
       if mime_type == None:
         mime_type = "text/plain"
-
+      printSeparator("GET NEXT FINDING")
       print "PATIENT DOC %d OF %d"    % (doc_no+1, doc_no_max)
-      print "* STATUS".ljust(25)+ " = " + str(status)
-      print "* PATIENT ORG".ljust(25)+ " = " + str(patient_org_id)
-      print "* PATIENT ID".ljust(25)+ " = " + str(patient_id)
-      print "* FINDING ID".ljust(25)+ " = " + str(finding_id)
-      print "* AVAILABLE CODES".ljust(25)+ " = " + str(numpossiblecodes)
-      print "* PROJECT ID".ljust(25)+ " = " + str(project)
-      print "* DOC UUID".ljust(25)+ " = " + str(document_uuid)
-      print "* DOC TITLE".ljust(25)+ " = " + str(document_title)
-      print "* DOC DATE".ljust(25)+ " = " + str(date_of_service)
-      print "* DOC TYPE".ljust(25)+ " = " + str(mime_type)
-      response = requests.get(options['env_hosts']['hcchost'] + "/api/document-text/" + document_uuid, data=data, headers=headers)
-      print "* GET SCRBLE DOC".ljust(25)+ " = " + str(response.status_code) + " " + stat_codes[response.status_code]
+      print "* STATUS".ljust(25)+" = "+status
+      print "* PATIENT ORG".ljust(25)+" = "+patient_org_id
+      print "* PATIENT ID".ljust(25)+" = "+patient_id
+      print "* FINDING ID".ljust(25)+" = "+finding_id
+      print "* AVAILABLE CODES".ljust(25)+" = "+str(numpossiblecodes)
+      print "* PROJECT ID".ljust(25)+" = "+project
+      print "* DOC UUID".ljust(25)+" = "+document_uuid
+      print "* DOC TITLE".ljust(25)+" = "+document_title
+      print "* DOC DATE OF SERVICE".ljust(25)+" = "+date_of_service
+      print "* DOC TYPE".ljust(25)+" = "+mime_type
+      dturl = options['env_hosts']['hcchost']+"api/document-text/"
+      print "* URL".ljust(25)+" = "+ dturl
+
+      retries=0
+      while retries < options['max_ret']:
+        st = time.time()
+        response = requests.get(dturl + document_uuid, data=data, headers=headers)
+        dt = time.time() - st
+        print "* GET SCRBLE DOC".ljust(25)+" = "+ str(response.status_code)+" "+stat_codes[response.status_code]
+        if response.status_code == r_stat_codes['ok']:
+          retries = options['max_ret']
+        else:
+          retries += 1
+          trackCount(str(dturl.split("/")[4])+"(retries)", totals, dt)
+          trackCount(str(dturl.split("/")[4])+" "+str(json.dumps(finding)), totals, dt)
+        trackCount(str(dturl.split("/")[4])+"("+str(response.status_code)+")", totals, dt)
+        if response.status_code != r_stat_codes['ok']:
+          return (totals, opps_totals)
+
       IncrementTestResultsTotals("coding scorable document check", response.status_code)
       action = WeightedRandomCodingAction(hcc, options)
-      act_on_doc(opportunity, finding, finding_id, doc_no, doc_no_max, options, cookies, action)
+      totals = act_on_doc(options['env_hosts']['hcchost'], cookies, opportunity, finding, finding_id, doc_no, action, totals, options['dos'])
 
-  return (totals)
+  return (totals, opps_totals)
 #=======================================================================================================================
 def logout(options):
   print LS
@@ -781,17 +777,17 @@ def extractTargetedHccData(targhcc, srcedict):
       extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options):
+def writeReportFooter(options, totals, opps_totals):
   global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
 
   REPORT += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_OPPS_SERVED)
-  REPORT += "<tr><td nowrap>Skipped:</td><td><b>%s</b></td></tr>" % (TOTAL_OPPS_SKIPPED)
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (TOTAL_DOCS_ACCEPTED)
-  REPORT += "<tr><td nowrap>Rejected:</td><td><b>%s</b></td></tr>" % (TOTAL_DOCS_REJECTED)
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (totals['next-work-item(200)'][0])
+  REPORT += "<tr><td nowrap>Skipped:</td><td><b>%s</b></td></tr>" % (totals['Skip(200)'][0])
+  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (totals['Accept(200)'][0])
+  REPORT += "<tr><td nowrap>Rejected:</td><td><b>%s</b></td></tr>" % (totals['Reject(200)'][0])
 		
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
@@ -812,7 +808,7 @@ def writeReportFooter(options):
   REPORT += "</td></tr>"
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td nowrap>HCCs total:</td><td>"
-  convertJsonToTable(HCC, "value")
+  convertJsonToTable(opps_totals, "value")
   REPORT += "</td></tr>"
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
   convertJsonToTable(COUNT_OF_SERVED, "key")
@@ -999,6 +995,13 @@ def printResults(options, start_time, totals):
   #s.quit()
   return()
 #=======================================================================================================================
+def trackOpps(opp, opps_totals):
+  if opp not in opps_totals:
+    opps_totals[opp]=1
+  else:
+    opps_totals[opp] += 1
+  return(opps_totals)
+#=======================================================================================================================
 def trackCount(item, totals, resp_time):
   #total_number, tot_time, min_time, max_time
   if item not in totals:
@@ -1104,6 +1107,7 @@ def defineGlobals(options):
   LS  = "="*80
   LSS = "-"*80
   SL  = "*"*80
+  ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
   MAX_NUM_RETRIES = int(options['max_ret'])
   START = (int(options['max_opps'])/10)
   STOP = int(options['max_opps'])
@@ -1143,7 +1147,9 @@ def Main():
   cookies = loginHCC(options)
   #writeReportDetails("login")
   confirmSettings(options, cookies)
-  totals = startCoding(options, cookies)
+  totals, opps_totals = startCoding(options, cookies)
+  #print opps_totals
+  #quit()
   printResults(options, start_time, totals)
   #writeReportDetails("coding opportunity check")
   #writeReportDetails("coding scorable document check")
@@ -1154,7 +1160,7 @@ def Main():
   logout(options)
   #writeReportDetails("logout")
   #printResultsSummary()
-  writeReportFooter(options)
+  writeReportFooter(options, totals, opps_totals)
   #archiveReport()
   emailReport(options)
 
