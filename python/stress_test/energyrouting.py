@@ -1,13 +1,14 @@
 ####################################################################################################
 #
-# PROGRAM: esopprouteroptimization.py
+# PROGRAM: energyrouting.py
 # AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
 # DATE:    2015.08.05 Initial Version
 #
-# REVISIONS:
-# AUTHOR: Igor Shekhtman ishekhtman@apixio.com
-# DATE: 2015.08.05
-# SPECIFICS: Added IncrementTestResultsTotals()function to print out retried, failed and succeeded totals
+# REVISION: Complete revision, re-design and re-write of the original test script
+# AUTHOR:  Igor Shekhtman ishekhtman@apixio.com
+# DATE:    2016.01.29 Initial Version
+#
+#
 #
 # PURPOSE:
 #          This program should be executed via Python 2.7 and is meant for testing HCC functionality:
@@ -33,7 +34,7 @@
 #          * Configure global parameters in opprouteroptimization.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
 #		   ***************************************************************************************************************
-#		   * python2.7 esopprouteroptimization.py staging ishekhtman@apixio.com ishekhtman@apixio.com
+#		   * python2.7 energyrouting.py
 #		   ***************************************************************************************************************
 #
 # SPECIFIC TEST CASE PROVIDED BY RICHARD:
@@ -66,60 +67,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import collections
 requests.packages.urllib3.disable_warnings()
-
-# GLOBAL VARIABLES #######################################################################
-
-START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-TIME_START=time.time()
-MONTH_FMN=strftime("%B", gmtime())
-CURDAY=strftime("%d", gmtime())
-CURMONTH=strftime("%m", gmtime())
-
-PASSED_TBL="<table><tr><td bgcolor='#00A303' align='center' width='800'><font size='3' color='white'><b>STATUS - PASSED</b></font></td></tr></table>"
-FAILED_TBL="<table><tr><td bgcolor='#DF1000' align='center' width='800'><font size='3' color='white'><b>STATUS - FAILED</b></font></td></tr></table>"
-SUBHDR_TBL="<table><tr><td bgcolor='#4E4E4E' align='left' width='800'><font size='3' color='white'><b>&nbsp;&nbsp; %s</b></font></td></tr></table>"
-
-MODULES = {	"login":"0", \
-			"coding opportunity check":"1", \
-			"coding scorable document check":"2", \
-			"coding view only":"3", \
-			"coding view and accept":"4", \
-			"coding view and reject":"5", \
-			"coding view and skip":"6", \
-			"history report opportunity check":"7", \
-			"history report pagination":"8", \
-			"history report searching":"9", \
-			"history report filtering":"10", \
-			"qa report coder list check":"11", \
-			"qa report opportunity check":"12", \
-			"qa report pagination":"13", \
-			"qa report searching":"14", \
-			"qa report filtering":"15", \
-			"logout":"16" \
-			}
-
-FAILED_TOT = []
-SUCCEEDED_TOT = []
-RETRIED_TOT = []
-
-for i in range (0, 17):
-	FAILED_TOT.append(0)
-	SUCCEEDED_TOT.append(0)
-	RETRIED_TOT.append(0)
-
-	
-TOTAL_OPPS_ACCEPTED = 0
-TOTAL_OPPS_REJECTED = 0
-TOTAL_OPPS_SKIPPED = 0
-TOTAL_OPPS_SERVED = 0
-TOTAL_DOCS_REJECTED = 0
-TOTAL_DOCS_ACCEPTED = 0
-
-
-HCC = {str(key): 0 for key in range(0, 200)}
-MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
-LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
-SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 #=======================================================================================================================
 def readConfigurationFile(filename):
   result={ }
@@ -185,7 +132,6 @@ def loginHCC(options):
     quit()
   print LS
   return(cookies)
-
 #================================== ACT ON DOC (VIEW, ACCEPT, REJECT, SKIP) ============================================
 def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, totals, dos):
 
@@ -415,8 +361,6 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, t
 #=======================================================================================================================
   
 def startCoding(options, cookies):
-  global RANDOM_OPPS_ACTION, CODE_OPPS_ACTION, TOTAL_OPPS_SERVED, CODING_OPP_CURRENT
-  global VOO, VAO, VRO, VSO
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
 
   print LSS
@@ -546,7 +490,6 @@ def startCoding(options, cookies):
         if response.status_code != r_stat_codes['ok']:
           return (totals, opps_totals)
 
-      IncrementTestResultsTotals("coding scorable document check", response.status_code)
       action = WeightedRandomCodingAction(hcc, options)
       totals = act_on_doc(options['env_hosts']['hcchost'], cookies, opportunity, finding, finding_id, doc_no, action, totals, options['dos'])
 
@@ -557,7 +500,6 @@ def logout(options):
   testCode = 99
   response = requests.get(options['env_hosts']['hcchost'] + "/account/logout")
   print "* LOGOUT".ljust(25) + " = " +str(response.status_code) + " " + stat_codes[response.status_code]
-  IncrementTestResultsTotals("logout", response.status_code)
   if response.status_code != r_stat_codes['ok']:
     print "* CODER ACTION".ljust(25)+ " = " + "Logout"
     print "* HCC RESPONSE".ljust(25)+ " = " + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
@@ -672,10 +614,13 @@ def confirmSettings(options, cookies):
   print "* Coding Delay".ljust(25)+ " = "+ str(options['coding_delay_time'])+" sec"
   print "* Retries".ljust(25)+" = "+ str(options['max_ret'])
   print "* Max Opps".ljust(25)+" = "+str(options['max_opps'])
-  if options['max_opps']%10 !=0:
-    print "* Error".ljust(25)+" = Maximum number of opps "+str(options['max_opps'])+" must be divisible by 10"
+  if options['max_opps']%options['buckets'] !=0:
+    print "* Error".ljust(25)+" = Maximum number of opps " + str(options['max_opps'])+" must be divisible by 10"
     quit()
-  print "* Energy Routing Status".ljust(25)+ " = "+ str(setEnergyRoutingOn(options, cookies))
+  print "* Buckets".ljust(25)+" = "+str(options['buckets'])
+  print "* Opps per Bucket".ljust(25)+" = "+str(options['opps_per_bucket'])
+  en_rout_stat =  str(setEnergyRoutingOn(options, cookies))
+  print "* Energy Routing Status".ljust(25)+ " = " + en_rout_stat
   print "* TARGETED HCC".ljust(25)+ " = HCC-"+str(options['target_hcc'])
   print "* OVERALL ACCEPTS".ljust(25)+ " = "+ str(options['action_weights']['all']['va'])+"%"
   print "* OVERALL REJECT".ljust(25)+" = "+ str(options['action_weights']['all']['vr'])+"%"
@@ -688,35 +633,7 @@ def confirmSettings(options, cookies):
     quit()
   else:
     print "proceeding ..."
-  return()
-#=======================================================================================================================
-def writeReportHeader(options):
-  global REPORT
-  REPORT = """ """
-  REPORT += """<h1>Apixio %s Report</h1>""" % (options['rep_type'])
-  REPORT += """Run date & time (run): <b>%s</b><br>""" % (strftime("%m/%d/%Y %H:%M:%S", gmtime()))
-  REPORT += """Report type: <b>%s</b><br>""" % (options['rep_type'])
-  REPORT += """HCC user name: <b>%s</b><br>""" % (options['usr'])
-  REPORT += """HCC app url: <b>%s</b><br>""" % (options['env_hosts']['hcchost'])
-  REPORT += """Maximum # of Opps: <b>%s</b><br>""" % (options['max_opps'])
-  REPORT += """Maximum # of Retries: <b>%s</b><br>""" % (options['max_ret'])
-  REPORT += """Coding delay: <b>%s sec</b><br>""" % (options['coding_delay_time'])
-  REPORT += """Enviromnent: <b><font color='red'>%s</font></b><br><br>""" % (options['env'])
-  REPORT += """<table align="left" width="800" cellpadding="1" cellspacing="1"><tr><td>"""
-  return()
-#=======================================================================================================================
-def writeReportDetails(module):	
-  global REPORT
-  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-  REPORT += SUBHDR_TBL % module.upper()
-  REPORT += "<table spacing='1' padding='1'><tr><td>Succeeded:</td><td>"+str(SUCCEEDED_TOT[int(MODULES[module])])+"</td></tr>"
-  REPORT += "<tr><td>Retried:</td><td>"+str(RETRIED_TOT[int(MODULES[module])])+"</td></tr>"
-  REPORT += "<tr><td>Failed:</td><td>"+str(FAILED_TOT[int(MODULES[module])])+"</td></tr></table>"
-  if (FAILED_TOT[int(MODULES[module])] > 0) or (RETRIED_TOT[int(MODULES[module])] > 0):
-    REPORT += str(FAILED_TBL)
-  else:
-    REPORT += str(PASSED_TBL)
-  return()
+  return(en_rout_stat)
 #=======================================================================================================================
 def drawGraph(srcedict, options):
   global CURDAY, START, STOP
@@ -776,7 +693,7 @@ def extractTargetedHccData(targhcc, srcedict):
       extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options, totals, opps_totals, start_time):
+def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat):
   global SORTED_PERCENT_OF_TARGET_HCC_SERVED
 
   hours, minuts, seconds = checkDuration(start_time)
@@ -784,18 +701,20 @@ def writeReportFooter(options, totals, opps_totals, start_time):
 
   r = ""
   r += "<h2>Apixio HCC Energy Routing Test Report</h2>"
-  r += "Run date & time (run): <b>%s</b><br>" % (strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
-  r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
-  r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time))+"</b>"
+  r += "Test Start (date & time): <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
+  r += "Test End (date & time): <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time))+"</b>"
   r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
   r += "Report type: <b>%s</b><br>" % (options['rep_type'])
   r += "HCC user name: <b>%s</b><br>" % (options['usr'])
-  r += "HCC app url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
+  r += "HCC host url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
   r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
   r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
+  r += "Total # of Buckets: <b>%s</b><br>"%(options['buckets'])
+  r += "Opps per Bucket: <b>%s</b><br>"%(options['opps_per_bucket'])
   r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
   r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
   r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
+  r += "Energy Routing Status: <b>%s</b><br><br>"%("<font color='green'>ON</color>" if en_rout_stat else "<font color='red'>OFF</color>")
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
@@ -854,7 +773,7 @@ def writeReportFooter(options, totals, opps_totals, start_time):
   return(r)
 #=======================================================================================================================
 
-def archiveReport():
+def archiveReport(report):
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
 	if not DEBUG_MODE:
 		print ("Archiving report ...\n")
@@ -878,11 +797,11 @@ def archiveReport():
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
+		REPORTFILE.write(report)
 		REPORTFILE.close()
 		os.chdir(REPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
-		REPORTFILE.write(REPORT)
+		REPORTFILE.write(report)
 		REPORTFILE.close()
 		os.chdir(REPORTXTFILEFOLDER)
 		f = open(REPORTXTFILENAME)
@@ -1007,28 +926,6 @@ def pages_payload(details):
     payload = 0
   return (pages, payload)
 #=======================================================================================================================
-def IncrementTestResultsTotals(module, code):
-  global FAILED, SUCCEEDED, RETRIED
-  global FAILED_TOT, SUCCEEDED_TOT, RETRIED_TOT
-  if (code == r_stat_codes['ok']) or (code == r_stat_codes['nocontent']):
-    SUCCEEDED = SUCCEEDED+1
-    SUCCEEDED_TOT[int(MODULES[module])] = SUCCEEDED_TOT[int(MODULES[module])] + 1
-  else:
-    FAILED = FAILED+1
-    FAILED_TOT[int(MODULES[module])] = FAILED_TOT[int(MODULES[module])] + 1
-    RETRIED = RETRIED+1
-    RETRIED_TOT[int(MODULES[module])] = RETRIED_TOT[int(MODULES[module])] + 1
-    if RETRIED > int(MAX_NUM_RETRIES):
-      print "Number of retries %s reached pre-set limit of %s.  Exiting now ..." % (RETRIED, MAX_NUM_RETRIES)
-      quit()
-    if (code == r_stat_codes['unauthorized']):
-      print "%s response code received from server.  Re-obtaining Autorization." % code
-      loginHCC()
-    if ((code == r_stat_codes['servunavail']) or (code == r_stat_codes['nocontent'])) and (module == "coding opportunity check"):
-      print "%s response code received from server.  Re-obtaining Next Opportunity." % code
-      startCoding()
-  return()
-#=======================================================================================================================
 def getEnvHosts(env):
   if env.lower()[0] == 's':
     hcchost = 'https://hcc-stg.apixio.com/'
@@ -1059,10 +956,20 @@ def getEnvHosts(env):
 def defineGlobals(options):
   global LS, LSS, SL, ACTIONS
   global MAX_NUM_RETRIES, COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
-  global START, STOP, STEP
   global stat_codes, r_stat_codes
-  global FAILED, SUCCEEDED, RETRIED
-  global VOO, VAO, VRO, VSO
+  global START_TIME, TIME_START, MONTH_FMN, CURDAY, CURMONTH
+  global HCC, MODEL_PAYMENT_YEAR, LABEL_SET_VERSION, SWEEP
+
+  START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
+  TIME_START=time.time()
+  MONTH_FMN=strftime("%B", gmtime())
+  CURDAY=strftime("%d", gmtime())
+  CURMONTH=strftime("%m", gmtime())
+
+  HCC = {str(key): 0 for key in range(0, 200)}
+  MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
+  LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
+  SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 
   stat_codes = {200:'ok', 201:'created', 202:'accepted', 204:'nocontent', \
                 301:'movedperm', 302:'redirect', \
@@ -1070,13 +977,11 @@ def defineGlobals(options):
                 500:'intservererror', 503:'survunavail'}
   r_stat_codes = {v: k for k, v in stat_codes.items()}
 
-  FAILED = SUCCEEDED = RETRIED = 0
-  VOO = VAO = VRO = VSO = 0
-
   LS  = "="*80
   LSS = "-"*80
   SL  = "*"*80
   ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
+
   MAX_NUM_RETRIES = int(options['max_ret'])
   START = (int(options['max_opps'])/10)
   STOP = int(options['max_opps'])
@@ -1104,33 +1009,29 @@ def Main():
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
-  options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 2
+  options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
   options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "19"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
+  options['buckets'] = 10
+  if options['max_opps']%options['buckets'] != 0:
+    print "* Error".ljust(25)+" = Maximum number of opps " + str(options['max_opps'])+" must be divisible by 10"
+    quit()
+  else:
+    options['opps_per_bucket'] =  options['max_opps']/options['buckets']
+
+
   defineGlobals(options)
-  writeReportHeader(options)
   cookies = loginHCC(options)
-  #writeReportDetails("login")
-  confirmSettings(options, cookies)
+  en_rout_stat = confirmSettings(options, cookies)
   totals, opps_totals = startCoding(options, cookies)
-  #print opps_totals
-  #quit()
   printResults(options, start_time, totals)
-  #writeReportDetails("coding opportunity check")
-  #writeReportDetails("coding scorable document check")
-  #writeReportDetails("coding view only")
-  #writeReportDetails("coding view and accept")
-  #writeReportDetails("coding view and reject")
-  #writeReportDetails("coding view and skip")
   logout(options)
-  #writeReportDetails("logout")
-  #printResultsSummary()
-  report = writeReportFooter(options, totals, opps_totals, start_time)
-  #archiveReport()
+  report = writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat)
+  #archiveReport(report)
   emailReport(options, report)
 
 if __name__ == "__main__":
