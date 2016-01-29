@@ -743,8 +743,7 @@ def getKey(key):
     return key
 ###########################################################################################################################################
 def convertJsonToTable(srcedict, sortby):
-  global REPORT
-  REPORT = REPORT+"<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
   if sortby == "value":
     sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
     ctr = 0
@@ -758,15 +757,15 @@ def convertJsonToTable(srcedict, sortby):
             b_color = '#FFFF00'
           else:
             b_color = '#FFFFFF'
-        REPORT += "<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
+        report += "<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
         ctr += 1
   else:
     sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)
     for item in sorteditems:
       if item[1] > 0:
-        REPORT +="<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
-  REPORT += "</table>"
-  return()
+        report +="<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
+  report += "</table>"
+  return(report)
 #=======================================================================================================================
 def extractTargetedHccData(targhcc, srcedict):
   extrdict = {}
@@ -777,70 +776,82 @@ def extractTargetedHccData(targhcc, srcedict):
       extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options, totals, opps_totals):
-  global REPORT, SORTED_PERCENT_OF_TARGET_HCC_SERVED, REPORT_EMAIL
+def writeReportFooter(options, totals, opps_totals, start_time):
+  global SORTED_PERCENT_OF_TARGET_HCC_SERVED
 
-  REPORT += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
+  hours, minuts, seconds = checkDuration(start_time)
+  end_time = time.time()
+
+  r = ""
+  r += "<h2>Apixio HCC Energy Routing Test Report</h2>"
+  r += "Run date & time (run): <b>%s</b><br>" % (strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
+  r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
+  r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time))+"</b>"
+  r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
+  r += "Report type: <b>%s</b><br>" % (options['rep_type'])
+  r += "HCC user name: <b>%s</b><br>" % (options['usr'])
+  r += "HCC app url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
+  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
+  r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
+  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
+  r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
+  r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
+  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+
+  printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>ENERGY ROUTING TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
+  for total in sorted(totals, key=lambda x:x[0].upper()):
+    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>ENERGY ROUTING TEST COMPLETE</td><tr></table>"
+
+
+  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
 		
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
-  REPORT += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
-  REPORT += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
+  r += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
+  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
+  r += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
+  r += "<tr><td colspan='2'><hr></td></tr>"
 		
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
-  convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td nowrap>Sweep:</td><td>"
-  convertJsonToTable(SWEEP, "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
-  convertJsonToTable(LABEL_SET_VERSION, "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td nowrap>HCCs total:</td><td>"
-  convertJsonToTable(opps_totals, "value")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-  convertJsonToTable(COUNT_OF_SERVED, "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td nowrap>HCCs % per bucket:</td><td>"
-  convertJsonToTable(PERCENT_OF_SERVED, "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (options['target_hcc'])
-  convertJsonToTable(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), "key")
-  REPORT += "</td></tr>"
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
+  r += convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
+  r += "</td></tr>"
+  r += "<tr><td nowrap>Sweep:</td><td>"
+  r += convertJsonToTable(SWEEP, "key")
+  r += "</td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
+  r += convertJsonToTable(LABEL_SET_VERSION, "key")
+  r += "</td></tr>"
+  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td nowrap>HCCs total:</td><td>"
+  r += convertJsonToTable(opps_totals, "value")
+  r += "</td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
+  r += convertJsonToTable(COUNT_OF_SERVED, "key")
+  r += "</td></tr>"
+  r += "<tr><td nowrap>HCCs % per bucket:</td><td>"
+  r += convertJsonToTable(PERCENT_OF_SERVED, "key")
+  r += "</td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (options['target_hcc'])
+  r += convertJsonToTable(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), "key")
+  r += "</td></tr>"
+  r += "<tr><td colspan='2'><hr></td></tr>"
 	
   drawGraph(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), options)
-		
-  REPORT_EMAIL = "" + REPORT
-  REPORT += "<tr><td colspan='2'><img src='"+str(CURDAY)+".png' width='800' height='600'></td></tr>"
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><hr></td></tr>"
-  END_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
-  REPORT += "<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], START_TIME)
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], START_TIME)
-  REPORT += "<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], END_TIME)
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], END_TIME)
-  TIME_END = time.time()
-  TIME_TAKEN = TIME_END - TIME_START
-  hours, REST = divmod(TIME_TAKEN,3600)
-  minutes, seconds = divmod(REST, 60)
-  REPORT += "<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(hours), int(minutes), int(seconds))
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(hours), int(minutes), int(seconds))
-  REPORT += "<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
-  REPORT_EMAIL = REPORT_EMAIL+"<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
-  REPORT += "</table>"
-  REPORT_EMAIL = REPORT_EMAIL+"</table>"
-  REPORT += "</td></tr></table>"
-  REPORT_EMAIL = REPORT_EMAIL+"</td></tr></table>"
-  return()
+
+  r += "<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
+  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time)))
+  r += "<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time)))
+  r += "<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(round(hours)), int(round(minuts)), int(round(seconds)))
+  r += "<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+  r += "</table>"
+  r += "</td></tr></table>"
+  return(r)
 #=======================================================================================================================
 
 def archiveReport():
@@ -892,10 +903,10 @@ def archiveReport():
 		print ("Finished archiving report ... \n")
 
 #=======================================================================================================================
-def emailReport(options):
+def emailReport(options, report):
   imagefname=str(CURDAY)+".png"
   message = MIMEMultipart('related')
-  message.attach(MIMEText((REPORT_EMAIL), 'html'))
+  message.attach(MIMEText((report), 'html'))
   with open(imagefname, 'rb') as image_file:
     image = MIMEImage(image_file.read())
   image.add_header('Content-ID', '<picture@example.com>')
@@ -943,51 +954,14 @@ def getBgColor(total):
     return(colors['YELLOW'])
 #=======================================================================================================================
 def printResults(options, start_time, totals):
-
   hours, minuts, seconds = checkDuration(start_time)
-  r = ""
-  r += "<h2>Apixio HCC Stress Test Report</h2>"
-  r += "Run date & time (run): <b>%s</b><br>" % (strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
-  r += "Test Started: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time))+"</b>"
-  r += "Test Ended: <b>"+strftime("%m/%d/%Y %H:%M:%S<br>", gmtime())+"</b>"
-  r += "Test Duration: <b>"+"%s hours, %s minutes, %s seconds<br>"% (int(round(hours)), int(round(minuts)), int(round(seconds)))+"</b><br>"
-  r += "Report type: <b>%s</b><br>" % (options['rep_type'])
-  r += "HCC user name: <b>%s</b><br>" % (options['usr'])
-  r += "HCC app url: <b>%s</b><br>" % (options['env_hosts']['hcchost'])
-  r += "Enviromnent: <b><font color='red'>%s</font></b><br><br>" % (options['env'])
-  r += "Max. # of Opps: <b>%s</b><br>"%(options['max_opps'])
-  r += "Max. # of Retries: <b>%s</b><br>"%(options['max_ret'])
-  r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
-  r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
-  r += "Action Weights: <b>%s</b><br><br>"%(", ".join(["%s:%s%%" % (key[0].upper()+key[1:], ('%('+key+')s') % options['action_weights']) for key in sorted(options['action_weights'])]))
-  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-
-  printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>HCC STRESS TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
+  printSeparator("HCC ENERGY ROUTING TEST RESULTS SUMMARY")
   print "* Test Started".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time))
   print "* Test Ended".ljust(25)+" = "+strftime("%m/%d/%Y %H:%M:%S", gmtime())
   print "* Test Duration".ljust(25)+" = "+"%s hours, %s minutes, %s seconds"% (int(round(hours)), int(round(minuts)), int(round(seconds)))
   for total in sorted(totals, key=lambda x:x[0].upper()):
     print ("* "+ total[0].upper()+total[1:]).ljust(25)+" = " + str(totals[total][0]) + ' ' + convTimeString(totals[total][1]/totals[total][0]) + ' ' + convTimeString(totals[total][2]) + ' ' + convTimeString(totals[total][3])
-    r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
-  printSeparator("ENERGY ROUTING TEST COMPLETE")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>HCC STRESS TEST COMPLETE</td><tr></table>"
-
-
-  message = MIMEMultipart('related')
-  message.attach(MIMEText((r), 'html'))
-  message['From'] = 'Apixio QA <qa@apixio.com>'
-  #message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>,Ops <'+options['report_recepients'][1]+'>'
-  message['To'] = 'To: Eng <'+options['report_recepients'][0]+'>'
-  message['Subject'] = 'HCC %s Stress Test Report - %s' % (options['env'], strftime("%m/%d/%Y %H:%M:%S", gmtime(start_time)))
-  msg_full = message.as_string()
-
-  #s=smtplib.SMTP()
-  #s.connect("smtp.gmail.com",587)
-  #s.starttls()
-  #s.login("donotreply@apixio.com", "apx.mail47")
-  #s.sendmail("qa@apixio.com", options['report_recepients'], msg_full)
-  #s.quit()
+  printSeparator("HCC ENERGY ROUTING TEST COMPLETE")
   return()
 #=======================================================================================================================
 def trackOpps(opp, opps_totals):
@@ -1155,9 +1129,9 @@ def Main():
   logout(options)
   #writeReportDetails("logout")
   #printResultsSummary()
-  writeReportFooter(options, totals, opps_totals)
+  report = writeReportFooter(options, totals, opps_totals, start_time)
   #archiveReport()
-  emailReport(options)
+  emailReport(options, report)
 
 if __name__ == "__main__":
   Main()
