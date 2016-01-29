@@ -783,11 +783,6 @@ def writeReportFooter(options, totals, opps_totals):
   REPORT += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
-  REPORT += "<tr><td colspan='2'><hr></td></tr>"
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Opps served:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (totals['next-work-item(200)'][0])
-  REPORT += "<tr><td nowrap>Skipped:</td><td><b>%s</b></td></tr>" % (totals['Skip(200)'][0])
-  REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepted:</td><td bgcolor='#D8D8D8'><b>%s</b></td></tr>" % (totals['Accept(200)'][0])
-  REPORT += "<tr><td nowrap>Rejected:</td><td><b>%s</b></td></tr>" % (totals['Reject(200)'][0])
 		
   REPORT += "<tr><td colspan='2'><hr></td></tr>"
   REPORT += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
