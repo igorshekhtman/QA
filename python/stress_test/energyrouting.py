@@ -537,25 +537,6 @@ def WeightedRandomCodingAction(hcc_code, options):
   action = random.choice([w for w in weights for dummy in range(weights[w])])
   return (action)
 #=======================================================================================================================
-def printResultsSummary():
-  print LS
-  print "Test execution results summary:"
-  print LS
-  print "* VIEWED ONLY OPPS".ljust(25)+" = "+ str(VOO)
-  print "* ACCEPTED OPPS".ljust(25)+" = "+ str(VAO)
-  print "* REJECTED OPPS".ljust(25)+" = "+str(VRO)
-  print "* SKIPPED OPPS".ljust(25)+" = "+str(VSO)
-  print "* TOTAL OPPS PROCESSED".ljust(25)+" = "+str(VOO+VAO+VRO+VSO)
-  print LS
-  print "* RETRIED".ljust(25)+" = "+str(RETRIED)
-  print "* FAILED".ljust(25)+" = "+str(FAILED)
-  print "* SUCCEEDED".ljust(25)+" = "+str(SUCCEEDED)
-  print "* TOTAL".ljust(25)+" = "+str(RETRIED+FAILED+SUCCEEDED)
-  print LS
-  print LS
-  print LS
-  return()
-#=======================================================================================================================
 def obtainExternalToken(options):
   url = options['env_hosts']['uahost']+options['env_hosts']['uaport']+'/auths'
   data =    { 'email': options['usr'], 'password': options['pwd']}
