@@ -359,7 +359,6 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, t
 
   return (totals)
 #=======================================================================================================================
-  
 def startCoding(options, cookies):
   global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
 
@@ -497,7 +496,6 @@ def startCoding(options, cookies):
 #=======================================================================================================================
 def logout(options):
   print LS
-  testCode = 99
   response = requests.get(options['env_hosts']['hcchost'] + "/account/logout")
   print "* LOGOUT".ljust(25) + " = " +str(response.status_code) + " " + stat_codes[response.status_code]
   if response.status_code != r_stat_codes['ok']:
@@ -633,13 +631,13 @@ def drawGraph(srcedict, options):
   savefig(str(CURDAY))
   #show()
   return()
-###########################################################################################################################################
+#=======================================================================================================================
 def getKey(key):
   try:
     return int(key)
   except ValueError:
     return key
-###########################################################################################################################################
+#=======================================================================================================================
 def convertJsonToTable(srcedict, sortby):
   report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
   if sortby == "value":
@@ -675,8 +673,6 @@ def extractTargetedHccData(targhcc, srcedict):
   return (extrdict)
 #=======================================================================================================================
 def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat):
-  global SORTED_PERCENT_OF_TARGET_HCC_SERVED
-
   hours, minuts, seconds = checkDuration(start_time)
   end_time = time.time()
 
@@ -974,6 +970,8 @@ def defineGlobals(options):
   COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
   PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
+
+
   return()
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
