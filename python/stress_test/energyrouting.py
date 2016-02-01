@@ -58,7 +58,7 @@ import shutil
 import json
 from time import gmtime, strftime
 import mmap
-#from pylab import *
+from pylab import *
 from matplotlib.pyplot import *
 import random
 import smtplib
