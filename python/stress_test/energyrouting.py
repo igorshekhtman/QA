@@ -58,8 +58,9 @@ import shutil
 import json
 from time import gmtime, strftime
 import mmap
-#from pylab import *
+from pylab import *
 from matplotlib.pyplot import *
+matplotlib.use('Agg')
 import random
 import smtplib
 from email.mime.text import MIMEText
