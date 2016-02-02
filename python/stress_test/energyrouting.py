@@ -422,7 +422,7 @@ def startCoding(options, cookies):
     print SL
     print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, int(options['max_opps']))
     print "* HCC CODE".ljust(25)+" = "+str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
-    print "* PATIENT NAME".ljust(25)+" = "+str(opportunity.get("patient").get("first_name")[0:2]+" "+opportunity.get("patient").get("middle_name")[0:2]+opportunity.get("patient").get("last_name")[0:2])
+    print "* PATIENT NAME".ljust(25)+" = "+str(opportunity.get("patient").get("first_name")[0:2]+" "+opportunity.get("patient").get("middle_name")[0:2]+" "+opportunity.get("patient").get("last_name")[0:2])
     print "* PATIENT DOB".ljust(25)+" = "+str(opportunity.get("patient").get("dob")[-4:])
     print "* PATIENT GENDER".ljust(25)+" = "+str(opportunity.get("patient").get("gender"))
     print "* PATIENT ORG ID".ljust(25)+" = "+str(opportunity.get("patient").get("org_id"))
