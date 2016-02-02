@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d86fd531-ff15-434d-9f8a-a055572d7ad6" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../bundling_tool/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/energyrouting.py" afterPath="$PROJECT_DIR$/energyrouting.py" />
     </list>
     <ignored path="stress_test.iws" />
@@ -27,8 +28,8 @@
       <file leaf-file-name="energyrouting.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/energyrouting.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6486091">
-              <caret line="1013" column="3" selection-start-line="1013" selection-start-column="3" selection-end-line="1013" selection-end-column="3" />
+            <state vertical-scroll-proportion="0.39824304">
+              <caret line="425" column="87" selection-start-line="425" selection-start-column="87" selection-end-line="425" selection-end-column="87" />
               <folding>
                 <element signature="e#2586#2601#0" expanded="true" />
               </folding>
@@ -733,8 +734,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/energyrouting.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6486091">
-          <caret line="1013" column="3" selection-start-line="1013" selection-start-column="3" selection-end-line="1013" selection-end-column="3" />
+        <state vertical-scroll-proportion="0.39824304">
+          <caret line="425" column="87" selection-start-line="425" selection-start-column="87" selection-end-line="425" selection-end-column="87" />
           <folding>
             <element signature="e#2586#2601#0" expanded="true" />
           </folding>
