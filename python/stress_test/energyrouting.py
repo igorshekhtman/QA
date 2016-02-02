@@ -610,12 +610,6 @@ def confirmSettings(options, cookies):
   print ("* TARG HCC-"+str(options['target_hcc'])+" ACCEPT").ljust(25)+" = "+ str(options['action_weights']['target']['va'])+"%"
   print ("* TARG HCC-"+str(options['target_hcc'])+" REJECT").ljust(25)+" = "+ str(options['action_weights']['target']['vr'])+"%"
   print LS
-  user_response = raw_input("Enter 'P' to Proceed or 'Q' to Quit: ")
-  if user_response.upper() == "Q":
-    print "exiting ..."
-    quit()
-  else:
-    print "proceeding ..."
   return(en_rout_stat)
 #=======================================================================================================================
 def drawGraph(srcedict, options):
@@ -884,6 +878,13 @@ def trackCount(item, totals, resp_time):
       totals[item][2] = resp_time
   return(totals)
 #=======================================================================================================================
+def pauseBreak():
+  user_response = raw_input(">>> Press [Enter] to Proceed or [Q] to Quit: ")
+  if user_response.upper() == "Q":
+    print "exiting ..."
+    quit()
+  return ()
+#=======================================================================================================================
 def convTimeString(ftime):
   hours, rest = divmod(ftime,3600)
   minutes, seconds = divmod(rest, 60)
@@ -1010,6 +1011,7 @@ def Main():
   defineGlobals(options)
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
+  #pauseBreak()
   totals, opps_totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
   logout(options)
