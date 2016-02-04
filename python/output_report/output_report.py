@@ -58,7 +58,8 @@ def getEnvHosts(env):
     uahost = 'https://useraccount-stg.apixio.com'
     uaport = ':7076'
     caller = 'hcc_stg'
-    cmphost="http://cmp-stg2.apixio.com:8087"
+    cmphost='http://cmp-stg2.apixio.com:8087'
+    rephost='https://hcc-reports-2-stg.apixio.com:7097/outputreport/'
   elif env.lower()[0] == 'd':
     tokenhost = 'https://tokenizer-dev.apixio.com:7075/tokens'
     hcchost = 'https://hccdev.apixio.com/'
@@ -67,6 +68,7 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_dev'
     cmphost="https://cmp-dev.apixio.com:7087"
+    rephost='https://hcc-reports-2-stg.apixio.com:7097/outputreport/'
   elif env.lower()[0] == 'e':
     tokenhost = 'https://tokenizer-eng.apixio.com:7075/tokens'
     hcchost = 'https://hcceng.apixio.com/'
@@ -75,14 +77,17 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_eng'
     cmphost="https://cmp-stg2.apixio.com:7087"
-  hlist= {'cmphost':cmphost, 'tokenhost':tokenhost, 'hcchost':hcchost, 'ssohost':ssohost, 'uahost':uahost, 'uaport':uaport, 'caller':caller}
+    rephost='https://hcc-reports-2-stg.apixio.com:7097/outputreport/'
+  hlist= {'cmphost':cmphost, 'tokenhost':tokenhost, 'hcchost':hcchost, 'ssohost':ssohost, \
+          'uahost':uahost, 'uaport':uaport, 'caller':caller, 'rephost':rephost}
   return (hlist)
 #=========================================================================================
 def reportLookup(headers, options):
   print authentication.LS
   print ">>> CHECKING OUTPUT REPORT FOR %s <<<" % options['project']
   print authentication.LS
-  url = "https://hcc-reports-2-stg.apixio.com:7097/outputreport/"+options['project']
+  #url = "https://hcc-reports-2-stg.apixio.com:7097/outputreport/"+options['project']
+  url = options['hlist']['rephost']+options['project']
   print "* Host Url".ljust(25)+ " = "+ url
   print "* Project".ljust(25)+ " = "+ options['project']
   print "* Token".ljust(25)+ " = "+headers['Authorization']
@@ -126,9 +131,11 @@ def Main():
   options={}
   options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Staging"
   options['project'] = sys.argv[2] if len(sys.argv) > 2 else "CP_492a247f-8f51-4665-b4fa-bbf2cc2bc963"
+  hlist = getEnvHosts(options['env'])
+  options['hlist'] = hlist
 
   authentication.defineGlobals()
-  hlist = getEnvHosts(options['env'])
+
   headers = authentication.authenticateSetHeaders('ishekhtman@apixio.com', 'apixio.321', hlist)
 
   report = reportLookup(headers, options)
