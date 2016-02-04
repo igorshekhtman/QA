@@ -107,10 +107,11 @@ def reportLookup(headers, options):
 #=======================================================================================================================
 def saveReport(report, options):
   print authentication.LS
-  print "* File Name".ljust(25)+" = Saving "+"output_report_"+options['project']+".json"
+  print "* File Name".ljust(25)+" = output_report_"+options['project']+".json"
   f = open('output_report_'+options['project']+'.json', 'w')
   f.write(json.dumps(report))
   f.close()
+  print "* Saved".ljust(25)+ " = 200 ok"
   print authentication.LS
   return()
 #=======================================================================================================================
