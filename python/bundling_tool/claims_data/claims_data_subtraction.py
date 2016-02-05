@@ -164,7 +164,7 @@ def Main():
     projName = 'HealthNet_'+passType
     projID = createProject(dsID, projName, headers, hlist, passType)
     bundleProject(projID, headers, hlist)
-    time.sleep(10)
+    time.sleep(15)
     tot_opps = queryElasticSearchOpps(dsID, projID)
     print "* Opps generated".ljust(25)+" = " + str(tot_opps)
     print authentication.SL
