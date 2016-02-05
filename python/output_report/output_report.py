@@ -33,6 +33,7 @@ import sys, os
 import json
 import pprint
 import authentication
+from time import gmtime, strftime
 requests.packages.urllib3.disable_warnings()
 #=========================================================================================
 #================= Global Variable Initialization Section ================================
@@ -106,9 +107,10 @@ def reportLookup(headers, options):
   return(report)
 #=======================================================================================================================
 def saveReport(report, options):
+  cur_date_time = strftime("%m_%d_%Y_%H:%M:%S", gmtime(time.time()))
   print authentication.LS
-  print "* File Name".ljust(25)+" = output_report_"+options['project']+".json"
-  f = open('output_report_'+options['project']+'.json', 'w')
+  print "* File Name".ljust(25)+" = output_report_"+options['project']+"_"+cur_date_time+".json"
+  f = open('output_report_'+options['project']+"_"+cur_date_time+'.json', 'w')
   f.write(json.dumps(report))
   f.close()
   print "* Saved".ljust(25)+ " = 200 ok"
