@@ -68,7 +68,7 @@ def getEnvHosts(env):
     uaport = ':7076'
     caller = 'hcc_dev'
     cmphost="https://cmp-dev.apixio.com:7087"
-    rephost='https://hcc-reports-2-stg.apixio.com:7097/outputreport/'
+    rephost='https://hcc-reports-dev.apixio.com:7097/outputreport/'
   elif env.lower()[0] == 'e':
     tokenhost = 'https://tokenizer-eng.apixio.com:7075/tokens'
     hcchost = 'https://hcceng.apixio.com/'
@@ -130,7 +130,7 @@ def Main():
   reload(authentication)
   os.system('clear')
   options={}
-  options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Staging"
+  options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Development"
   options['project'] = sys.argv[2] if len(sys.argv) > 2 else "CP_492a247f-8f51-4665-b4fa-bbf2cc2bc963"
   hlist = getEnvHosts(options['env'])
   options['hlist'] = hlist
