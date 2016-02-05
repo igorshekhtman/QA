@@ -664,10 +664,11 @@ def convertJsonToTable(srcedict, sortby):
 def extractTargetedHccData(targhcc, srcedict):
   extrdict = {}
   for k, v in sorted(srcedict.iteritems()):
-    if targhcc in v.keys():
-      extrdict.update({k: v[targhcc]})
-    else:
-      extrdict.update({k: 0})
+    if v != 0:
+      if targhcc in v.keys():
+        extrdict.update({k: v[targhcc]})
+      else:
+        extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
 def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat):
@@ -1011,7 +1012,7 @@ def Main():
   defineGlobals(options)
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
-  #pauseBreak()
+  pauseBreak()
   totals, opps_totals = startCoding(options, cookies)
   printResults(options, start_time, totals)
   logout(options)
