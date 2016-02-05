@@ -107,7 +107,7 @@ def reportLookup(headers, options):
   return(report)
 #=======================================================================================================================
 def saveReport(report, options):
-  cur_date_time = strftime("%m_%d_%Y_%H:%M:%S", gmtime(time.time()))
+  cur_date_time = strftime("%m_%d_%Y_%H_%M_%S", gmtime(time.time()))
   print authentication.LS
   print "* File Name".ljust(25)+" = output_report_"+options['project']+"_"+cur_date_time+".json"
   f = open('output_report_'+options['project']+"_"+cur_date_time+'.json', 'w')
