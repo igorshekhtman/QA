@@ -157,7 +157,9 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, t
     	}
 
   aurl = url+ "api/annotate/"
+  print LSS
   print "* HCC CODE".ljust(25)+" = "+ str(hcc)+"-"+str(label_set_version)+"-"+str(sweep)+"-"+str(model_payment_year)
+  print LSS
   print "* FINDING ID".ljust(25)+" = "+ finding_id
   print "* ANNO URL".ljust(25)+" = "+aurl
 
@@ -372,7 +374,6 @@ def startCoding(options, cookies):
   print "* Coder pwd".ljust(25)+ " = " + options['pwd']
   print "* Max Opp(s)".ljust(25)+ " = " + str(options['max_opps'])
   print LSS
-  buckets = -1
   nwiurl = options['env_hosts']['hcchost']+"api/next-work-item/"
   print "* HCC Url".ljust(25)+" = "+ nwiurl
   print "* csrftoken".ljust(25)+" = "+ cookies['csrftoken']
@@ -382,6 +383,7 @@ def startCoding(options, cookies):
   data = {}
   totals={}
   opps_totals={}
+  det_totals={'hcc':{}, 'label_set_version':{}, 'sweep':{}, 'model_payment_year':{}}
 
   for coding_opp_current in range(1, (int(options['max_opps'])+1)):
     printSeparator("NEXT OPPORTUNITY")
@@ -407,17 +409,15 @@ def startCoding(options, cookies):
                 return (totals, opps_totals)
 
     hcc = opportunity.get("code").get("hcc")
-    tallyDetails("hcc", hcc)
+    det_totals = tallyDetails("hcc", hcc, det_totals)
     label_set_version = opportunity.get("code").get("labelSetVersion")
-    tallyDetails("label_set_version", label_set_version)
+    det_totals = tallyDetails("label_set_version", label_set_version, det_totals)
     sweep = opportunity.get("code").get("sweep")
-    tallyDetails("sweep", sweep)
+    det_totals = tallyDetails("sweep", sweep, det_totals)
     model_payment_year = opportunity.get("code").get("modelPaymentYear")
-    tallyDetails("model_payment_year", model_payment_year)
+    det_totals = tallyDetails("model_payment_year", model_payment_year, det_totals)
     opp = str(hcc+"-"+label_set_version+"-"+sweep+"-"+model_payment_year)
     trackOpps(opp, opps_totals)
-
-
 
     print SL
     print "* PATIENT OPP".ljust(25)+" = "+"%d OF %d" % (coding_opp_current, int(options['max_opps']))
@@ -432,7 +432,6 @@ def startCoding(options, cookies):
     print "* TRANSACTION ID".ljust(25)+" = "+str(opportunity.get("transactionId"))
     print SL
 
-
     status = opportunity.get("status")
     possiblecodes = opportunity.get("possibleCodes") 
     numpossiblecodes = len(possiblecodes)
@@ -441,15 +440,17 @@ def startCoding(options, cookies):
     project = opportunity.get("project")
     finding_ids = opportunity.get("finding_ids")
     print "PATIENT OPP %d OF %d" % (coding_opp_current, int(options['max_opps']))
-    TOTAL_OPPS_SERVED = coding_opp_current   
-    
-    if str(TOTAL_OPPS_SERVED) in PERCENT_OF_SERVED:
-      buckets += 1
-      COUNT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=(dict((key, value) for key, value in HCC.items() if (value > 0)))
-      TEMP_HCC = (dict((key, value) for key, value in HCC.items() if (value > 0)))
-      for hcc in TEMP_HCC:
-        TEMP_HCC[hcc] = round(float(TEMP_HCC[hcc])/float(TOTAL_OPPS_SERVED),2)
-      PERCENT_OF_SERVED[str(TOTAL_OPPS_SERVED)]=TEMP_HCC
+    tot_opps_served = coding_opp_current
+
+
+    if str(tot_opps_served) in PERCENT_OF_SERVED:
+      COUNT_OF_SERVED[str(tot_opps_served)]=(dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
+
+      temp_hcc = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
+      for hcc in temp_hcc:
+        temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(tot_opps_served),2)
+
+      PERCENT_OF_SERVED[str(tot_opps_served)]=temp_hcc
 
     doc_no_max = 1
     for doc_no in range (0,doc_no_max):
@@ -496,7 +497,7 @@ def startCoding(options, cookies):
       action = WeightedRandomCodingAction(hcc, options)
       totals = act_on_doc(options['env_hosts']['hcchost'], cookies, opportunity, finding, finding_id, doc_no, action, totals, options['dos'])
 
-  return (totals, opps_totals)
+  return (totals, opps_totals, det_totals)
 #=======================================================================================================================
 def logout(options):
   print LS
@@ -507,25 +508,16 @@ def logout(options):
     print "* HCC RESPONSE".ljust(25)+ " = " + "WARNING : Bad HCC Server Response " + str(response.status_code) + " " + stat_codes[response.status_code]
   return 0
 #=======================================================================================================================
-def tallyDetails(item, value):
-  global MODEL_YEAR, PAYMENT_YEAR, HCC, MODEL_RUN
-  global MODEL_PAYMENT_YEAR, SWEEP, LABEL_SET_VERSION
-	
-  if item == "model_year":
-    MODEL_YEAR[value] += 1
-  elif item == "payment_year":
-    PAYMENT_YEAR[value] += 1
-  elif item == "hcc":
-    HCC[value] += 1
-  elif item == "model_run":
-    MODEL_RUN[value] += 1
-  elif item == "model_payment_year":
-    MODEL_PAYMENT_YEAR[value] += 1
-  elif item == "sweep":
-    SWEEP[value] += 1
-  elif item == "label_set_version":
-    LABEL_SET_VERSION[value] += 1
-  return 0
+def tallyDetails(item, value, det_totals):
+  print det_totals
+  if det_totals[item] == {}:
+    det_totals[item][str(value)]=1
+  else:
+    if str(value) not in det_totals[item]:
+      det_totals[item][str(value)]=1
+    else:
+      det_totals[item][str(value)]+=1
+  return (det_totals)
 #=======================================================================================================================
 def WeightedRandomCodingAction(hcc_code, options):
   if hcc_code == options['target_hcc']:
@@ -651,13 +643,13 @@ def convertJsonToTable(srcedict, sortby):
             b_color = '#FFFF00'
           else:
             b_color = '#FFFFFF'
-        report += "<tr><td bgcolor='"+b_color+"'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"'><b>"+str(item[1])+"</b></td></tr>"
+        report += "<tr><td bgcolor='"+b_color+"' width='50%'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' width='50%'><b>"+str(item[1])+"</b></td></tr>"
         ctr += 1
   else:
     sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)
     for item in sorteditems:
       if item[1] > 0:
-        report +="<tr><td>"+str(item[0])+"</td><td><b>"+str(item[1])+"</b></td></tr>"
+        report +="<tr><td width='50%'>"+str(item[0])+"</td><td width='50%'><b>"+str(item[1])+"</b></td></tr>"
   report += "</table>"
   return(report)
 #=======================================================================================================================
@@ -671,7 +663,7 @@ def extractTargetedHccData(targhcc, srcedict):
         extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat):
+def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals):
   hours, minuts, seconds = checkDuration(start_time)
   end_time = time.time()
 
@@ -712,19 +704,15 @@ def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat):
   r += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
   r += "<tr><td colspan='2'><hr></td></tr>"
 		
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"
-  r += convertJsonToTable(MODEL_PAYMENT_YEAR, "key")
-  r += "</td></tr>"
-  r += "<tr><td nowrap>Sweep:</td><td>"
-  r += convertJsonToTable(SWEEP, "key")
-  r += "</td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"
-  r += convertJsonToTable(LABEL_SET_VERSION, "key")
-  r += "</td></tr>"
+  r += "<tr><td nowrap>HCCs:</td><td>"+convertJsonToTable(det_totals['hcc'], "key")+"</td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['model_payment_year'], "key")+"</td></tr>"
+  r += "<tr><td nowrap>Sweep:</td><td>"+convertJsonToTable(det_totals['sweep'], "key")+"</td></tr>"
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['label_set_version'], "key")+"</td></tr>"
+
   r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td nowrap>HCCs total:</td><td>"
-  r += convertJsonToTable(opps_totals, "value")
-  r += "</td></tr>"
+
+  r += "<tr><td nowrap>HCCs total:</td><td>"+convertJsonToTable(opps_totals, "value")+"</td></tr>"
+
   r += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
   r += convertJsonToTable(COUNT_OF_SERVED, "key")
   r += "</td></tr>"
@@ -1013,10 +1001,12 @@ def Main():
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
   pauseBreak()
-  totals, opps_totals = startCoding(options, cookies)
+  totals, opps_totals, det_totals = startCoding(options, cookies)
+  #print det_totals
+  #quit()
   printResults(options, start_time, totals)
   logout(options)
-  report = writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat)
+  report = writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals)
   #archiveReport(report)
   emailReport(options, report)
 
