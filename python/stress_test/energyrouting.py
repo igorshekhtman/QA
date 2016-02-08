@@ -444,13 +444,13 @@ def startCoding(options, cookies):
 
 
     if str(tot_opps_served) in PERCENT_OF_SERVED:
-      COUNT_OF_SERVED[str(tot_opps_served)]=(dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
-
+      COUNT_OF_SERVED[str(tot_opps_served)] = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
       temp_hcc = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
+
       for hcc in temp_hcc:
         temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(tot_opps_served),2)
 
-      PERCENT_OF_SERVED[str(tot_opps_served)]=temp_hcc
+      PERCENT_OF_SERVED[str(tot_opps_served)] = temp_hcc
 
     doc_no_max = 1
     for doc_no in range (0,doc_no_max):
@@ -981,11 +981,11 @@ def Main():
   options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 20
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
   options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "19"
-  options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
+  options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2013"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
