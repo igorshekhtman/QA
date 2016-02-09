@@ -365,8 +365,19 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, t
 
   return (totals)
 #=======================================================================================================================
+def oppsServedTotals(buckets, options, coding_opp_current, opp, served_totals):
+  print options['max_opps']
+  print options['buckets']
+  print options['opps_per_bucket']
+  print coding_opp_current
+  print buckets
+
+
+  return()
+
+#=======================================================================================================================
 def startCoding(options, cookies):
-  global PERCENT_OF_SERVED, HCC, COUNT_OF_SERVED
+  global PERCENT_OF_SERVED, COUNT_OF_SERVED
 
   print LSS
   print "* HCC Url".ljust(25)+" = " + options['env_hosts']['hcchost']
@@ -383,6 +394,7 @@ def startCoding(options, cookies):
   data = {}
   totals={}
   opps_totals={}
+  served_totals={}
   det_totals={'hcc':{}, 'label_set_version':{}, 'sweep':{}, 'model_payment_year':{}}
 
   for coding_opp_current in range(1, (int(options['max_opps'])+1)):
@@ -440,17 +452,16 @@ def startCoding(options, cookies):
     project = opportunity.get("project")
     finding_ids = opportunity.get("finding_ids")
     print "PATIENT OPP %d OF %d" % (coding_opp_current, int(options['max_opps']))
-    tot_opps_served = coding_opp_current
 
-
-    if str(tot_opps_served) in PERCENT_OF_SERVED:
-      COUNT_OF_SERVED[str(tot_opps_served)] = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
+#--------------- temp code should be removed with introduction of new function ---------------------------------------------------
+    if str(coding_opp_current) in PERCENT_OF_SERVED:
+      COUNT_OF_SERVED[str(coding_opp_current)] = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
       temp_hcc = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
-
       for hcc in temp_hcc:
-        temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(tot_opps_served),2)
-
-      PERCENT_OF_SERVED[str(tot_opps_served)] = temp_hcc
+        temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(coding_opp_current),2)
+      PERCENT_OF_SERVED[str(coding_opp_current)] = temp_hcc
+#--------------- temp code should be removed with introduction of new function ---------------------------------------------------
+    served_totals = oppsServedTotals(options, coding_opp_current, opp, served_totals)
 
     doc_no_max = 1
     for doc_no in range (0,doc_no_max):
@@ -509,7 +520,6 @@ def logout(options):
   return 0
 #=======================================================================================================================
 def tallyDetails(item, value, det_totals):
-  print det_totals
   if det_totals[item] == {}:
     det_totals[item][str(value)]=1
   else:
@@ -929,18 +939,12 @@ def defineGlobals(options):
   global MAX_NUM_RETRIES, COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
   global stat_codes, r_stat_codes
   global START_TIME, TIME_START, MONTH_FMN, CURDAY, CURMONTH
-  global HCC, MODEL_PAYMENT_YEAR, LABEL_SET_VERSION, SWEEP
 
   START_TIME=strftime("%m/%d/%Y %H:%M:%S", gmtime())
   TIME_START=time.time()
   MONTH_FMN=strftime("%B", gmtime())
   CURDAY=strftime("%d", gmtime())
   CURMONTH=strftime("%m", gmtime())
-
-  HCC = {str(key): 0 for key in range(0, 200)}
-  MODEL_PAYMENT_YEAR = {str(key): 0 for key in range(2000, 2040)}
-  LABEL_SET_VERSION = {'V12': 0, 'V22': 0}
-  SWEEP = {'midYear': 0, 'finalReconciliation': 0, 'initial': 0}
 
   stat_codes = {200:'ok', 201:'created', 202:'accepted', 204:'nocontent', \
                 301:'movedperm', 302:'redirect', \
@@ -967,6 +971,20 @@ def defineGlobals(options):
 
 
   return()
+#=======================================================================================================================
+def initBuckets(options):
+  buckets = {}
+  for i in range (1,options['buckets']+1):
+    l = []
+    for j in range (1,options['opps_per_bucket']+1):
+      l.append(j*i)
+    buckets[i]=l
+
+  print buckets
+  quit()
+
+
+  return(buckets)
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
 ###########################################################################################################################################
@@ -1001,9 +1019,8 @@ def Main():
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
   pauseBreak()
+  buckets = initBuckets(options)
   totals, opps_totals, det_totals = startCoding(options, cookies)
-  #print det_totals
-  #quit()
   printResults(options, start_time, totals)
   logout(options)
   report = writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals)
