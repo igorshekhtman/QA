@@ -1014,14 +1014,14 @@ def getBucket(coding_opp_current, buckets):
 #=======================================================================================================================
 def convertToPercentPerBucket(options, served_totals):
   per_served_per_bucket=deepcopy(served_totals)
-  targ_hcc_per_serv_per_bucket=deepcopy(served_totals)
+  targ_hcc_per_serv_per_bucket={}
   for total in served_totals:
-      for hcc in served_totals[total]:
-          per_served_per_bucket[total][hcc] = round(float(served_totals[total][hcc])/float(options['opps_per_bucket']),2)
-          if hcc.split("-")[0] == str(options['target_hcc']):
-            targ_hcc_per_serv_per_bucket[total] = int(round(float(served_totals[total][hcc])/float(options['opps_per_bucket']),2)*100)
-          else:
-            targ_hcc_per_serv_per_bucket[total] = 0
+    targ_hcc_per_serv_per_bucket[total] = round(float(0.00),2)
+    for hcc in served_totals[total]:
+      per_served = round(float(served_totals[total][hcc])/float(options['opps_per_bucket']),2)
+      per_served_per_bucket[total][hcc] = per_served
+      if hcc.split("-")[0] == str(options['target_hcc']):
+        targ_hcc_per_serv_per_bucket[total] = per_served
   return(per_served_per_bucket, targ_hcc_per_serv_per_bucket)
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
@@ -1037,11 +1037,11 @@ def Main():
   options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 100
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "130"
-  options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2013"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "45"
+  options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
 
