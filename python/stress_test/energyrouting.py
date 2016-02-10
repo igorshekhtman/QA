@@ -58,6 +58,7 @@ import shutil
 import json
 from time import gmtime, strftime
 import mmap
+from copy import deepcopy
 import sys
 #from pylab import *
 #from matplotlib.pyplot import *
@@ -365,18 +366,19 @@ def act_on_doc(url, cookies, opportunity, finding, finding_id, doc_no, action, t
 
   return (totals)
 #=======================================================================================================================
-def oppsServedTotals(buckets, options, coding_opp_current, opp, served_totals):
-  print options['max_opps']
-  print options['buckets']
-  print options['opps_per_bucket']
-  print coding_opp_current
-  print buckets
-
-
-  return()
-
+def oppsServedTotals(options, coding_opp_current, opp, served_totals, buckets):
+  bucket = getBucket(coding_opp_current, buckets)
+  print "BUCKET NUMBER "+str(bucket)+" OF "+str(options['buckets'])
+  if bucket not in served_totals:
+    served_totals[bucket]={str(opp):1}
+  else:
+    if str(opp) not in served_totals[bucket]:
+      served_totals[bucket][str(opp)]=1
+    else:
+      served_totals[bucket][str(opp)]+=1
+  return(served_totals)
 #=======================================================================================================================
-def startCoding(options, cookies):
+def startCoding(options, cookies, buckets):
   global PERCENT_OF_SERVED, COUNT_OF_SERVED
 
   print LSS
@@ -461,7 +463,8 @@ def startCoding(options, cookies):
         temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(coding_opp_current),2)
       PERCENT_OF_SERVED[str(coding_opp_current)] = temp_hcc
 #--------------- temp code should be removed with introduction of new function ---------------------------------------------------
-    served_totals = oppsServedTotals(options, coding_opp_current, opp, served_totals)
+    served_totals = oppsServedTotals(options, coding_opp_current, opp, served_totals, buckets)
+
 
     doc_no_max = 1
     for doc_no in range (0,doc_no_max):
@@ -508,7 +511,7 @@ def startCoding(options, cookies):
       action = WeightedRandomCodingAction(hcc, options)
       totals = act_on_doc(options['env_hosts']['hcchost'], cookies, opportunity, finding, finding_id, doc_no, action, totals, options['dos'])
 
-  return (totals, opps_totals, det_totals)
+  return (totals, opps_totals, det_totals, served_totals)
 #=======================================================================================================================
 def logout(options):
   print LS
@@ -615,7 +618,7 @@ def confirmSettings(options, cookies):
   return(en_rout_stat)
 #=======================================================================================================================
 def drawGraph(srcedict, options):
-  global CURDAY, START, STOP
+  global CURDAY
   key = sorted(srcedict.keys())
   temp = []
   for i in key:
@@ -673,7 +676,7 @@ def extractTargetedHccData(targhcc, srcedict):
         extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals):
+def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals, served_totals, per_served_per_bucket, targ_hcc_per_serv_per_bucket):
   hours, minuts, seconds = checkDuration(start_time)
   end_time = time.time()
 
@@ -724,17 +727,38 @@ def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, de
   r += "<tr><td nowrap>HCCs total:</td><td>"+convertJsonToTable(opps_totals, "value")+"</td></tr>"
 
   r += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-  r += convertJsonToTable(COUNT_OF_SERVED, "key")
+
+  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  for total in served_totals:
+    r += "<tr><td width='50%'>" + str(total) + "</td><td width='50%'>" + str(served_totals[total]) + "</td></tr>"
+  r += "</table>"
+
   r += "</td></tr>"
   r += "<tr><td nowrap>HCCs % per bucket:</td><td>"
-  r += convertJsonToTable(PERCENT_OF_SERVED, "key")
+
+  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  for per_served in per_served_per_bucket:
+    r += "<tr><td width='50%'>" + str(per_served) + "</td><td width='50%'>" + str(per_served_per_bucket[per_served]) + "</td></tr>"
+  r += "</table>"
+
+
+
   r += "</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (options['target_hcc'])
-  r += convertJsonToTable(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), "key")
+
+
+  #r += convertJsonToTable(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), "key")
+
+  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  for targ_hcc in targ_hcc_per_serv_per_bucket:
+    r += "<tr><td width='50%'>" + str(targ_hcc) + "</td><td width='50%'>" + str(targ_hcc_per_serv_per_bucket[targ_hcc]) + "</td></tr>"
+  r += "</table>"
+
   r += "</td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
 	
-  drawGraph(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), options)
+  #drawGraph(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), options)
+  drawGraph(targ_hcc_per_serv_per_bucket, options)
 
   r += "<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
@@ -972,19 +996,33 @@ def defineGlobals(options):
 
   return()
 #=======================================================================================================================
-def initBuckets(options):
-  buckets = {}
-  for i in range (1,options['buckets']+1):
+def generateBuckets(options):
+  buckets = []
+  for i in range (1,options['max_opps'],options['opps_per_bucket']):
     l = []
-    for j in range (1,options['opps_per_bucket']+1):
-      l.append(j*i)
-    buckets[i]=l
-
-  print buckets
-  quit()
-
-
+    for j in range (options['opps_per_bucket']):
+      l.append(i+j)
+    buckets.append(l)
   return(buckets)
+#=======================================================================================================================
+def getBucket(coding_opp_current, buckets):
+  bucket_number = 10
+  for bucket in buckets:
+    if coding_opp_current in bucket:
+      bucket_number = buckets.index(bucket)+1
+  return(bucket_number)
+#=======================================================================================================================
+def convertToPercentPerBucket(options, served_totals):
+  per_served_per_bucket=deepcopy(served_totals)
+  targ_hcc_per_serv_per_bucket=deepcopy(served_totals)
+  for total in served_totals:
+      for hcc in served_totals[total]:
+          per_served_per_bucket[total][hcc] = round(float(served_totals[total][hcc])/float(options['opps_per_bucket']),2)
+          if hcc.split("-")[0] == str(options['target_hcc']):
+            targ_hcc_per_serv_per_bucket[total] = int(round(float(served_totals[total][hcc])/float(options['opps_per_bucket']),2)*100)
+          else:
+            targ_hcc_per_serv_per_bucket[total] = 0
+  return(per_served_per_bucket, targ_hcc_per_serv_per_bucket)
 ###########################################################################################################################################
 # MAIN FUNCTION CALLER ####################################################################################################################
 ###########################################################################################################################################
@@ -999,10 +1037,10 @@ def Main():
   options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 20
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "19"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "130"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2013"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
@@ -1019,11 +1057,16 @@ def Main():
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
   pauseBreak()
-  buckets = initBuckets(options)
-  totals, opps_totals, det_totals = startCoding(options, cookies)
+  buckets = generateBuckets(options)
+  totals, opps_totals, det_totals, served_totals = startCoding(options, cookies, buckets)
+  per_served_per_bucket, targ_hcc_per_serv_per_bucket = convertToPercentPerBucket(options, served_totals)
+
+
   printResults(options, start_time, totals)
   logout(options)
-  report = writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals)
+  report = writeReportFooter(options, totals, opps_totals, start_time, \
+                             en_rout_stat, det_totals, served_totals, \
+                             per_served_per_bucket, targ_hcc_per_serv_per_bucket)
   #archiveReport(report)
   emailReport(options, report)
 
