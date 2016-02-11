@@ -30,8 +30,6 @@
 #		   * note: opprouteroptimization.csv configuration file must coexist in same folder as opprouteroptimization.py
 #
 # USAGE:
-#          * Set the global variables (CSV_CONFIG_FILE_PATH and CSV_CONFIG_FILE_NAME), see below
-#          * Configure global parameters in opprouteroptimization.csv located in the same folder
 #          * Results will be printed on Console screen as well as mailed via QA report
 #		   ***************************************************************************************************************
 #		   * python2.7 energyrouting.py
@@ -59,9 +57,6 @@ import json
 from time import gmtime, strftime
 import mmap
 from copy import deepcopy
-import sys
-#from pylab import *
-#from matplotlib.pyplot import *
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib.pyplot import *
@@ -454,17 +449,7 @@ def startCoding(options, cookies, buckets):
     project = opportunity.get("project")
     finding_ids = opportunity.get("finding_ids")
     print "PATIENT OPP %d OF %d" % (coding_opp_current, int(options['max_opps']))
-
-#--------------- temp code should be removed with introduction of new function ---------------------------------------------------
-    if str(coding_opp_current) in PERCENT_OF_SERVED:
-      COUNT_OF_SERVED[str(coding_opp_current)] = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
-      temp_hcc = (dict((key, value) for key, value in det_totals['hcc'].items() if (value > 0)))
-      for hcc in temp_hcc:
-        temp_hcc[hcc] = round(float(temp_hcc[hcc])/float(coding_opp_current),2)
-      PERCENT_OF_SERVED[str(coding_opp_current)] = temp_hcc
-#--------------- temp code should be removed with introduction of new function ---------------------------------------------------
     served_totals = oppsServedTotals(options, coding_opp_current, opp, served_totals, buckets)
-
 
     doc_no_max = 1
     for doc_no in range (0,doc_no_max):
@@ -589,7 +574,6 @@ def setEnergyRoutingOn(options, cookies):
 #=======================================================================================================================
 def confirmSettings(options, cookies):
   print LS
-  #print "* Version".ljust(25)+ " = "+ str(VERSION)
   print "* Environment".ljust(25)+" = "+ str(options['env'])
   print "* HCC Host".ljust(25)+" = "+ str(options['env_hosts']['hcchost'])
   print "* Report Receivers".ljust(25)+ " = "+ str(options['report_recepients'])
@@ -632,14 +616,7 @@ def drawGraph(srcedict, options):
   title('HCC Opportunity Router Optimization Test')
   grid(True)
   savefig(str(CURDAY))
-  #show()
   return()
-#=======================================================================================================================
-def getKey(key):
-  try:
-    return int(key)
-  except ValueError:
-    return key
 #=======================================================================================================================
 def convertJsonToTable(srcedict, sortby):
   report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
@@ -697,26 +674,16 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
   r += "Energy Routing Status: <b>%s</b><br><br>"%("<font color='green'>ON</color>" if en_rout_stat else "<font color='red'>OFF</color>")
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'><tr><td>"
-
-
-
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-
   printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>ENERGY ROUTING TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td></tr>"
   for total in sorted(totals, key=lambda x:x[0].upper()):
     r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>ENERGY ROUTING TEST COMPLETE</td></tr>"
-
   r +=  "</table>"
-
-
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-
-
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
-		
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
   r += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
@@ -724,50 +691,32 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
   r += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
   r += "<tr><td colspan='2'><hr></td></tr>"
-		
   r += "<tr><td nowrap>HCCs:</td><td>"+convertJsonToTable(det_totals['hcc'], "key")+"</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['model_payment_year'], "key")+"</td></tr>"
   r += "<tr><td nowrap>Sweep:</td><td>"+convertJsonToTable(det_totals['sweep'], "key")+"</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['label_set_version'], "key")+"</td></tr>"
-
   r += "<tr><td colspan='2'><hr></td></tr>"
-
   r += "<tr><td nowrap>HCCs total:</td><td>"+convertJsonToTable(opps_totals, "value")+"</td></tr>"
-
   r += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-
   r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
   for total in served_totals:
     r += "<tr><td width='50%'>" + str(total) + "</td><td width='50%'>" + str(served_totals[total]) + "</td></tr>"
   r += "</table>"
-
   r += "</td></tr>"
   r += "<tr><td nowrap>HCCs % per bucket:</td><td>"
-
   r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
   for per_served in per_served_per_bucket:
     r += "<tr><td width='50%'>" + str(per_served) + "</td><td width='50%'>" + str(per_served_per_bucket[per_served]) + "</td></tr>"
   r += "</table>"
-
-
-
   r += "</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (options['target_hcc'])
-
-
-  #r += convertJsonToTable(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), "key")
-
   r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
   for targ_hcc in targ_hcc_per_serv_per_bucket:
     r += "<tr><td width='50%'>" + str(targ_hcc) + "</td><td width='50%'>" + str(targ_hcc_per_serv_per_bucket[targ_hcc]) + "</td></tr>"
   r += "</table>"
-
   r += "</td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
-	
-  #drawGraph(extractTargetedHccData(options['target_hcc'], PERCENT_OF_SERVED), options)
   drawGraph(targ_hcc_per_serv_per_bucket, options)
-
   r += "<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time)))
@@ -779,7 +728,6 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r += "</td></tr></table>"
   return(r)
 #=======================================================================================================================
-
 def archiveReport(report):
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
 	if not DEBUG_MODE:
@@ -827,7 +775,6 @@ def archiveReport(report):
 		# Delete graph image file from test folder
 		# os.remove(IMAGEFILENAME)
 		print ("Finished archiving report ... \n")
-
 #=======================================================================================================================
 def emailReport(options, report):
   imagefname=str(CURDAY)+".png"
@@ -969,7 +916,6 @@ def getEnvHosts(env):
 #=======================================================================================================================
 def defineGlobals(options):
   global LS, LSS, SL, ACTIONS
-  global MAX_NUM_RETRIES, COUNT_OF_SERVED, PERCENT_OF_SERVED, PERCENT_OF_TARGET_HCC_SERVED
   global stat_codes, r_stat_codes
   global START_TIME, TIME_START, MONTH_FMN, CURDAY, CURMONTH
 
@@ -990,18 +936,9 @@ def defineGlobals(options):
   SL  = "*"*80
   ACTIONS = {0: "View Only", 1: "Accept", 2: "Reject", 3: "Skip"}
 
-  MAX_NUM_RETRIES = int(options['max_ret'])
-  START = (int(options['max_opps'])/10)
-  STOP = int(options['max_opps'])
-  STEP = (int(options['max_opps'])/10)
-
   if options['max_opps'] % 10 != 0:
       print "* Error".ljust(25)+" = Maximum number of opps "+str(options['max_opps'])+" must be divisible by 10"
       quit()
-  COUNT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  PERCENT_OF_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-  PERCENT_OF_TARGET_HCC_SERVED = {str(key): 0 for key in range(START, STOP, STEP)}
-
 
   return()
 #=======================================================================================================================
@@ -1050,7 +987,7 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "45"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "8"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
