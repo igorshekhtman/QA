@@ -981,7 +981,7 @@ def defineGlobals(options):
 
   stat_codes = {200:'ok', 201:'created', 202:'accepted', 204:'nocontent', \
                 301:'movedperm', 302:'redirect', \
-                401:'unauthorized', 404:'notfound', \
+                401:'unauthorized', 403:'forbidden', 404:'notfound', \
                 500:'intservererror', 503:'survunavail'}
   r_stat_codes = {v: k for k, v in stat_codes.items()}
 
@@ -1043,7 +1043,8 @@ def Main():
   options=collections.OrderedDict()
   options['rep_type'] = 'Energy Routing Test'
   options['env'] = sys.argv[1] if len(sys.argv) > 1 else "Development"
-  options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
+  #options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
+  options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyes@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
@@ -1065,7 +1066,7 @@ def Main():
   defineGlobals(options)
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
-  #pauseBreak()
+  pauseBreak()
   buckets = generateBuckets(options)
   totals, opps_totals, det_totals, served_totals = startCoding(options, cookies, buckets)
   per_served_per_bucket, targ_hcc_per_serv_per_bucket = convertToPercentPerBucket(options, served_totals)
