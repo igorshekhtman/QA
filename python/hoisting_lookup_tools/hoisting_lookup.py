@@ -8,9 +8,9 @@
 # INITIAL VERSION: 1.0.0
 #
 # PURPOSE:
-#          This program should be executed via Python2.7 to determine Energy Routing Status:
+#          This program should be executed via Python2.7 to determine hoisting outcome:
 #
-# NOTES / COMMENTS:  python2.7 energyroutingstatus.py engineering
+# NOTES / COMMENTS:  python2.7 hoisting_lookup.py <environment> <code (required)> <codesystem>
 #
 #
 #
@@ -238,7 +238,7 @@ def checkEnvironmentandReceivers():
 	else:
 		print "Missing Energy Setting paramater, aborting now ..."
 		print "Proper use instructions:"
-		print "python2.7 esbundle.py <environment> <code (required)> <codesystem>"
+		print "python2.7 hoisting_lookup.py <environment> <code (required)> <codesystem>"
 		quit()
 
 
