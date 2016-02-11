@@ -676,7 +676,7 @@ def extractTargetedHccData(targhcc, srcedict):
         extrdict.update({k: 0})
   return (extrdict)
 #=======================================================================================================================
-def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, det_totals, served_totals, per_served_per_bucket, targ_hcc_per_serv_per_bucket):
+def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_totals, served_totals, per_served_per_bucket, targ_hcc_per_serv_per_bucket):
   hours, minuts, seconds = checkDuration(start_time)
   end_time = time.time()
 
@@ -696,16 +696,24 @@ def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, de
   r += "Coding Delay Time: <b>%s sec</b><br>"%(options['coding_delay_time'])
   r += "Accepts Date of Service: <b>%s</b><br>"%(options['dos'])
   r += "Energy Routing Status: <b>%s</b><br><br>"%("<font color='green'>ON</color>" if en_rout_stat else "<font color='red'>OFF</color>")
+  r += "<table align='left' width='800' cellpadding='1' cellspacing='1'><tr><td>"
+
+
+
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
 
   printSeparator("ENERGY ROUTING TEST RESULTS SUMMARY")
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>ENERGY ROUTING TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td><tr>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"'>ENERGY ROUTING TEST RESULTS SUMMARY</td><td bgcolor='"+getBgColor('(heading)')+"'>TOT#</td><td bgcolor='"+getBgColor('(heading)')+"'>AVE</td><td bgcolor='"+getBgColor('(heading)')+"'>MIN</td><td bgcolor='"+getBgColor('(heading)')+"'>MAX</td></tr>"
   for total in sorted(totals, key=lambda x:x[0].upper()):
     r +=  ("<tr><td width='650' bgcolor='"+getBgColor(total)+"'> "+ total[0].upper())+total[1:]+"</td><td bgcolor='"+getBgColor(total)+"'> " + str(totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][1]/totals[total][0])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][2])+"</td><td bgcolor='"+getBgColor(total)+"'> " + convTimeString(totals[total][3])+"</td></tr>"
-  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>ENERGY ROUTING TEST COMPLETE</td><tr></table>"
+  r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>ENERGY ROUTING TEST COMPLETE</td></tr>"
+
+  r +=  "</table>"
 
 
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
+
+
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
 		
@@ -767,6 +775,7 @@ def writeReportFooter(options, totals, opps_totals, start_time, en_rout_stat, de
   r += "<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(round(hours)), int(round(minuts)), int(round(seconds)))
   r += "<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
   r += "</table>"
+  r += "</td></tr></table>"
   r += "</td></tr></table>"
   return(r)
 #=======================================================================================================================
@@ -1037,7 +1046,7 @@ def Main():
   options['usr'] = sys.argv[2] if len(sys.argv) > 2 else "energyrouting@apixio.net"
   options['pwd'] = 'apixio.123'
   options['env_hosts'] = getEnvHosts(options['env'])
-  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 100
+  options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
   options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "45"
@@ -1064,7 +1073,7 @@ def Main():
 
   printResults(options, start_time, totals)
   logout(options)
-  report = writeReportFooter(options, totals, opps_totals, start_time, \
+  report = writeReport(options, totals, opps_totals, start_time, \
                              en_rout_stat, det_totals, served_totals, \
                              per_served_per_bucket, targ_hcc_per_serv_per_bucket)
   #archiveReport(report)
