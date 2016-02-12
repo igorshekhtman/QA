@@ -710,7 +710,7 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r += "<tr><td><hr></td></tr>"
   r += "<tr><td>"+jsonToHtmlTable(per_served_per_bucket, "key", "% of HCCs served per bucket", "5-95")+"</td></tr>"
   r += "<tr><td><hr></td></tr>"
-  r += "<tr><td>"+jsonToHtmlTable(targ_hcc_per_serv_per_bucket, "key", "% of Targeted HCC-"+options['target_hcc']+" served per bucket", "5-95")+"</td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(targ_hcc_per_serv_per_bucket, "key", "% of Targeted HCC-"+str(options['target_hcc'])+" served per bucket", "5-95")+"</td></tr>"
   r += "<tr><td><hr></td></tr>"
   r += "<tr><td><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
   r += "<tr><td><hr></td></tr>"
