@@ -1021,7 +1021,7 @@ def Main():
   defineGlobals(options)
   cookies = loginHCC(options)
   en_rout_stat = confirmSettings(options, cookies)
-  pauseBreak()
+  #pauseBreak()
   buckets = generateBuckets(options)
   totals, opps_totals, det_totals, served_totals = startCoding(options, cookies, buckets)
   per_served_per_bucket, targ_hcc_per_serv_per_bucket = convertToPercentPerBucket(options, served_totals)
