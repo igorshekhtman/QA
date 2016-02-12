@@ -618,10 +618,13 @@ def drawGraph(srcedict, options):
   savefig(str(CURDAY))
   return()
 #=======================================================================================================================
-def convertJsonToTable(srcedict, sortby):
-  report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+def jsonToHtmlTable(sdict, sortby, hdr):
+  report = "<table width='800' cellspacing='0' cellpadding='2' border='0'>"
+  report += "<tr><td colspan='2' align='center'><b>"+str(hdr)+"</b></td></tr>"
+  report += "<tr><td>"
+  report += "<table width='800' cellspacing='0' cellpadding='2' border='1'>"
   if sortby == "value":
-    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
+    sorteditems = sorted(sdict.items(), key=operator.itemgetter(1), reverse=True)
     ctr = 0
     for item in sorteditems:
       if item[1] > 0:
@@ -633,13 +636,37 @@ def convertJsonToTable(srcedict, sortby):
             b_color = '#FFFF00'
           else:
             b_color = '#FFFFFF'
-        report += "<tr><td bgcolor='"+b_color+"' width='50%'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' width='50%'><b>"+str(item[1])+"</b></td></tr>"
+        report += "<tr><td bgcolor='"+b_color+"' > HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' ><b>"+str(item[1])+"</b></td></tr>"
         ctr += 1
+  else:
+    sorteditems = sorted(sdict.items(), key=operator.itemgetter(0), reverse=False)
+    for item in sorteditems:
+      if item[1] > 0:
+        report +="<tr><td >"+str(item[0])+"</td><td ><b>"+str(item[1])+"</b></td></tr>"
+  report += "</table>"
+  report += "</td></tr></table>"
+  return (report)
+#=======================================================================================================================
+def convertJsonToTable(srcedict, sortby):
+  report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
+  if sortby == "value":
+    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
+    ctr = 0
+    for item in sorteditems:
+      if ctr == 0:
+        b_color = '#FFFF00'
+        most_served = item[1]
+      else:
+        if (item[1] == most_served) or (item[0] == options['target_hcc']):
+          b_color = '#FFFF00'
+        else:
+          b_color = '#FFFFFF'
+      report += "<tr><td bgcolor='"+b_color+"' width='50%'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' width='50%'><b>"+str(item[1])+"</b></td></tr>"
+      ctr += 1
   else:
     sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)
     for item in sorteditems:
-      if item[1] > 0:
-        report +="<tr><td width='50%'>"+str(item[0])+"</td><td width='50%'><b>"+str(item[1])+"</b></td></tr>"
+      report +="<tr><td width='50%'>"+str(item[0])+"</td><td width='50%'><b>"+str(item[1])+"</b></td></tr>"
   report += "</table>"
   return(report)
 #=======================================================================================================================
@@ -685,35 +712,26 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
   r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
-  r += "<tr><td nowrap>Rejecting Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>Overall Acceptance rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
+  r += "<tr><td nowrap>Overall Rejection rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
   r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Accepting HCC-%s Opps rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
-  r += "<tr><td nowrap>Rejecting HCC-%s Opps rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
+  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s Acceptance rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
+  r += "<tr><td nowrap>HCC-%s Rejection rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
   r += "<tr><td colspan='2'><hr></td></tr>"
   r += "<tr><td nowrap>HCCs:</td><td>"+convertJsonToTable(det_totals['hcc'], "key")+"</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['model_payment_year'], "key")+"</td></tr>"
   r += "<tr><td nowrap>Sweep:</td><td>"+convertJsonToTable(det_totals['sweep'], "key")+"</td></tr>"
   r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['label_set_version'], "key")+"</td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td nowrap>HCCs total:</td><td>"+convertJsonToTable(opps_totals, "value")+"</td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCCs per bucket:</td><td bgcolor='#D8D8D8'>"
-  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-  for total in served_totals:
-    r += "<tr><td width='50%'>" + str(total) + "</td><td width='50%'>" + str(served_totals[total]) + "</td></tr>"
-  r += "</table>"
+
+  r += "<tr><td colspan='3'>"+jsonToHtmlTable(opps_totals, "value", "Total count of individual HCCs served")+"</td></tr>"
+
+  r += "<tr><td colspan='2'>"+jsonToHtmlTable(served_totals, "key", "Number of HCCs served per bucket")+"</td></tr>"
+
+  r += "<tr><td colspan='2'>"+jsonToHtmlTable(per_served_per_bucket, "key", "% of HCCs served per bucket")+"</td></tr>"
+
   r += "</td></tr>"
-  r += "<tr><td nowrap>HCCs % per bucket:</td><td>"
-  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-  for per_served in per_served_per_bucket:
-    r += "<tr><td width='50%'>" + str(per_served) + "</td><td width='50%'>" + str(per_served_per_bucket[per_served]) + "</td></tr>"
-  r += "</table>"
-  r += "</td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s %% per bucket:</td><td bgcolor='#D8D8D8'>" % (options['target_hcc'])
-  r += "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-  for targ_hcc in targ_hcc_per_serv_per_bucket:
-    r += "<tr><td width='50%'>" + str(targ_hcc) + "</td><td width='50%'>" + str(targ_hcc_per_serv_per_bucket[targ_hcc]) + "</td></tr>"
-  r += "</table>"
+  r += "<tr><td colspan='2'>"+jsonToHtmlTable(targ_hcc_per_serv_per_bucket, "key", "% of Targeted HCC-"+options['target_hcc']+" served per bucket")+"</td></tr>"
   r += "</td></tr>"
   r += "<tr><td colspan='2'><hr></td></tr>"
   drawGraph(targ_hcc_per_serv_per_bucket, options)
@@ -987,7 +1005,7 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "8"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "106"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
