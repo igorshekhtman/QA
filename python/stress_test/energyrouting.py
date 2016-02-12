@@ -601,8 +601,9 @@ def confirmSettings(options, cookies):
   print LS
   return(en_rout_stat)
 #=======================================================================================================================
-def drawGraph(srcedict, options):
+def drawGraph(srcedict, options, graph_title):
   global CURDAY
+  img_name = str(CURDAY)
   key = sorted(srcedict.keys())
   temp = []
   for i in key:
@@ -613,14 +614,16 @@ def drawGraph(srcedict, options):
   plot(x, y, color='green', linewidth=3, linestyle='solid', marker='o', markerfacecolor='blue', markersize=6)
   xlabel('# of serves per time bucket')
   ylabel('% of targeted HCC-'+str(options['target_hcc'])+' served')
-  title('HCC Opportunity Router Optimization Test')
+  title(graph_title)
   grid(True)
-  savefig(str(CURDAY))
-  return()
+  savefig(img_name)
+  return(img_name)
 #=======================================================================================================================
-def jsonToHtmlTable(sdict, sortby, hdr):
+def jsonToHtmlTable(sdict, sortby, hdr, col_width):
+  lw=col_width.split("-")[0]
+  rw=col_width.split("-")[1]
   report = "<table width='800' cellspacing='0' cellpadding='2' border='0'>"
-  report += "<tr><td colspan='2' align='center'><b>"+str(hdr)+"</b></td></tr>"
+  report += "<tr><td colspan='2' align='left'><b><font size='3'>"+str(hdr)+"</font></b></td></tr>"
   report += "<tr><td>"
   report += "<table width='800' cellspacing='0' cellpadding='2' border='1'>"
   if sortby == "value":
@@ -636,39 +639,16 @@ def jsonToHtmlTable(sdict, sortby, hdr):
             b_color = '#FFFF00'
           else:
             b_color = '#FFFFFF'
-        report += "<tr><td bgcolor='"+b_color+"' > HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' ><b>"+str(item[1])+"</b></td></tr>"
+        report += "<tr><td bgcolor='"+b_color+"' width='"+lw+"%'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' width='"+rw+"%'><b>"+str(item[1])+"</b></td></tr>"
         ctr += 1
   else:
     sorteditems = sorted(sdict.items(), key=operator.itemgetter(0), reverse=False)
     for item in sorteditems:
       if item[1] > 0:
-        report +="<tr><td >"+str(item[0])+"</td><td ><b>"+str(item[1])+"</b></td></tr>"
+        report +="<tr><td width='"+lw+"%'>"+str(item[0])+"</td><td width='"+rw+"%'><b>"+str(item[1])+"</b></td></tr>"
   report += "</table>"
   report += "</td></tr></table>"
   return (report)
-#=======================================================================================================================
-def convertJsonToTable(srcedict, sortby):
-  report = "<table width='500' cellspacing='0' cellpadding='2' border='1'>"
-  if sortby == "value":
-    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(1), reverse=True)
-    ctr = 0
-    for item in sorteditems:
-      if ctr == 0:
-        b_color = '#FFFF00'
-        most_served = item[1]
-      else:
-        if (item[1] == most_served) or (item[0] == options['target_hcc']):
-          b_color = '#FFFF00'
-        else:
-          b_color = '#FFFFFF'
-      report += "<tr><td bgcolor='"+b_color+"' width='50%'> HCC-"+str(item[0])+"</td><td bgcolor='"+b_color+"' width='50%'><b>"+str(item[1])+"</b></td></tr>"
-      ctr += 1
-  else:
-    sorteditems = sorted(srcedict.items(), key=operator.itemgetter(0), reverse=False)
-    for item in sorteditems:
-      report +="<tr><td width='50%'>"+str(item[0])+"</td><td width='50%'><b>"+str(item[1])+"</b></td></tr>"
-  report += "</table>"
-  return(report)
 #=======================================================================================================================
 def extractTargetedHccData(targhcc, srcedict):
   extrdict = {}
@@ -709,38 +689,35 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
   r +=  "<tr><td bgcolor='"+getBgColor('(heading)')+"' colspan='5'>ENERGY ROUTING TEST COMPLETE</td></tr>"
   r +=  "</table>"
   r += "<table align='left' width='800' cellpadding='1' cellspacing='1'>"
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td colspan='2' align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Overall Acceptance rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['action_weights']['all']['va'])
-  r += "<tr><td nowrap>Overall Rejection rate:</td><td><b>%s %%</b></td></tr>" % (options['action_weights']['all']['vr'])
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>HCC-%s Acceptance rate:</td><td bgcolor='#D8D8D8'><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['va'])
-  r += "<tr><td nowrap>HCC-%s Rejection rate:</td><td><b>%s %%</b></td></tr>" % (options['target_hcc'], options['action_weights']['target']['vr'])
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td nowrap>HCCs:</td><td>"+convertJsonToTable(det_totals['hcc'], "key")+"</td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Model payment year:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['model_payment_year'], "key")+"</td></tr>"
-  r += "<tr><td nowrap>Sweep:</td><td>"+convertJsonToTable(det_totals['sweep'], "key")+"</td></tr>"
-  r += "<tr><td bgcolor='#D8D8D8' nowrap>Label set version:</td><td bgcolor='#D8D8D8'>"+convertJsonToTable(det_totals['label_set_version'], "key")+"</td></tr>"
-  r += "<tr><td colspan='2'><hr></td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td align='center'><font size='4'><b>TARGETED HCC-%s</b></font></td></tr>" % (options['target_hcc'])
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>Overall Accept rate: <b>"+str(options['action_weights']['all']['va'])+"%</b></td></tr>"
+  r += "<tr><td>Overall Reject rate: <b>"+str(options['action_weights']['all']['vr'])+"%</b></td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>HCC-"+str(options['target_hcc'])+" Accept rate: <b>"+str(options['action_weights']['target']['va'])+"%</b></td></tr>"
+  r += "<tr><td>HCC-"+str(options['target_hcc'])+" Reject rate: <b>"+str(options['action_weights']['target']['vr'])+"%</b></td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(det_totals['hcc'], "key", "HCCs", "30-80")+"</td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(det_totals['model_payment_year'], "key", "Model payment year", "30-80")+"</td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(det_totals['sweep'], "key", "Sweep", "30-80")+"</td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(det_totals['label_set_version'], "key", "Label set version", "30-80")+"</td></tr>"
+  r += "<tr><td><hr></td></tr>"
 
-  r += "<tr><td colspan='3'>"+jsonToHtmlTable(opps_totals, "value", "Total count of individual HCCs served")+"</td></tr>"
-
-  r += "<tr><td colspan='2'>"+jsonToHtmlTable(served_totals, "key", "Number of HCCs served per bucket")+"</td></tr>"
-
-  r += "<tr><td colspan='2'>"+jsonToHtmlTable(per_served_per_bucket, "key", "% of HCCs served per bucket")+"</td></tr>"
-
-  r += "</td></tr>"
-  r += "<tr><td colspan='2'>"+jsonToHtmlTable(targ_hcc_per_serv_per_bucket, "key", "% of Targeted HCC-"+options['target_hcc']+" served per bucket")+"</td></tr>"
-  r += "</td></tr>"
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  drawGraph(targ_hcc_per_serv_per_bucket, options)
-  r += "<tr><td colspan='2'><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
-  r += "<tr><td colspan='2'><hr></td></tr>"
-  r += "<tr><td colspan='2'><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time)))
-  r += "<tr><td colspan='2'>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time)))
-  r += "<tr><td colspan='2'>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(round(hours)), int(round(minuts)), int(round(seconds)))
-  r += "<tr><td colspan='2'><br><i>-- Apixio QA Team</i></td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(opps_totals, "value", "Total count of individual HCCs served", "30-80")+"</td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(served_totals, "key", "Number of HCCs served per bucket", "5-95")+"</td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(per_served_per_bucket, "key", "% of HCCs served per bucket", "5-95")+"</td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td>"+jsonToHtmlTable(targ_hcc_per_serv_per_bucket, "key", "% of Targeted HCC-"+options['target_hcc']+" served per bucket", "5-95")+"</td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td><img src='cid:picture@example.com' width='800' height='600'></td></tr>"
+  r += "<tr><td><hr></td></tr>"
+  r += "<tr><td><br>Start of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(start_time)))
+  r += "<tr><td>End of %s - <b>%s</b></td></tr>" % (options['rep_type'], strftime("%m/%d/%Y %H:%M:%S<br>", gmtime(end_time)))
+  r += "<tr><td>Test Duration: <b>%s hrs %s min %s sec</b><br></td></tr>" % (int(round(hours)), int(round(minuts)), int(round(seconds)))
+  r += "<tr><td><br><i>-- Apixio QA Team</i></td></tr>"
   r += "</table>"
   r += "</td></tr></table>"
   r += "</td></tr></table>"
@@ -749,24 +726,23 @@ def writeReport(options, totals, opps_totals, start_time, en_rout_stat, det_tota
 def archiveReport(report):
 	global DEBUG_MODE, ENVIRONMENT, CURMONTH, CURDAY, IMAGEFILENAME
 	if not DEBUG_MODE:
-		print ("Archiving report ...\n")
 		BACKUPREPORTFOLDER="/mnt/reports/"+ENVIRONMENT+"/opprtropt/"+strftime("%Y", gmtime())+"/"+str(CURMONTH)
 		REPORTFOLDER="/usr/lib/apx-reporting/assets/reports/"+ENVIRONMENT+"/opprtropt/"+strftime("%Y", gmtime())+"/"+str(CURMONTH)
 		# ------------- Create new folder if one does not exist already -------------------------------
 		if not os.path.exists(BACKUPREPORTFOLDER):
 			os.makedirs(BACKUPREPORTFOLDER)
-			os.chmod(BACKUPREPORTFOLDER, 0777)	
+			os.chmod(BACKUPREPORTFOLDER, 0777)
 		if not os.path.exists(REPORTFOLDER):
 			os.makedirs(REPORTFOLDER)
 			os.chmod(REPORTFOLDER, 0777)
 		# ---------------------------------------------------------------------------------------------
 		REPORTFILENAME=str(CURDAY)+".html"
-		IMAGEFILENAME=str(CURDAY)+".png" 
+		IMAGEFILENAME=str(CURDAY)+".png"
 		REPORTXTSTRING="OppRtrOpt "+ENVIRONMENT[:1].upper()+ENVIRONMENT[1:].lower()+" Report - "+str(MONTH_FMN)+" "+str(CURDAY)+", "+strftime("%Y", gmtime())+"\t"+"reports/"+ENVIRONMENT+"/opprtropt/"+strftime("%Y", gmtime())+"/"+str(CURMONTH)+"/"+REPORTFILENAME+"\n"
 		REPORTXTFILENAME="opprtropt_reports_"+ENVIRONMENT.lower()+".txt"
-		# Old location 
+		# Old location
 		#REPORTXTFILEFOLDER="/usr/lib/apx-reporting/html/assets"
-		# New location 
+		# New location
 		REPORTXTFILEFOLDER="/usr/lib/apx-reporting/assets"
 		os.chdir(BACKUPREPORTFOLDER)
 		REPORTFILE = open(REPORTFILENAME, 'w')
@@ -792,10 +768,9 @@ def archiveReport(report):
 		shutil.copy(IMAGEFILENAME, BACKUPREPORTFOLDER)
 		# Delete graph image file from test folder
 		# os.remove(IMAGEFILENAME)
-		print ("Finished archiving report ... \n")
 #=======================================================================================================================
-def emailReport(options, report):
-  imagefname=str(CURDAY)+".png"
+def emailReport(options, report, img_name):
+  imagefname=img_name+".png"
   message = MIMEMultipart('related')
   message.attach(MIMEText((report), 'html'))
   with open(imagefname, 'rb') as image_file:
@@ -1005,7 +980,7 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "106"
+  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "108"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
@@ -1025,7 +1000,7 @@ def Main():
   buckets = generateBuckets(options)
   totals, opps_totals, det_totals, served_totals = startCoding(options, cookies, buckets)
   per_served_per_bucket, targ_hcc_per_serv_per_bucket = convertToPercentPerBucket(options, served_totals)
-
+  img_name = drawGraph(targ_hcc_per_serv_per_bucket, options, "HCC Energy Routing Test")
 
   printResults(options, start_time, totals)
   logout(options)
@@ -1033,7 +1008,7 @@ def Main():
                              en_rout_stat, det_totals, served_totals, \
                              per_served_per_bucket, targ_hcc_per_serv_per_bucket)
   #archiveReport(report)
-  emailReport(options, report)
+  emailReport(options, report, img_name)
 
 if __name__ == "__main__":
   Main()
