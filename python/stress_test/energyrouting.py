@@ -980,7 +980,7 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = [str(sys.argv[6])] if len(sys.argv) > 6 else "108"
+  options['target_hcc'] = str(sys.argv[6]) if len(sys.argv) > 6 else "108"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
