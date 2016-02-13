@@ -1079,17 +1079,37 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.hostname') as hostname,
 get_json_object(line, '$.client') as client,
 get_json_object(line, '$.app.data_orchestrator.acl.request_id') as request_id,
-get_json_object(line, '$.app.data_orchestrator.acl.permission') as permission,
-get_json_object(line, '$.app.data_orchestrator.acl.userId')  as user_id,
-get_json_object(line, '$.app.data_orchestrator.acl.authStatus') as auth_status, 
-get_json_object(line, '$.app.data_orchestrator.acl.status') as status, 
-get_json_object(line, '$.app.data_orchestrator.acl.error') as error , 
-substr(get_json_object(line, '$.datestamp'),0,4) as year,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.operation'),
+get_json_object(line, '$.app.data_orchestrator.acl.permission')) as permission,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.userID'),
+get_json_object(line, '$.app.data_orchestrator.acl.userId')) as user_id,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.allowed'),
+get_json_object(line, '$.app.data_orchestrator.acl.authStatus')) as auth_status, 
+if(get_json_object(line, '$.acl') is not null,
+'success',
+get_json_object(line, '$.app.data_orchestrator.acl.status')) as status, 
+if(get_json_object(line, '$.acl') is not null, 
+get_json_object(line, '$.acl.reason'), 
+get_json_object(line, '$.app.data_orchestrator.acl.error')) as error,
+get_json_object(line, '$.acl.userEmail') as user_email,
+get_json_object(line, '$.acl.endpoint') as endpoint,
+get_json_object(line, '$.acl.millis') as millis,
+if(year is not null, 
+year,
+substr(get_json_object(line, '$.datestamp'),0,4)) as year,
 month,
 day,
-get_json_object(line, '$.app.data_orchestrator.acl.orgId') as org_id
+if(get_json_object(line, '$.acl') is not null,
+if(get_json_object(line, '$.acl.object') like 'O_%',
+regexp_extract(get_json_object(line, '$.acl.object'), '[1-9]+[0-9]*', 0),
+get_json_object(line, '$.acl.object')),
+get_json_object(line, '$.app.data_orchestrator.acl.orgId')) as org_id
 FROM production_logs_dataorchestrator_epoch
-WHERE get_json_object(line, '$.app.data_orchestrator.acl') is not null
+WHERE (get_json_object(line, '$.app.data_orchestrator.acl') is not null 
+or get_json_object(line, '$.acl') is not null)
 and ($dateRange);
 
 ! echo end of summary_dataorchestrator_acl
@@ -2175,17 +2195,37 @@ get_json_object(line, '$.datestamp') as time,
 get_json_object(line, '$.hostname') as hostname,
 get_json_object(line, '$.client') as client,
 get_json_object(line, '$.app.data_orchestrator.acl.request_id') as request_id,
-get_json_object(line, '$.app.data_orchestrator.acl.permission') as permission,
-get_json_object(line, '$.app.data_orchestrator.acl.userId')  as user_id,
-get_json_object(line, '$.app.data_orchestrator.acl.authStatus') as auth_status, 
-get_json_object(line, '$.app.data_orchestrator.acl.status') as status, 
-get_json_object(line, '$.app.data_orchestrator.acl.error') as error , 
-substr(get_json_object(line, '$.datestamp'),0,4) as year,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.operation'),
+get_json_object(line, '$.app.data_orchestrator.acl.permission')) as permission,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.userID'),
+get_json_object(line, '$.app.data_orchestrator.acl.userId')) as user_id,
+if(get_json_object(line, '$.acl') is not null,
+get_json_object(line, '$.acl.allowed'),
+get_json_object(line, '$.app.data_orchestrator.acl.authStatus')) as auth_status, 
+if(get_json_object(line, '$.acl') is not null,
+'success',
+get_json_object(line, '$.app.data_orchestrator.acl.status')) as status, 
+if(get_json_object(line, '$.acl') is not null, 
+get_json_object(line, '$.acl.reason'), 
+get_json_object(line, '$.app.data_orchestrator.acl.error')) as error,
+get_json_object(line, '$.acl.userEmail') as user_email,
+get_json_object(line, '$.acl.endpoint') as endpoint,
+get_json_object(line, '$.acl.millis') as millis,
+if(year is not null, 
+year,
+substr(get_json_object(line, '$.datestamp'),0,4)) as year,
 month,
 day,
-get_json_object(line, '$.app.data_orchestrator.acl.orgId') as org_id
+if(get_json_object(line, '$.acl') is not null,
+if(get_json_object(line, '$.acl.object') like 'O_%',
+regexp_extract(get_json_object(line, '$.acl.object'), '[1-9]+[0-9]*', 0),
+get_json_object(line, '$.acl.object')),
+get_json_object(line, '$.app.data_orchestrator.acl.orgId')) as org_id
 FROM staging_logs_dataorchestrator_epoch
-WHERE get_json_object(line, '$.app.data_orchestrator.acl') is not null
+WHERE (get_json_object(line, '$.app.data_orchestrator.acl') is not null 
+or get_json_object(line, '$.acl') is not null)
 and ($dateRange);
 
 
