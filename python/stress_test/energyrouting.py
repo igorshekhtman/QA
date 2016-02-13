@@ -630,7 +630,7 @@ def jsonToHtmlTable(sdict, sortby, hdr, col_width):
     sorteditems = sorted(sdict.items(), key=operator.itemgetter(1), reverse=True)
     ctr = 0
     for item in sorteditems:
-      if item[1] > 0:
+      #if item[1] > 0:
         if ctr == 0:
           b_color = '#FFFF00'
           most_served = item[1]
@@ -644,7 +644,7 @@ def jsonToHtmlTable(sdict, sortby, hdr, col_width):
   else:
     sorteditems = sorted(sdict.items(), key=operator.itemgetter(0), reverse=False)
     for item in sorteditems:
-      if item[1] > 0:
+      #if item[1] > 0:
         report +="<tr><td width='"+lw+"%'>"+str(item[0])+"</td><td width='"+rw+"%'><b>"+str(item[1])+"</b></td></tr>"
   report += "</table>"
   report += "</td></tr></table>"
@@ -980,7 +980,7 @@ def Main():
   options['max_opps'] = int(sys.argv[3]) if len(sys.argv) > 3 else 10
   options['max_ret'] = int(sys.argv[4]) if len(sys.argv) > 4 else 10
   options['coding_delay_time'] = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-  options['target_hcc'] = str(sys.argv[6]) if len(sys.argv) > 6 else "108"
+  options['target_hcc'] = str(sys.argv[6]) if len(sys.argv) > 6 else "105"
   options['dos'] = str(sys.argv[7]) if len(sys.argv) > 7 else "04/04/2014"
   options['report_recepients'] = [str(sys.argv[8])] if len(sys.argv) > 8 else ["ishekhtman@apixio.com"]
   options['action_weights'] = {'all':{'vo':0, 'va':10, 'vr':90, 'vs':0}, 'target':{'vo':0, 'va':95, 'vr':5, 'vs':0}}
